@@ -1136,5 +1136,18 @@
         "reply_sent_desc": "Su respuesta se ha enviado al usuario en {language}.",
         "err_dm_closed": "❌ No se pudo enviar la respuesta: el usuario tiene los MD cerrados.",
         "reset_done": "✅ Se han restablecido todas las sesiones de modmail."
+    },
+    "ghost": {
+        "added": "✅ Ghost ping activado en {channel}: cada nuevo miembro será mencionado allí y el mensaje se borrará tras {seconds} s.",
+        "hidden_warning": "⚠️ @everyone no ve este canal: un nuevo miembro que no pueda verlo no recibirá la mención.",
+        "removed": "🗑️ Ghost ping quitado de {channel}.",
+        "already": "ℹ️ {channel} ya está en la lista del ghost ping.",
+        "not_listed": "ℹ️ {channel} no está en la lista del ghost ping.",
+        "limit": "❌ {max} canales como máximo. Quita uno con `/ghost remove`.",
+        "bot_cannot_write": "❌ No puedo escribir en {channel}: dame **Ver canal** y **Enviar mensajes**.",
+        "list_title": "👻 Ghost ping",
+        "list_desc": "Cada nuevo miembro es mencionado en estos canales ({count}/{max}) y el mensaje se borra tras {seconds} s.",
+        "list_empty": "Aún no hay canales de ghost ping. Añade uno con `/ghost add`.",
+        "test_sent": "👻 Ghost ping de prueba enviado en **{sent}/{total}** canal(es), borrado tras {seconds} s. Si falta un canal, revisa mis permisos en él."
     }
 }

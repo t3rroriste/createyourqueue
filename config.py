@@ -24,7 +24,7 @@ GUNZFRANCE_GUILD_ID = SUPPORT_GUILD_ID
 # Vide = pas de bouton plutot qu'un lien mort.
 SUPPORT_INVITE = os.getenv("SUPPORT_INVITE", "").strip()
 
-# Propriétaire du bot, pour les commandes réservées (/waiting).
+# Propriétaire du bot, pour les commandes réservées (/waiting, /tempo).
 # 0 = le propriétaire de l'application Discord.
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 
@@ -65,7 +65,8 @@ INITIAL_EXTENSIONS = [
 
 # Extensions spécifiques pour le bot temporaire (commandes owner uniquement)
 TEMPORARY_EXTENSIONS = [
-    "cogs.temp_bot",  # Commande /waiting
+    "cogs.temp_bot",  # Commandes /waiting et /tempo
+    "cogs.ghost",  # Commande /ghost : ghost ping d'arrivée (administrateurs)
 ]
 
 # Extensions spécifiques pour le bot modmail

@@ -1136,5 +1136,18 @@
         "reply_sent_desc": "Votre réponse a été envoyée au membre en {language}.",
         "err_dm_closed": "❌ Impossible d'envoyer la réponse : le membre a fermé ses messages privés.",
         "reset_done": "✅ Toutes les sessions modmail ont été réinitialisées."
+    },
+    "ghost": {
+        "added": "✅ Ghost ping activé dans {channel} : chaque nouveau membre y sera mentionné, puis le message sera supprimé au bout de {seconds} s.",
+        "hidden_warning": "⚠️ @everyone ne voit pas ce salon : un nouveau membre qui ne peut pas le voir ne recevra pas la mention.",
+        "removed": "🗑️ Ghost ping retiré de {channel}.",
+        "already": "ℹ️ {channel} est déjà dans la liste du ghost ping.",
+        "not_listed": "ℹ️ {channel} n'est pas dans la liste du ghost ping.",
+        "limit": "❌ {max} salons maximum. Retires-en un avec `/ghost remove`.",
+        "bot_cannot_write": "❌ Je ne peux pas écrire dans {channel} : donne-moi **Voir le salon** et **Envoyer des messages**.",
+        "list_title": "👻 Ghost ping",
+        "list_desc": "Chaque nouveau membre est mentionné dans ces salons ({count}/{max}), puis le message est supprimé au bout de {seconds} s.",
+        "list_empty": "Aucun salon de ghost ping. Ajoutes-en un avec `/ghost add`.",
+        "test_sent": "👻 Ghost ping de test envoyé dans **{sent}/{total}** salon(s), supprimé au bout de {seconds} s. Si un salon manque, vérifie mes permissions dedans."
     }
 }

@@ -5,7 +5,7 @@ Lance un ou plusieurs bots Discord dans le même programme. Chacun a son token
 dans `.env` et sa liste de cogs dans `config.py`.
 
     python bot.py --bot main         le bot principal
-    python bot.py --bot temporaire   le bot temporaire (/waiting)
+    python bot.py --bot temporaire   le bot temporaire (/waiting, /tempo)
     python bot.py --bot modmail      le bot de support par MP
     python bot.py --bot both         principal + temporaire
     python bot.py                    les trois (exige les trois tokens)

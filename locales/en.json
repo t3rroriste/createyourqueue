@@ -1136,5 +1136,18 @@
         "reply_sent_desc": "Your response has been sent to the user in {language}.",
         "err_dm_closed": "❌ Unable to send the response: the user has closed their DMs.",
         "reset_done": "✅ All modmail sessions have been reset."
+    },
+    "ghost": {
+        "added": "✅ Ghost ping enabled in {channel}: every new member will be mentioned there, then the message will be deleted after {seconds} s.",
+        "hidden_warning": "⚠️ @everyone can't see this channel: a new member who can't see it won't get the mention.",
+        "removed": "🗑️ Ghost ping removed from {channel}.",
+        "already": "ℹ️ {channel} is already in the ghost ping list.",
+        "not_listed": "ℹ️ {channel} isn't in the ghost ping list.",
+        "limit": "❌ {max} channels maximum. Remove one with `/ghost remove`.",
+        "bot_cannot_write": "❌ I can't write in {channel}: give me **View Channel** and **Send Messages**.",
+        "list_title": "👻 Ghost ping",
+        "list_desc": "Every new member is mentioned in these channels ({count}/{max}), then the message is deleted after {seconds} s.",
+        "list_empty": "No ghost ping channel yet. Add one with `/ghost add`.",
+        "test_sent": "👻 Test ghost ping sent in **{sent}/{total}** channel(s), deleted after {seconds} s. If a channel is missing, check my permissions there."
     }
 }

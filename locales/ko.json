@@ -1136,5 +1136,18 @@
         "reply_sent_desc": "답변이 {language}(으)로 사용자에게 전송되었습니다.",
         "err_dm_closed": "❌ 답변을 보낼 수 없습니다. 사용자가 DM을 막아 두었습니다.",
         "reset_done": "✅ 모든 모드메일 세션이 초기화되었습니다."
+    },
+    "ghost": {
+        "added": "✅ {channel}에서 고스트 핑이 활성화되었습니다. 새 멤버가 들어오면 이곳에서 멘션되고, 메시지는 {seconds}초 후 삭제됩니다.",
+        "hidden_warning": "⚠️ @everyone이 이 채널을 볼 수 없습니다. 채널을 볼 수 없는 새 멤버는 멘션을 받지 못합니다.",
+        "removed": "🗑️ {channel}에서 고스트 핑을 제거했습니다.",
+        "already": "ℹ️ {channel}은(는) 이미 고스트 핑 목록에 있습니다.",
+        "not_listed": "ℹ️ {channel}은(는) 고스트 핑 목록에 없습니다.",
+        "limit": "❌ 채널은 최대 {max}개까지입니다. `/ghost remove`로 하나를 제거하세요.",
+        "bot_cannot_write": "❌ {channel}에 메시지를 보낼 수 없습니다. **채널 보기**와 **메시지 보내기** 권한을 주세요.",
+        "list_title": "👻 고스트 핑",
+        "list_desc": "새 멤버는 이 채널들({count}/{max})에서 멘션되고, 메시지는 {seconds}초 후 삭제됩니다.",
+        "list_empty": "고스트 핑 채널이 없습니다. `/ghost add`로 추가하세요.",
+        "test_sent": "👻 테스트 고스트 핑을 **{sent}/{total}**개 채널에 보냈고, {seconds}초 후 삭제됩니다. 빠진 채널이 있다면 그 채널의 제 권한을 확인하세요."
     }
 }

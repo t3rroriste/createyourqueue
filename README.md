@@ -13,7 +13,7 @@ Le bot parle **5 langues** (français, anglais, espagnol, allemand, coréen) et 
 | Bot | Rôle | Token dans `.env` | Cogs chargés (`config.py`) |
 |---|---|---|---|
 | **Principal** | Toutes les commandes ci-dessous | `DISCORD_TOKEN` | `INITIAL_EXTENSIONS` + `WELCOME_EXTENSIONS` |
-| **Temporaire** | `/waiting`, réservée au propriétaire | `DISCORD_TOKEN_TEMPORAIRE` | `TEMPORARY_EXTENSIONS` |
+| **Temporaire** | `/waiting` et `/tempo` (remise à zéro totale du serveur), réservées au propriétaire ; `/ghost` (ghost ping d'arrivée), réservée aux administrateurs | `DISCORD_TOKEN_TEMPORAIRE` | `TEMPORARY_EXTENSIONS` |
 | **ModMail** | Support par message privé — voir [`MODMAIL_SETUP.md`](MODMAIL_SETUP.md) | `DISCORD_TOKEN_MODMAIL` | `MODMAIL_EXTENSIONS` |
 
 On choisit lesquels lancer avec `--bot` :
@@ -31,6 +31,22 @@ python bot.py --bot main
 | `python bot.py` | **les trois** (c'est le défaut) | 3 |
 
 ⚠️ **`python bot.py` sans option lance les trois bots**, et s'arrête tout de suite s'il manque un seul des trois tokens. Si tu n'utilises que le bot principal, lance toujours `--bot main`.
+
+### 👻 `/ghost` — ghost ping d'arrivée (bot temporaire)
+
+Chaque nouveau membre est mentionné dans les salons choisis, puis le message est supprimé au bout de 5 secondes : la notification est partie, le salon reste vide. Réservée aux administrateurs.
+
+| Commande | Effet |
+|---|---|
+| `/ghost add salon` | Ajoute un salon (5 maximum) |
+| `/ghost remove salon` | Le retire |
+| `/ghost list` | Salons configurés |
+| `/ghost test` | T'envoie un ghost ping pour vérifier |
+
+- Les arrivées de la même seconde partent dans **un seul message** : un raid ne fait pas 50 messages.
+- Si le serveur a un **règlement d'accueil** Discord, le ping part quand le membre l'accepte — avant, il ne voit aucun salon.
+- Dans chaque salon choisi, le bot a besoin de **Voir le salon** et **Envoyer des messages**, et le nouveau membre doit pouvoir voir le salon.
+- Les salons sont enregistrés dans `data/ghost_ping.json`.
 
 ---
 
@@ -142,6 +158,8 @@ createyourqueue/
     ├── automation.py    # /schedule, /season, /podium
     ├── classement.py    # /leaderboard, /stats, /serverstats
     ├── clan.py          # /clan, /clantransfer, /cw
+    ├── clan_war.py      # ClanWar : session, boutons, abandon (importé par clan.py)
+    ├── clan_tickets.py  # Tickets du bouton « Problème » d'un ClanWar
     ├── party.py         # /groupe
     ├── wizard.py        # /option
     ├── welcome.py       # Message d'arrivée et choix de la langue
@@ -150,7 +168,8 @@ createyourqueue/
     ├── moderation.py    # /clear, /warn, /timeout…
     ├── statuspanel.py   # /status
     ├── modmail.py       # Bot modmail : support par MP
-    ├── temp_bot.py      # Bot temporaire : /waiting
+    ├── temp_bot.py      # Bot temporaire : /waiting, /tempo
+    ├── ghost.py         # Bot temporaire : /ghost (ghost ping d'arrivée)
     ├── antiraid.py  antilink.py  auto_clean.py  logs.py
     └── help.py  language.py  diagnostic.py  reset.py
         guard.py  poll.py  queue_guide.py  voice_manager.py
@@ -233,7 +252,7 @@ copy .env.example .env
 | `DISCORD_TOKEN` | Oui |
 | `DISCORD_TOKEN_TEMPORAIRE` | Seulement pour lancer le bot temporaire |
 | `DISCORD_TOKEN_MODMAIL` | Seulement pour lancer le bot modmail |
-| `OWNER_ID` | Non — ton ID Discord, seul autorisé à utiliser `/waiting` (sinon : le propriétaire de l'application) |
+| `OWNER_ID` | Non — ton ID Discord, seul autorisé à utiliser `/waiting` et `/tempo` (sinon : le propriétaire de l'application) |
 | `SUPPORT_GUILD_ID` | Non — ton serveur officiel, toujours en français |
 | `SUPPORT_INVITE` | Non — bouton d'invitation dans le message d'arrivée |
 | `MODMAIL_GUILD_ID`, `MODMAIL_STAFF_CHANNEL_ID`, `MODMAIL_STAFF_ROLE_ID` | Pour le modmail |

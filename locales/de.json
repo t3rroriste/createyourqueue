@@ -1136,5 +1136,18 @@
         "reply_sent_desc": "Ihre Antwort wurde dem Nutzer auf {language} gesendet.",
         "err_dm_closed": "❌ Antwort konnte nicht gesendet werden: Der Nutzer hat DMs deaktiviert.",
         "reset_done": "✅ Alle Modmail-Sitzungen wurden zurückgesetzt."
+    },
+    "ghost": {
+        "added": "✅ Ghost Ping in {channel} aktiviert: Jedes neue Mitglied wird dort erwähnt, danach wird die Nachricht nach {seconds} s gelöscht.",
+        "hidden_warning": "⚠️ @everyone sieht diesen Kanal nicht: Ein neues Mitglied, das ihn nicht sehen kann, bekommt die Erwähnung nicht.",
+        "removed": "🗑️ Ghost Ping aus {channel} entfernt.",
+        "already": "ℹ️ {channel} ist bereits in der Ghost-Ping-Liste.",
+        "not_listed": "ℹ️ {channel} ist nicht in der Ghost-Ping-Liste.",
+        "limit": "❌ Maximal {max} Kanäle. Entferne einen mit `/ghost remove`.",
+        "bot_cannot_write": "❌ Ich kann in {channel} nicht schreiben: Gib mir **Kanal ansehen** und **Nachrichten senden**.",
+        "list_title": "👻 Ghost Ping",
+        "list_desc": "Jedes neue Mitglied wird in diesen Kanälen erwähnt ({count}/{max}), danach wird die Nachricht nach {seconds} s gelöscht.",
+        "list_empty": "Noch kein Ghost-Ping-Kanal. Füge einen mit `/ghost add` hinzu.",
+        "test_sent": "👻 Test-Ghost-Ping in **{sent}/{total}** Kanal/Kanälen gesendet, nach {seconds} s gelöscht. Fehlt ein Kanal, prüfe dort meine Berechtigungen."
     }
 }
