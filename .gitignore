@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Données des serveurs et tickets du modmail : jamais dans le dépôt
+data/*.json
+data/*.illisible-*
+modmail_sessions.json
+
+# Journaux
+*.log
+bot_output.txt
+
+# Fichiers locaux
+.DS_Store
+.claude/settings.local.json
+graphify-out/cache/

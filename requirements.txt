@@ -1,0 +1,14 @@
+# Versions figées : celles installées et testées en local (Python 3.14).
+# Un déploiement installe exactement ces versions ; les mettre à jour est un
+# choix, pas un effet du hasard.
+discord.py==2.7.1
+python-dotenv==1.2.2
+aiohttp==3.14.1
+
+# Vocal : chiffrement (PyNaCl) et protocole DAVE (davey), utilisés par discord.py
+PyNaCl==1.6.2
+davey==0.1.6
+
+# Bot modmail : détection de la langue des messages et traduction des réponses
+langdetect==1.0.9
+deep-translator==1.11.4

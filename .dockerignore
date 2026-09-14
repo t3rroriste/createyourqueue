@@ -1,0 +1,15 @@
+# Rien de tout ça ne doit finir dans l'image : secrets, environnement local,
+# données des serveurs (elles vivent sur le volume de l'hébergeur).
+.env
+.git
+venv/
+.venv/
+__pycache__/
+*.pyc
+data/
+modmail_sessions.json
+graphify-out/
+.claude/
+tests/
+*.log
+bot_output.txt

@@ -1,0 +1,14 @@
+# Fichiers que graphify ne doit pas analyser.
+# L'environnement Python : des milliers de fichiers de bibliothèques,
+# rien qui appartienne au bot.
+venv/
+__pycache__/
+# Secrets et données des serveurs : jamais dans la carte.
+.env
+data/
+# La carte elle-même.
+graphify-out/
+# Journaux et sons.
+*.log
+bot_output.txt
+*.mp3
