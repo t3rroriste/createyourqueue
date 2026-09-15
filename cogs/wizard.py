@@ -279,7 +279,9 @@ class OptionsWizard(discord.ui.View):
         self.roles.label = t(gid, "wiz.opt_btn_roles")
         self.staff.label = t(gid, "wiz.opt_btn_staff")
         self.finish.label = t(gid, "wiz.btn_close" if solo else "wiz.btn_finish")
-        self.finish.disabled = not queue_ready(gid)
+        # Toujours cliquable : on peut terminer sans avoir tout réglé. Seules
+        # les commandes de queue attendent les salons (voir config.py,
+        # SETUP_REQUIRED_COMMANDS) ; /queue ramènera ici au besoin.
 
     async def guard(self, interaction: discord.Interaction) -> bool:
         if _may_configure(interaction.user):

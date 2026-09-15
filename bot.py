@@ -37,6 +37,7 @@ from config import (
     DIAGNOSTIC_CHANNEL_ID,
     INITIAL_EXTENSIONS,
     MODMAIL_EXTENSIONS,
+    SETUP_REQUIRED_COMMANDS,
     TEMPORARY_EXTENSIONS,
     WELCOME_EXTENSIONS,
 )
@@ -219,14 +220,12 @@ class CreateYourQueueBot(commands.Bot):
         await super().close()
 
 
-# Commandes accessibles avant la configuration.
-# /queue en fait partie : c'est elle qui ouvre l'assistant. La bloquer
-# enfermait l'administrateur dehors — la commande qui configure le bot
-# était précisément celle qu'il ne pouvait pas lancer.
-_SETUP_EXEMPT = {"queue", "option", "config", "help", "guide", "language", "diagnostic", "status"}
-
-
 async def global_setup_check(interaction: discord.Interaction) -> bool:
+    """Bloque les commandes de queue tant que le serveur n'est pas configuré.
+
+    Liste NOIRE (SETUP_REQUIRED_COMMANDS dans config.py), plus liste blanche :
+    l'administration, la modération et les utilitaires marchent dès l'arrivée
+    du bot, y compris les commandes ajoutées plus tard sans y penser."""
     from config import GUNZFRANCE_GUILD_ID
 
     if interaction.guild_id is None:
@@ -235,11 +234,17 @@ async def global_setup_check(interaction: discord.Interaction) -> bool:
     if GUNZFRANCE_GUILD_ID and interaction.guild_id == GUNZFRANCE_GUILD_ID:
         return True
 
-    if is_setup_complete(interaction.guild_id):
+    command = interaction.command
+    if command is None:
+        return True
+    # Une sous-commande (/roles panel) se juge sur sa commande racine. L'ancien
+    # test lisait le nom de la sous-commande : /antiraid status passait parce
+    # que « status » était autorisée.
+    root = getattr(command, "root_parent", None) or command
+    if root.name not in SETUP_REQUIRED_COMMANDS:
         return True
 
-    cmd_name = interaction.command.name if interaction.command else ""
-    if cmd_name in _SETUP_EXEMPT:
+    if is_setup_complete(interaction.guild_id):
         return True
 
     # t(None, …) répondait toujours en anglais, y compris sur un serveur qui

@@ -4,7 +4,7 @@ Cog : Modération
 Commandes : /clear, /lock, /unlock,
             /warn, /warnings, /unwarn, /timeout, /untimeout
 
-Les sanctions sont recopiées dans le salon « Modération » de /logs.
+Chaque action est journalisée dans le salon de /logs-moderation.
 
 - /clear : supprime un nombre de messages dans le salon.
 - /lock, /unlock : verrouille ou déverrouille un salon.
@@ -25,6 +25,7 @@ from config import COLOR_SUCCESS, COLOR_ERROR, COLOR_INFO, COLOR_WARNING
 import embeds
 from i18n import t
 from json_store import write_json
+from cogs.logs import send_log
 
 log = logging.getLogger("bot.moderation")
 
@@ -63,21 +64,19 @@ class Moderation(commands.Cog):
             log.error(f"Erreur sauvegarde warnings : {e}")
 
     # -------------------------------------------------------------
-    # Copie des sanctions dans le salon de logs
+    # Journal de modération (voir cogs/logs.py)
     #
     # /modlog a été retiré : il rangeait son salon dans un dictionnaire en
-    # mémoire — perdu à chaque redémarrage — et sa réponse plantait
-    # (`.format(salon=…)` sur un texte qui attend `{channel}`). /logs fait le
-    # même travail pour six types d'événements, et lui enregistre son choix.
+    # mémoire, perdu à chaque redémarrage. Le log porte le vrai modérateur :
+    # vu du journal d'audit, c'est le bot qui a agi.
     # -------------------------------------------------------------
-    async def _mod_log(self, guild_id: int, embed: discord.Embed) -> None:
-        cog = self.bot.get_cog("Logs")
-        if cog is None:
-            return
-        try:
-            await cog.add_moderation_log(guild_id, embed.copy())
-        except discord.HTTPException:
-            pass
+    def _mod_log(self, interaction: discord.Interaction, key: str, *,
+                 target: discord.abc.User | None = None, fields: list[tuple] = (),
+                 color: int | None = None) -> None:
+        gid = interaction.guild_id
+        send_log(self.bot, gid, "moderation", t(gid, key), user=target, color=color,
+                 description=target.mention if target else None,
+                 fields=[(t(gid, "logs.f_by"), interaction.user.mention), *fields])
 
     # -------------------------------------------------------------
     # /clears
@@ -101,6 +100,9 @@ class Moderation(commands.Cog):
             color=COLOR_SUCCESS,
         )
         await interaction.followup.send(embed=embed, ephemeral=True)
+        self._mod_log(interaction, "logs.mod_clear", fields=[
+            (t(interaction.guild_id, "logs.f_channel"), interaction.channel.mention),
+            (t(interaction.guild_id, "logs.f_count"), len(deleted))])
 
     # -------------------------------------------------------------
     # /lock
@@ -126,6 +128,8 @@ class Moderation(commands.Cog):
             color=COLOR_INFO,
         )
         await interaction.response.send_message(embed=embed)
+        self._mod_log(interaction, "logs.mod_lock",
+                      fields=[(t(interaction.guild_id, "logs.f_channel"), channel.mention)])
 
     # -------------------------------------------------------------
     # /unlock
@@ -151,6 +155,8 @@ class Moderation(commands.Cog):
             color=COLOR_SUCCESS,
         )
         await interaction.response.send_message(embed=embed)
+        self._mod_log(interaction, "logs.mod_unlock", color=embeds.SUCCESS,
+                      fields=[(t(interaction.guild_id, "logs.f_channel"), channel.mention)])
 
     # /cleanup a été retiré : il cherchait des salons nommés « 🔵 Équipe 1 »
     # et « 🔴 Équipe 2 », créés par un ancien système de queue. Le système
@@ -191,7 +197,9 @@ class Moderation(commands.Cog):
             color=COLOR_WARNING,
         )
         await interaction.response.send_message(embed=embed)
-        await self._mod_log(gid, embed)
+        self._mod_log(interaction, "logs.mod_warn", target=membre, color=embeds.WARNING, fields=[
+            (t(gid, "logs.f_warnings"), count),
+            (t(gid, "logs.f_reason"), raison, False)])
 
     # -------------------------------------------------------------
     # /warnings
@@ -238,6 +246,8 @@ class Moderation(commands.Cog):
             color=COLOR_SUCCESS,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+        self._mod_log(interaction, "logs.mod_unwarn", target=membre, color=embeds.SUCCESS,
+                      fields=[(t(gid, "logs.f_warnings"), count)])
 
     # -------------------------------------------------------------
     # /timeout
@@ -271,7 +281,10 @@ class Moderation(commands.Cog):
             color=COLOR_WARNING,
         )
         await interaction.response.send_message(embed=embed)
-        await self._mod_log(gid, embed)
+        until = int((discord.utils.utcnow() + timedelta(minutes=minutes)).timestamp())
+        self._mod_log(interaction, "logs.mod_timeout", target=membre, color=embeds.WARNING, fields=[
+            (t(gid, "logs.f_until"), f"<t:{until}:R>"),
+            (t(gid, "logs.f_reason"), raison or t(gid, "logs.no_reason"), False)])
 
     # -------------------------------------------------------------
     # /untimeout
@@ -305,7 +318,7 @@ class Moderation(commands.Cog):
             color=COLOR_SUCCESS,
         )
         await interaction.response.send_message(embed=embed)
-        await self._mod_log(gid, embed)
+        self._mod_log(interaction, "logs.mod_untimeout", target=membre, color=embeds.SUCCESS)
 
     # -------------------------------------------------------------
     # Gestion des erreurs de permissions

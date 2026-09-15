@@ -50,6 +50,7 @@ from guild_settings import (
 from i18n import t
 from rate_limit import throttled_each
 from text_safety import NO_PINGS, USERS_ONLY, sanitize
+from cogs.logs import send_log
 
 log = logging.getLogger("bot.match")
 
@@ -261,6 +262,11 @@ class Match(commands.Cog):
             "mvp_id": None,
         }
         set_match_state(gid, state)
+        send_log(self.bot, gid, "match", t(gid, "logs.match_opened"), user=author,
+                 fields=[(t(gid, "logs.f_queue"), queue_name),
+                         (t(gid, "logs.f_channel"), channel.mention),
+                         (t(gid, "logs.f_players"), len(players)),
+                         (t(gid, "logs.f_mode"), t(gid, "logs.mode_captains" if use_captains else "logs.mode_direct"))])
 
         if use_captains:
             await self._post_captain_vote(guild, channel, state, session)
@@ -342,6 +348,9 @@ class Match(commands.Cog):
         state["phase"] = PHASE_DRAFT
         state["deadline"] = 0
         set_match_state(gid, state)
+        send_log(self.bot, gid, "match", t(gid, "logs.match_captains"),
+                 fields=[(t(gid, "logs.f_captains"),
+                          "\n".join(f"<@{uid}> — **{tally.get(uid, 0)}**" for uid in captains), False)])
 
         channel = guild.get_channel(state["channel_id"])
         if isinstance(channel, discord.TextChannel):
@@ -435,6 +444,9 @@ class Match(commands.Cog):
         state["order"] = state["order"][len(chosen):]
         state["turn"] = state["order"][0] if state["order"] else None
         set_match_state(gid, state)
+        send_log(self.bot, gid, "match", t(gid, "logs.match_pick"),
+                 description=t(gid, "logs.match_pick_desc", captain=f"<@{captain}>",
+                               players=", ".join(f"<@{uid}>" for uid in chosen), team=team))
 
         channel = guild.get_channel(state["channel_id"])
         if isinstance(channel, discord.TextChannel):
@@ -505,6 +517,10 @@ class Match(commands.Cog):
         state["phase"] = PHASE_LIVE
         state["deadline"] = 0
         set_match_state(gid, state)
+        send_log(self.bot, gid, "match", t(gid, "logs.match_live"), color=embeds.SUCCESS,
+                 fields=[(f"{state['colors'].get(name, '▫️')} {name}",
+                          "\n".join(f"<@{uid}>" for uid in ids) or "—")
+                         for name, ids in state["teams"].items()])
 
         channel = guild.get_channel(state["channel_id"])
         if isinstance(channel, discord.TextChannel):
@@ -624,6 +640,13 @@ class Match(commands.Cog):
         state["phase"] = PHASE_CLOSING
         state["deadline"] = now() + int(config["cleanup_seconds"])
         set_match_state(gid, state)
+        send_log(self.bot, gid, "match", t(gid, "logs.match_results"), color=embeds.GOLD,
+                 fields=[(t(gid, "logs.f_winner"), winner),
+                         (t(gid, "logs.f_mvp"), f"<@{mvp_id}>" if mvp_id else "—"),
+                         (t(gid, "logs.f_mmr"), "\n".join(
+                             f"<@{uid}> **{value}** `{mmr.format_change(change)}`"
+                             for uid, value, change, _mvp in sorted(changes, key=lambda c: c[2], reverse=True)),
+                          False)])
 
         channel = guild.get_channel(state["channel_id"])
         if isinstance(channel, discord.TextChannel):
@@ -750,6 +773,8 @@ class Match(commands.Cog):
                 log.error(f"[{guild.name}] Salon de match non supprimé : {e}")
 
         set_match_state(gid, None)
+        send_log(self.bot, gid, "match", t(gid, "logs.match_closed"),
+                 fields=[(t(gid, "logs.f_queue"), state.get("queue_name"))])
         log.info(f"[{guild.name}] Match nettoyé.")
 
     async def _abort(self, guild: discord.Guild, state: dict) -> None:

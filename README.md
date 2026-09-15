@@ -94,7 +94,9 @@ Chaque nouveau membre est mentionné dans les salons choisis, puis le message es
 | `/antilink` | Anti-lien sur un salon |
 | `/autoclean` | Nettoyage automatique d'un salon |
 | `/antiraid` | Protection anti-raid : état, réglages, déverrouillage |
-| `/logs` | Le salon qui reçoit les logs |
+| `/logs` | L'état de chaque type de logs et son salon |
+| `/logs-vocal` `/logs-message` `/logs-queue` `/logs-match` `/logs-duel` `/logs-clan` `/logs-commande` `/logs-join` `/logs-moderation` `/logs-serveur` | Active un type de logs dans un salon (`activer:True salon:#salon`) ou le coupe (`activer:False`) *(Gérer le serveur)* |
+| `/logs-tout` | Tous les types de logs d'un coup |
 
 **Configuration et infos**
 
@@ -111,7 +113,7 @@ Chaque nouveau membre est mentionné dans les salons choisis, puis le message es
 | `/reset` | Remet le bot à zéro sur ce serveur |
 | `/help` | Le menu d'aide complet |
 
-41 commandes au total. Le menu `/help` les liste exactement (vérifié par les tests).
+52 commandes au total. Le menu `/help` les liste exactement (vérifié par les tests).
 
 ### Les salons et rôles
 
@@ -326,7 +328,11 @@ Tout se fait depuis Discord, pas dans le code :
 - **`/status`** — le panneau d'état permanent
 - **`/cw`** — le système de ClanWar
 
-Dans `config.py`, on touche à trois choses : les listes de cogs, les couleurs des embeds et les seuils de l'anti-raid.
+Dans l'assistant, **Terminer** est cliquable à tout moment : rien n'oblige à tout régler d'un coup.
+
+Tant que le serveur n'est pas configuré, **seules les commandes de queue sont bloquées** : `/rematch`, `/schedule`, `/history`, `/bl`, `/unbl`, `/groupe`, `/clan`, `/clantransfer`. Toutes les commandes d'administration, de modération et utilitaires marchent dès l'arrivée du bot, et `/queue` ouvre l'assistant. La liste est `SETUP_REQUIRED_COMMANDS` dans `config.py`.
+
+Dans `config.py`, on touche à quatre choses : les listes de cogs, les commandes qui attendent la configuration, les couleurs des embeds et les seuils de l'anti-raid.
 
 ---
 

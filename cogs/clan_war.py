@@ -32,6 +32,7 @@ from i18n import t
 from text_safety import sanitize
 
 from cogs.clan_tickets import TicketProblemModal
+from cogs.logs import send_log
 
 if TYPE_CHECKING:
     from cogs.clan import Clan
@@ -159,6 +160,20 @@ class ClanWarSession:
         
         return session
         
+    def _log(self, key: str, *, user: discord.abc.User | None = None, color: int | None = None,
+             winner: str | None = None, loser: str | None = None) -> None:
+        """Journal « duel » (voir cogs/logs.py) : les deux clans et le format
+        accompagnent chaque étape, pour qu'un log se lise seul."""
+        gid = self.guild_id
+        name1 = sanitize(self.clan1.get("name", "?"), MAX_CLAN_NAME)
+        name2 = sanitize(self.clan2.get("name", "?"), MAX_CLAN_NAME)
+        send_log(self.cog.bot, gid, "duel", t(gid, key), user=user, color=color,
+                 description=f"**{name1}** vs **{name2}**",
+                 fields=[(t(gid, "logs.f_format"), f"{self.size} vs {self.size}"),
+                         (t(gid, "logs.f_score"), f"{self.clan1_points} – {self.clan2_points}"),
+                         (t(gid, "logs.f_winner"), winner),
+                         (t(gid, "logs.f_loser"), loser)])
+
     async def start(self):
         """Démarre la session de ClanWar."""
         if self.started:
@@ -435,6 +450,7 @@ class ClanWarSession:
     async def _cancel_due_to_missing_leader(self):
         """Annule le ClanWar car un leader est absent."""
         self.ended = True
+        self._log("logs.duel_leader_missing", color=embeds.WARNING)
         
         # Nettoyer la session persistée
         clear_clan_war_session(self.guild_id)
@@ -615,6 +631,7 @@ class ClanWarSession:
         # Nettoyer la session persistée car la phase de préparation est terminée
         log.info(f"[{self.guild.name}] Nettoyage de la session persistée")
         clear_clan_war_session(self.guild_id)
+        self._log("logs.duel_started", color=embeds.SUCCESS)
         
         # Envoyer un message pour dire que le match est lancé
         log.info(f"[{self.guild.name}] Envoi de la notification de démarrage")
@@ -849,6 +866,7 @@ class ClanWarSession:
         loser_name = sanitize(loser.get("name", "?"), MAX_CLAN_NAME)
         
         log.info(f"[{self.guild.name}] Victoire par abandon: {winner_name} gagne contre {loser_name}")
+        self._log("logs.duel_timeout", winner=winner_name, loser=loser_name)
         
         # Notifier les deux clans
         for channel_id, message_id in self.notification_messages.items():
@@ -1029,6 +1047,8 @@ class ClanWarSession:
         winner_name = sanitize(winner.get("name", "?"), MAX_CLAN_NAME)
         loser_name = sanitize(loser.get("name", "?"), MAX_CLAN_NAME)
         log.info(f"[{self.guild.name}] ClanWar abandonné par {loser_name} : victoire de {winner_name}")
+        self._log("logs.duel_forfeit", user=self.guild.get_member(leader_id),
+                  winner=winner_name, loser=loser_name)
         embed = discord.Embed(
             title=t(self.guild_id, "clan.war_forfeit_title"),
             description=t(self.guild_id, "clan.war_forfeit_desc", winner=winner_name, loser=loser_name),
@@ -1251,6 +1271,13 @@ class RoundVoteView(discord.ui.View):
             session.clan1_points += 1
         else:
             session.clan2_points += 1
+        voted = session.clan1 if clan_choice == "clan1" else session.clan2
+        send_log(interaction.client, session.guild_id, "duel", t(session.guild_id, "logs.duel_round"), user=user,
+                 description=t(session.guild_id, "logs.duel_round_desc", player=user.mention,
+                               clan=sanitize(voted.get("name", "?"), MAX_CLAN_NAME)),
+                 fields=[(t(session.guild_id, "logs.f_score"),
+                          f"{sanitize(session.clan1.get('name', '?'), MAX_CLAN_NAME)} {session.clan1_points}"
+                          f" – {session.clan2_points} {sanitize(session.clan2.get('name', '?'), MAX_CLAN_NAME)}")])
         
         # Créer le message de résultats temporaire
         name1 = sanitize(session.clan1.get("name", "?"), MAX_CLAN_NAME)

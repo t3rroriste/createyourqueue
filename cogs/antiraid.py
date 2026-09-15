@@ -23,6 +23,7 @@ from config import COLOR_ERROR, COLOR_SUCCESS, COLOR_WARNING
 from guild_settings import get_antiraid_config, set_antiraid_config
 from i18n import t
 from rate_limit import guarded_call
+from cogs.logs import send_embed
 
 log = logging.getLogger("bot.antiraid")
 
@@ -69,6 +70,10 @@ class AntiRaid(commands.Cog):
 
     async def _send_alert(self, guild: discord.Guild, embed: discord.Embed):
         log.warning(f"[{guild.name}] {embed.description or embed.title}")
+        # Le salon de /logs-moderation d'abord ; deviner un salon d'après son
+        # nom reste le repli des serveurs qui n'en ont pas désigné.
+        if send_embed(self.bot, guild.id, "moderation", embed):
+            return
         channel = self._find_log_channel(guild)
         if channel:
             try:

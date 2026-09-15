@@ -83,6 +83,17 @@ CATEGORIES = {
         "color": discord.Color.dark_gray(),
         "commands": [
             ("/logs", "help.cmd_logs_desc"),
+            ("/logs-vocal", "logs.what_vocal"),
+            ("/logs-message", "logs.what_message"),
+            ("/logs-queue", "logs.what_queue"),
+            ("/logs-match", "logs.what_match"),
+            ("/logs-duel", "logs.what_duel"),
+            ("/logs-clan", "logs.what_clan"),
+            ("/logs-commande", "logs.what_commande"),
+            ("/logs-join", "logs.what_join"),
+            ("/logs-moderation", "logs.what_moderation"),
+            ("/logs-serveur", "logs.what_serveur"),
+            ("/logs-tout", "help.cmd_logs_tout_desc"),
         ],
     },
     "classement": {

@@ -61,6 +61,7 @@ from i18n import t
 from text_safety import sanitize
 
 from cogs.clan_war import ClanWarSession, _slug
+from cogs.logs import send_log
 
 log = logging.getLogger("bot.clan")
 
@@ -202,6 +203,9 @@ class CreateModal(discord.ui.Modal):
                    "full": "clan.err_full"}.get(str(e), "clan.err_name")
             await interaction.response.send_message(t(gid, key), ephemeral=True)
             return
+        send_log(interaction.client, gid, "clan", t(gid, "logs.clan_created"), user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), name),
+                         (t(gid, "logs.f_leader"), interaction.user.mention)])
 
         # L'ouverture du salon et la création du rôle demandent plusieurs
         # appels à Discord : on rend la main tout de suite pour ne pas laisser
@@ -285,6 +289,10 @@ class ClanView(discord.ui.View):
         # et on ne saurait plus quel salon ni quel rôle effacer.
         snapshot = dict(clan)
         remove_clan_member(gid, clan["id"], interaction.user.id)
+        send_log(interaction.client, gid, "clan",
+                 t(gid, "logs.clan_disbanded" if was_leader else "logs.clan_left"),
+                 user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), sanitize(clan.get("name", "?"), MAX_CLAN_NAME))])
         await self.cog.clear_perks(interaction.user, clan)
         await interaction.response.edit_message(
             content=t(gid, "clan.disbanded" if was_leader else "clan.left",
@@ -336,6 +344,8 @@ class InviteView(discord.ui.View):
                 content=t(gid, "clan.err_already"), embed=None, view=None)
             return
         name = sanitize(clan.get("name", "?"), MAX_CLAN_NAME)
+        send_log(interaction.client, gid, "clan", t(gid, "logs.clan_joined"), user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), name)])
         await interaction.response.edit_message(
             content=t(gid, "clan.joined", name=name),
             embed=clan_embed(interaction.client, gid, clan), view=None,
@@ -349,6 +359,11 @@ class InviteView(discord.ui.View):
     async def decline(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         await interaction.response.edit_message(
             content=t(self.guild_id, "clan.declined"), embed=None, view=None)
+        clan = get_clan(self.guild_id, self.clan_id)
+        send_log(interaction.client, self.guild_id, "clan", t(self.guild_id, "logs.clan_invite_declined"),
+                 user=interaction.user,
+                 fields=[(t(self.guild_id, "logs.f_clan"),
+                          sanitize(clan.get("name", "?"), MAX_CLAN_NAME) if clan else None)])
 
 
 # ----------------------------------------------------------------------
@@ -671,7 +686,9 @@ class Clan(commands.Cog):
         
         # Mettre à jour le statut du ClanWar
         set_features(gid, clan_wars=enabled)
-        
+        send_log(self.bot, gid, "clan", t(gid, "logs.clan_cw_on" if enabled else "logs.clan_cw_off"),
+                 user=interaction.user)
+
         # Message de confirmation
         if enabled:
             await interaction.response.send_message(
@@ -1017,6 +1034,8 @@ class Clan(commands.Cog):
                 t(gid, "clan.err_target_clan", player=member.mention), ephemeral=True)
             return
 
+        send_log(self.bot, gid, "clan", t(gid, "logs.clan_invite"), user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), name), (t(gid, "logs.f_member"), member.mention)])
         embed = clan_embed(self.bot, gid, clan, invite=True)
         view = InviteView(self, gid, clan["id"], member.id)
         try:
@@ -1105,6 +1124,10 @@ class Clan(commands.Cog):
                 kind="success"),
             view=None,
         )
+        send_log(self.bot, gid, "duel", t(gid, "logs.duel_sent"), user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), mine),
+                         (t(gid, "logs.f_rival"), sanitize(target.get("name", "?"), MAX_CLAN_NAME)),
+                         (t(gid, "logs.f_format"), f"{size} vs {size}")])
     
     def _clear_old_war_requests(self, guild_id: int, clan_id: str) -> None:
         """Supprime toutes les anciennes demandes de wars d'un clan."""
@@ -1132,6 +1155,11 @@ class Clan(commands.Cog):
         answer = embeds.base(gid, description=t(gid, key, name=mine, size=size),
                              kind="success" if accepted else "warning")
         await interaction.response.edit_message(content=None, embed=answer, view=None)
+        send_log(self.bot, gid, "duel", t(gid, "logs.duel_accepted" if accepted else "logs.duel_declined"),
+                 user=interaction.user, color=embeds.SUCCESS if accepted else None,
+                 fields=[(t(gid, "logs.f_clan"), mine),
+                         (t(gid, "logs.f_rival"), sanitize(rival.get("name", "?"), MAX_CLAN_NAME) if rival else None),
+                         (t(gid, "logs.f_format"), f"{size} vs {size}")])
 
         # Répondu depuis la liste « Request » : le défi d'origine porte encore
         # ses deux boutons dans le salon. On les retire et on supprime le message.
@@ -1311,6 +1339,10 @@ class Clan(commands.Cog):
         gid = interaction.guild_id
         remove_clan_request(gid, clan["id"], "joins", user_id)
         name = sanitize(clan.get("name", "?"), MAX_CLAN_NAME)
+        send_log(self.bot, gid, "clan",
+                 t(gid, "logs.clan_request_accepted" if accepted else "logs.clan_request_refused"),
+                 user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), name), (t(gid, "logs.f_member"), f"<@{user_id}>")])
 
         if not accepted:
             await interaction.response.edit_message(
@@ -1437,6 +1469,8 @@ class Clan(commands.Cog):
             return
         await interaction.response.send_message(
             t(gid, "clan.join_sent", name=name), ephemeral=True)
+        send_log(self.bot, gid, "clan", t(gid, "logs.clan_request"), user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), name)])
         await self.notify_join(interaction.guild, target, interaction.user)
 
     @app_commands.command(
@@ -1492,6 +1526,10 @@ class Clan(commands.Cog):
             await self.on_roster_change(guild, target, nouveau_chef.id, joined=True)
 
         transfer_clan_leader(gid, target["id"], nouveau_chef.id)
+        send_log(self.bot, gid, "clan", t(gid, "logs.clan_transfer"), user=interaction.user,
+                 fields=[(t(gid, "logs.f_clan"), name),
+                         (t(gid, "logs.f_old_leader"), f"<@{old_leader_id}>" if old_leader_id else None),
+                         (t(gid, "logs.f_new_leader"), nouveau_chef.mention)])
 
         old_leader = guild.get_member(old_leader_id) if old_leader_id else None
         if old_leader is not None:

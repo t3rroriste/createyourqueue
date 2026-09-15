@@ -50,6 +50,11 @@ class ExtensionsTest(unittest.TestCase):
         self.assertEqual(sorted(cited - set(names)), [], "/help cite une commande qui n'existe pas")
         self.assertEqual(sorted(set(names) - cited), [], "une commande manque dans /help")
 
+        # Une faute de frappe dans la liste laisserait la commande ouverte
+        # sur les serveurs non configurés, sans que rien ne le signale.
+        self.assertEqual(sorted(config.SETUP_REQUIRED_COMMANDS - set(names)), [],
+                         "SETUP_REQUIRED_COMMANDS cite une commande qui n'existe pas")
+
 
 if __name__ == "__main__":
     unittest.main()

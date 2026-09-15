@@ -31,7 +31,9 @@ leur création échoue, rien n'est détruit.
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 
 import discord
 from discord import app_commands
@@ -39,6 +41,7 @@ from discord.ext import commands
 
 from cogs.reset import CAPTCHA_LENGTH, generate_code
 from config import OWNER_ID
+from json_store import write_json
 from rate_limit import throttled_each
 
 log = logging.getLogger("bot.temp_bot")
@@ -46,6 +49,55 @@ log = logging.getLogger("bot.temp_bot")
 # Noms des deux salons créés par /tempo.
 COMING_SOON_NAME = "🚧・coming-soon"
 WAITING_ROOM_NAME = "⏳・Waiting Room"
+
+# Message « Coming soon » publié dans chaque salon. Sur disque : après un
+# redémarrage, /waiting remplace encore l'ancien message au lieu d'en
+# empiler un second.
+WAITING_FILE = "data/waiting_messages.json"
+
+
+def load_waiting_messages() -> dict[int, int]:
+    """{channel_id: message_id}. Un fichier illisible fait repartir de zéro :
+    au pire, un ancien message reste en double dans son salon."""
+    if not os.path.exists(WAITING_FILE):
+        return {}
+    try:
+        with open(WAITING_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {int(channel_id): int(message_id) for channel_id, message_id in data.items()}
+    except (OSError, ValueError, TypeError, AttributeError) as e:
+        log.error(f"Messages d'attente illisibles ({e}) : on repart de zéro")
+        return {}
+
+
+async def open_history(channel: discord.TextChannel) -> str | None:
+    """Rend le message visible à qui arrive — ou revient — sur le serveur.
+
+    Sans « Voir les anciens messages », Discord ne montre à un membre que les
+    messages envoyés pendant qu'il est connecté : il quitte puis rejoint le
+    serveur, et le message a disparu pour lui. On ajoute donc cette permission
+    à @everyone dans le salon, en gardant le reste de ses permissions.
+
+    Renvoie un avertissement pour le owner, ou None si tout va bien."""
+    everyone = channel.guild.default_role
+    perms = channel.permissions_for(everyone)
+    if not perms.view_channel:
+        return ("⚠️ Message envoyé, mais @everyone ne voit pas ce salon : "
+                "les nouveaux membres ne le verront pas.")
+    if perms.read_message_history:
+        return None
+    overwrite = channel.overwrites_for(everyone)
+    overwrite.read_message_history = True
+    try:
+        await channel.set_permissions(
+            everyone, overwrite=overwrite,
+            reason="/waiting : message visible par les nouveaux membres",
+        )
+    except discord.HTTPException:
+        return ("⚠️ Message envoyé, mais @everyone n'a pas **Voir les anciens messages** ici "
+                "et je n'ai pas pu le lui donner (il me faut **Gérer les permissions**) : "
+                "un membre qui quitte et revient ne verra plus le message.")
+    return None
 
 
 def waiting_embed() -> discord.Embed:
@@ -182,8 +234,8 @@ class TempBot(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        # Stocker les IDs des messages waiting par salon pour pouvoir les mettre à jour
-        self.waiting_messages = {}  # {channel_id: message_id}
+        # Message waiting de chaque salon, pour le remplacer au prochain /waiting
+        self.waiting_messages: dict[int, int] = load_waiting_messages()
         # Serveurs où un /tempo tourne : deux purges croisées se marcheraient dessus.
         self.tempo_running: set[int] = set()
 
@@ -192,41 +244,50 @@ class TempBot(commands.Cog):
             return True
         return await self.bot.is_owner(user)
 
-    @app_commands.command(name="waiting", description="Envoie le message d'attente (owner uniquement)")
-    async def waiting(self, interaction: discord.Interaction) -> None:
-        """Envoie le message d'attente et supprime la commande (owner uniquement)."""
+    def _save_waiting_messages(self) -> None:
+        try:
+            write_json(WAITING_FILE, {str(c): m for c, m in self.waiting_messages.items()}, indent=4)
+        except OSError as e:
+            log.error(f"Messages d'attente non enregistrés : {e}")
 
+    @app_commands.command(name="waiting", description="Envoie le message d'attente (owner uniquement)")
+    @app_commands.guild_only()
+    async def waiting(self, interaction: discord.Interaction) -> None:
+        """Envoie le message d'attente, visible aussi par les membres qui arrivent plus tard."""
 
         # Propriétaire : OWNER_ID dans .env, ou le propriétaire de l'application Discord
         if not await self._is_owner(interaction.user):
             await interaction.response.send_message("Cette commande est réservée au owner du bot.", ephemeral=True)
             return
 
-        # Supprimer le message de commande
-        try:
-            await interaction.response.defer(ephemeral=True)
-            await interaction.delete_original_response()
-        except discord.HTTPException:
-            pass
+        channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message("Lance /waiting dans un salon textuel.", ephemeral=True)
+            return
 
-        embed = waiting_embed()
+        await interaction.response.defer(ephemeral=True)
 
-        # Vérifier s'il y a déjà un message waiting dans ce salon
-        channel_id = interaction.channel.id
-        if channel_id in self.waiting_messages:
+        # Un seul message d'attente par salon : l'ancien est remplacé.
+        old_message_id = self.waiting_messages.get(channel.id)
+        if old_message_id:
             try:
-                # Supprimer l'ancien message
-                old_message_id = self.waiting_messages[channel_id]
-                old_message = await interaction.channel.fetch_message(old_message_id)
-                await old_message.delete()
+                await channel.get_partial_message(old_message_id).delete()
             except discord.HTTPException:
                 pass  # L'ancien message n'existe plus ou ne peut pas être supprimé
 
-        # Envoyer le nouveau message
-        message = await interaction.channel.send(embed=embed)
+        message = await channel.send(embed=waiting_embed())
+        self.waiting_messages[channel.id] = message.id
+        self._save_waiting_messages()
 
-        # Stocker l'ID du nouveau message
-        self.waiting_messages[channel_id] = message.id
+        warning = await open_history(channel)
+        try:
+            if warning:
+                await interaction.edit_original_response(content=warning)
+            else:
+                # Rien à signaler : aucune trace de la commande dans le salon.
+                await interaction.delete_original_response()
+        except discord.HTTPException:
+            pass
 
     @app_commands.command(name="tempo", description="Remet tout le serveur à zéro : ne garde que coming-soon et Waiting Room (owner uniquement)")
     @app_commands.guild_only()
@@ -402,6 +463,7 @@ class TempBot(commands.Cog):
         try:
             message = await coming_soon.send(embed=waiting_embed())
             self.waiting_messages[coming_soon.id] = message.id
+            self._save_waiting_messages()
         except discord.HTTPException as e:
             lines.append(f"⚠️ Embed Coming soon non envoyé : {e.text or e.status}")
 

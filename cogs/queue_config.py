@@ -41,6 +41,7 @@ from i18n import t, t_in, get_lang
 from rate_limit import throttled_each
 from text_safety import NO_PINGS, USERS_ONLY, sanitize
 from json_store import write_json
+from cogs.logs import send_log
 
 log = logging.getLogger("bot.queue_config")
 
@@ -1294,6 +1295,10 @@ class LaunchView(View):
             return
 
         await interaction.response.defer()
+        send_log(interaction.client, gid, "queue", t(gid, "logs.queue_cancelled"), user=interaction.user,
+                 color=embeds.ERROR,
+                 fields=[(t(gid, "logs.f_queue"), sanitize(str(self.session.queue_config.get("queue_name", "Queue")), 60)),
+                         (t(gid, "logs.f_players"), len(self.session.waiting_players))])
         await self.cog.teardown_session(interaction.guild, self.session, cancelled=True)
 
         for item in self.children:
@@ -1372,6 +1377,11 @@ class QueueConfig(commands.Cog):
 
         self.save_sessions()
         asyncio.create_task(self.notify_queue_role(guild, session))
+        send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_opened"), user=author,
+                 color=embeds.SUCCESS,
+                 fields=[(t(guild.id, "logs.f_queue"), sanitize(str(config.get("queue_name", "Queue")), 60)),
+                         (t(guild.id, "logs.f_players"), session.get_capacity()),
+                         (t(guild.id, "logs.f_link"), f"[{queue_channel.mention}]({message.jump_url})")])
         return session
 
     async def deploy_teams(self, guild: discord.Guild, session: "QueueSession") -> None:
@@ -1442,6 +1452,13 @@ class QueueConfig(commands.Cog):
             except discord.HTTPException:
                 pass
         self.save_sessions()
+        # Ici plutôt qu'au clic : le mode capitaines passe par le draft et
+        # arrive aussi dans cette fonction, avec des équipes enfin formées.
+        send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_launched"), user=session.author,
+                 color=embeds.SUCCESS,
+                 fields=[(t(guild.id, "logs.f_queue"), sanitize(str(session.queue_config.get("queue_name", "Queue")), 60), False),
+                         *[(sanitize(name, 60), "\n".join(m.mention for m in members) or "—")
+                           for name, members in session.teams.items()]])
 
     # ------------------------------------------------------------------
     # Persistance des sessions
@@ -1736,6 +1753,9 @@ class QueueConfig(commands.Cog):
             try:
                 await member.move_to(None, reason="Queue : entrée non autorisée dans le vocal d'attente")
                 log.info(f"Vocal d'attente : {member} éjecté (accès non autorisé) sur {guild.name}.")
+                send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_waiting_denied"),
+                         user=member, color=embeds.WARNING,
+                         fields=[(t(guild.id, "logs.f_channel"), waiting.mention)])
             except discord.HTTPException:
                 pass
             return
@@ -1757,6 +1777,10 @@ class QueueConfig(commands.Cog):
         try:
             await member.move_to(None, reason="Queue : vocal d'attente complet")
             log.info(f"Vocal d'attente plein : {member} déconnecté sur {guild.name}.")
+            send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_waiting_full"),
+                     user=member, color=embeds.WARNING,
+                     fields=[(t(guild.id, "logs.f_channel"), waiting.mention),
+                             (t(guild.id, "logs.f_players"), f"{len(occupants)}/{capacity}")])
         except discord.HTTPException as e:
             log.error(f"[{guild.name}] Déconnexion du vocal plein impossible : {e}")
             return
@@ -1874,9 +1898,17 @@ class QueueConfig(commands.Cog):
                 await member.send(t(guild.id, "queue.blacklist_blocked_dm"))
             except discord.HTTPException:
                 pass  # MP fermés : rien à faire, le retrait de la réaction suffit
+            send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_blocked"),
+                     user=member, color=embeds.WARNING)
             return
 
+        already = member in session.waiting_players
         if session.add_waiting(member):
+            if not already:
+                send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_joined"), user=member,
+                         color=embeds.SUCCESS,
+                         fields=[(t(guild.id, "logs.f_players"),
+                                  f"{len(session.waiting_players)}/{session.get_capacity()}")])
             await self.grant_connexion(member)
             try:
                 await session.message.edit(embed=session.build_embed())
@@ -1928,6 +1960,10 @@ class QueueConfig(commands.Cog):
                 return
 
         if session.remove_waiting(member):
+            send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_left"), user=member,
+                     color=embeds.ERROR,
+                     fields=[(t(guild.id, "logs.f_players"),
+                              f"{len(session.waiting_players)}/{session.get_capacity()}")])
             # Le rôle est retiré, mais on ne déconnecte pas : un membre déjà dans le
             # vocal y reste (choix explicite de l'organisateur).
             await self.revoke_connexion(member)
@@ -2091,6 +2127,9 @@ class QueueConfig(commands.Cog):
 
         clean_reason = sanitize(raison, 200) if raison else None
         if add_to_queue_blacklist(gid, membre.id, clean_reason, interaction.user.id):
+            send_log(self.bot, gid, "queue", t(gid, "logs.queue_bl"), user=membre, color=embeds.WARNING,
+                     fields=[(t(gid, "logs.f_by"), interaction.user.mention),
+                             (t(gid, "logs.f_reason"), clean_reason or t(gid, "logs.no_reason"), False)])
             content = t(
                 gid, "queue.blacklist_added",
                 member=membre.mention,
@@ -2109,7 +2148,11 @@ class QueueConfig(commands.Cog):
             await interaction.response.send_message(t(gid, "queue.blacklist_staff_only"), ephemeral=True)
             return
 
-        key = "queue.blacklist_removed" if remove_from_queue_blacklist(gid, membre.id) else "queue.blacklist_not_found"
+        removed = remove_from_queue_blacklist(gid, membre.id)
+        key = "queue.blacklist_removed" if removed else "queue.blacklist_not_found"
+        if removed:
+            send_log(self.bot, gid, "queue", t(gid, "logs.queue_unbl"), user=membre, color=embeds.SUCCESS,
+                     fields=[(t(gid, "logs.f_by"), interaction.user.mention)])
         await interaction.response.send_message(
             t(gid, key, member=membre.mention), ephemeral=True, allowed_mentions=NO_PINGS
         )
@@ -2285,6 +2328,9 @@ class ResultView(View):
 
         self.session.win_log.append((team_name, discord.utils.utcnow()))
         await interaction.response.edit_message(embed=build_score_embed(self.session), view=self)
+        send_log(interaction.client, gid, "queue", t(gid, "logs.queue_point"), user=interaction.user,
+                 fields=[(t(gid, "logs.f_team"), sanitize(team_name, 60)),
+                         (t(gid, "logs.f_score"), sum(1 for team, _ in self.session.win_log if team == team_name))])
         self.cog.save_sessions()
 
     async def finish_callback(self, interaction: discord.Interaction):
@@ -2310,6 +2356,13 @@ class ResultView(View):
         for item in self.children:
             item.disabled = True
         await interaction.response.edit_message(view=self)
+        send_log(interaction.client, gid, "queue", t(gid, "logs.queue_finished"), user=interaction.user,
+                 color=embeds.GOLD,
+                 fields=[(t(gid, "logs.f_queue"), sanitize(str(self.session.queue_config.get("queue_name", "Queue")), 60)),
+                         (t(gid, "logs.f_winner"), sanitize(self.session.winner, 60)),
+                         (t(gid, "logs.f_rounds"), len(self.session.win_log)),
+                         (t(gid, "logs.f_score"), "\n".join(f"{sanitize(team, 60)} : **{points}**"
+                                                            for team, points in counts.items()), False)])
 
         guild = interaction.guild
 

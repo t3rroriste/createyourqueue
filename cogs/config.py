@@ -17,13 +17,12 @@ from config import (
     COLOR_ERROR,
     COLOR_INFO,
     COLOR_SUCCESS,
-    COLOR_WARNING,
     GUNZFRANCE_GUILD_ID,
 )
 import embeds
 import resources
 import net_safety
-from guild_settings import is_setup_complete, set_custom_name
+from guild_settings import set_custom_name
 from i18n import LANGUAGES, get_lang, set_lang, t
 from text_safety import sanitize
 
@@ -536,17 +535,9 @@ class Config(commands.Cog):
             )
             return
 
-        if not is_setup_complete(gid):
-            await interaction.response.send_message(
-                embed=discord.Embed(
-                    title=t(None, "config.setup_required_title"),
-                    description=t(None, "config.setup_required_desc"),
-                    color=COLOR_WARNING,
-                ),
-                ephemeral=True,
-            )
-            return
-
+        # Pas de « configure d'abord le bot » : /config est une commande
+        # d'administration, utilisable dès l'arrivée du bot. Seules les
+        # commandes de queue attendent la configuration (config.py).
         await interaction.response.send_message(
             embed=_main_embed(guild),
             view=ConfigView(guild),

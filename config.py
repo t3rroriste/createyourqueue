@@ -63,6 +63,18 @@ INITIAL_EXTENSIONS = [
     "cogs.reset",  # Remise a zero du serveur
 ]
 
+# ---------------------------------------------------------
+# Commandes qui exigent un serveur configuré (bot principal)
+# Seules les commandes de queue attendent la configuration : elles ont besoin
+# des salons choisis dans l'assistant. Tout le reste — administration,
+# modération, utilitaires — marche dès l'arrivée du bot. /queue n'est pas
+# dans la liste : sur un serveur non configuré, elle ouvre l'assistant.
+# Une commande à sous-commandes se désigne par son nom racine.
+# ---------------------------------------------------------
+SETUP_REQUIRED_COMMANDS = frozenset({
+    "rematch", "schedule", "history", "bl", "unbl", "groupe", "clan", "clantransfer",
+})
+
 # Extensions spécifiques pour le bot temporaire (commandes owner uniquement)
 TEMPORARY_EXTENSIONS = [
     "cogs.temp_bot",  # Commandes /waiting et /tempo
