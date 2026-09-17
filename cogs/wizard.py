@@ -33,8 +33,11 @@ SLOT_KINDS = {key: kind for key, kind, _req in list(WIZARD_SLOTS) + list(OPTIONA
 # Emojis perso du récapitulatif de fin (voir done_embed) ; ailleurs, l'assistant
 # garde ceux de SLOT_EMOJI.
 RECAP_EMOJI = {
+    "channel_queue_command": "textlocked",
     "channel_queue_announcement": "discordannouncementwhite",
     "voice_queue_waiting": "discordvoicedark",
+    "channel_queue_resultat": "discordprofileactivitydark",
+    "channel_queue_classement": "insights",
 }
 
 SLOT_EMOJI = {

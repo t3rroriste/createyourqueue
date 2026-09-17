@@ -51,6 +51,9 @@ FALLBACKS: dict[str, str] = {
     "guildadministratorwhitetheme": "👑",
     "discordvoicelockdark": "🔒",
     "settingsdark": "🎚️",
+    "textlocked": "🛠️",
+    "discordprofileactivitydark": "📜",
+    "insights": "📊",
     "discordon": "🟢",
     "discordoff": "🔴",
     # Boutons « Retour »
@@ -109,6 +112,9 @@ MANUAL: dict[str, str] = {
     "discordon": "<:5847discordon:1550235957276442776>",
     "discordoff": "<:7972discordoff:1550235953962942484>",
     "replymsg": "<:8758replymsg:1550238827506049134>",
+    "textlocked": "<:2064textlocked:1550274668085121064>",
+    "discordprofileactivitydark": "<:1731discordprofileactivitydark:1550274368536580148>",
+    "insights": "<:9587insights:1550195893796347964>",
 }
 
 _loaded: dict[str, str] = dict(MANUAL)
