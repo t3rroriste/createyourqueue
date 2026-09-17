@@ -884,13 +884,13 @@ class MMRPanel(SubPanel):
     def sync(self) -> None:
         self.clear_items()
         config = get_mmr_config(self.gid)
-        features = get_features(self.gid)
 
-        # État MMR, capitaines, rôles de rang : dans cet ordre, comme l'embed.
+        # Les trois états viennent des réglages MMR, comme la partie qui les
+        # applique : lus ailleurs, les boutons montraient l'inverse du vrai.
         for on, callback in (
             (bool(config["enabled"]), self._toggle_mmr()),
-            (bool(features.get("captains", False)), self._toggle_captains()),
-            (bool(features.get("mmr", False)), self._toggle_rank()),
+            (bool(config["captains"]), self._toggle_captains()),
+            (bool(config["rank_roles"]), self._toggle_rank()),
         ):
             button = discord.ui.Button(
                 label=t(self.gid, "wiz.enabled_word" if on else "wiz.disabled_word"),
@@ -927,9 +927,8 @@ class MMRPanel(SubPanel):
         async def callback(interaction: discord.Interaction) -> None:
             if not await self.guard(interaction):
                 return
-            features = get_features(self.gid)
-            new = not bool(features.get("captains", False))
-            set_features(self.gid, captains=new)
+            config = get_mmr_config(self.gid)
+            set_mmr_config(self.gid, captains=not bool(config["captains"]))
             await self.refresh(interaction)
         return callback
 
@@ -937,9 +936,8 @@ class MMRPanel(SubPanel):
         async def callback(interaction: discord.Interaction) -> None:
             if not await self.guard(interaction):
                 return
-            features = get_features(self.gid)
-            new = not bool(features.get("mmr", False))
-            set_features(self.gid, mmr=new)
+            config = get_mmr_config(self.gid)
+            set_mmr_config(self.gid, rank_roles=not bool(config["rank_roles"]))
             await self.refresh(interaction)
         return callback
 
@@ -954,11 +952,10 @@ class MMRPanel(SubPanel):
     def embed(self) -> discord.Embed:
         gid = self.gid
         config = get_mmr_config(gid)
-        features = get_features(gid)
         sections = [
             ("wiz.mmr_state_heading", bool(config["enabled"])),
-            ("wiz.mmr_captains_heading", bool(features.get("captains", False))),
-            ("wiz.mmr_ranks_heading", bool(features.get("mmr", False))),
+            ("wiz.mmr_captains_heading", bool(config["captains"])),
+            ("wiz.mmr_ranks_heading", bool(config["rank_roles"])),
         ]
         description = "\n\n".join(f"**_{t(gid, key)}_**\n{_state_line(gid, on)}" for key, on in sections)
         description += f"\n\n\n🗂️ **{t(gid, 'wiz.mmr_other_heading')}**"
@@ -1182,6 +1179,7 @@ class MMRRanksPanel(SubPanel):
 def done_embed(guild: discord.Guild) -> discord.Embed:
     gid = guild.id
     features = get_features(gid)
+    mmr = get_mmr_config(gid)
     embed = embeds.base(
         gid,
         title=t(gid, "wiz.done_title"),
@@ -1215,7 +1213,10 @@ def done_embed(guild: discord.Guild) -> discord.Embed:
     embeds.section(
         embed, t(gid, "wiz.done_features", icon=custom_emojis.get("settingsdark")),
         f"{embeds.state(features['leaderboard'])} {t(gid, 'wiz.opt_btn_leaderboard')}"
-        + "\n" + f"{embeds.state(features['mvp'])} {t(gid, 'wiz.opt_btn_mmr')}"
+        # MMR et capitaines viennent des réglages MMR, ceux que la partie applique.
+        + "\n" + f"{embeds.state(mmr['enabled'])} {t(gid, 'wiz.opt_btn_mmr')}"
+        + "\n" + f"{embeds.state(mmr['enabled'] and mmr['captains'])} "
+                 f"{t(gid, 'wiz.mmr_captains_heading')}"
         # Whitelist : le vocal d'attente n'est filtré que si un rôle Connexion
         # est désigné (voir la ligne du même rôle dans le récapitulatif).
         + "\n" + f"{embeds.state(connexion is not None)} {t(gid, 'wiz.opt_whitelist')}",
