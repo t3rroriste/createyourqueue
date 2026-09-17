@@ -2406,8 +2406,9 @@ class ResultView(View):
         sent = False
         if webhook_url:
             try:
-                webhook = discord.SyncWebhook.from_url(webhook_url)
-                webhook.send(embed=result_embed)
+                # Webhook asynchrone : SyncWebhook bloquait la boucle, donc les trois bots.
+                webhook = discord.Webhook.from_url(webhook_url, client=interaction.client)
+                await webhook.send(embed=result_embed, allowed_mentions=NO_PINGS)
                 sent = True
             except Exception as e:
                 log.error(f"Erreur lors de l'envoi du résultat via webhook : {e}")
