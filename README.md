@@ -391,6 +391,34 @@ git add .
 git commit -m "Description de ce qui a changé"
 ```
 
+Le code est aussi sur un dépôt GitHub **privé** (`origin`). Pour l'envoyer après un commit :
+
+```bash
+git push
+```
+
+### 6 bis. Coder depuis un autre PC
+
+Le dépôt GitHub sert de va-et-vient entre les deux PC. Sur le nouveau PC, une seule fois :
+
+```bash
+git clone https://github.com/t3rroriste/createyourqueue.git
+```
+
+```bash
+python -m venv venv && venv/Scripts/pip install -r requirements.txt
+```
+
+Il reste trois choses, qui ne sont **jamais** dans le dépôt :
+
+1. **`.env`** — recopie-le depuis ce PC (ou depuis l'hébergeur). Sans lui, aucun bot ne démarre.
+2. **`data/`** — la configuration des serveurs vit sur l'hébergeur ; en local, le bot repart d'un dossier vide.
+3. **L'envoi automatique vers AdKyNet** — installe `paramiko` (`pip install paramiko`) et définis la variable d'environnement `ADKYNET_SFTP_PASSWORD` avec le mot de passe SFTP. Le hook de `.claude/` est déjà dans le dépôt.
+
+Ensuite, la règle est simple : **`git pull` avant de commencer**, `git push` en finissant. git prévient si les deux PC ont modifié le même fichier, au lieu d'écraser en silence.
+
+⚠️ Ne code pas sur les deux PC en même temps : chacun envoie ses fichiers à AdKyNet, et le dernier enregistrement écrase l'autre.
+
 ### 7. La carte du code
 
 `graphify-out/graph.html` s'ouvre dans le navigateur : chaque fichier, fonction et classe, et leurs liens. Pratique pour savoir ce qu'une modification va toucher. Pour la remettre à jour après avoir changé le code :
