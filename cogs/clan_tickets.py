@@ -12,8 +12,9 @@ de setup(), pas d'entrée dans config.py ; cogs/clan_war.py l'importe.
 from __future__ import annotations
 
 import discord
+import embeds
 
-from guild_settings import MAX_CLAN_NAME
+from guild_settings import MAX_CLAN_NAME, get_ticket_config
 from i18n import t
 from text_safety import sanitize
 
@@ -55,7 +56,6 @@ class TicketProblemModal(discord.ui.Modal):
         description = self.description.value
         
         # Récupérer la configuration du ticket
-        from guild_settings import get_ticket_config
         ticket_config = get_ticket_config(gid)
         
         if not ticket_config or not ticket_config.get("enabled", False):
@@ -88,7 +88,7 @@ class TicketProblemModal(discord.ui.Modal):
         embed = discord.Embed(
             title=t(gid, "clan.ticket_title", type=problem_type)[:256],
             description=description,
-            color=0x000000
+            color=embeds.BLACK
         )
         embed.set_thumbnail(url=interaction.user.display_avatar.url)
         embed.add_field(name=t(gid, "clan.ticket_field_user"), value=f"{interaction.user.mention} ({interaction.user.name})")
@@ -164,7 +164,7 @@ class TicketResponseModal(discord.ui.Modal):
             embed = discord.Embed(
                 title=t(self.session.guild_id, "clan.ticket_reply_title"),
                 description=response_text,
-                color=0x000000
+                color=embeds.BLACK
             )
             embed.set_thumbnail(url=interaction.user.display_avatar.url)
             embed.add_field(name=t(self.session.guild_id, "clan.ticket_field_staff"), value=f"{interaction.user.mention} ({interaction.user.name})")

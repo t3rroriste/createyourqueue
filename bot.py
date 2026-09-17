@@ -20,14 +20,14 @@ import socket
 from dotenv import load_dotenv
 
 # .env AVANT tout import du projet : config.py lit ses variables au moment où
-# il est importé. Chargé après, .env arrivait trop tard — SUPPORT_GUILD_ID et
-# les IDs du modmail gardaient leur valeur par défaut, quoi qu'on y écrive.
+# il est importé.
 load_dotenv()
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import embeds
 from command_sync import sync_if_changed
 from config import (
@@ -108,21 +108,20 @@ intents.voice_states = True
 
 
 class CreateYourQueueBot(commands.Bot):
-    """Bot standard, avec un arrêt propre.
-
-    close() est appelé par `async with bot:` aussi bien à l'arrêt normal qu'au
-    Ctrl+C. C'est le seul endroit où le bot est encore connecté tout en sachant
-    qu'il va s'éteindre : on en profite pour basculer le panneau d'état en
-    HORS LIGNE avant de perdre la connexion."""
+    """Bot standard, avec un arrêt propre."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.diagnostic_channel_id = DIAGNOSTIC_CHANNEL_ID
         # Remplacé par run_bot() : c'est la clé du message de diagnostic.
-        # Resté à « Bot », il ne correspondait à aucun message, et le passage
-        # en HORS LIGNE à l'arrêt n'avait jamais lieu.
         self.bot_name = "Bot"
         self.presence_task: asyncio.Task | None = None
+
+    async def setup_hook(self) -> None:
+        # Juste après la connexion, avant que les cogs publient leurs
+        # panneaux : les emojis perso sont prêts dès le premier message.
+        if self.bot_name == "Main":
+            await custom_emojis.load(self)
 
     async def send_diagnostic(self, bot_name: str, status: str = "online", has_error: bool = False):
         """Envoie ou met à jour un message de diagnostic dans le channel configuré."""
@@ -221,11 +220,7 @@ class CreateYourQueueBot(commands.Bot):
 
 
 async def global_setup_check(interaction: discord.Interaction) -> bool:
-    """Bloque les commandes de queue tant que le serveur n'est pas configuré.
-
-    Liste NOIRE (SETUP_REQUIRED_COMMANDS dans config.py), plus liste blanche :
-    l'administration, la modération et les utilitaires marchent dès l'arrivée
-    du bot, y compris les commandes ajoutées plus tard sans y penser."""
+    """Bloque les commandes de queue tant que le serveur n'est pas configuré."""
     from config import GUNZFRANCE_GUILD_ID
 
     if interaction.guild_id is None:
@@ -237,9 +232,8 @@ async def global_setup_check(interaction: discord.Interaction) -> bool:
     command = interaction.command
     if command is None:
         return True
-    # Une sous-commande (/roles panel) se juge sur sa commande racine. L'ancien
-    # test lisait le nom de la sous-commande : /antiraid status passait parce
-    # que « status » était autorisée.
+    # Une sous-commande (/roles panel) se juge sur sa commande racine : sinon
+    # /antiraid status passerait, « status » étant autorisée seule.
     root = getattr(command, "root_parent", None) or command
     if root.name not in SETUP_REQUIRED_COMMANDS:
         return True
@@ -247,8 +241,7 @@ async def global_setup_check(interaction: discord.Interaction) -> bool:
     if is_setup_complete(interaction.guild_id):
         return True
 
-    # t(None, …) répondait toujours en anglais, y compris sur un serveur qui
-    # avait déjà choisi sa langue avec /language.
+    # Dans la langue du serveur : t(None, …) répondrait toujours en anglais.
     gid = interaction.guild_id
     embed = embeds.base(
         gid,
@@ -264,11 +257,7 @@ async def global_setup_check(interaction: discord.Interaction) -> bool:
 async def on_app_command_error(
     interaction: discord.Interaction, error: app_commands.AppCommandError
 ) -> None:
-    """Dernier filet : une commande qui plante doit dire pourquoi.
-
-    Sans ce gestionnaire, discord.py se contente d'écrire la trace dans les
-    logs et l'utilisateur voit « L'application n'a pas répondu » — le même
-    message qu'un bot hors ligne, impossible à distinguer d'une panne."""
+    """Dernier filet : une commande qui plante doit dire pourquoi."""
     gid = interaction.guild_id
 
     if isinstance(error, app_commands.MissingPermissions):
@@ -298,13 +287,7 @@ async def on_app_command_error(
 
 
 def start_presence_cycle(bot_instance: CreateYourQueueBot) -> None:
-    """Lance la rotation du statut, une seule fois par bot.
-
-    on_ready se redéclenche à chaque reconnexion, et l'ancien code relançait
-    aussi la boucle à chaque arrivée ou départ de serveur : les boucles
-    infinies s'empilaient et changeaient toutes le statut en même temps. La
-    boucle relit elle-même le nombre de serveurs à chaque tour, il n'y a donc
-    rien à relancer."""
+    """Lance la rotation du statut, une seule fois par bot."""
     task = bot_instance.presence_task
     if task is not None and not task.done():
         return
@@ -357,18 +340,7 @@ RETRY_MAX = 300      # plafond : 5 minutes entre deux essais
 
 
 async def wait_for_network() -> None:
-    """Attend que Discord soit joignable avant de tenter la connexion.
-
-    discord.py ne sait se reconnecter qu'après une première connexion
-    réussie : si le gateway est injoignable au démarrage (Wi-Fi pas encore
-    monté, DNS coupé, panne du fournisseur), il essaie de reprendre une
-    session qui n'existe pas et remonte un `AttributeError: 'NoneType'
-    object has no attribute 'sequence'` — une trace de 200 lignes qui ne dit
-    pas que c'est simplement la connexion qui manque.
-
-    On vérifie donc nous-mêmes, et on patiente : le bot lancé sur un PC qui
-    démarre repart tout seul dès que la connexion revient, au lieu de mourir.
-    """
+    """Attend que Discord soit joignable avant de tenter la connexion."""
     delay = RETRY_START
     warned = False
     loop = asyncio.get_running_loop()
@@ -404,8 +376,6 @@ async def run_bot(token: str, bot_name: str, is_temp: bool = False, is_modmail: 
     bot.tree.on_error = on_app_command_error  # type: ignore[method-assign]
     if not is_temp and not is_modmail:
         # Le contrôle « serveur configuré » ne concerne que le bot principal.
-        # Appliqué au bot temporaire, il bloquait /waiting sur tout serveur où
-        # le bot principal n'avait pas été configuré.
         bot.tree.interaction_check = global_setup_check  # type: ignore[method-assign]
 
     @bot.event
@@ -456,6 +426,34 @@ async def run_bot(token: str, bot_name: str, is_temp: bool = False, is_modmail: 
             )
 
 
+# Un port local par bot, tenu ouvert tant que le processus vit : c'est le verrou.
+INSTANCE_BASE_PORT = int(os.getenv("BOT_INSTANCE_PORT", "47310"))
+INSTANCE_PORTS = {"Main": 0, "Temporaire": 1, "ModMail": 2}
+MODE_BOTS = {
+    "all": ["Main", "Temporaire", "ModMail"],
+    "both": ["Main", "Temporaire"],
+    "main": ["Main"],
+    "temporaire": ["Temporaire"],
+    "modmail": ["ModMail"],
+}
+
+
+def claim_instances(names: list[str]) -> list[socket.socket] | str:
+    """Réserve ces bots pour ce processus, ou rend le nom de celui qui tourne déjà."""
+    held = []
+    for name in names:
+        lock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            lock.bind(("127.0.0.1", INSTANCE_BASE_PORT + INSTANCE_PORTS[name]))
+        except OSError:
+            lock.close()
+            for other in held:
+                other.close()
+            return name
+        held.append(lock)
+    return held
+
+
 async def main():
     if args.bot == "all":
         await asyncio.gather(
@@ -477,4 +475,11 @@ async def main():
 
 
 if __name__ == "__main__":
+    # Deux instances du même bot reçoivent chacune chaque clic : l'une répond,
+    # l'autre échoue en « Unknown interaction ».
+    instance_locks = claim_instances(MODE_BOTS[args.bot])
+    if isinstance(instance_locks, str):
+        log.critical(f"[{instance_locks}] tourne déjà sur cette machine : "
+                     f"arrête l'autre bot.py avant d'en relancer un.")
+        raise SystemExit(1)
     asyncio.run(main())

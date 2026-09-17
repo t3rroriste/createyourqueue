@@ -5,24 +5,6 @@ Commandes : /schedule (queue programmée), /season (saisons du classement)
 
 Deux panneaux, zéro commande annexe : tout se règle avec des boutons à
 bascule sur l'embed lui-même, qui se réaffiche à jour après chaque clic.
-
-Queue programmée
-----------------
-Le champ « Heure » du panneau /queue était purement décoratif : on écrivait
-21H00 et rien ne se passait. Ici, le bot publie l'annonce tout seul à l'heure
-et aux jours choisis, avec un rappel optionnel avant.
-
-Ce qui est publié se choisit dans le panneau : soit un **preset** (une
-configuration de queue nommée et enregistrée, créable directement ici), soit
-la dernière queue configurée avec /queue. Sans preset, un serveur qui lance
-un 2v2 improvisé un soir voyait sa queue automatique du lendemain repartir
-sur ce 2v2 : le preset fige la configuration voulue.
-
-Saisons
--------
-Le classement s'accumulait indéfiniment : un joueur arrivé en janvier restait
-devant tout le monde pour toujours. La remise à zéro mensuelle archive le
-podium puis repart de zéro, ce qui laisse une chance aux nouveaux.
 """
 
 from __future__ import annotations
@@ -34,6 +16,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
+import custom_emojis
 import embeds
 import resources
 from guild_settings import (
@@ -99,11 +82,7 @@ def _bounded_int(value: str, low: int, high: int) -> int | None:
 
 
 def resolve_scheduled_config(guild_id: int) -> tuple[dict | None, str | None, bool]:
-    """Ce que le planificateur publiera : (configuration, nom du preset, perdu ?).
-
-    `perdu` signale un preset choisi puis supprimé à la main dans le fichier de
-    réglages : on retombe alors sur la dernière configuration, mais le panneau
-    doit le dire plutôt que de publier autre chose en silence."""
+    """Ce que le planificateur publiera : (configuration, nom du preset, perdu ?)."""
     name = get_schedule(guild_id).get("preset")
     if name:
         preset = get_queue_preset(guild_id, name)
@@ -166,7 +145,7 @@ def build_schedule_embed(guild: discord.Guild) -> discord.Embed:
         if config is None:
             published += "\n" + t(gid, "auto.preset_no_config")
     elif preset_name:
-        published = f"📋 **{sanitize(preset_name, 60)}**\n{preset_summary(gid, config)}"
+        published = f"{custom_emojis.get('clipboard')} **{sanitize(preset_name, 60)}**\n{preset_summary(gid, config)}"
     elif config:
         published = f"{t(gid, 'auto.preset_none_selected')}\n{preset_summary(gid, config)}"
     else:
@@ -181,11 +160,7 @@ def build_schedule_embed(guild: discord.Guild) -> discord.Embed:
 
 
 class ChooserView(discord.ui.View):
-    """Menu affiché *à la place* du panneau, qui redevient ensuite le panneau.
-
-    Un second message éphémère obligeait à rouvrir /schedule pour voir le
-    résultat de son choix (« Rouvre le panneau pour voir le résumé »). Ici, le
-    même message porte le menu puis le panneau à jour."""
+    """Menu affiché *à la place* du panneau, qui redevient ensuite le panneau."""
 
     def __init__(self, panel, select: discord.ui.Select, embed_builder):
         super().__init__(timeout=300)
@@ -206,11 +181,7 @@ class ChooserView(discord.ui.View):
 
 
 class PresetModal(discord.ui.Modal):
-    """Création d'un preset depuis le panneau /schedule.
-
-    Volontairement limité aux cinq champs qu'un modal autorise : le reste
-    (couleurs, salon de publication, noms d'équipe) se règle dans /queue puis
-    s'enregistre avec le bouton « Enregistrer » du panneau de queue."""
+    """Création d'un preset depuis le panneau /schedule."""
 
     def __init__(self, panel: "ScheduleView"):
         gid = panel.guild.id
@@ -287,8 +258,12 @@ class ScheduleView(discord.ui.View):
         cfg = get_schedule(gid)
         self.toggle.label = t(gid, "auto.btn_off" if cfg["enabled"] else "auto.btn_on")
         self.toggle.style = discord.ButtonStyle.danger if cfg["enabled"] else discord.ButtonStyle.success
-        self.toggle.emoji = "⏸️" if cfg["enabled"] else "▶️"
+        self.toggle.emoji = custom_emojis.get("pause") if cfg["enabled"] else "▶️"
         self.set_time.label = t(gid, "auto.btn_time")
+        self.set_time.emoji = custom_emojis.get("clock")
+        self.set_days.emoji = custom_emojis.get("calender")
+        self.reminder.emoji = custom_emojis.get("notification")
+        self.pick_preset.emoji = custom_emojis.get("clipboard")
         self.set_days.label = t(gid, "auto.btn_days")
         self.reminder.label = t(gid, "auto.btn_reminder")
         self.pick_preset.label = t(gid, "auto.btn_preset")
@@ -394,7 +369,7 @@ class ScheduleView(discord.ui.View):
                 label=t(gid, "auto.preset_opt_last"),
                 description=t(gid, "auto.preset_opt_last_desc")[:100],
                 value=LAST_CONFIG,
-                emoji="🕘",
+                emoji=custom_emojis.get("clock"),
                 default=not current,
             )
         ]
@@ -405,7 +380,7 @@ class ScheduleView(discord.ui.View):
                     label=name,
                     description=preset_summary(gid, preset)[:100],
                     value=name,
-                    emoji="📋",
+                    emoji=custom_emojis.get("clipboard"),
                     default=current is not None and name.lower() == str(current).lower(),
                 )
             )
@@ -457,7 +432,7 @@ class ScheduleView(discord.ui.View):
                     label=str(p.get("name", ""))[:100],
                     description=preset_summary(gid, p)[:100],
                     value=str(p.get("name", ""))[:100],
-                    emoji="📋",
+                    emoji=custom_emojis.get("clipboard"),
                 )
                 for p in presets
             ],
@@ -533,8 +508,10 @@ class SeasonView(discord.ui.View):
         cfg = get_season(gid)
         self.toggle.label = t(gid, "auto.btn_off" if cfg["enabled"] else "auto.btn_on")
         self.toggle.style = discord.ButtonStyle.danger if cfg["enabled"] else discord.ButtonStyle.success
-        self.toggle.emoji = "⏸️" if cfg["enabled"] else "▶️"
+        self.toggle.emoji = custom_emojis.get("pause") if cfg["enabled"] else "▶️"
         self.set_day.label = t(gid, "auto.btn_reset_day")
+        self.set_day.emoji = custom_emojis.get("calender")
+        self.announce.emoji = custom_emojis.get("notification")
         self.announce.label = t(gid, "auto.btn_announce")
 
     async def _guard(self, interaction: discord.Interaction) -> bool:
@@ -599,11 +576,7 @@ class SeasonView(discord.ui.View):
 # Podium : palmarès des saisons
 # ----------------------------------------------------------------------
 def period_label(guild_id: int, period: str) -> str:
-    """« 2026-07 » → « Juillet 2026 » dans la langue du serveur.
-
-    Les douze mois tiennent dans une seule clé séparée par des barres : douze
-    clés par langue pour une info aussi mécanique alourdiraient les fichiers
-    de traduction sans rien apporter."""
+    """« 2026-07 » → « Juillet 2026 » dans la langue du serveur."""
     try:
         year, month = period.split("-")
         names = t(guild_id, "auto.months").split("|")
@@ -858,10 +831,7 @@ class Automation(commands.Cog):
 
     @app_commands.command(name="podium", description="Podiums des saisons passées et saison en cours.")
     async def podium(self, interaction: discord.Interaction) -> None:
-        """Le bot archivait les podiums de saison sans jamais les montrer.
-
-        Visible de tout le monde : un palmarès qu'on est seul à voir n'a pas
-        d'intérêt."""
+        """Le bot archivait les podiums de saison sans jamais les montrer."""
         guild = interaction.guild
         if guild is None:
             return

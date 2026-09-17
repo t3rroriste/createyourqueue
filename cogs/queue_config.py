@@ -5,6 +5,7 @@ Système de queue avec embed et boutons, sans formulaires.
 """
 
 import asyncio
+import hmac
 import logging
 import json
 import os
@@ -16,6 +17,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ui import View, Button, Select
 
+import custom_emojis
 import embeds
 import resources
 from guild_settings import (
@@ -36,6 +38,8 @@ from guild_settings import (
     get_queue_blacklist_entries,
     add_to_queue_blacklist,
     remove_from_queue_blacklist,
+    active_queue_password,
+    is_status_panel_message,
 )
 from i18n import t, t_in, get_lang
 from rate_limit import throttled_each
@@ -66,21 +70,13 @@ COLOR_PALETTE = [
 ]
 DEFAULT_TEAM_CIRCLES = [c[0] for c in COLOR_PALETTE[:8]]
 
-# Bornes des menus « nombre d'équipes » et « joueurs par équipe ». Définies ici
-# parce que c'est ce panneau qui les impose ; /schedule les importe pour que la
-# création d'un preset ne puisse pas décrire une queue impossible à refaire à
-# la main.
+# Bornes des menus « nombre d'équipes » et « joueurs par équipe ».
 TEAMS_MIN, TEAMS_MAX = 2, 6
 PLAYERS_MIN, PLAYERS_MAX = 1, 6
 
 
 def color_name(lang: str, emoji: str) -> str:
-    """Nom d'une couleur de la palette dans une langue donnée.
-
-    Les douze noms tiennent dans une seule clé séparée par des barres : douze
-    clés par langue pour une liste figée alourdiraient les traductions sans
-    rien apporter. Si la traduction manque, on retombe sur le nom anglais du
-    tuple plutôt que d'afficher une clé brute."""
+    """Nom d'une couleur de la palette dans une langue donnée."""
     names = t_in(lang, "queue.colors").split("|")
     for i, (candidate, _fr, name_en) in enumerate(COLOR_PALETTE):
         if candidate == emoji:
@@ -123,11 +119,7 @@ PANEL_BUTTONS = [
 
 
 def preset_summary(guild_id: int, preset: dict) -> str:
-    """Résumé d'une ligne : ce qu'un preset publiera concrètement.
-
-    Utilisé par le panneau de queue et par /schedule, qui doivent décrire un
-    preset de la même façon. Titre et type sont des champs libres et finissent
-    dans un embed : ils passent par sanitize comme tout texte de membre."""
+    """Résumé d'une ligne : ce qu'un preset publiera concrètement."""
     return t(
         guild_id, "queue.preset_summary",
         queue=sanitize(str(preset.get("queue_name", "Queue")), 60),
@@ -168,6 +160,9 @@ class QueueSession:
         self.winner = None
         self.win_log = []  # [(team_name, datetime), ...] chronologique
         self.full_alert_sent = False  # évite de re-notifier l'organisateur à chaque réaction une fois plein
+        # Mot de passe demandé pour s'inscrire (/option → Mot de passe), figé à
+        # la publication. None : inscription par la réaction ✅.
+        self.password = None
 
         # Initialiser les équipes avec couleurs
         colors = [0xFF0000, 0x0000FF, 0x00FF00, 0xFFFF00, 0xFF00FF, 0x00FFFF, 0xFFA500, 0x800080, 0x008080, 0xFFC0CB]
@@ -195,14 +190,7 @@ class QueueSession:
         return False
 
     def launch(self):
-        """Répartit la file d'attente dans les équipes et démarre la partie.
-
-        La répartition suit l'ordre d'inscription. Elle a un temps trié les
-        joueurs par niveau estimé pour répartir les forces : une note calculée
-        sur le taux de victoire décidait avec qui on jouait, sans que personne
-        ne l'ait demandé ni ne puisse la voir. C'est l'organisateur qui compose
-        ses équipes, ou les capitaines qui draftent.
-        """
+        """Répartit la file d'attente dans les équipes et démarre la partie."""
         team_names = list(self.teams.keys())
         max_players = self.queue_config.get("max_players_per_team", 4)
         for team_name in team_names:
@@ -259,10 +247,7 @@ class QueueSession:
             return 0, step
         nxt = index + step
         if nxt >= size or nxt < 0:
-            # Arrivé au bout : on change de sens SANS bouger. C'est ce demi-tour
-            # sur place qui fait le serpentin (A,B,B,A,A,B) plutôt qu'une simple
-            # alternance (A,B,A,B) — l'alternance redonne le meilleur joueur à
-            # la même équipe à chaque tour et ne rééquilibre rien.
+            # Arrivé au bout : on change de sens SANS bouger.
             step = -step
             nxt = index
         return nxt, step
@@ -301,6 +286,7 @@ class QueueSession:
             "ended": self.ended,
             "winner": self.winner,
             "win_log": [(team, ts.isoformat()) for team, ts in self.win_log],
+            "password": self.password,
         }
 
     @classmethod
@@ -345,6 +331,7 @@ class QueueSession:
         session.started = data.get("started", False)
         session.ended = data.get("ended", False)
         session.winner = data.get("winner")
+        session.password = data.get("password") or None
         session.win_log = [
             (team, datetime.fromisoformat(ts)) for team, ts in data.get("win_log", [])
         ]
@@ -359,24 +346,14 @@ class QueueSession:
     def _embed_preparation(self):
         """Embed de l'annonce — même base pour les trois états (inscriptions,
         partie lancée, match terminé) : seuls le bloc central et le pied de
-        page changent.
-
-        Les textes passaient auparavant par un `if lang == "en"` : un serveur
-        en espagnol, en allemand ou en coréen lisait donc son annonce — la
-        plus visible de toutes — en français. Tout est maintenant traduit.
-
-        La mise en page reprend celle d'origine : titre, organisateur, une
-        ligne par équipe, la session, l'appel à participer, puis l'heure et le
-        type côte à côte."""
+        page changent."""
         gid = self.guild_id
         cfg = self.queue_config
         queue_name = sanitize(str(cfg.get("queue_name", "Queue")), 80)
 
         embed = discord.Embed(
             title=t(gid, "queue.ann_title", name=queue_name),
-            # 0x000000 est traité par Discord comme "pas de couleur" (bordure invisible) ;
-            # on utilise donc un noir non-nul pour un rendu vraiment noir.
-            color=0x010101,
+            color=embeds.BLACK,
         )
 
         # Tout le corps tient dans la description : des champs séparés
@@ -420,7 +397,8 @@ class QueueSession:
             block.append(t(gid, "queue.ann_started"))
         else:
             voice_name = resources.resource_name(gid, "voice_queue_waiting")
-            block.append(t(gid, "queue.ann_cta", channel=voice_name))
+            cta = "queue.ann_cta_password" if self.password else "queue.ann_cta"
+            block.append(t(gid, cta, channel=voice_name))
         embed.description = "\n".join(block)
 
         # Heure et type côte à côte, en bas, comme sur l'annonce d'origine.
@@ -438,9 +416,8 @@ class QueueSession:
         if self.ended:
             embed.set_footer(text=t(gid, "queue.finished_footer"))
         elif not self.started:
-            embed.set_footer(text=t(gid, "queue.ann_footer_join"))
-        else:
-            embed.set_footer(text=t(gid, "common.footer_main"))
+            embed.set_footer(text=t(gid, "queue.ann_footer_password" if self.password
+                                    else "queue.ann_footer_join"))
         return embed
 
 
@@ -515,10 +492,7 @@ SORT_MODES = ["az", "za", "num"]
 
 def _natural_key(name: str):
     """Découpe le nom en morceaux texte/nombre pour que « Team2 » passe avant
-    « Team10 » — un tri purement alphabétique les mettrait dans l'autre sens.
-
-    Chaque morceau devient un tuple de même forme : sans ça, comparer « alpha »
-    (texte) à « 9Lives » (nombre) fait planter le tri."""
+    « Team10 » — un tri purement alphabétique les mettrait dans l'autre sens."""
     return [
         (0, int(chunk), "") if chunk.isdigit() else (1, 0, chunk.lower())
         for chunk in re.split(r"(\d+)", name)
@@ -542,10 +516,7 @@ def sort_teams(teams: list[dict], mode: str) -> list[dict]:
 
 class TeamPickerView(View):
     """Menu contextuel des noms d'équipe, sur le modèle du bouton Couleur :
-    on choisit d'abord l'équipe à modifier, puis son nom et sa couleur.
-
-    Toute équipe créée ici est enregistrée dans la bibliothèque du serveur et
-    reste proposée lors des prochaines commandes /queue."""
+    on choisit d'abord l'équipe à modifier, puis son nom et sa couleur."""
 
     MAX_OPTIONS = 25
 
@@ -727,12 +698,7 @@ class TeamPickerView(View):
 
 
 class TeamsBuilderView(View):
-    """Tout ce qui concerne les équipes, au même endroit.
-
-    Le panneau avait quatre boutons pour une seule idée — nombre d'équipes,
-    joueurs par équipe, noms, couleurs — et il fallait deviner lequel ouvrir.
-    Ici : combien d'équipes, de combien de joueurs, et pour chacune son nom et
-    sa couleur."""
+    """Tout ce qui concerne les équipes, au même endroit."""
 
     def __init__(self, config_view: "QueueConfigView"):
         super().__init__(timeout=300)
@@ -875,11 +841,7 @@ class QueueConfigView(View):
         self.sync_captains()
 
     def sync_captains(self) -> None:
-        """Le bouton dit son état : vert allumé, gris éteint.
-
-        Grisé si le système de match est coupé sur le serveur : sans salon de
-        match, il n'y a personne à élire — mieux vaut un bouton inerte qui
-        l'explique qu'un réglage qui ne changerait rien."""
+        """Le bouton dit son état : vert allumé, gris éteint."""
         gid = self.guild_id
         config = get_mmr_config(gid)
         on = bool(self.config.get("captains"))
@@ -903,11 +865,7 @@ class QueueConfigView(View):
 
     @discord.ui.button(label="Teams", style=discord.ButtonStyle.secondary, row=0)
     async def teams_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Ouvre le constructeur d'équipes.
-
-        Nombre d'équipes, joueurs par équipe, noms et couleurs étaient quatre
-        boutons distincts sur le panneau : c'est la même question, on la pose
-        au même endroit."""
+        """Ouvre le constructeur d'équipes."""
         view = TeamsBuilderView(self)
         await interaction.response.send_message(
             embed=view.embed(), view=view, ephemeral=True
@@ -1008,11 +966,7 @@ class QueueConfigView(View):
 
     @discord.ui.button(label="Save Preset", style=discord.ButtonStyle.success, row=2)
     async def save_preset_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Enregistre la configuration actuelle sous un nom réutilisable.
-
-        Le nom est demandé plutôt que généré : c'est lui qu'on retrouve dans le
-        menu de /schedule, et une liste de « Preset 1, Preset 2… » ne permet
-        pas de choisir quoi publier."""
+        """Enregistre la configuration actuelle sous un nom réutilisable."""
         gid = self.guild_id
         modal = discord.ui.Modal(title=t(gid, "queue.preset_save_modal"))
         field = discord.ui.TextInput(
@@ -1046,12 +1000,7 @@ class QueueConfigView(View):
 
     @discord.ui.button(label="Start", style=discord.ButtonStyle.green, row=2)
     async def start_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Montre l'aperçu AVANT de publier.
-
-        L'annonce partait directement avec un @everyone : une faute de frappe
-        dans le titre ou un mauvais nombre d'équipes était visible de tout le
-        serveur avant qu'on puisse réagir. On affiche donc l'annonce telle
-        qu'elle sera, et rien n'est publié tant que ce n'est pas confirmé."""
+        """Montre l'aperçu AVANT de publier."""
         gid = self.guild_id
         existing = self.cog.active_sessions.get(gid)
         if existing and not existing.ended:
@@ -1064,6 +1013,7 @@ class QueueConfigView(View):
         # Session jetable : sert uniquement à composer l'aperçu, elle n'est
         # enregistrée nulle part tant que la publication n'est pas confirmée.
         preview = QueueSession(interaction.user, None, self.config)
+        preview.password = active_queue_password(gid)
         embed = preview.build_embed()
         embed.set_footer(text=t(gid, "queue.preview_footer"))
 
@@ -1141,6 +1091,8 @@ class RematchView(View):
         self.relaunch.label = t(guild_id, "queue.rematch_btn_go")
         self.recall.label = t(guild_id, "queue.rematch_btn_recall")
         self.cancel.label = t(guild_id, "queue.rematch_btn_cancel")
+        self.relaunch.emoji = custom_emojis.get("replay")
+        self.cancel.emoji = custom_emojis.get("cross")
         # Sans joueurs identifiables, « prévenir » n'aurait personne à citer.
         self.recall.disabled = not players
 
@@ -1309,6 +1261,90 @@ class LaunchView(View):
         )
 
 
+class PasswordJoinView(View):
+    """Inscription à une queue sous mot de passe : Rejoindre / Quitter."""
+
+    def __init__(self, cog, guild_id: int | None = None):
+        super().__init__(timeout=None)
+        self.cog = cog
+        if guild_id is not None:
+            self.join_button.label = t(guild_id, "queue.pw_btn_join")
+            self.leave_button.label = t(guild_id, "queue.pw_btn_leave")
+
+    def _session(self, interaction: discord.Interaction):
+        message = interaction.message
+        session = self.cog.session_by_message.get(message.id) if message is not None else None
+        if session is None or session.started or session.ended or not session.password:
+            return None
+        return session
+
+    @discord.ui.button(label="Rejoindre", style=discord.ButtonStyle.success, emoji="🔒",
+                       custom_id="cyq:queue:pw_join")
+    async def join_button(self, interaction: discord.Interaction, _: discord.ui.Button):
+        gid = interaction.guild_id
+        session = self._session(interaction)
+        if session is None:
+            await interaction.response.send_message(t(gid, "queue.pw_closed"), ephemeral=True)
+            return
+        if interaction.user.id in get_queue_blacklist(gid):
+            await interaction.response.send_message(t(gid, "queue.blacklist_blocked_dm"), ephemeral=True)
+            return
+        if any(m.id == interaction.user.id for m in session.waiting_players):
+            await interaction.response.send_message(t(gid, "queue.pw_already"), ephemeral=True)
+            return
+        await interaction.response.send_modal(QueuePasswordModal(self.cog, session))
+
+    @discord.ui.button(label="Quitter", style=discord.ButtonStyle.secondary, emoji="🚪",
+                       custom_id="cyq:queue:pw_leave")
+    async def leave_button(self, interaction: discord.Interaction, _: discord.ui.Button):
+        gid = interaction.guild_id
+        session = self._session(interaction)
+        if session is None:
+            await interaction.response.send_message(t(gid, "queue.pw_closed"), ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+        left = await self.cog.remove_player(session, interaction.user)
+        await interaction.followup.send(
+            t(gid, "queue.pw_left" if left else "queue.pw_not_in"), ephemeral=True)
+
+
+class QueuePasswordModal(discord.ui.Modal):
+    """Le mot de passe, demandé avant l'inscription."""
+
+    def __init__(self, cog, session: QueueSession):
+        gid = session.guild_id
+        super().__init__(title=t(gid, "queue.pw_modal_title")[:45])
+        self.cog = cog
+        self.session = session
+        self.answer = discord.ui.TextInput(label=t(gid, "queue.pw_modal_label")[:45], max_length=100)
+        self.add_item(self.answer)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        session = self.session
+        gid = session.guild_id
+        # La queue a pu démarrer ou être annulée pendant la saisie.
+        if session.started or session.ended or self.cog.active_sessions.get(gid) is not session:
+            await interaction.response.send_message(t(gid, "queue.pw_closed"), ephemeral=True)
+            return
+        # Comparaison à temps constant : la durée de la réponse ne dit pas
+        # combien de caractères étaient justes.
+        if not hmac.compare_digest(self.answer.value.strip().encode(), (session.password or "").encode()):
+            await interaction.response.send_message(t(gid, "queue.pw_wrong"), ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+        result = await self.cog.add_player(session, interaction.user)
+        keys = {
+            "joined": "queue.pw_joined",
+            "already": "queue.pw_already",
+            "full": "queue.pw_full",
+            "blacklisted": "queue.blacklist_blocked_dm",
+        }
+        await interaction.followup.send(
+            t(gid, keys[result], channel=resources.resource_name(gid, "voice_queue_waiting")),
+            ephemeral=True,
+        )
+
+
 class QueueConfig(commands.Cog):
     """Cog pour le système de queue avec embed et boutons."""
     
@@ -1319,6 +1355,11 @@ class QueueConfig(commands.Cog):
         self.session_by_message = {}
         self._restored = False
 
+    async def cog_load(self):
+        # Boutons des queues sous mot de passe : un exemplaire pour toutes les
+        # annonces, présentes et à venir (voir PasswordJoinView).
+        self.bot.add_view(PasswordJoinView(self))
+
     def _is_staff(self, member):
         return resources.is_staff(member)
 
@@ -1326,11 +1367,7 @@ class QueueConfig(commands.Cog):
         return self.bot.get_cog("Classement")
 
     async def open_queue(self, guild, author, config, *, fallback_channel=None):
-        """Publie une queue et met en place tous ses panneaux.
-
-        Extrait du bouton Start pour que le planificateur puisse ouvrir une
-        queue sans interaction : le code qui publie l'annonce, verrouille le
-        vocal et crée les panneaux ne dépend plus d'un clic."""
+        """Publie une queue et met en place tous ses panneaux."""
         # Toujours le salon d'annonces désigné à la configuration : le choisir
         # une deuxième fois à chaque queue était une occasion de se tromper,
         # et un ancien choix enregistré pouvait publier ailleurs sans prévenir.
@@ -1341,17 +1378,23 @@ class QueueConfig(commands.Cog):
             raise RuntimeError("aucun salon disponible pour publier l'annonce")
 
         session = QueueSession(author, queue_channel, config)
+        session.password = active_queue_password(guild.id)
 
+        extra = {"view": PasswordJoinView(self, guild.id)} if session.password else {}
         message = await queue_channel.send(
             content="@everyone",
             embed=session.build_embed(),
             allowed_mentions=discord.AllowedMentions(everyone=True),
+            **extra,
         )
         session.message = message
-        try:
-            await message.add_reaction("✅")
-        except discord.HTTPException:
-            pass
+        # Sous mot de passe, on s'inscrit par le bouton : une réaction ✅
+        # laisserait croire qu'elle suffit.
+        if not session.password:
+            try:
+                await message.add_reaction("✅")
+            except discord.HTTPException:
+                pass
 
         self.active_sessions[guild.id] = session
         self.session_by_message[message.id] = session
@@ -1385,11 +1428,7 @@ class QueueConfig(commands.Cog):
         return session
 
     async def deploy_teams(self, guild: discord.Guild, session: "QueueSession") -> None:
-        """Met la partie en place une fois les équipes formées.
-
-        Extrait du bouton « Lancer la partie » : le mode capitaines compose
-        les équipes plus tard, dans le salon de match, et doit pouvoir
-        déclencher exactement la même mise en place."""
+        """Met la partie en place une fois les équipes formées."""
         # Annonce audio "la partie commence" dans le salon d'attente, avant de
         # séparer les joueurs en salons d'équipe.
         if session.waiting_channel:
@@ -1426,9 +1465,7 @@ class QueueConfig(commands.Cog):
                 label="répartition en équipes",
             )
 
-        # Split terminé : le vocal d'attente se referme complètement. Le rôle
-        # Connexion est retiré à tout le monde et n'ouvre plus le salon, donc
-        # plus personne ne peut entrer — y compris ceux qui viennent de réagir.
+        # Split terminé : le vocal d'attente se referme complètement.
         await self.clear_connexion_role(guild, reason="Queue lancée : accès révoqué")
         await self.apply_waiting_lock(guild, session.waiting_channel, open_for_connexion=False)
 
@@ -1506,10 +1543,8 @@ class QueueConfig(commands.Cog):
             if session.message:
                 self.session_by_message[session.message.id] = session
 
-            # Réattacher les vues aux messages existants pour réactiver les boutons.
-            # Isolé : une vue qui refuse de s'attacher ne doit pas interrompre la
-            # restauration des autres serveurs ni la suite de on_ready (verrouillage
-            # des vocaux d'attente).
+            # Réattacher les vues aux messages existants pour réactiver les
+            # boutons.
             try:
                 if session.launch_message:
                     view = LaunchView(self, session)
@@ -1568,7 +1603,10 @@ class QueueConfig(commands.Cog):
 
         if session.config_channel:
             try:
-                await session.config_channel.purge(limit=None, reason="Queue terminée : reset du salon")
+                await session.config_channel.purge(
+                    limit=None, reason="Queue terminée : reset du salon",
+                    # Le panneau /status a pu être posé ici : il reste.
+                    check=lambda m: not is_status_panel_message(guild.id, m.id))
             except discord.HTTPException as e:
                 log.error(f"Erreur lors du reset du salon queue : {e}")
             await self.lock_queue_channel_to_staff(guild, session.config_channel)
@@ -1613,12 +1651,7 @@ class QueueConfig(commands.Cog):
     # queue à l'autre.
     # ------------------------------------------------------------------
     def get_connexion_role(self, guild: discord.Guild) -> discord.Role | None:
-        """Rôle d'accès au vocal d'attente, **désigné** par l'administrateur.
-
-        Le bot ne le crée pas : il n'impose aucun rôle sur le serveur. S'il
-        n'est pas désigné (voir /config → Rôles), le vocal d'attente reste
-        simplement ouvert à qui y a déjà accès — la queue fonctionne, sans
-        le verrouillage."""
+        """Rôle d'accès au vocal d'attente, **désigné** par l'administrateur."""
         role = resources.get_role(guild, "role_connexion")
         if role is None:
             log.info(
@@ -1630,19 +1663,12 @@ class QueueConfig(commands.Cog):
     async def apply_waiting_lock(
         self, guild: discord.Guild, channel: discord.VoiceChannel | None, *, open_for_connexion: bool
     ):
-        """État des permissions du vocal d'attente.
-
-        @everyone est toujours `connect=False`. Le rôle Connexion est ouvert
-        pendant les inscriptions, puis refermé au lancement (personne ne peut
-        plus entrer, même avec le rôle). Les overwrites par membre hérités de
-        l'ancien système sont purgés — ils contournaient le verrou."""
+        """État des permissions du vocal d'attente."""
         if channel is None:
             return
         role = self.get_connexion_role(guild)
 
-        # Aucun rôle Connexion désigné = le vocal reste ouvert à tout le
-        # monde. C'est un choix, pas un oubli : le bot ne verrouille rien et
-        # rend même la main s'il avait verrouillé avant qu'on retire le rôle.
+        # Aucun rôle Connexion désigné = le vocal reste ouvert à tout le monde.
         if role is None:
             try:
                 await channel.set_permissions(
@@ -1680,10 +1706,7 @@ class QueueConfig(commands.Cog):
                 log.error(f"Erreur lors du verrouillage du vocal d'attente : {e}")
 
     async def clear_connexion_role(self, guild: discord.Guild, *, reason: str):
-        """Retire le rôle Connexion à tous ses porteurs (fin/lancement de queue).
-
-        Sans ça, un membre garderait l'accès au vocal lors de la queue suivante
-        sans avoir réagi."""
+        """Retire le rôle Connexion à tous ses porteurs (fin/lancement de queue)."""
         role = resources.get_role(guild, "role_connexion")
         if not role:
             return
@@ -1714,11 +1737,7 @@ class QueueConfig(commands.Cog):
             pass
 
     def may_stay_in_waiting(self, member: discord.Member) -> bool:
-        """Un membre a-t-il le droit d'être dans le vocal d'attente à cet instant ?
-
-        Filet de sécurité indépendant des permissions Discord : couvre les rôles
-        restés en place, les accès donnés à la main, et les entrées pendant la
-        propagation d'un changement de permissions."""
+        """Un membre a-t-il le droit d'être dans le vocal d'attente à cet instant ?"""
         if member.bot:
             return True
         # Sans rôle Connexion, le vocal d'attente est ouvert : éjecter les
@@ -1736,12 +1755,7 @@ class QueueConfig(commands.Cog):
     async def on_voice_state_update(
         self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
     ):
-        """Filtre l'entrée dans le vocal d'attente : droit d'accès, puis places.
-
-        La limite de places est appliquée **par le bot**, pas par le
-        `user_limit` de Discord : celui-ci se contente d'un refus muet côté
-        client, sans dire pourquoi. Ici, l'arrivant est déconnecté tout de
-        suite et reçoit un MP qui explique que la queue est pleine."""
+        """Filtre l'entrée dans le vocal d'attente : droit d'accès, puis places."""
         if after.channel is None or after.channel == before.channel:
             return
         guild = member.guild
@@ -1796,10 +1810,7 @@ class QueueConfig(commands.Cog):
     # Notifications MP du rôle "Notif Queue"
     # ------------------------------------------------------------------
     async def notify_queue_role(self, guild: discord.Guild, session: "QueueSession"):
-        """Envoie un MP à tous les porteurs du rôle Notif Queue, organisateur inclus.
-
-        Le bilan est publié dans le salon queue : sans ça, un MP qui n'arrive pas
-        (rôle absent, personne inscrite, MP fermés) reste invisible côté serveur."""
+        """Envoie un MP à tous les porteurs du rôle Notif Queue, organisateur inclus."""
         gid = guild.id
         report_channel = session.config_channel
 
@@ -1836,7 +1847,7 @@ class QueueConfig(commands.Cog):
 
         embed = embeds.base(
             gid,
-            title=t(gid, "queue.notif_dm_title"),
+            title=t(gid, "queue.notif_dm_title", notif=custom_emojis.get("discord_notification_settings_d")),
             description=description,
             kind="warning",
             footer=t(gid, "queue.notif_dm_footer", role=role.name),
@@ -1866,10 +1877,7 @@ class QueueConfig(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        """Ajoute un joueur à la file d'attente quand il réagit avec ✅ sur l'annonce.
-
-        La répartition en équipes ne se fait qu'au lancement manuel de la partie (voir LaunchView).
-        """
+        """Ajoute un joueur à la file d'attente quand il réagit avec ✅ sur l'annonce."""
         if str(payload.emoji) != "✅" or payload.guild_id is None:
             return
         if payload.user_id == self.bot.user.id:
@@ -1889,53 +1897,87 @@ class QueueConfig(commands.Cog):
             except discord.HTTPException:
                 return
 
-        if member.id in get_queue_blacklist(guild.id):
+        if session.password:
+            # Queue sous mot de passe : la réaction ne compte pas, seul le
+            # bouton Rejoindre inscrit.
             try:
                 await session.message.remove_reaction("✅", member)
             except discord.HTTPException:
                 pass
+            return
+
+        result = await self.add_player(session, member)
+        if result in ("blacklisted", "full"):
+            try:
+                await session.message.remove_reaction("✅", member)
+            except discord.HTTPException:
+                pass
+        if result == "blacklisted":
             try:
                 await member.send(t(guild.id, "queue.blacklist_blocked_dm"))
             except discord.HTTPException:
                 pass  # MP fermés : rien à faire, le retrait de la réaction suffit
+
+    async def add_player(self, session: "QueueSession", member: discord.Member) -> str:
+        """Inscrit un joueur — commun à la réaction ✅ et au bouton du mot de passe."""
+        guild = member.guild
+        if member.id in get_queue_blacklist(guild.id):
             send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_blocked"),
                      user=member, color=embeds.WARNING)
-            return
+            return "blacklisted"
+        if any(m.id == member.id for m in session.waiting_players):
+            return "already"
+        if not session.add_waiting(member):
+            return "full"
 
-        already = member in session.waiting_players
-        if session.add_waiting(member):
-            if not already:
-                send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_joined"), user=member,
-                         color=embeds.SUCCESS,
-                         fields=[(t(guild.id, "logs.f_players"),
-                                  f"{len(session.waiting_players)}/{session.get_capacity()}")])
-            await self.grant_connexion(member)
-            try:
-                await session.message.edit(embed=session.build_embed())
-            except discord.HTTPException:
-                pass
-            self.save_sessions()
+        send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_joined"), user=member,
+                 color=embeds.SUCCESS,
+                 fields=[(t(guild.id, "logs.f_players"),
+                          f"{len(session.waiting_players)}/{session.get_capacity()}")])
+        await self.grant_connexion(member)
+        try:
+            await session.message.edit(embed=session.build_embed())
+        except discord.HTTPException:
+            pass
+        self.save_sessions()
 
-            if session.is_waiting_full() and not session.full_alert_sent:
-                session.full_alert_sent = True
-                target = session.config_channel or session.announcement_channel
-                if target:
-                    try:
-                        await target.send(
-                            content=t(
-                                guild.id, "queue.pool_full",
-                                organizer=session.author.mention,
-                                capacity=session.get_capacity(),
-                            ),
-                            allowed_mentions=USERS_ONLY,
-                        )
-                    except discord.HTTPException:
-                        pass
-        else:
-            try:
-                await session.message.remove_reaction("✅", member)
-            except discord.HTTPException:
-                pass
+        if session.is_waiting_full() and not session.full_alert_sent:
+            session.full_alert_sent = True
+            target = session.config_channel or session.announcement_channel
+            if target:
+                try:
+                    await target.send(
+                        content=t(
+                            guild.id, "queue.pool_full",
+                            organizer=session.author.mention,
+                            capacity=session.get_capacity(),
+                        ),
+                        allowed_mentions=USERS_ONLY,
+                    )
+                except discord.HTTPException:
+                    pass
+        return "joined"
+
+    async def remove_player(self, session: "QueueSession", member: discord.Member) -> bool:
+        """Désinscrit un joueur. False s'il n'était pas inscrit."""
+        if not session.remove_waiting(member):
+            return False
+        guild = member.guild
+        send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_left"), user=member,
+                 color=embeds.ERROR,
+                 fields=[(t(guild.id, "logs.f_players"),
+                          f"{len(session.waiting_players)}/{session.get_capacity()}")])
+        # Le rôle est retiré, mais on ne déconnecte pas : un membre déjà dans le
+        # vocal y reste (choix explicite de l'organisateur).
+        await self.revoke_connexion(member)
+        try:
+            await session.message.edit(embed=session.build_embed())
+        except discord.HTTPException:
+            pass
+        if not session.is_waiting_full():
+            session.full_alert_sent = False
+        self.save_sessions()
+        return True
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
@@ -1946,7 +1988,9 @@ class QueueConfig(commands.Cog):
             return
 
         session = self.session_by_message.get(payload.message_id)
-        if not session or session.started or session.ended:
+        # Sous mot de passe, c'est le bot qui retire les réactions égarées :
+        # ce retrait ne doit pas désinscrire quelqu'un passé par le bouton.
+        if not session or session.started or session.ended or session.password:
             return
 
         guild = self.bot.get_guild(payload.guild_id)
@@ -1959,21 +2003,7 @@ class QueueConfig(commands.Cog):
             except discord.HTTPException:
                 return
 
-        if session.remove_waiting(member):
-            send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_left"), user=member,
-                     color=embeds.ERROR,
-                     fields=[(t(guild.id, "logs.f_players"),
-                              f"{len(session.waiting_players)}/{session.get_capacity()}")])
-            # Le rôle est retiré, mais on ne déconnecte pas : un membre déjà dans le
-            # vocal y reste (choix explicite de l'organisateur).
-            await self.revoke_connexion(member)
-            try:
-                await session.message.edit(embed=session.build_embed())
-            except discord.HTTPException:
-                pass
-            if not session.is_waiting_full():
-                session.full_alert_sent = False
-            self.save_sessions()
+        await self.remove_player(session, member)
 
     async def create_result_panel(self, guild, session, channel):
         """Crée le panel de suivi des scores (une équipe par bouton + Finish) dans le salon donné."""
@@ -1985,11 +2015,7 @@ class QueueConfig(commands.Cog):
     
     @app_commands.command(name="queue", description="Create a new queue")
     async def queue(self, interaction: discord.Interaction):
-        """Crée une nouvelle queue, ou ouvre l'assistant si rien n'est réglé.
-
-        Une seule commande à retenir : tant que le serveur n'est pas configuré,
-        /queue mène à l'étape suivante de l'assistant plutôt qu'à un panneau
-        qui échouerait faute de salon où publier."""
+        """Crée une nouvelle queue, ou ouvre l'assistant si rien n'est réglé."""
         gid = interaction.guild_id
         if not queue_ready(gid):
             # N'importe qui peut lancer la configuration maintenant
@@ -2055,12 +2081,7 @@ class QueueConfig(commands.Cog):
 
     @app_commands.command(name="rematch", description="Relance la dernière partie avec les mêmes réglages.")
     async def rematch(self, interaction: discord.Interaction):
-        """Relance la dernière queue terminée sans rien reconfigurer.
-
-        Juste après un match, tout le monde est encore connecté : refaire les
-        huit réglages du panneau à ce moment-là fait partir la moitié des
-        joueurs. Ici, un clic suffit — mais l'aperçu reste affiché avant,
-        comme pour toute publication."""
+        """Relance la dernière queue terminée sans rien reconfigurer."""
         gid = interaction.guild_id
         if not self._is_staff(interaction.user):
             await interaction.response.send_message(t(gid, "queue.rematch_staff_only"), ephemeral=True)
@@ -2218,16 +2239,7 @@ class QueueConfig(commands.Cog):
 
 
 def build_score_embed(session: QueueSession, *, final: bool = False) -> discord.Embed:
-    """Le tableau des points, en direct puis publié.
-
-    Un seul constructeur pour les deux : c'est la même partie, elle doit se
-    lire pareil dans le salon de commande et dans le salon des résultats.
-    Ne changent que les deux choses qui n'ont plus le même sens une fois la
-    partie finie — le titre, et le pied de page, qui n'a plus à expliquer des
-    boutons devenus inertes.
-
-    En direct, une barre montre l'écart d'un coup d'œil. Sur le résultat
-    publié elle ne sert plus à rien : le score final se lit tout seul."""
+    """Le tableau des points, en direct puis publié."""
     gid = session.guild_id
     queue_name = sanitize(str(session.queue_config.get("queue_name", "Queue")), 60)
     embed = discord.Embed(
@@ -2287,12 +2299,10 @@ class ResultView(View):
         self.message = None
         self.finished = False
 
-        # Les custom_id doivent être STABLES : sans eux, discord.py en génère un
-        # aléatoire à chaque démarrage, la vue n'est plus « persistante » et
+        # Les custom_id doivent être STABLES : sans eux, discord.py en génère
+        # un aléatoire à chaque démarrage, la vue n'est plus « persistante » et
         # bot.add_view() la refuse au redémarrage (ValueError), ce qui rendait
         # les boutons de score morts après un simple restart.
-        # L'index sert de clé plutôt que le nom d'équipe : un nom saisi par un
-        # utilisateur peut dépasser la limite de 100 caractères d'un custom_id.
         team_colors = session.queue_config.get("team_colors", {})
         for i, team_name in enumerate(session.teams.keys()):
             button = discord.ui.Button(
@@ -2407,8 +2417,6 @@ class ResultView(View):
         self.cog.record_queue_history(guild, self.session)
 
         # L'annonce d'origine passe en « match terminé », raccourcis compris.
-        # Un second message aurait dit la même chose en encombrant le salon :
-        # on modifie, on ne republie pas.
         try:
             await self.session.message.edit(embed=self.session.build_embed())
         except (discord.HTTPException, AttributeError) as e:

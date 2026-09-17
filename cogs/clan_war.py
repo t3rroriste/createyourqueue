@@ -26,7 +26,8 @@ import discord
 import embeds
 import resources
 from guild_settings import (
-    MAX_CLAN_NAME, get_clan, set_clan_war_session, clear_clan_war_session
+    MAX_CLAN_NAME, get_clan, set_clan_war_session, clear_clan_war_session,
+    get_ticket_config, increment_clan_announcement,
 )
 from i18n import t
 from text_safety import sanitize
@@ -41,11 +42,7 @@ log = logging.getLogger("bot.clan")
 
 
 def _slug(name: str) -> str:
-    """Nom de salon à partir d'un nom de clan.
-
-    Discord accepte les accents mais les affiche de façon inégale selon les
-    clients : on translittère, et on garde un repli pour un nom entièrement
-    composé de caractères non latins (coréen, cyrillique…)."""
+    """Nom de salon à partir d'un nom de clan."""
     plain = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", plain).strip("-").lower()
     return slug[:90] or "clan"
@@ -55,15 +52,7 @@ def _slug(name: str) -> str:
 # Session de ClanWar
 # ----------------------------------------------------------------------
 class ClanWarSession:
-    """Gère une session de ClanWar après acceptation.
-    
-    Cette classe gère :
-    - Le timer de 15 minutes pour la préparation
-    - La création de salons vocaux privés pour les 2 clans
-    - Le système de mute (seuls les leads peuvent parler)
-    - L'annonce vocale du bot quand la partie va commencer
-    - L'intégration avec le système de vote de capitaine
-    """
+    """Gère une session de ClanWar après acceptation."""
     
     def __init__(self, cog: "Clan", guild: discord.Guild, clan1: dict, clan2: dict, size: int):
         self.cog = cog
@@ -320,14 +309,13 @@ class ClanWarSession:
                 embed = discord.Embed(
                     title=t(gid, "clan.war_started_title"),
                     description=description,
-                    color=0x000000  # Noir
+                    color=embeds.BLACK
                 )
                 # Pas de footer
                 message = await channel1.send(embed=embed)
                 self.notification_messages[channel1.id] = message.id
                 
                 # Incrémenter le compteur d'annonces
-                from guild_settings import increment_clan_announcement
                 increment_clan_announcement(gid, self.clan1["id"])
             except discord.HTTPException:
                 pass
@@ -342,14 +330,13 @@ class ClanWarSession:
                 embed = discord.Embed(
                     title=t(gid, "clan.war_started_title"),
                     description=description,
-                    color=0x000000  # Noir
+                    color=embeds.BLACK
                 )
                 # Pas de footer
                 message = await channel2.send(embed=embed)
                 self.notification_messages[channel2.id] = message.id
                 
                 # Incrémenter le compteur d'annonces
-                from guild_settings import increment_clan_announcement
                 increment_clan_announcement(gid, self.clan2["id"])
             except discord.HTTPException:
                 pass
@@ -463,7 +450,7 @@ class ClanWarSession:
                     embed = embeds.base(
                         self.guild_id,
                         description=t(self.guild_id, "clan.war_leader_missing"),
-                        kind="warning"
+                        kind="error"
                     )
                     await channel.send(embed=embed)
                 except discord.HTTPException:
@@ -712,7 +699,7 @@ class ClanWarSession:
                         title=t(gid, "clan.war_start_title"),
                         description=t(gid, "clan.war_start_desc",
                                      clan1=name1, clan2=name2, size=self.size),
-                        color=0x000000  # Rouge
+                        color=embeds.BLACK
                     )
                     # Pas de footer
                     await channel.send(embed=embed)
@@ -876,7 +863,7 @@ class ClanWarSession:
                     embed = discord.Embed(
                         title=t(self.guild_id, "clan.war_timeout_title"),
                         description=t(self.guild_id, "clan.war_timeout_desc", winner=winner_name, loser=loser_name),
-                        color=0x000000
+                        color=embeds.BLACK
                     )
                     await channel.send(embed=embed)
                 except discord.HTTPException:
@@ -966,7 +953,7 @@ class ClanWarSession:
             embed = discord.Embed(
                 title=f"🛡️ {name1} vs {name2}",
                 description=t(self.guild_id, "clan.war_points_desc", clan1=name1, clan2=name2, points1=self.clan1_points, points2=self.clan2_points),
-                color=0x000000
+                color=embeds.BLACK
             )
             
             self.main_embed_message = await self.captain_vote_channel.send(embed=embed, view=ClanWarActionView(self))
@@ -1052,7 +1039,7 @@ class ClanWarSession:
         embed = discord.Embed(
             title=t(self.guild_id, "clan.war_forfeit_title"),
             description=t(self.guild_id, "clan.war_forfeit_desc", winner=winner_name, loser=loser_name),
-            color=0x000000,
+            color=embeds.BLACK,
         )
         # Les clés deviennent des chaînes quand la session est relue depuis le disque.
         for channel_id in list(self.notification_messages):
@@ -1133,7 +1120,7 @@ class ClanWarActionView(discord.ui.View):
             embed=discord.Embed(
                 title=t(gid, "clan.war_round_vote_title"),
                 description=t(gid, "clan.war_round_vote_desc"),
-                color=0x000000
+                color=embeds.BLACK
             ),
             view=RoundVoteView(session),
             ephemeral=True
@@ -1171,7 +1158,6 @@ class ClanWarActionView(discord.ui.View):
             return
         
         # Vérifier si le système de ticket est configuré
-        from guild_settings import get_ticket_config
         ticket_config = get_ticket_config(gid)
         log.info(f"[{session.guild.name}] Vérification ticket: config={ticket_config}, enabled={ticket_config.get('enabled', False) if ticket_config else None}")
         
@@ -1187,10 +1173,7 @@ class ClanWarActionView(discord.ui.View):
 
 
 class AbandonConfirmView(discord.ui.View):
-    """Confirmation de l'abandon d'un ClanWar, réservée au chef qui l'a demandé.
-
-    Le bouton « Abandonné » ouvrait cette vue alors qu'elle n'existait nulle
-    part : le clic plantait et aucun clan ne pouvait abandonner."""
+    """Confirmation de l'abandon d'un ClanWar, réservée au chef qui l'a demandé."""
 
     def __init__(self, session: "ClanWarSession", leader_id: int):
         super().__init__(timeout=60)
@@ -1293,7 +1276,7 @@ class RoundVoteView(discord.ui.View):
         result_embed = discord.Embed(
             title=t(session.guild_id, "clan.war_round_result_title"),
             description=t(session.guild_id, "clan.war_round_result_desc", clan1=name1, votes1=clan1_votes, clan2=name2, votes2=clan2_votes),
-            color=0x000000
+            color=embeds.BLACK
         )
         
         if vote_list:
@@ -1309,7 +1292,7 @@ class RoundVoteView(discord.ui.View):
             main_embed = discord.Embed(
                 title=f"🛡️ {name1} vs {name2}",
                 description=t(session.guild_id, "clan.war_points_desc", clan1=name1, clan2=name2, points1=session.clan1_points, points2=session.clan2_points),
-                color=0x000000
+                color=embeds.BLACK
             )
             # Réinitialiser les votes pour la prochaine manche
             session.round_votes = {}

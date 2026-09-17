@@ -8,16 +8,6 @@ reconnexion au gateway (coupure réseau, RESUME raté, redéploiement...). Un
 toutes les tentatives suivantes — les nouvelles commandes n'apparaissent plus.
 
 Deux protections :
-
-1. Une empreinte de l'arbre des commandes (noms, descriptions, paramètres,
-   sous-commandes) est stockée sur disque. Tant qu'elle ne change pas, aucun
-   `sync()` n'est envoyé : redémarrer le bot vingt fois pour tester ne coûte
-   plus rien.
-2. Un verrou en mémoire garantit un seul `sync()` par processus, même si
-   `on_ready` se redéclenche.
-
-L'empreinte n'est enregistrée qu'en cas de succès : si la synchronisation
-échoue (429 ou autre), elle sera retentée au prochain démarrage.
 """
 
 from __future__ import annotations
@@ -89,10 +79,7 @@ def _store(value: str) -> None:
 
 
 async def sync_if_changed(bot: discord.Client, *, force: bool = False) -> int | None:
-    """Synchronise l'arbre des commandes seulement si nécessaire.
-
-    Retourne le nombre de commandes synchronisées, ou None si aucune
-    synchronisation n'était nécessaire (ou si elle a échoué)."""
+    """Synchronise l'arbre des commandes seulement si nécessaire."""
     if getattr(bot, "_cyq_synced", False) and not force:
         return None
 

@@ -20,9 +20,12 @@ SUPPORT_GUILD_ID = int(os.getenv("SUPPORT_GUILD_ID", "0"))
 # Alias utilisé partout dans le code (compatibilité interne)
 GUNZFRANCE_GUILD_ID = SUPPORT_GUILD_ID
 
-# Invitation du serveur d'aide, affichee dans le message d'arrivee.
-# Vide = pas de bouton plutot qu'un lien mort.
-SUPPORT_INVITE = os.getenv("SUPPORT_INVITE", "").strip()
+# Invitation du serveur d'aide : lien de /support et bouton du message
+# d'arrivée. Sans valeur dans .env, le serveur de support officiel.
+SUPPORT_INVITE = os.getenv("SUPPORT_INVITE", "").strip() or "https://discord.gg/HQQY8NjFW"
+
+# Signature affichée par /support.
+BOT_AUTHOR = "pyrate0"
 
 # Propriétaire du bot, pour les commandes réservées (/waiting, /tempo).
 # 0 = le propriétaire de l'application Discord.
@@ -35,8 +38,7 @@ OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 # ---------------------------------------------------------
 INITIAL_EXTENSIONS = [
     # /start, /setup et /onboarding faisaient la même chose que l'assistant
-    # (cogs/wizard.py) avec trois interfaces différentes. Un seul chemin :
-    # le message d'arrivée, ou /queue.
+    # (cogs/wizard.py) avec trois interfaces différentes.
     "cogs.config",
     "cogs.language",
     "cogs.roles",
@@ -49,6 +51,7 @@ INITIAL_EXTENSIONS = [
     "cogs.match",  # Salon de match, capitaines, MVP et MMR
     "cogs.party",  # Groupe
     "cogs.clan",  # Clans permanents
+    "cogs.duel",  # Duels entre teams éphémères (/duel, /createteam, /config-duel)
     "cogs.wizard",  # Assistant de configuration
     "cogs.help",
     "cogs.moderation",

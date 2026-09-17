@@ -1,13 +1,6 @@
 ﻿"""
 Garde-fous réseau pour les téléchargements déclenchés par un utilisateur
 (URL d'avatar ou de bannière personnalisée fournie via /config).
-
-Sans validation, une URL fournie par un admin de serveur permettrait au bot
-de faire des requêtes serveur-à-serveur vers le réseau interne de son hôte
-(localhost, IP privées, endpoints de métadonnées cloud comme 169.254.169.254)
-— une SSRF classique. On restreint donc aux hôtes publics et on désactive
-les redirections (qui pourraient sinon rediriger une URL publique "sûre"
-vers une cible interne après coup).
 """
 
 from __future__ import annotations

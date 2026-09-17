@@ -8,21 +8,6 @@ casse rien techniquement — mais il casse tout le reste : les guides, les
 messages d'aide et le panneau d'accueil citent les salons par leur nom, et
 un membre qui lit « publie dans **queue-annonce** » ne trouve plus rien si
 le salon s'appelle désormais autrement.
-
-Dès qu'un salon géré par le bot est renommé, son nom d'origine est rétabli
-immédiatement et l'auteur reçoit un MP.
-
-Points d'attention
-------------------
-- **Seuls les salons du bot** sont protégés, retrouvés par ID mémorisé. Un
-  salon créé à la main garde son nom, quel qu'il soit.
-- **Le bot ne se corrige pas lui-même.** `/language` renomme légitimement les
-  salons dans la nouvelle langue : ces renommages sont ignorés, sinon le bot
-  annulerait sa propre traduction.
-- **Discord limite les renommages à 2 par 10 min et par salon.** Rétablir un
-  nom consomme ce quota : c'est pourquoi les renommages en rafale finissent
-  par ne plus être annulés tout de suite, et pourquoi une alerte est envoyée
-  dans les logs.
 """
 
 from __future__ import annotations
@@ -66,10 +51,7 @@ class Guard(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """Réaligne les noms sur la langue du serveur au démarrage.
-
-        Sans appel API si tout est déjà correct : la réparation ne renomme que
-        ce qui diffère réellement."""
+        """Réaligne les noms sur la langue du serveur au démarrage."""
         if self._repaired:
             return
         self._repaired = True
@@ -81,10 +63,7 @@ class Guard(commands.Cog):
                 log.error(f"Réalignement des noms impossible sur {guild.name} : {e}")
 
     async def _find_renamer(self, channel) -> discord.Member | None:
-        """Auteur du renommage, via le journal d'audit.
-
-        Sans la permission « Voir le journal d'audit », on ne peut pas savoir
-        qui a renommé : le nom est quand même rétabli, seul le MP est perdu."""
+        """Auteur du renommage, via le journal d'audit."""
         guild = channel.guild
         me = guild.me
         if me is None or not me.guild_permissions.view_audit_log:

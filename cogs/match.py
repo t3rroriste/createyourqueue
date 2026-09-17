@@ -20,13 +20,6 @@ Déroulé d'une partie
    défaut). Le MMR est appliqué à la clôture du vote.
 6. Deux minutes plus tard, **tout est supprimé** : salon de match, rôles
    d'équipe, salons vocaux.
-
-Pourquoi une boucle et pas des `sleep`
---------------------------------------
-Les échéances (fin du vote, nettoyage) sont **enregistrées sur disque** et
-relues par une boucle toutes les 15 secondes. Un `asyncio.sleep(300)` meurt
-avec le processus : un redémarrage pendant un vote laissait un salon privé et
-des rôles orphelins que plus personne ne nettoyait.
 """
 
 from __future__ import annotations
@@ -79,11 +72,7 @@ def tiers_of(guild_id: int, config: dict) -> list[dict]:
 # Votes (capitaines, MVP)
 # ----------------------------------------------------------------------
 class VoteView(discord.ui.View):
-    """Menu de vote réservé aux joueurs du match.
-
-    Un seul vote par personne, modifiable. On ne peut pas voter pour
-    soi-même : sans cette règle, le MVP se réduit à qui clique le plus vite
-    sur son propre nom."""
+    """Menu de vote réservé aux joueurs du match."""
 
     def __init__(self, cog: "Match", guild_id: int, kind: str, candidates: list[tuple[int, str]]):
         super().__init__(timeout=None)
@@ -205,10 +194,7 @@ class Match(commands.Cog):
 
     # -- Création du salon de match --------------------------------------
     async def begin(self, guild: discord.Guild, session, author: discord.Member) -> bool:
-        """Crée le salon privé et lance la première phase.
-
-        Retourne False si le salon n'a pas pu être créé : l'appelant reprend
-        alors le déroulé classique plutôt que de laisser la queue en plan."""
+        """Crée le salon privé et lance la première phase."""
         gid = guild.id
         config = get_mmr_config(gid)
         players = [m for m in session.waiting_players if not m.bot]
@@ -358,12 +344,7 @@ class Match(commands.Cog):
 
     @staticmethod
     def _draft_order(captains: list[int], picks: int) -> list[int]:
-        """Ordre de sélection en serpentin : A, B, B, A, A, B…
-
-        Choisir en premier est un avantage — on prend le meilleur joueur
-        disponible. Le serpentin le compense en donnant deux tours d'affilée
-        au second capitaine. Construire l'ordre par tours complets, alternés,
-        est plus sûr qu'un index qu'on fait rebondir à la main."""
+        """Ordre de sélection en serpentin : A, B, B, A, A, B…"""
         if not captains or picks <= 0:
             return []
         order, forward = [], True
@@ -733,10 +714,7 @@ class Match(commands.Cog):
 
     @staticmethod
     async def _apply_icon(guild: discord.Guild, role: discord.Role, icon) -> None:
-        """Icône de rôle — réservée aux serveurs boostés (niveau 2).
-
-        Sans le boost, Discord refuse la requête : on n'essaie donc même pas,
-        plutôt que de logger une erreur à chaque création de rôle."""
+        """Icône de rôle — réservée aux serveurs boostés (niveau 2)."""
         if not icon or "ROLE_ICONS" not in getattr(guild, "features", []):
             return
         try:
@@ -873,7 +851,7 @@ def build_mmr_embed(guild: discord.Guild) -> discord.Embed:
     embed = discord.Embed(
         title=t(gid, "mmr.panel_title"),
         description=t(gid, "mmr.panel_desc"),
-        color=0x000000  # Noir
+        color=embeds.BLACK
     )
     # Pas de footer, pas de branding
 

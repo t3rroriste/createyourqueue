@@ -29,8 +29,6 @@ from text_safety import sanitize
 log = logging.getLogger("bot.config")
 
 # Ressources renommables depuis /config -> Salons -> Renommer.
-# Meme liste que la retraduction : ce qui porte un nom traduit peut porter
-# un nom choisi a la main.
 RENAMABLE_RESOURCES = [
     ("category_main", "category"),
     ("channel_queue_command", "text"),
@@ -80,9 +78,7 @@ def _main_embed(guild: discord.Guild) -> discord.Embed:
 
 
 # La création automatique des salons et des rôles a été retirée : c'est
-# l'assistant (cogs/wizard.py) qui fait désigner des salons existants. Un bot
-# qui fabrique sa propre catégorie impose son organisation à un serveur qui a
-# déjà la sienne.
+# l'assistant (cogs/wizard.py) qui fait désigner des salons existants.
 
 
 class UrlModal(discord.ui.Modal):
@@ -324,11 +320,7 @@ class ChannelsView(discord.ui.View):
     @discord.ui.button(label="Choisir les salons", style=discord.ButtonStyle.success,
                        emoji="🛠️", row=0)
     async def btn_create(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        """Ouvre l'assistant de désignation des salons.
-
-        Ce bouton lançait une création automatique : un serveur déjà organisé
-        se retrouvait avec des salons en double qu'il fallait supprimer à la
-        main. On désigne maintenant ceux qui existent."""
+        """Ouvre l'assistant de désignation des salons."""
         from cogs.wizard import open_wizard
         await open_wizard(interaction)
 
@@ -410,10 +402,7 @@ def roles_embed(guild: discord.Guild) -> discord.Embed:
 
 
 class RolesView(discord.ui.View):
-    """Un menu par rôle : on désigne un rôle existant du serveur.
-
-    Le bot ne crée aucun rôle. Un rôle non désigné désactive simplement la
-    fonction qui s'en sert, il ne casse rien."""
+    """Un menu par rôle : on désigne un rôle existant du serveur."""
 
     def __init__(self, guild: discord.Guild):
         super().__init__(timeout=600)
@@ -457,11 +446,7 @@ def _resolve_resource(guild: discord.Guild, key: str, kind: str):
 
 
 class RenameModal(discord.ui.Modal):
-    """Renomme un salon ou un rôle du bot, et mémorise le choix.
-
-    Le nom est enregistré comme **personnalisé** : la protection des noms le
-    défendra à sa place, et un futur changement de langue ne l'écrasera pas.
-    Vider le champ rétablit le nom traduit par défaut."""
+    """Renomme un salon ou un rôle du bot, et mémorise le choix."""
 
     def __init__(self, guild: discord.Guild, key: str):
         gid = guild.id
@@ -536,8 +521,7 @@ class Config(commands.Cog):
             return
 
         # Pas de « configure d'abord le bot » : /config est une commande
-        # d'administration, utilisable dès l'arrivée du bot. Seules les
-        # commandes de queue attendent la configuration (config.py).
+        # d'administration, utilisable dès l'arrivée du bot.
         await interaction.response.send_message(
             embed=_main_embed(guild),
             view=ConfigView(guild),

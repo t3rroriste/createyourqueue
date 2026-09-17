@@ -1,7 +1,7 @@
 """
 Cog : Info
 ==========
-Commandes : /userinfo, /serverinfo
+Commandes : /userinfo, /serverinfo, /support
 """
 
 import logging
@@ -11,6 +11,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import embeds
+from config import BOT_AUTHOR, SUPPORT_INVITE
 from i18n import t
 
 log = logging.getLogger("bot.info")
@@ -116,6 +117,16 @@ class Info(commands.Cog):
         )
         embeds.align(embed)
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="support", description="Le lien du serveur de support du bot.")
+    async def support(self, interaction: discord.Interaction):
+        # Un simple message, pas un embed : Discord affiche lui-même l'aperçu
+        # de l'invitation juste en dessous.
+        gid = interaction.guild_id
+        await interaction.response.send_message(
+            t(gid, "support.message", link=SUPPORT_INVITE, author=BOT_AUTHOR),
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
 
 async def setup(bot: commands.Bot):

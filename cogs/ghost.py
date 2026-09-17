@@ -5,14 +5,7 @@ Bot temporaire — /ghost, réservée aux administrateurs.
 
 Ghost ping d'arrivée : chaque nouveau membre est mentionné dans les salons
 choisis par l'administrateur, puis le message est supprimé au bout de
-5 secondes. La notification est partie, le salon reste vide.
-
-    /ghost add salon      ajoute un salon (5 maximum)
-    /ghost remove salon   le retire
-    /ghost list           salons configurés
-    /ghost test           t'envoie un ghost ping pour vérifier
-
-Le bot ne crée aucun salon : il n'écrit que dans ceux qu'on lui désigne.
+2,5 secondes. La notification est partie, le salon reste vide.
 """
 
 from __future__ import annotations
@@ -28,7 +21,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import embeds
-from i18n import t
+from i18n import get_lang, t
 from json_store import write_json
 
 log = logging.getLogger("bot.ghost")
@@ -39,13 +32,20 @@ log = logging.getLogger("bot.ghost")
 GHOST_FILE = "data/ghost_ping.json"
 
 MAX_CHANNELS = 5
-DELETE_AFTER = 5      # secondes avant la suppression du message
+DELETE_AFTER = 2.5    # secondes avant la suppression du message
 BATCH_WINDOW = 1.0    # les arrivées de la même seconde partent dans un seul message
 MAX_MENTIONS = 20     # mentions par message ; au-delà, un message de plus
 
 # Le message ne contient que des mentions de membres : rien d'autre ne doit
 # pouvoir sonner.
 PING_MENTIONS = discord.AllowedMentions(everyone=False, roles=False, users=True, replied_user=False)
+
+
+def seconds_text(guild_id: int | None) -> str:
+    """Le délai tel qu'on l'écrit dans la langue du serveur : « 2,5 » en
+    français, espagnol et allemand, « 2.5 » en anglais et en coréen."""
+    text = f"{DELETE_AFTER:g}"
+    return text.replace(".", ",") if get_lang(guild_id) in ("fr", "es", "de") else text
 
 
 class Ghost(commands.Cog):
@@ -105,7 +105,7 @@ class Ghost(commands.Cog):
     async def on_member_join(self, member: discord.Member) -> None:
         # Si le serveur a un règlement d'accueil Discord, le nouveau venu ne
         # voit aucun salon tant qu'il ne l'a pas accepté : la mention tomberait
-        # dans le vide. On attend qu'il l'accepte (on_member_update).
+        # dans le vide.
         if not member.bot and not member.pending:
             self._queue(member)
 
@@ -129,9 +129,7 @@ class Ghost(commands.Cog):
         if member.id in waiting:
             return
         waiting.append(member.id)
-        # Premier arrivé de la fournée : on programme l'envoi. Ceux qui
-        # arrivent pendant BATCH_WINDOW partent dans le même message — un raid
-        # de 50 comptes fait un message par salon, pas cinquante.
+        # Premier arrivé de la fournée : on programme l'envoi.
         if len(waiting) == 1:
             task = asyncio.create_task(self._flush(gid))
             self.tasks.add(task)
@@ -147,9 +145,7 @@ class Ghost(commands.Cog):
             await self._ping(guild, member_ids)
 
     async def _ping(self, guild: discord.Guild, member_ids: list[int]) -> tuple[int, int]:
-        """Ghost ping dans tous les salons du serveur, en même temps.
-
-        Renvoie (salons où c'est parti, salons configurés)."""
+        """Ghost ping dans tous les salons du serveur, en même temps."""
         mentions = [f"<@{uid}>" for uid in member_ids]
         messages = [" ".join(mentions[i:i + MAX_MENTIONS]) for i in range(0, len(mentions), MAX_MENTIONS)]
         configured = self.channels.get(guild.id, [])
@@ -207,7 +203,7 @@ class Ghost(commands.Cog):
         self._save()
         log.info(f"{interaction.user} a activé le ghost ping dans #{salon.name}")
 
-        text = t(gid, "ghost.added", channel=salon.mention, seconds=DELETE_AFTER)
+        text = t(gid, "ghost.added", channel=salon.mention, seconds=seconds_text(gid))
         # Première cause d'un ghost ping « qui ne marche pas » : un nouveau
         # membre ne voit pas le salon, donc ne reçoit rien.
         if not salon.permissions_for(salon.guild.default_role).view_channel:
@@ -236,7 +232,7 @@ class Ghost(commands.Cog):
         if not ids:
             await self._reply(interaction, t(gid, "ghost.list_empty"), "info")
             return
-        description = t(gid, "ghost.list_desc", seconds=DELETE_AFTER, count=len(ids), max=MAX_CHANNELS)
+        description = t(gid, "ghost.list_desc", seconds=seconds_text(gid), count=len(ids), max=MAX_CHANNELS)
         description += "\n\n" + "\n".join(f"• <#{cid}>" for cid in ids)
         embed = embeds.base(gid, title=t(gid, "ghost.list_title"), description=description, kind="info")
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -252,7 +248,7 @@ class Ghost(commands.Cog):
         sent, total = await self._ping(interaction.guild, [interaction.user.id])
         embed = embeds.base(
             gid,
-            description=t(gid, "ghost.test_sent", sent=sent, total=total, seconds=DELETE_AFTER),
+            description=t(gid, "ghost.test_sent", sent=sent, total=total, seconds=seconds_text(gid)),
             kind="success" if sent == total else "warning",
         )
         await interaction.followup.send(embed=embed, ephemeral=True)

@@ -32,9 +32,14 @@ python bot.py --bot main
 
 ⚠️ **`python bot.py` sans option lance les trois bots**, et s'arrête tout de suite s'il manque un seul des trois tokens. Si tu n'utilises que le bot principal, lance toujours `--bot main`.
 
+### 🚧 `/waiting` — message Coming soon (bot temporaire)
+
+- Le message reste visible pour tout le monde, **même pour un membre qui quitte puis rejoint le serveur** : le bot donne **Voir les anciens messages** à @everyone dans le salon.
+- **À chaque démarrage du bot temporaire**, tous les messages Coming soon reprennent l'embed actuel (modifier `waiting_embed()` dans `cogs/temp_bot.py` suffit), et ceux qui ont été supprimés sont republiés. Ils sont enregistrés dans `data/waiting_messages.json`.
+
 ### 👻 `/ghost` — ghost ping d'arrivée (bot temporaire)
 
-Chaque nouveau membre est mentionné dans les salons choisis, puis le message est supprimé au bout de 5 secondes : la notification est partie, le salon reste vide. Réservée aux administrateurs.
+Chaque nouveau membre est mentionné dans les salons choisis, puis le message est supprimé au bout de 2,5 secondes : la notification est partie, le salon reste vide. Réservée aux administrateurs.
 
 | Commande | Effet |
 |---|---|
@@ -73,6 +78,24 @@ Chaque nouveau membre est mentionné dans les salons choisis, puis le message es
 | `/clantransfer` | Passe la propriété d'un clan à un autre membre *(rôle désigné)* |
 | `/cw` | Active ou désactive le système de ClanWar *(admin)* |
 
+Dans le salon de chaque clan, deux messages :
+- **la fiche**, avec 🔧 **Clan Manage** (inviter, quitter), 📩 **Request** (défis reçus), 🧾 **History**, 📧 **Invites** (demandes d'adhésion) ;
+- **le menu ClanWar** : ⚔️ **ClanWar** pour lancer un défi, et ⭕ **Ne pas déranger** / ✔️ **Prêt à jouer** — l'état inactif est barré. En Ne pas déranger, le clan ne peut ni défier ni être défié ; seul le chef change l'état.
+
+Les deux messages sont **republiés à chaque démarrage du bot**, sans rien perdre : membres, défis, historique et état restent enregistrés.
+
+**Duels entre teams** — une team de duel est temporaire (1, 3, 5 duels ou illimité) et n'a rien à voir avec un clan
+
+| Commande | Description |
+|---|---|
+| `/duel team: rounds:` | Défie une team de la même taille en X rounds (1 à 15) — la demande arrive dans un fil privé visible des seuls leads. Sans option : ton panneau (créer une team, quitter) |
+| `/createteam` | Crée une team : joueurs (invités à accepter), nom, couleur, nombre de duels |
+| `/config-duel` | Catégorie des vocaux, salon des demandes, activation *(admin)* |
+
+Dans le salon des demandes, **un seul message par duel** sert d'historique : il est modifié à chaque étape (en attente, en cours, 🏆 vainqueur, relance — une ligne par partie) au lieu d'en publier un nouveau. Sous le message de fin, les deux leads désignent le vainqueur : il est enregistré quand ils choisissent la même team, ou quand un administrateur tranche.
+
+À la fin d'un duel, le fil propose 🔁 **Relancer** : quand **tous les joueurs** ont cliqué (dans les 5 minutes, avant la suppression du fil), le même duel repart. Une relance est gratuite — elle ne consomme aucun duel, même pour une team à 1 duel — et on peut relancer à l'infini.
+
 **Classement**
 
 | Commande | Description |
@@ -102,18 +125,70 @@ Chaque nouveau membre est mentionné dans les salons choisis, puis le message es
 
 | Commande | Description |
 |---|---|
-| `/option` | Rôle organisateur, salons, fonctions à activer (dont les clans) |
+| `/option` | Rôle organisateur, salons, fonctions à activer (dont les clans et le mot de passe des queues) |
 | `/config` | Salons, langue, et l'apparence du bot sur ce serveur — avatar, bannière, pseudo *(admin)* |
 | `/language` | La langue du bot sur ce serveur |
 | `/roles` | Panneaux de rôles à cliquer |
 | `/voice` | Le bot rejoint ou quitte un vocal |
-| `/status` | Panneau d'état du bot, mis à jour toutes les 60 s — salon et activation |
+| `/status` | Panneau d'état du bot, permanent et mis à jour en continu : `/status true` le publie dans le salon où tu tapes la commande (ou `/status true #salon`), `/status false` le retire *(admin)* |
 | `/userinfo` `/serverinfo` | Informations sur un membre, sur le serveur |
+| `/support` | Le lien du serveur de support |
 | `/diagnostic` | Vérifie que tout fonctionne |
 | `/reset` | Remet le bot à zéro sur ce serveur |
 | `/help` | Le menu d'aide complet |
 
-52 commandes au total. Le menu `/help` les liste exactement (vérifié par les tests).
+57 commandes au total. Le menu `/help` les liste exactement (vérifié par les tests).
+
+### 🔐 Qui peut utiliser quoi
+
+**Organisateur** = le rôle choisi dans `/option` (ou un rôle nommé `Organisateur`) : un administrateur a besoin de ce rôle comme tout le monde pour ces commandes. **Config finie** = la commande attend que la configuration du serveur soit terminée (liste `SETUP_REQUIRED_COMMANDS` dans `config.py`).
+
+| Commande | Qui peut l'utiliser | Config finie ? |
+|---|---|---|
+| `/help` `/guide` `/support` `/userinfo` `/serverinfo` | Tout le monde | Non |
+| `/stats` `/serverstats` `/elo` `/podium` | Tout le monde | Non |
+| `/duel` `/createteam` | Tout le monde, une fois `/config-duel` activé | Non |
+| `/history` `/groupe` | Tout le monde | **Oui** |
+| `/clan` | Tout le monde (inviter : le chef du clan) | **Oui** |
+| `/clantransfer` | Le rôle désigné dans `/option → Clan` | **Oui** |
+| `/queue` | Organisateur — sur un serveur non configuré, elle ouvre l'assistant (ses boutons : Gérer le serveur) | Non |
+| `/rematch` `/bl` `/unbl` | Organisateur | **Oui** |
+| `/schedule` | Gérer le serveur | **Oui** |
+| `/poll` | Organisateur ou Gérer les messages | Non |
+| `/leaderboard` | Organisateur (option `partout:` : propriétaire du bot) | Non |
+| `/antilink` `/voice` | Organisateur | Non |
+| `/diagnostic` | Administrateur ou organisateur | Non |
+| `/clear` `/autoclean` | Gérer les messages | Non |
+| `/lock` `/unlock` | Gérer les salons | Non |
+| `/warn` `/warnings` `/timeout` `/untimeout` | Exclure temporairement des membres | Non |
+| `/roles` | Gérer les rôles | Non |
+| `/option` `/config` `/language` `/status` `/season` `/unwarn` | Gérer le serveur | Non |
+| `/logs` et les `/logs-…` | Gérer le serveur | Non |
+| `/antiraid` | Gérer le serveur (`/antiraid config` : Administrateur) | Non |
+| `/cw` `/config-duel` `/reset` | Administrateur | Non |
+| `/waiting` `/tempo` *(bot temporaire)* | Propriétaire du bot (`OWNER_ID`) | Non |
+| `/ghost` *(bot temporaire)* | Administrateur | Non |
+| Message privé *(bot modmail)* | Tout le monde | Non |
+| `!reset_modmail` *(bot modmail)* | Propriétaire du bot | Non |
+
+### 🎨 Emojis perso
+
+Téléverse les emojis dans le [Developer Portal](https://discord.com/developers/applications) : **l'application du bot principal → Emojis → Upload**. Au démarrage, le bot les retrouve tout seul par leur nom — aucun ID à recopier. Un emoji pas encore ajouté garde l'emoji classique.
+
+Nom à donner (lettres et chiffres ; le numéro d'emoji.gg devant et les `_` sont facultatifs : `8562replay`, `8562_replay` et `replay` marchent tous). Les emojis déjà ajoutés ont aussi leur code inscrit dans `MANUAL`, dans `custom_emojis.py` :
+
+| Nom | Où il apparaît |
+|---|---|
+| `replay` | Bouton Relancer d'une queue (`/rematch`) et d'un duel |
+| `discord_notification_settings_d` (ou `notif_queue`) | Bouton Notif Queue et titre du MP de queue |
+| `checkmark` / `cross` | Boutons Accepter / Refuser, Terminer / Annuler |
+| `yes` / `no` | Options « Oui » / « Non » d'un `/poll` |
+| `tools` `statusonline` `statusoffline` | Titre et état du panneau `/status` |
+| `stats` | Devant chaque chiffre du panneau `/status` |
+| `green_point` `yellow_point` `red_point` | Qualité du ping dans `/status` |
+| `clock` `pause` `calender` `notification` `clipboard` | Boutons de `/schedule` et `/season` |
+
+Le terminal affiche au démarrage `X/18 emoji(s) perso chargé(s) — absents : …` : c'est la liste de ceux qui manquent ou dont le nom ne correspond pas.
 
 ### Les salons et rôles
 
@@ -128,6 +203,7 @@ Le bot crée néanmoins des salons et des rôles **temporaires** pendant le jeu 
 | MMR, « Rôles de rang » activé | un rôle par rang | — |
 | Création d'un clan (`/option → Clan`) | un salon privé et un rôle `Clan - Nom` | avec le clan |
 | ClanWar | un vocal de préparation, un vocal par équipe et un salon de match | à la fin du ClanWar |
+| Duel (`/config-duel` activé) | un fil privé par défi ou invitation, le vocal `duel-01` puis un vocal par team | à la fin du duel (le fil 5 min après) |
 
 ---
 
@@ -147,6 +223,8 @@ createyourqueue/
 ├── rate_limit.py        # Appels Discord étalés dans le temps
 ├── net_safety.py        # Vérification des liens (logos, avatars)
 ├── text_safety.py       # Nettoyage des textes saisis
+├── visibility.py        # Messages permanents : « Voir les anciens messages » pour @everyone
+├── custom_emojis.py     # Emojis perso du bot, chargés par nom au démarrage
 ├── retranslate.py       # Renomme salons et rôles au changement de langue
 ├── MODMAIL_SETUP.md     # Mise en place du bot modmail
 ├── locales/             # fr.json, en.json, es.json, de.json, ko.json
@@ -160,6 +238,7 @@ createyourqueue/
     ├── automation.py    # /schedule, /season, /podium
     ├── classement.py    # /leaderboard, /stats, /serverstats
     ├── clan.py          # /clan, /clantransfer, /cw
+    ├── duel.py          # /duel, /createteam, /config-duel — teams éphémères
     ├── clan_war.py      # ClanWar : session, boutons, abandon (importé par clan.py)
     ├── clan_tickets.py  # Tickets du bouton « Problème » d'un ClanWar
     ├── party.py         # /groupe
@@ -256,7 +335,7 @@ copy .env.example .env
 | `DISCORD_TOKEN_MODMAIL` | Seulement pour lancer le bot modmail |
 | `OWNER_ID` | Non — ton ID Discord, seul autorisé à utiliser `/waiting` et `/tempo` (sinon : le propriétaire de l'application) |
 | `SUPPORT_GUILD_ID` | Non — ton serveur officiel, toujours en français |
-| `SUPPORT_INVITE` | Non — bouton d'invitation dans le message d'arrivée |
+| `SUPPORT_INVITE` | Non — lien de `/support` et bouton du message d'arrivée (vide : le serveur de support officiel) |
 | `MODMAIL_GUILD_ID`, `MODMAIL_STAFF_CHANNEL_ID`, `MODMAIL_STAFF_ROLE_ID` | Pour le modmail |
 | `DIAGNOSTIC_CHANNEL_ID` | Non — salon qui reçoit les messages de démarrage des bots |
 
@@ -275,6 +354,8 @@ Si tout va bien, le terminal affiche une ligne `Extension chargée` par cog, pui
 ```
 
 `Commandes inchangées depuis la dernière synchronisation` est tout aussi normal : le bot n'envoie la liste à Discord que quand elle a vraiment changé, pour ne pas épuiser le quota.
+
+Un seul `bot.py` par bot à la fois : si le même bot tourne déjà sur la machine, le nouveau lancement s'arrête avec un message. Deux instances se partageraient les clics (erreur « Unknown interaction ») et réécriraient les mêmes fichiers de `data/`.
 
 Les commandes `/` peuvent mettre jusqu'à 1 h à apparaître dans l'autocomplétion la première fois — c'est une limite Discord, pas un bug. Elles fonctionnent déjà si on tape leur nom en entier.
 
@@ -322,11 +403,12 @@ git commit -m "Description de ce qui a changé"
 
 Tout se fait depuis Discord, pas dans le code :
 
-- **`/option`** — le rôle organisateur, le rôle de connexion, le chef de clan, les salons facultatifs, et les fonctions à activer (classement, résultats, MMR, clans)
+- **`/option`** — le rôle organisateur, le rôle de connexion, le chef de clan, les salons facultatifs, et les fonctions à activer (classement, résultats, MMR, clans, mot de passe des queues pour un event)
 - **`/config`** — les salons et rôles que le bot doit utiliser, et son apparence
 - **`/language`** — la langue du serveur
 - **`/status`** — le panneau d'état permanent
 - **`/cw`** — le système de ClanWar
+- **`/config-duel`** — les duels entre teams : catégorie des vocaux, salon des demandes, activation
 
 Dans l'assistant, **Terminer** est cliquable à tout moment : rien n'oblige à tout régler d'un coup.
 

@@ -187,9 +187,8 @@ class Classement(commands.Cog):
         if top_stats["weekly_wins"] == 0:
             return
 
-        # top_stats est une RÉFÉRENCE vers l'entrée de player_stats : la remise à
-        # zéro ci-dessous l'écrase. Sans cette copie, l'annonce affichait
-        # toujours « 0 victoires cette semaine ».
+        # top_stats est une RÉFÉRENCE vers l'entrée de player_stats : la remise
+        # à zéro ci-dessous l'écrase.
         mvp_wins = top_stats["weekly_wins"]
 
         # Réinitialiser les wins hebdo
@@ -200,9 +199,8 @@ class Classement(commands.Cog):
         for guild in self.bot.guilds:
             try:
                 mvp_role = resources.get_role(guild, "role_mvp_week")
-                # Le rôle MVP est **désigné** par l'administrateur, jamais créé.
-                # Sans rôle désigné, le MVP est quand même annoncé : c'est
-                # l'annonce qui compte, le rôle n'est qu'un bonus visuel.
+                # Le rôle MVP est **désigné** par l'administrateur, jamais
+                # créé.
                 if mvp_role:
                     # Vérifier que le rôle existe vraiment et n'est pas un rôle par défaut
                     # Éviter d'attribuer des rôles système comme "Owner"
@@ -258,10 +256,7 @@ class Classement(commands.Cog):
     # Construction des embeds
     # ------------------------------------------------------------------
     def _player_label(self, guild: discord.Guild | None, uid: int) -> str:
-        """Pseudo affichable dans un tableau monospace.
-
-        Un membre parti du serveur garde sa place au classement : on affiche
-        alors son identifiant tronqué plutôt que de le faire disparaître."""
+        """Pseudo affichable dans un tableau monospace."""
         member = guild.get_member(uid) if guild is not None else None
         name = member.display_name if member is not None else f"#{uid}"
         # Les emojis et caractères larges cassent l'alignement d'un tableau
@@ -270,12 +265,7 @@ class Classement(commands.Cog):
         return (cleaned or f"#{uid}")[:14]
 
     def _player_name(self, guild: discord.Guild | None, uid: int) -> str:
-        """Comment nommer un joueur dans le classement.
-
-        Une mention pour ceux qui sont là : elle porte le pseudo du serveur,
-        la couleur du rôle, et l’avatar au survol. Pour un membre parti, une
-        mention afficherait « @unknown-user » — on garde alors son pseudo
-        d’alors, en chasse fixe pour qu’on voie que c’est un absent."""
+        """Comment nommer un joueur dans le classement."""
         member = guild.get_member(uid) if guild is not None else None
         if member is not None:
             return member.mention
@@ -284,12 +274,7 @@ class Classement(commands.Cog):
     async def create_classement_embed(
         self, guild_id: int | None = None, guild: discord.Guild | None = None
     ) -> discord.Embed:
-        """Classement en tableau aligné.
-
-        La version précédente empilait deux lignes et une barre par joueur :
-        dix joueurs faisaient un pavé de vingt lignes où l'on ne pouvait rien
-        comparer. Ici tout est sur une ligne, en chasse fixe, colonnes
-        alignées — victoires, défaites et ratio se lisent verticalement."""
+        """Classement en tableau aligné."""
         sorted_players = sorted(
             self.player_stats.items(),
             key=lambda x: (x[1]["wins"], x[1].get("max_streak", 0)),
@@ -314,10 +299,7 @@ class Classement(commands.Cog):
             embed.description = t(guild_id, "classement.no_data")
             return embed
 
-        # Une ligne par joueur, et rien d’autre. Le tableau monospace
-        # alignait bien les colonnes, mais il fallait rogner les pseudos à
-        # quatorze caractères et jeter les emojis pour que ça tombe juste :
-        # les gens ne se reconnaissaient plus dans leur propre classement.
+        # Une ligne par joueur, et rien d’autre.
         rows = []
         for rank, (uid, s) in enumerate(top, start=1):
             streak = s.get("streak", 0)
@@ -341,13 +323,7 @@ class Classement(commands.Cog):
                 await self._publish_classement(guild, ch)
 
     def create_clan_embed(self, guild: discord.Guild) -> discord.Embed:
-        """Classement des clans, trie par victoires.
-
-        Sans limite de rang : un clan cree aujourd hui doit se voir, meme
-        dernier. C est la longueur de l embed qui borne la liste, pas un
-        nombre arbitraire — Discord refuse une description de plus de 4096
-        caracteres, et un embed refuse vaut moins qu une liste tronquee.
-        """
+        """Classement des clans, trie par victoires."""
         gid = guild.id
         cog = self.bot.get_cog("Clan")
         embed = embeds.base(
@@ -403,12 +379,7 @@ class Classement(commands.Cog):
         await self._publish_classement(guild, ch)
 
     async def refresh_everywhere(self) -> tuple[int, int]:
-        """Réécrit le classement sur tous les serveurs. (mis à jour, ignorés)
-
-        Un serveur sans salon de classement est simplement ignoré, et un échec
-        sur l'un n'interrompt pas les autres. Les envois sont espacés : autant
-        d'appels API que de serveurs d'un coup ferait tomber le bot dans les
-        limites de Discord."""
+        """Réécrit le classement sur tous les serveurs. (mis à jour, ignorés)"""
         done = 0
         targets = [
             guild for guild in self.bot.guilds
@@ -427,17 +398,9 @@ class Classement(commands.Cog):
     async def _publish_classement(self, guild: discord.Guild, ch: discord.TextChannel) -> None:
         """Met à jour LE message de classement du salon sans jamais en laisser
         deux : on édite le message mémorisé s'il existe encore côté Discord,
-        on n'en recrée un que s'il a disparu.
-
-        L'ancien code repérait le message à remplacer en cherchant le mot
-        « Classement » dans le titre de l'embed — un titre traduit (anglais,
-        espagnol...) ne contient jamais ce mot français, donc l'ancien
-        message n'était jamais supprimé et chaque mise à jour en ajoutait un
-        nouveau. On mémorise maintenant l'ID du message, langue et titre
-        n'ont plus d'importance."""
+        on n'en recrée un que s'il a disparu."""
         # Deux embeds dans UN message : le classement des joueurs puis celui
-        # des clans. Deux messages separes se seraient desynchronises des
-        # qu un seul des deux echoue a s editer.
+        # des clans.
         payload = [await self.create_classement_embed(guild.id, guild),
                    self.create_clan_embed(guild)]
         message_id = get_classement_message_id(guild.id)

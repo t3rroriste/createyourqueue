@@ -5,28 +5,6 @@ Commandes : /duo, /trio, /quatro, /groupe
 
 S'inscrire à plusieurs et être **garanti dans la même équipe**, comme dans
 Valorant ou Rocket League.
-
-Comment ça marche
------------------
-1. `/duo @ami` publie une demande dans le salon **demande-team**.
-2. **Seule la personne invitée** peut accepter — le bouton refuse tout le
-   monde d'autre, pas seulement à l'affichage : chaque clic est revérifié
-   côté serveur.
-3. Quand tous ont accepté, le groupe est formé. Au lancement de la queue,
-   ses membres se retrouvent dans la même équipe, que la répartition soit
-   automatique ou faite par les capitaines.
-
-Points d'attention
-------------------
-- **Un joueur n'appartient qu'à un seul groupe.** En accepter un nouveau
-  dissout l'ancien, sinon on pourrait être « garanti » avec deux équipes
-  différentes en même temps.
-- **Les groupes expirent au bout de 12 h.** Un duo formé hier soir ne doit
-  pas s'appliquer en silence à la partie de demain.
-- **Un groupe plus grand qu'une équipe est refusé** à la création : il ne
-  pourrait jamais être respecté.
-- Les demandes sont **enregistrées** et leurs boutons réattachés au
-  démarrage : un redémarrage ne laisse pas d'invitation morte.
 """
 
 from __future__ import annotations
@@ -37,6 +15,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import embeds
 import resources
 from guild_settings import (
@@ -58,10 +37,7 @@ def party_members(guild: discord.Guild, user_id: int) -> list[int]:
 
 
 def group_players(guild: discord.Guild, players: list) -> list[list]:
-    """Regroupe des joueurs par groupe, les solos en groupes d'un.
-
-    Sert à la répartition : on place des blocs, pas des individus, ce qui
-    garantit qu'un duo ne soit jamais séparé."""
+    """Regroupe des joueurs par groupe, les solos en groupes d'un."""
     by_id = {m.id: m for m in players}
     seen: set[int] = set()
     blocks: list[list] = []
@@ -75,10 +51,7 @@ def group_players(guild: discord.Guild, players: list) -> list[list]:
 
 
 class RequestView(discord.ui.View):
-    """Accepter / refuser une demande d'équipe.
-
-    `interaction_check` est la vraie barrière : cacher le bouton ne suffit
-    pas, n'importe qui peut cliquer sur un composant qu'il voit."""
+    """Accepter / refuser une demande d'équipe."""
 
     def __init__(self, cog: "Party", guild_id: int, message_id: int | None = None):
         super().__init__(timeout=None)
@@ -87,6 +60,8 @@ class RequestView(discord.ui.View):
         self.message_id = message_id
         self.accept.label = t(guild_id, "party.btn_accept")
         self.decline.label = t(guild_id, "party.btn_decline")
+        self.accept.emoji = custom_emojis.get("checkmark")
+        self.decline.emoji = custom_emojis.get("cross")
 
     def _request(self, interaction: discord.Interaction) -> dict | None:
         message_id = self.message_id or (interaction.message.id if interaction.message else 0)

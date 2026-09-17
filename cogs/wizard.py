@@ -4,24 +4,6 @@ Cog : Wizard
 Assistant de configuration — le parcours d'entrée du bot.
 
 Principe : **on n'impose rien.**
-
-L'ancien `/setup` créait d'office une catégorie, six salons et quatre rôles
-avec des noms imposés. Un serveur qui avait déjà ses salons se retrouvait
-avec des doublons, et il fallait ensuite tout renommer ou tout supprimer.
-Ici, l'organisateur **désigne des salons qui existent déjà** chez lui, quels
-que soient leur nom et leur emplacement, et n'active que ce qu'il veut.
-
-Le parcours
------------
-1. **Le bot arrive** : un seul message, qui explique ce qu'il fait **et**
-   demande directement quel salon sert à quoi, avec un menu par salon.
-2. **Continuer** : le même message passe au rôle organisateur, aux salons
-   facultatifs et aux fonctions à activer ou non.
-3. **`/queue`** ouvre alors le panneau de queue. Tant que la configuration
-   n'est pas finie, `/queue` ramène là où il reste à faire.
-
-Les salons désignés sont enregistrés par **identifiant** (voir resources.py) :
-les renommer plus tard ne casse rien.
 """
 
 from __future__ import annotations
@@ -32,13 +14,15 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import embeds
 import resources
 from config import SUPPORT_INVITE
 from guild_settings import (
     WIZARD_SLOTS, OPTIONAL_SLOTS, get_features, set_features, channels_ready,
     queue_ready, set_resource_id, clear_resource_id, get_mmr_config, set_mmr_config,
-    mark_setup_complete, get_setup_panel
+    mark_setup_complete, get_setup_panel, get_queue_password, set_queue_password,
+    get_ticket_config, set_ticket_config,
 )
 from i18n import t
 
@@ -63,10 +47,7 @@ def _resolve(guild: discord.Guild, key: str):
 
 
 def _may_configure(user) -> bool:
-    """Qui a le droit de configurer : les administrateurs du serveur.
-
-    Volontairement pas le rôle organisateur — c'est justement lui qu'on est
-    en train de définir."""
+    """Qui a le droit de configurer : les administrateurs du serveur."""
     return isinstance(user, discord.Member) and user.guild_permissions.manage_guild
 
 
@@ -74,21 +55,11 @@ def _may_configure(user) -> bool:
 # Panneau des salons
 # ----------------------------------------------------------------------
 def channels_embed(guild: discord.Guild, *, intro: bool = False) -> discord.Embed:
-    """Panneau de désignation des salons.
-
-    `intro=True` pour le message d'arrivée : le bot se présente **et** pose
-    la première question dans le même message. Souhaiter la bienvenue puis
-    renvoyer vers une commande ajoutait une étape pour rien — la question
-    « quel salon ? » se pose tout de suite."""
+    """Panneau de désignation des salons."""
     gid = guild.id
     done = sum(1 for key, _k, _r in WIZARD_SLOTS if _resolve(guild, key) is not None)
 
-    # Une ligne par salon, pas un paragraphe. La version détaillée faisait
-    # quatre pavés d'explication avant même le premier menu : on ne voyait
-    # plus qu'il suffisait de dérouler et cliquer.
-    # Les facultatifs sont listés ici pour qu'on sache à quoi s'attendre,
-    # mais ils se règlent sur le panneau suivant : cinq menus + un bouton ne
-    # tiennent pas dans les cinq rangées d'une vue Discord.
+    # Une ligne par salon, pas un paragraphe.
     lines = []
     for key, _kind, required in list(WIZARD_SLOTS) + list(OPTIONAL_SLOTS):
         resource = _resolve(guild, key)
@@ -199,7 +170,6 @@ class ChannelsWizard(discord.ui.View):
     @discord.ui.button(label="MissClick", style=discord.ButtonStyle.danger, row=4)
     async def missclick(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         """Revient à la sélection de langue en cas d'erreur."""
-        from i18n import t
         if not _may_configure(interaction.user):
             await interaction.response.send_message(
                 t(self.guild.id, "wiz.admin_only"), ephemeral=True
@@ -211,7 +181,7 @@ class ChannelsWizard(discord.ui.View):
         embed = discord.Embed(
             title=t(self.guild.id, "welcome.title"),
             description=t(self.guild.id, "welcome.description"),
-            color=0x5865F2
+            color=embeds.BRAND
         )
         view = LanguageSelectView(self.guild.id)
         
@@ -256,8 +226,9 @@ def options_embed(guild: discord.Guild, *, solo: bool = False) -> discord.Embed:
             "",
             t(gid, "wiz.opt_menu_roles"),
             t(gid, "wiz.opt_menu_staff"),
+            t(gid, "wiz.opt_menu_password"),
         ]),
-        color=0x000000
+        color=embeds.BLACK
     )
     return embed
 
@@ -278,10 +249,10 @@ class OptionsWizard(discord.ui.View):
         self.clan.label = t(gid, "wiz.opt_btn_clan")
         self.roles.label = t(gid, "wiz.opt_btn_roles")
         self.staff.label = t(gid, "wiz.opt_btn_staff")
+        self.password.label = t(gid, "wiz.opt_btn_password")
         self.finish.label = t(gid, "wiz.btn_close" if solo else "wiz.btn_finish")
-        # Toujours cliquable : on peut terminer sans avoir tout réglé. Seules
-        # les commandes de queue attendent les salons (voir config.py,
-        # SETUP_REQUIRED_COMMANDS) ; /queue ramènera ici au besoin.
+        # Toujours cliquable : on peut terminer sans avoir tout réglé.
+        self.finish.emoji = custom_emojis.get("checkmark")
 
     async def guard(self, interaction: discord.Interaction) -> bool:
         if _may_configure(interaction.user):
@@ -330,6 +301,12 @@ class OptionsWizard(discord.ui.View):
         if await self.guard(interaction):
             await self._open(interaction, StaffPanel(self))
 
+    @discord.ui.button(label="Mot de passe", style=discord.ButtonStyle.secondary,
+                       emoji="🔒", row=1, custom_id="cyq:wiz:pwd")
+    async def password(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+        if await self.guard(interaction):
+            await self._open(interaction, PasswordPanel(self))
+
     @discord.ui.button(label="📚 Guide", style=discord.ButtonStyle.primary,
                        row=1, custom_id="cyq:wiz:guide")
     async def guide(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
@@ -338,7 +315,7 @@ class OptionsWizard(discord.ui.View):
             embed = discord.Embed(
                 title=t(self.guild.id, "wiz.opt_guide_title"),
                 description=t(self.guild.id, "wiz.opt_guide_desc"),
-                color=0x5865F2
+                color=embeds.BRAND
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -359,7 +336,6 @@ class OptionsWizard(discord.ui.View):
     async def back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """Retourne au panneau de configuration des salons."""
         if await self.guard(interaction):
-            from cogs.wizard import ChannelsWizard, channels_embed
             view = ChannelsWizard(self.guild, intro=False)
             await interaction.response.edit_message(
                 content=None,
@@ -490,14 +466,7 @@ class FeaturePanel(SubPanel):
 
 
 class ClanPanel(SubPanel):
-    """Les clans : une catégorie, un rôle, un interrupteur.
-
-    La catégorie n'est pas un confort : c'est là que le bot ouvre le salon de
-    liaison de chaque clan. Sans elle, activer les clans créerait des salons
-    n'importe où — on refuse donc d'allumer tant qu'elle n'est pas désignée.
-
-    Le rôle, lui, ne sert qu'à `/clantransfer` : passer la propriété d'un clan
-    à quelqu'un d'autre est un acte de modération, pas une action de joueur."""
+    """Les clans : une catégorie, un rôle, un interrupteur."""
 
     def __init__(self, home: OptionsWizard):
         super().__init__(home)
@@ -533,10 +502,7 @@ class ClanPanel(SubPanel):
         return bool(get_features(self.gid)["clan_notice"])
 
     def _notice_button(self) -> discord.ui.Button:
-        """Bascule l'annonce des demandes d'adhésion.
-
-        Le bouton porte le mode vers lequel il fait basculer, comme les
-        interrupteurs du reste du panneau : on lit ce que fera le clic."""
+        """Bascule l'annonce des demandes d'adhésion."""
         chat = self.notice_in_chat()
         button = discord.ui.Button(
             label=t(self.gid, "wiz.opt_clan_notice_btn" if chat else "wiz.opt_clan_notice_chat"),
@@ -622,9 +588,7 @@ class ClanPanel(SubPanel):
 
 
 class RolePanel(SubPanel):
-    """Les rôles : organisateur, connexion, chef de clan.
-
-    Aucun n'est créé par le bot — on désigne des rôles qui existent déjà."""
+    """Les rôles : organisateur, connexion, chef de clan."""
 
     SLOTS = [("role_staff", "wiz.opt_staff"),
              ("role_connexion", "wiz.opt_connexion"),
@@ -705,6 +669,101 @@ class RolePanel(SubPanel):
         return embed
 
 
+class PasswordPanel(SubPanel):
+    """Queues sous mot de passe : un mot de passe, un interrupteur."""
+
+    def __init__(self, home: OptionsWizard):
+        super().__init__(home)
+        self.sync()
+
+    def current(self) -> str | None:
+        return get_queue_password(self.gid)
+
+    def is_on(self) -> bool:
+        return bool(get_features(self.gid)["password"])
+
+    def sync(self) -> None:
+        self.clear_items()
+        edit = discord.ui.Button(
+            label=t(self.gid, "wiz.opt_password_set"), emoji="✏️",
+            style=discord.ButtonStyle.primary, row=0,
+        )
+        edit.callback = self._edit
+        self.add_item(edit)
+        self.add_item(self._toggle_button())
+        self.add_back(1)
+
+    async def _edit(self, interaction: discord.Interaction) -> None:
+        if not await self.guard(interaction):
+            return
+        await interaction.response.send_modal(PasswordModal(self))
+
+    def _toggle_button(self) -> discord.ui.Button:
+        on = self.is_on()
+        button = discord.ui.Button(
+            label=t(self.gid, "wiz.opt_off_word" if on else "wiz.opt_on_word"),
+            emoji="🔴" if on else "🟢",
+            style=discord.ButtonStyle.danger if on else discord.ButtonStyle.success,
+            row=0,
+        )
+
+        async def callback(interaction: discord.Interaction) -> None:
+            if not await self.guard(interaction):
+                return
+            # Allumer sans mot de passe ne protégerait rien : le bouton ✏️
+            # juste à côté est la seule réponse possible.
+            if not on and not self.current():
+                await interaction.response.send_message(
+                    t(self.gid, "wiz.opt_need_password"), ephemeral=True)
+                return
+            set_features(self.gid, password=not on)
+            await self.refresh(interaction)
+        button.callback = callback
+        return button
+
+    def embed(self) -> discord.Embed:
+        password = self.current()
+        embed = embeds.base(
+            self.gid,
+            title=t(self.gid, "wiz.opt_password_title"),
+            description="\n".join([
+                # Caché derrière un spoiler : /option peut s'ouvrir devant
+                # quelqu'un qui partage son écran.
+                t(self.gid, "wiz.opt_password_line",
+                  password=f"||{discord.utils.escape_markdown(password)}||" if password
+                  else t(self.gid, "wiz.not_set")),
+                "",
+                embeds.toggle_line(self.gid, self.is_on()),
+            ]),
+            kind="brand",
+        )
+        embeds.brand(embed, self.guild)
+        return embed
+
+
+class PasswordModal(discord.ui.Modal):
+    """Saisie du mot de passe des queues."""
+
+    def __init__(self, panel: PasswordPanel):
+        super().__init__(title=t(panel.gid, "wiz.opt_password_modal")[:45])
+        self.panel = panel
+        self.field = discord.ui.TextInput(
+            label=t(panel.gid, "queue.pw_modal_label")[:45],
+            default=panel.current(),
+            max_length=50,
+        )
+        self.add_item(self.field)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        gid = self.panel.gid
+        password = self.field.value.strip()
+        set_queue_password(gid, password or None)
+        if not password:
+            # Plus de mot de passe : l'option n'aurait plus rien à demander.
+            set_features(gid, password=False)
+        await self.panel.refresh(interaction)
+
+
 # Rangs : clé de traduction (mmr.tier_*), seuil par défaut, emoji.
 RANK_TIERS = [
     ("silver", 800, "🥈"),
@@ -741,7 +800,6 @@ class StaffPanel(SubPanel):
 
     def sync(self) -> None:
         self.clear_items()
-        from guild_settings import get_ticket_config
         enabled = bool((get_ticket_config(self.gid) or {}).get("enabled", False))
 
         toggle = discord.ui.Button(
@@ -767,7 +825,6 @@ class StaffPanel(SubPanel):
         async def callback(interaction: discord.Interaction) -> None:
             if not await self.guard(interaction):
                 return
-            from guild_settings import get_ticket_config, set_ticket_config
             config = get_ticket_config(self.gid) or {}
             config["enabled"] = not config.get("enabled", False)
             set_ticket_config(self.gid, config)
@@ -778,7 +835,6 @@ class StaffPanel(SubPanel):
         async def callback(interaction: discord.Interaction) -> None:
             if not await self.guard(interaction):
                 return
-            from guild_settings import get_ticket_config, set_ticket_config
             config = get_ticket_config(self.gid) or {}
             config["staff_channel_id"] = select.values[0].id
             set_ticket_config(self.gid, config)
@@ -786,7 +842,6 @@ class StaffPanel(SubPanel):
         return callback
 
     def embed(self) -> discord.Embed:
-        from guild_settings import get_ticket_config
         config = get_ticket_config(self.gid) or {}
         enabled = config.get("enabled", False)
         channel_id = config.get("staff_channel_id")
@@ -897,7 +952,7 @@ class MMRPanel(SubPanel):
         description = "\n\n".join(f"**_{t(gid, key)}_**\n{_state_line(gid, on)}" for key, on in sections)
         description += f"\n\n\n🗂️ **{t(gid, 'wiz.mmr_other_heading')}**"
         # Pas de footer, pas d'author, pas de logo
-        return discord.Embed(title=t(gid, "wiz.mmr_panel_title"), description=description, color=0x000000)
+        return discord.Embed(title=t(gid, "wiz.mmr_panel_title"), description=description, color=embeds.BLACK)
 
 
 class MMRAmountModal(discord.ui.Modal):
@@ -994,7 +1049,7 @@ class MMRSettingsPanel(SubPanel):
             f"**{t(gid, 'wiz.mmr_ranks_btn')}**",
             *_rank_lines(gid, config),
         ]
-        return discord.Embed(title=t(gid, "wiz.mmr_other_title"), description="\n".join(lines), color=0x000000)
+        return discord.Embed(title=t(gid, "wiz.mmr_other_title"), description="\n".join(lines), color=embeds.BLACK)
 
 
 class MMRParamsPanel(SubPanel):
@@ -1033,7 +1088,7 @@ class MMRParamsPanel(SubPanel):
         return discord.Embed(
             title=t(self.gid, "wiz.mmr_params_title"),
             description=t(self.gid, "wiz.mmr_params_desc"),
-            color=0x000000,
+            color=embeds.BLACK,
         )
 
 
@@ -1072,7 +1127,7 @@ class MMRDurationsPanel(SubPanel):
         return discord.Embed(
             title=t(self.gid, "wiz.mmr_durations_title"),
             description=t(self.gid, "wiz.mmr_durations_desc"),
-            color=0x000000,
+            color=embeds.BLACK,
         )
 
 
@@ -1108,7 +1163,7 @@ class MMRRanksPanel(SubPanel):
         return discord.Embed(
             title=t(self.gid, "wiz.mmr_ranks_title"),
             description="\n".join(_rank_lines(self.gid, config)),
-            color=0x000000,
+            color=embeds.BLACK,
         )
 
 
@@ -1154,11 +1209,7 @@ def done_embed(guild: discord.Guild) -> discord.Embed:
 # Entrée dans l'assistant
 # ----------------------------------------------------------------------
 async def open_wizard(interaction: discord.Interaction) -> None:
-    """Ouvre l'étape qui reste à faire.
-
-    C'est la porte d'entrée des commandes qui exigent une configuration
-    complète (`/queue`, `/config`) : elles renvoient ici plutôt que de
-    répondre « configure d'abord le bot » sans dire où."""
+    """Ouvre l'étape qui reste à faire."""
     guild = interaction.guild
     if guild is None:
         return
@@ -1179,10 +1230,7 @@ class Wizard(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """Réactive les menus du message d'arrivée après un redémarrage.
-
-        Sans ça, un serveur qui ajoute le bot le soir et le configure le
-        lendemain trouve des menus qui ne répondent plus."""
+        """Réactive les menus du message d'arrivée après un redémarrage."""
         if self._restored:
             return
         self._restored = True
@@ -1209,11 +1257,7 @@ class Wizard(commands.Cog):
     )
     @app_commands.checks.has_permissions(manage_guild=True)
     async def option(self, interaction: discord.Interaction) -> None:
-        """Le panneau des facultatifs, à part et à volonté.
-
-        Les salons obligatoires se désignent une fois, dans le message
-        d'arrivée. Tout le reste vit ici : on y revient pour allumer le
-        classement un mois plus tard sans retraverser la configuration."""
+        """Le panneau des facultatifs, à part et à volonté."""
         guild = interaction.guild
         if guild is None:
             return

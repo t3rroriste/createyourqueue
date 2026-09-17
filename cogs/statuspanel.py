@@ -6,39 +6,6 @@ Commande : /status <activer> [salon] — administrateur du serveur
 Un message unique qu'on laisse dans un salon et que le bot tient à jour en
 continu, dans l'esprit des panneaux de statut de serveur FiveM : un en-tête,
 l'état en une ligne, puis les chiffres en liste.
-
-- `/status true` publie le panneau dans le salon où l'on tape la commande.
-- `/status true #salon` le publie dans ce salon-là. Relancer la commande vers
-  un autre salon le déménage : il n'en existe jamais deux.
-- `/status false` le retire.
-
-Plus de panneau de réglage : un interrupteur et un salon tiennent dans les
-deux paramètres de la commande.
-
-Permanent
----------
-Tant que la fonction est allumée, le panneau reste en place :
-- il est actualisé toutes les REFRESH_SECONDS secondes ;
-- s'il est supprimé (à la main, par un /clear, une purge…), il est republié
-  aussitôt dans le même salon ;
-- les purges du bot (fin de queue, /autoclean, /clear) l'épargnent — voir
-  `guild_settings.is_status_panel_message`.
-Une erreur sur un serveur n'interrompt plus la boucle : une seule exception
-non rattrapée suffisait à figer tous les panneaux jusqu'au redémarrage.
-
-Détecter le HORS LIGNE
-----------------------
-Un bot mort ne peut pas modifier un message : afficher « HORS LIGNE » depuis
-le bot lui-même est donc impossible dans le cas général. Trois mécanismes se
-complètent :
-
-1. Arrêt volontaire (Ctrl+C, arrêt du service, redéploiement) → le bot bascule
-   le panneau en HORS LIGNE **avant** de se déconnecter. C'est le cas courant.
-2. Coupure brutale (crash, panne de courant, kill -9) → personne ne peut plus
-   écrire. Le panneau affiche donc une échéance « prochaine mise à jour
-   <t:…:R> » rendue en direct par Discord : dès qu'elle est dépassée, le
-   panneau est visiblement périmé, et le pied de page le dit explicitement.
-3. Au redémarrage, le panneau est immédiatement repassé en LIGNE.
 """
 
 from __future__ import annotations
@@ -52,6 +19,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
+import custom_emojis
 import embeds
 import resources
 from guild_settings import (
@@ -61,8 +29,11 @@ from guild_settings import (
 )
 from i18n import t
 from text_safety import NO_PINGS
+from visibility import DENIED, HIDDEN, ensure_history
 
 log = logging.getLogger("bot.statuspanel")
+
+HISTORY_REASON = "/status : panneau visible même après avoir quitté puis rejoint le serveur"
 
 # 30 s : loin des limites Discord (5 modifications / 5 s par salon) tout en
 # gardant un panneau qui paraît vivant.
@@ -88,6 +59,20 @@ def _format_uptime(seconds: float, guild_id: int | None) -> str:
     return " ".join(parts)
 
 
+def _icons() -> dict[str, str]:
+    """Les emojis du panneau, perso s'ils ont été téléversés (voir
+    custom_emojis.py). Passés à toutes les clés `status.*` qui en affichent."""
+    return {
+        "online": custom_emojis.get("statusonline"),
+        "offline": custom_emojis.get("statusoffline"),
+        "tools": custom_emojis.get("tools"),
+        "stats": custom_emojis.get("stats"),
+        "green": custom_emojis.get("green_point"),
+        "yellow": custom_emojis.get("yellow_point"),
+        "red": custom_emojis.get("red_point"),
+    }
+
+
 class StatusPanel(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -98,6 +83,9 @@ class StatusPanel(commands.Cog):
         # Serveurs où la publication échoue déjà : l'erreur n'est journalisée
         # qu'une fois, pas à chaque tour de boucle.
         self._failing: set[int] = set()
+        # Serveurs dont la permission d'historique a été vérifiée depuis le
+        # démarrage : une fois suffit, pas à chaque tour de boucle.
+        self._history_checked: set[int] = set()
 
     async def cog_load(self) -> None:
         # Démarrée ici et non dans on_ready : un rechargement du cog ne
@@ -112,26 +100,19 @@ class StatusPanel(commands.Cog):
     # ------------------------------------------------------------------
     @staticmethod
     def _quality(latency_ms: int, guild_id: int | None) -> str:
-        """Qualité de la liaison avec Discord, en clair.
-
-        « 240 ms » ne dit rien à qui ne connaît pas les ordres de grandeur :
-        on traduit la mesure en excellent / correct / lent."""
+        """Qualité de la liaison avec Discord, en clair."""
         if latency_ms <= 150:
-            return t(guild_id, "status.ping_good")
+            return t(guild_id, "status.ping_good", **_icons())
         if latency_ms <= 400:
-            return t(guild_id, "status.ping_ok")
-        return t(guild_id, "status.ping_slow")
+            return t(guild_id, "status.ping_ok", **_icons())
+        return t(guild_id, "status.ping_slow", **_icons())
 
     def build_content(self, guild_id: int | None, *, online: bool) -> str:
-        """Le gros titre, au-dessus du cadre.
-
-        Un titre d'embed est limité en taille d'affichage ; un titre de niveau
-        2 en contenu de message se voit de loin, ce qui est tout l'intérêt
-        d'un panneau qu'on laisse en haut d'un salon."""
-        return "## " + t(guild_id, "status.head_online" if online else "status.head_offline")
+        """Le gros titre, au-dessus du cadre."""
+        return "## " + t(guild_id, "status.head_online" if online else "status.head_offline", **_icons())
 
     def _bullet(self, guild_id: int | None, label_key: str, value: str) -> str:
-        return t(guild_id, "status.bullet", label=t(guild_id, label_key), value=value)
+        return t(guild_id, "status.bullet", label=t(guild_id, label_key), value=value, **_icons())
 
     def build_embed(self, guild: discord.Guild | None, *, online: bool) -> discord.Embed:
         """Le cadre : l'état en une ligne, puis les chiffres en liste — pas en
@@ -143,7 +124,7 @@ class StatusPanel(commands.Cog):
 
         state_key = "status.state_online" if online else "status.state_offline"
         lines = [
-            t(guild_id, "status.line_state", bot=name, state=t(guild_id, state_key)),
+            t(guild_id, "status.line_state", bot=name, state=t(guild_id, state_key, **_icons())),
             "",
         ]
 
@@ -273,7 +254,14 @@ class StatusPanel(commands.Cog):
                 continue
             try:
                 async with self._lock:
-                    await self.ensure_panel(guild)
+                    posted = await self.ensure_panel(guild)
+                    # Une fois par démarrage : un panneau publié avant cette
+                    # règle récupère tout seul « Voir les anciens messages ».
+                    if posted and guild.id not in self._history_checked:
+                        self._history_checked.add(guild.id)
+                        channel = resources.get_text_channel(guild, "channel_status")
+                        if channel is not None:
+                            await ensure_history(channel, reason=HISTORY_REASON)
             except Exception:
                 log.exception(f"[{guild.name}] Actualisation du panneau de statut impossible")
 
@@ -380,10 +368,14 @@ class StatusPanel(commands.Cog):
             await interaction.followup.send(t(gid, "status.post_failed"), ephemeral=True)
             return
         reply = t(gid, "status.enabled_in", channel=channel.mention, seconds=REFRESH_SECONDS)
-        # Le panneau est fait pour être vu de tous : si le salon est masqué à
-        # @everyone, on le signale.
-        if not channel.permissions_for(guild.default_role).view_channel:
+        # Le panneau est fait pour être vu de tous, y compris par qui quitte
+        # puis rejoint le serveur : il faut « Voir les anciens messages ».
+        visibility = await ensure_history(channel, reason=HISTORY_REASON)
+        self._history_checked.add(gid)
+        if visibility == HIDDEN:
             reply += "\n" + t(gid, "status.not_public", channel=channel.mention)
+        elif visibility == DENIED:
+            reply += "\n" + t(gid, "status.history_denied", channel=channel.mention)
         await interaction.followup.send(reply, ephemeral=True)
 
     async def cog_app_command_error(

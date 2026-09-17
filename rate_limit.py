@@ -47,11 +47,7 @@ def _semaphore(guild_id: int, action: str, concurrency: int) -> asyncio.Semaphor
 
 
 async def guarded_call(coro: Awaitable, *, guild_id: int, action: str, concurrency: int = 2):
-    """Exécute un appel Discord risqué sous un sémaphore par (serveur, action).
-
-    À utiliser pour des actions ponctuelles déclenchées par des événements
-    indépendants (ex: kick anti-raid dans `on_member_join`) plutôt que dans
-    une boucle — `throttled_each` est fait pour les boucles."""
+    """Exécute un appel Discord risqué sous un sémaphore par (serveur, action)."""
     sem = _semaphore(guild_id, action, concurrency)
     async with sem:
         return await coro

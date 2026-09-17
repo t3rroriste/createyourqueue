@@ -5,12 +5,6 @@ Commande : /diagnostic
 
 Auto-contrôle du bot. Tourne automatiquement au démarrage (résultat dans la
 console) et à la demande via /diagnostic (résultat dans Discord).
-
-Le but : repérer sans attendre un bug en production les causes classiques de
-« ça marche pas » — un cog qui n'a pas chargé, une permission manquante, un
-rôle que le bot ne peut pas attribuer parce qu'il est trop haut dans la
-hiérarchie, un salon supprimé à la main, une traduction absente, FFmpeg non
-installé...
 """
 
 import json
@@ -25,21 +19,23 @@ from discord.ext import commands
 import resources
 from command_sync import sync_if_changed
 import embeds
-from config import INITIAL_EXTENSIONS
+from config import INITIAL_EXTENSIONS, WELCOME_EXTENSIONS
+from guild_settings import OPTIONAL_SLOTS, WIZARD_SLOTS, get_resource_id, queue_ready
 from i18n import t, LANGUAGES
 import importlib.util
 
 log = logging.getLogger("bot.diagnostic")
 
-OK, WARN, FAIL = "ok", "warn", "fail"
-ICONS = {OK: "✅", WARN: "⚠️", FAIL: "❌"}
+# INFO : un réglage facultatif laissé de côté. Affiché, mais ce n'est pas un problème.
+OK, WARN, FAIL, INFO = "ok", "warn", "fail", "info"
+ICONS = {OK: "✅", WARN: "⚠️", FAIL: "❌", INFO: "➖"}
 
 # Permissions serveur dont le bot a besoin, et ce qui casse sans elles.
 REQUIRED_PERMS = [
     ("manage_roles", "rôles Connexion et rangs de MMR"),
-    ("manage_channels", "création des salons d'équipe et /setup"),
+    ("manage_channels", "vocaux d'équipe, salons de clan, vocaux de duel"),
     ("move_members", "répartition des joueurs dans les vocaux d'équipe"),
-    ("manage_messages", "/clears, /cleanup, purge du salon queue"),
+    ("manage_messages", "/clear, /autoclean, purge du salon queue"),
     ("kick_members", "anti-raid (auto-kick)"),
     ("moderate_members", "/timeout"),
     ("connect", "annonce vocale de lancement"),
@@ -48,16 +44,6 @@ REQUIRED_PERMS = [
     ("add_reactions", "inscription à la queue via ✅"),
     ("read_message_history", "purge et logs"),
 ]
-
-# Ressources que /setup doit avoir créées sur chaque serveur configuré.
-REQUIRED_CHANNELS = [
-    ("channel_queue_command", "text"),
-    ("channel_queue_announcement", "text"),
-    ("channel_queue_resultat", "text"),
-    ("channel_queue_classement", "text"),
-    ("voice_queue_waiting", "voice"),
-]
-REQUIRED_ROLES = ["role_staff", "role_connexion", "role_queue_notif"]
 
 # Rôles attribués/retirés par le bot : ils doivent être SOUS son rôle le plus haut.
 MANAGED_ROLES = ["role_connexion", "role_queue_notif", "role_mvp_week"]
@@ -72,7 +58,7 @@ class Check:
         self.status, self.label, self.detail = status, label, detail
 
     def line(self) -> str:
-        return f"{ICONS[self.status]} {self.label}" + (f" — {self.detail}" if self.detail else "")
+        return f"{ICONS[self.status]} {self.label}" + (f" : {self.detail}" if self.detail else "")
 
 
 def _flatten(data: dict, prefix: str = "") -> set[str]:
@@ -96,7 +82,7 @@ class Diagnostic(commands.Cog):
     # ------------------------------------------------------------------
     def check_extensions(self) -> list[Check]:
         loaded = set(self.bot.extensions)
-        expected = [e for e in INITIAL_EXTENSIONS if not e.startswith("#")]
+        expected = [e for e in INITIAL_EXTENSIONS + WELCOME_EXTENSIONS if not e.startswith("#")]
         missing = [e for e in expected if e not in loaded]
         if missing:
             return [Check(FAIL, f"Cogs ({len(loaded)}/{len(expected)})", "non chargés : " + ", ".join(missing))]
@@ -168,7 +154,7 @@ class Diagnostic(commands.Cog):
             out.append(Check(FAIL, "Annonce vocale française absente", "aucune langue n'a de repli, l'annonce ne jouera jamais"))
         else:
             out.append(Check(WARN, "Annonces vocales incomplètes",
-                              ", ".join(missing) + " — ces langues utiliseront le français"))
+                              ", ".join(missing) + ", ces langues utiliseront le français"))
         return out
 
     def check_data_files(self) -> list[Check]:
@@ -193,7 +179,7 @@ class Diagnostic(commands.Cog):
     def check_guild_permissions(self, guild: discord.Guild) -> list[Check]:
         me = guild.me
         if me is None:
-            return [Check(FAIL, f"{guild.name} — membre bot introuvable")]
+            return [Check(FAIL, f"{guild.name} : membre bot introuvable")]
         perms = me.guild_permissions
         if perms.administrator:
             return [Check(OK, "Permissions (Administrateur)")]
@@ -221,41 +207,36 @@ class Diagnostic(commands.Cog):
             return [
                 Check(FAIL, "Hiérarchie des rôles",
                       "le bot est SOUS " + ", ".join(f"`{n}`" for n in blocked)
-                      + " — il ne peut pas les attribuer. Remonte son rôle.")
+                      + ", il ne peut pas les attribuer. Remonte son rôle.")
             ]
         return [Check(OK, "Hiérarchie des rôles")]
 
     def check_guild_resources(self, guild: discord.Guild) -> list[Check]:
-        out = []
-        missing_channels = []
-        for key, kind in REQUIRED_CHANNELS:
-            found = (
-                resources.get_text_channel(guild, key) if kind == "text"
-                else resources.get_voice_channel(guild, key)
-            )
-            if found is None:
-                missing_channels.append(resources.resource_name(guild.id, key))
-        if missing_channels:
-            out.append(Check(WARN, "Salons manquants", ", ".join(f"`{n}`" for n in missing_channels) + " — relance `/setup`"))
-        else:
-            out.append(Check(OK, "Salons en place"))
-
-        missing_roles = [
-            resources.resource_name(guild.id, key)
-            for key in REQUIRED_ROLES
-            if resources.get_role(guild, key) is None
-        ]
-        if missing_roles:
-            out.append(Check(WARN, "Rôles manquants", ", ".join(f"`{n}`" for n in missing_roles) + " — relance `/setup`"))
-        else:
-            out.append(Check(OK, "Rôles en place"))
-        return out
+        """Les salons et le rôle organisateur choisis dans l'assistant."""
+        if not queue_ready(guild.id):
+            return [Check(INFO, "Queue pas encore configurée", "`/option` pour choisir les salons")]
+        gone = []
+        for key, kind, _required in list(WIZARD_SLOTS) + list(OPTIONAL_SLOTS):
+            if get_resource_id(guild.id, key) is None:
+                continue
+            find = resources.get_voice_channel if kind == "voice" else resources.get_text_channel
+            if find(guild, key) is None:
+                gone.append(resources.resource_name(guild.id, key))
+        if resources.get_role(guild, "role_staff") is None:
+            gone.append(resources.resource_name(guild.id, "role_staff"))
+        if gone:
+            return [Check(WARN, "Salons ou rôle supprimés",
+                          ", ".join(f"`{n}`" for n in gone) + " : à rechoisir dans `/option`")]
+        return [Check(OK, "Salons et rôle organisateur en place")]
 
     def check_waiting_lock(self, guild: discord.Guild) -> list[Check]:
-        """Le vocal d'attente doit rester fermé à @everyone en permanence."""
+        """Avec un rôle Connexion, le vocal d'attente reste fermé à @everyone.
+        Sans rôle Connexion, la queue le laisse ouvert exprès."""
         waiting = resources.get_voice_channel(guild, "voice_queue_waiting")
         if waiting is None:
             return []
+        if resources.get_role(guild, "role_connexion") is None:
+            return [Check(INFO, "Vocal d'attente ouvert", "aucun rôle Connexion choisi, c'est voulu")]
         overwrite = waiting.overwrites_for(guild.default_role)
         if overwrite.connect is False:
             return [Check(OK, "Vocal d'attente verrouillé")]
@@ -266,12 +247,12 @@ class Diagnostic(commands.Cog):
         que personne ne porte, ou du membre qui a fermé ses MP."""
         role = resources.get_role(guild, "role_queue_notif")
         if role is None:
-            return [Check(WARN, "Rôle Notif Queue absent", "aucun MP ne partira — relance `/setup`")]
+            return [Check(INFO, "Notif Queue", "aucun rôle choisi, pas de MP au lancement d'une queue")]
         subscribers = [m for m in role.members if not m.bot]
         if not subscribers:
             return [
-                Check(WARN, "Notif Queue : 0 inscrit",
-                      f"personne n'a `{role.name}` — les membres le prennent avec `/queuerole`")
+                Check(INFO, "Notif Queue : 0 inscrit",
+                      f"personne n'a `{role.name}`, les membres le prennent avec `/queuerole`")
             ]
         return [Check(OK, f"Notif Queue ({len(subscribers)} inscrit(s))")]
 
@@ -315,7 +296,7 @@ class Diagnostic(commands.Cog):
         self._startup_done = True
 
         globals_ = self.run_global_checks()
-        problems = [c for c in globals_ if c.status != OK]
+        problems = [c for c in globals_ if c.status in (WARN, FAIL)]
 
         log.info("─" * 62)
         log.info("DIAGNOSTIC DE DÉMARRAGE")
@@ -326,7 +307,7 @@ class Diagnostic(commands.Cog):
 
         for guild in self.bot.guilds:
             guild_checks = self.run_guild_checks(guild)
-            guild_problems = [c for c in guild_checks if c.status != OK]
+            guild_problems = [c for c in guild_checks if c.status in (WARN, FAIL)]
             problems += guild_problems
             log.info(f"  ── {guild.name} ({guild.id})")
             for check in guild_checks:

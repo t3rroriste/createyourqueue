@@ -3,31 +3,8 @@ Cog : Reaction Roles personnalisables
 ======================================
 Commandes : /rolepanel (construction), /roles (publication), /queuerole
 
-L'ancien système imposait deux panneaux figés (« Styles de Jeu » et
-« Niveaux de Jeu ») avec des rôles codés en dur. Ici, chaque serveur compose
-lui-même ses panneaux : titre, description, couleur, pied de page, et la
-liste des rôles proposés — jusqu'à 2 panneaux par serveur.
-
-Sécurité
---------
-Un panneau de rôles auto-attribuables est une surface d'élévation de
-privilèges : n'importe quel membre clique et reçoit le rôle. Les garde-fous :
-
-1. Un rôle porteur d'une permission sensible (administrateur, gestion du
-   serveur/rôles/salons, bannir, expulser...) ne peut jamais être proposé.
-2. Le rôle doit être sous le rôle le plus haut de CELUI QUI CONFIGURE — sinon
-   un modérateur pourrait distribuer un rôle plus puissant que le sien.
-3. Le rôle doit être sous le rôle le plus haut du BOT, sinon l'attribution
-   échouerait silencieusement.
-4. Les rôles gérés par une intégration (bots, boost Nitro) sont exclus :
-   Discord interdit leur attribution manuelle.
-5. Tout est revalidé AU MOMENT DU CLIC, pas seulement à la configuration :
-   un rôle inoffensif le jour de sa mise au panneau peut recevoir la
-   permission administrateur le lendemain.
-6. Le custom_id est vérifié (format, bornes) et le panneau doit appartenir au
-   serveur d'où vient le clic.
-7. Un verrou par membre empêche le double-clic rapide de créer une course
-   entre deux modifications de rôles.
+Chaque serveur compose ses panneaux : titre, description, couleur, pied de
+page et liste des rôles proposés, jusqu'à 2 panneaux par serveur.
 """
 
 from __future__ import annotations
@@ -38,6 +15,8 @@ import re
 
 import discord
 from discord import app_commands
+
+import custom_emojis
 from discord.ext import commands
 
 from config import COLOR_SUCCESS, COLOR_ERROR
@@ -121,9 +100,7 @@ def validate_role_for_panel(
     invoker: discord.Member,
     me: discord.Member,
 ) -> str | None:
-    """Retourne la clé i18n d'une erreur, ou None si le rôle est acceptable.
-
-    Appelé à la configuration ET rejoué au clic (voir `assign_is_still_safe`)."""
+    """Retourne la clé i18n d'une erreur, ou None si le rôle est acceptable."""
     if role.is_default():
         return "roles.err_everyone"
     if role.managed:
@@ -172,7 +149,11 @@ class RolePanelView(discord.ui.View):
             self.add_item(
                 discord.ui.Button(
                     label=sanitize(entry.get("label") or "Role", MAX_LABEL),
-                    emoji=entry.get("emoji") or None,
+                    # Le 🔔 du panneau Notif Queue prend l'emoji perso s'il a
+                    # été téléversé : les panneaux déjà publiés en profitent
+                    # aussi, sans rien réenregistrer.
+                    emoji=(custom_emojis.get("discord_notification_settings_d")
+                           if entry.get("emoji") == "🔔" else entry.get("emoji") or None),
                     style=BUTTON_STYLES.get(entry.get("style", "grey"), discord.ButtonStyle.secondary),
                     custom_id=f"cyq:rp:{panel_id}:{entry['role_id']}",
                     row=index // 5,

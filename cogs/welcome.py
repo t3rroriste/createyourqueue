@@ -22,9 +22,7 @@ log = logging.getLogger("bot.welcome")
 # Salons essayés d'abord, dans cet ordre ; sinon, le premier où le bot peut écrire.
 PREFERRED_CHANNELS = ("general", "général", "accueil", "welcome")
 
-# Code, libellé, drapeau. Les identifiants `lang_xx` sont ceux des messages
-# d'arrivée déjà envoyés : les garder, c'est ce qui laisse ces messages
-# fonctionner.
+# Code, libellé, drapeau.
 LANGUAGES = [
     ("fr", "France", "🇫🇷"),
     ("en", "English", "🇬🇧"),
@@ -35,11 +33,7 @@ LANGUAGES = [
 
 
 class LanguageSelectView(discord.ui.View):
-    """Les cinq boutons de langue du message d'arrivée.
-
-    Persistante : enregistrée une fois au chargement du cog, elle répond sur
-    tous les messages d'arrivée, y compris après un redémarrage. Avant, les
-    boutons ne répondaient plus dès que le bot avait redémarré."""
+    """Les cinq boutons de langue du message d'arrivée."""
 
     def __init__(self, guild_id: int = 0) -> None:
         super().__init__(timeout=None)
@@ -56,8 +50,7 @@ class LanguageSelectView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         # Choisir la langue du serveur et ouvrir sa configuration : réservé à
-        # qui peut gérer le serveur, comme le reste de l'assistant. Avant,
-        # n'importe quel membre pouvait changer la langue.
+        # qui peut gérer le serveur, comme le reste de l'assistant.
         member = interaction.user
         if isinstance(member, discord.Member) and member.guild_permissions.manage_guild:
             return True

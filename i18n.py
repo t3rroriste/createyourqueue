@@ -104,11 +104,7 @@ def t(guild_id: int | None, key: str, **kwargs: Any) -> str:
 
 
 def t_in(lang: str, key: str, **kwargs: Any) -> str:
-    """Traduit dans une langue EXPLICITE, sans passer par celle du serveur.
-
-    Nécessaire pour comparer le nom actuel d'un salon au nom qu'il aurait dans
-    l'ancienne langue (voir retranslate.py) : au moment où on vérifie, la
-    nouvelle langue est déjà enregistrée."""
+    """Traduit dans une langue EXPLICITE, sans passer par celle du serveur."""
     value = _resolve(lang, key)
     if value is None:
         return ""
@@ -122,11 +118,7 @@ def t_in(lang: str, key: str, **kwargs: Any) -> str:
 
 
 def _resolve(lang: str, key: str) -> Any:
-    """Valeur d une cle pointee, memorisee.
-
-    Les traductions sont chargees une fois et ne changent plus en cours
-    d execution : redecouper la cle et retraverser le JSON a chaque appel
-    coutait pour rien. Le cache est vide par load_langs()."""
+    """Valeur d une cle pointee, memorisee."""
     memo = _resolved.get(lang)
     if memo is None:
         memo = _resolved[lang] = {}

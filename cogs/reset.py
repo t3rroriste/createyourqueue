@@ -6,24 +6,6 @@ Commande : /reset (administrateur uniquement)
 Remet le serveur à zéro : supprime les salons et rôles créés par le bot,
 efface toute la configuration, puis relance l'assistant de première
 configuration.
-
-Sécurité
---------
-C'est la seule commande du bot qui détruit des données. Trois garde-fous :
-
-1. **Suppression par ID uniquement.** Les ressources sont retrouvées par
-   l'identifiant mémorisé au moment de leur création, jamais par leur nom.
-   Un salon nommé `queue` créé à la main par un membre du serveur ne sera
-   donc jamais supprimé par erreur — seul celui que le bot a créé l'est.
-2. **Aperçu avant action.** L'embed liste nommément tout ce qui va
-   disparaître, avant toute suppression.
-3. **Confirmation écrite.** Un bouton seul se clique par accident : il faut
-   taper RESET dans une fenêtre pour déclencher réellement l'opération.
-
-Les statistiques du classement (`data/classement.json`) sont indexées par
-joueur et PARTAGÉES entre tous les serveurs du bot : les effacer depuis un
-serveur les effacerait partout. Elles sont donc laissées intactes par
-défaut, et leur suppression demande une case à cocher explicite.
 """
 
 from __future__ import annotations
@@ -35,8 +17,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import embeds
-from guild_settings import get_resource_id, reset_guild
+from guild_settings import get_resource_id, reset_guild, set_setup_panel
 from i18n import t
 from rate_limit import throttled_each
 from text_safety import NO_PINGS
@@ -73,10 +56,7 @@ def generate_code() -> str:
 
 
 def collect_targets(guild: discord.Guild) -> list:
-    """Ressources réellement présentes, retrouvées par ID mémorisé.
-
-    Volontairement sans repli sur le nom : la résolution par nom sert à
-    retrouver une ressource pour l'utiliser, pas à décider ce qu'on détruit."""
+    """Ressources réellement présentes, retrouvées par ID mémorisé."""
     targets = []
     for key, kind in RESOURCE_KEYS:
         rid = get_resource_id(guild.id, key)
@@ -128,11 +108,7 @@ def build_preview_embed(guild: discord.Guild, wipe_stats: bool, code: str = "") 
 
 
 class ConfirmModal(discord.ui.Modal):
-    """Vérification par code aléatoire.
-
-    Un mot fixe comme « RESET » finit par se taper machinalement, sans lire
-    l'aperçu. Un code différent à chaque ouverture oblige à revenir sur le
-    panneau — donc à voir ce qui va être supprimé."""
+    """Vérification par code aléatoire."""
 
     def __init__(self, view: "ResetView"):
         self.view = view
@@ -169,6 +145,7 @@ class ResetView(discord.ui.View):
         self.stats.label = t(gid, "reset.btn_stats_on" if self.wipe_stats else "reset.btn_stats_off")
         self.stats.style = discord.ButtonStyle.danger if self.wipe_stats else discord.ButtonStyle.secondary
         self.cancel.label = t(gid, "reset.btn_cancel")
+        self.cancel.emoji = custom_emojis.get("cross")
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Réservé à son auteur, et la permission est revérifiée : elle a pu
@@ -296,7 +273,7 @@ class ResetView(discord.ui.View):
         embed.add_field(name=t(gid, "reset.field_next"), value=t(gid, "reset.next_desc"), inline=False)
         # /reset est souvent lancé DEPUIS un salon que le reset vient de
         # supprimer : le webhook de l'interaction meurt avec lui (10003 Unknown
-        # Channel). On bascule alors sur un MP pour ne pas perdre le compte-rendu.
+        # Channel).
         try:
             await interaction.followup.send(embed=embed, ephemeral=True)
         except discord.HTTPException:
@@ -320,7 +297,6 @@ class ResetView(discord.ui.View):
             return
         try:
             from cogs.wizard import channels_embed, ChannelsWizard
-            from guild_settings import set_setup_panel
             view = ChannelsWizard(guild, intro=True)
             message = await channel.send(embed=channels_embed(guild, intro=True), view=view)
             set_setup_panel(guild.id, channel.id, message.id)

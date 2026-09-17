@@ -7,19 +7,6 @@ figé dans l'ancienne langue. Un serveur passé du français à l'anglais gardai
 `🔱・queue-annonce` et le rôle `Organisateur`.
 
 Ce module rejoue la traduction sur tout ce qui existe déjà :
-
-- **Salons, rôles et catégories** créés par le bot sont renommés.
-- **Panneaux déjà publiés** (accueil, état du bot, classement) sont réécrits.
-
-Deux précautions importantes :
-
-1. On ne renomme QUE si le nom actuel correspond exactement à ce que le bot
-   aurait produit dans l'ancienne langue. Si un administrateur a renommé le
-   salon à la main, son choix est conservé — il n'a pas configuré son serveur
-   pour qu'un changement de langue l'écrase.
-2. Renommer un salon est très fortement limité par Discord (2 fois par
-   10 minutes et par salon). Les renommages passent donc par `throttled_each`,
-   et un échec sur l'un n'interrompt pas les autres.
 """
 
 from __future__ import annotations
@@ -68,10 +55,7 @@ def _name_in(lang: str, key: str) -> str:
 
 
 def plan_renames(guild: discord.Guild, old_lang: str, new_lang: str) -> list[tuple]:
-    """(ressource, ancien nom, nouveau nom) pour tout ce qui doit être renommé.
-
-    Une ressource absente, déjà au bon nom, ou renommée manuellement est
-    ignorée."""
+    """(ressource, ancien nom, nouveau nom) pour tout ce qui doit être renommé."""
     plan = []
     for key, kind in RENAMABLE:
         resource = _resolve(guild, key, kind)
@@ -94,10 +78,7 @@ def plan_renames(guild: discord.Guild, old_lang: str, new_lang: str) -> list[tup
 
 
 def _language_of_name(key: str, name: str) -> str | None:
-    """Langue dans laquelle ce nom correspond à la ressource, ou None.
-
-    Sert à distinguer « nom généré par le bot dans une autre langue » de
-    « nom choisi à la main » : seul le premier cas doit être corrigé."""
+    """Langue dans laquelle ce nom correspond à la ressource, ou None."""
     for lang in LANGUAGES:
         if t_in(lang, f"names.{key}") == name:
             return lang
@@ -105,16 +86,7 @@ def _language_of_name(key: str, name: str) -> str | None:
 
 
 async def repair_guild(bot, guild: discord.Guild) -> int:
-    """Remet les ressources dans la langue ACTUELLE du serveur.
-
-    `retranslate_guild` ne se déclenche qu'au changement de langue. Si les
-    salons ont été créés avant que la langue soit choisie — ce qui arrive dès
-    qu'on clique « Créer les salons » avant `/setup` — ils gardent les noms
-    anglais par défaut et plus rien ne les corrige, puisqu'il n'y aura jamais
-    de changement de langue à détecter. Cette réparation comble ce trou.
-
-    Un nom qui ne correspond à AUCUNE langue du bot est considéré comme choisi
-    à la main et laissé tel quel."""
+    """Remet les ressources dans la langue ACTUELLE du serveur."""
     current = get_lang(guild.id)
     plan = []
     for key, kind in RENAMABLE:

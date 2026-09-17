@@ -6,10 +6,6 @@ Commande : /queue-guide
 Guide pas-à-pas pour organiser une queue de A à Z, destiné à quelqu'un qui
 n'a jamais utilisé le bot. Chaque étape tient sur un écran, avec des boutons
 Précédent / Suivant plutôt qu'un pavé de texte que personne ne lit.
-
-Le guide affiche aussi un état en direct de la configuration du serveur
-(salons créés ? rôles en place ?) : la première cause de blocage est un
-`/setup` jamais lancé, et un texte statique ne peut pas le signaler.
 """
 
 import logging

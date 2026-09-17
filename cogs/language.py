@@ -49,7 +49,6 @@ class LanguageSelect(discord.ui.Select):
             description=f"{info['flag']} " + t(self.guild_id, "language.changed", language=info["name"]),
             color=COLOR_SUCCESS,
         )
-        embed.set_footer(text=t(self.guild_id, "language.footer"))
         # Le renommage des salons peut prendre quelques secondes : on répond
         # d'abord, on retraduit ensuite.
         await interaction.response.edit_message(embed=embed, view=None)
@@ -113,7 +112,6 @@ class Language(commands.Cog):
             value=f"{current_info['flag']} **{current_info['name']}**",
             inline=False,
         )
-        embed.set_footer(text=t(gid, "language.footer"))
         await interaction.response.send_message(embed=embed, view=LanguageView(gid), ephemeral=True)
 
     @setlanguage.error

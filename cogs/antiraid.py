@@ -34,8 +34,6 @@ def _ts(dt: datetime) -> str:
 
 class AntiRaid(commands.Cog):
     # Groupe de sous-commandes : /antiraid status, /antiraid config...
-    # Quatre commandes de premier niveau pour une seule fonctionnalité noyaient
-    # la liste des commandes du serveur.
     antiraid = app_commands.Group(name="antiraid", description="Protection anti-raid du serveur.")
 
     def __init__(self, bot: commands.Bot):
@@ -98,9 +96,7 @@ class AntiRaid(commands.Cog):
         if self.raid_lockdown.get(guild.id, False) and cfg["auto_kick"]:
             try:
                 # Un raid fait arriver plusieurs comptes en même temps : chaque
-                # arrivée déclenche ce handler en parallèle. Le sémaphore évite
-                # une rafale de kicks simultanés qui déclencherait la détection
-                # d'abus de Discord, indépendamment du rate limit standard.
+                # arrivée déclenche ce handler en parallèle.
                 await guarded_call(
                     member.kick(reason="Anti-raid : arrivée pendant lockdown actif"),
                     guild_id=guild.id,
@@ -120,7 +116,6 @@ class AntiRaid(commands.Cog):
                     timestamp=discord.utils.utcnow(),
                 )
                 embed.set_thumbnail(url=member.display_avatar.url)
-                embed.set_footer(text=t(guild.id, "common.footer_main"))
                 await self._send_alert(guild, embed)
             except discord.Forbidden:
                 pass
@@ -148,7 +143,6 @@ class AntiRaid(commands.Cog):
                 timestamp=discord.utils.utcnow(),
             )
             embed.set_thumbnail(url=member.display_avatar.url)
-            embed.set_footer(text=t(guild.id, "common.footer_main"))
             await self._send_alert(guild, embed)
 
         # --- Seuil de raid ---
@@ -192,7 +186,6 @@ class AntiRaid(commands.Cog):
             value=t(guild.id, "antiraid.toggled_on") if cfg["auto_kick"] else t(guild.id, "antiraid.toggled_off"),
             inline=True,
         )
-        embed.set_footer(text=t(guild.id, "common.footer_main"))
         await self._send_alert(guild, embed)
 
     # ------------------------------------------------------------------
@@ -242,7 +235,6 @@ class AntiRaid(commands.Cog):
             value=f"**{recent}** / {cfg['join_threshold']}",
             inline=True,
         )
-        embed.set_footer(text=t(gid, "common.footer_main"))
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @antiraid.command(name="config", description="Configure les seuils de détection anti-raid.")
@@ -325,7 +317,6 @@ class AntiRaid(commands.Cog):
             color=COLOR_SUCCESS,
             timestamp=discord.utils.utcnow(),
         )
-        embed.set_footer(text=t(interaction.guild_id, "common.footer_main"))
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     # ------------------------------------------------------------------

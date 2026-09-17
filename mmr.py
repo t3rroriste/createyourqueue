@@ -7,16 +7,6 @@ trois victoires sur trois. Le MMR corrige ça — chaque partie déplace le
 joueur, à la hausse comme à la baisse.
 
 Règles, toutes réglables par serveur (voir `/mmr`) :
-
-- On démarre à `start` (1000 par défaut).
-- Une victoire rapporte `win`, une défaite coûte `loss`.
-- Le MVP du match touche `mvp_bonus` **en plus**, y compris s'il a perdu :
-  c'est la récompense du meilleur joueur, pas de l'équipe gagnante.
-- Le MMR ne descend jamais sous zéro.
-
-Chaque palier (« rang ») porte un nom, une couleur et éventuellement une
-icône. Le module ne fait que le calcul : la création des rôles Discord est
-dans cogs/match.py.
 """
 
 from __future__ import annotations
@@ -49,10 +39,7 @@ def default_tiers(guild_id: int | None) -> list[dict]:
 
 
 def sorted_tiers(config: dict) -> list[dict]:
-    """Paliers du plus bas au plus haut, seuils invalides écartés.
-
-    Les paliers viennent d'un formulaire : un seuil illisible ne doit pas
-    faire planter l'attribution des rôles au milieu d'un match."""
+    """Paliers du plus bas au plus haut, seuils invalides écartés."""
     clean = []
     for tier in config.get("tiers") or []:
         try:
@@ -82,14 +69,7 @@ def next_tier(config: dict, value: int) -> dict | None:
 
 
 def delta(config: dict, *, won: bool, is_mvp: bool = False, streak: int = 0) -> int:
-    """Points gagnés ou perdus sur une partie.
-
-    Le bonus MVP s'ajoute au résultat de l'équipe : un joueur excellent dans
-    une équipe battue perd donc moins qu'un coéquipier ordinaire.
-
-    Le bonus de série récompense la régularité, et seulement en gagnant : le
-    verser aussi sur une défaite reviendrait à payer pour perdre. Il vaut
-    zéro par défaut — c'est un réglage qu'on allume, pas une surprise."""
+    """Points gagnés ou perdus sur une partie."""
     change = int(config.get("win", 15)) if won else -int(config.get("loss", 12))
     if is_mvp:
         change += int(config.get("mvp_bonus", 8))
@@ -107,10 +87,7 @@ def apply(config: dict, current: int, *, won: bool, is_mvp: bool = False,
 
 
 def progress(config: dict, value: int) -> tuple[int, int]:
-    """(points dans le palier, largeur du palier) pour une barre de progression.
-
-    Au dernier palier il n'y a plus rien à viser : on renvoie une barre
-    pleine plutôt qu'une division par zéro."""
+    """(points dans le palier, largeur du palier) pour une barre de progression."""
     current = tier_for(config, value)
     upper = next_tier(config, value)
     if current is None or upper is None:

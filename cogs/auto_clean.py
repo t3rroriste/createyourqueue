@@ -1,8 +1,10 @@
 import discord
+import embeds
 from discord import app_commands
 from discord.ext import commands
 import logging
 import asyncio
+from guild_settings import is_status_panel_message
 from i18n import t
 
 log = logging.getLogger("bot")
@@ -45,7 +47,8 @@ class AutoClean(commands.Cog):
                 # un salon actif. purge() bascule automatiquement en suppression
                 # individuelle pour les messages plus anciens que 14 jours.
                 try:
-                    deleted = await channel.purge(limit=None)
+                    deleted = await channel.purge(
+                        limit=None, check=lambda m: not is_status_panel_message(guild_id, m.id))
                     log.info(f"Nettoyage automatique: {len(deleted)} messages supprimés dans {channel.name}")
                 except discord.HTTPException as e:
                     log.error(f"Erreur lors du nettoyage automatique de {channel.name} : {e}")
@@ -70,7 +73,7 @@ class AutoClean(commands.Cog):
         if interval < 1:
             embed = discord.Embed(
                 description=t(guild_id, "moderation.error_manage_channel"),
-                color=0xFF0000,
+                color=embeds.ERROR,
             )
             await interaction.followup.send(embed=embed)
             return
@@ -91,7 +94,7 @@ class AutoClean(commands.Cog):
 
         embed = discord.Embed(
             description=t(guild_id, "moderation.autoclean_on", channel=salon.mention, interval=interval),
-            color=0x00FF00,
+            color=embeds.SUCCESS,
         )
         await interaction.followup.send(embed=embed)
 
@@ -108,7 +111,7 @@ class AutoClean(commands.Cog):
         if guild_id not in self.clean_tasks:
             embed = discord.Embed(
                 description=t(guild_id, "moderation.autoclean_off"),
-                color=0xFF0000,
+                color=embeds.ERROR,
             )
             await interaction.followup.send(embed=embed)
             return
@@ -119,7 +122,7 @@ class AutoClean(commands.Cog):
 
         embed = discord.Embed(
             description=t(guild_id, "moderation.autoclean_stopped"),
-            color=0x00FF00,
+            color=embeds.SUCCESS,
         )
         await interaction.followup.send(embed=embed)
 
@@ -129,7 +132,7 @@ class AutoClean(commands.Cog):
         if isinstance(error, app_commands.MissingPermissions):
             embed = discord.Embed(
                 description=t(interaction.guild_id, "moderation.error_permission"),
-                color=0xFF0000,
+                color=embeds.ERROR,
             )
             if interaction.response.is_done():
                 await interaction.followup.send(embed=embed, ephemeral=True)

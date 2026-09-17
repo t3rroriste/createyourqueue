@@ -8,9 +8,6 @@ La liste ci-dessous doit rester synchronisée avec les commandes réellement
 enregistrées (voir INITIAL_EXTENSIONS dans config.py) — un cog désactivé ne
 doit pas apparaître ici, sinon /help affiche des commandes qui n'existent
 pas côté Discord.
-
-Les sous-commandes ne sont pas listées une par une : `/roles` couvre
-`/roles panel|post|notif`, `/voice` couvre `/voice join|leave`, etc.
 """
 
 import logging
@@ -128,6 +125,7 @@ CATEGORIES = {
             ("/userinfo", "help.cmd_userinfo_desc"),
             ("/serverinfo", "help.cmd_serverinfo_desc"),
             ("/help", "help.cmd_help_desc"),
+            ("/support", "help.cmd_support_desc"),
         ],
     },
     "voice": {
@@ -151,6 +149,17 @@ CATEGORIES = {
             ("/diagnostic", "help.cmd_diagnostic_desc"),
             ("/reset", "help.cmd_reset_desc"),
             ("/status", "help.cmd_status_desc"),
+        ],
+    },
+    "duel": {
+        "emoji": "⚔️",
+        "label_key": "help.cat_duel_label",
+        "desc_key": "help.cat_duel_desc",
+        "color": discord.Color.dark_red(),
+        "commands": [
+            ("/duel", "help.cmd_duel_desc"),
+            ("/createteam", "help.cmd_createteam_desc"),
+            ("/config-duel", "help.cmd_config_duel_desc"),
         ],
     },
 }

@@ -19,12 +19,7 @@ from i18n import t
 
 
 def resource_name(guild_id: int | None, key: str) -> str:
-    """Nom attendu d'une ressource gérée par le bot.
-
-    Un nom **personnalisé** (voir /config → Salons → Renommer) prime sur le nom
-    traduit : c'est un choix explicite de l'administrateur. Tout le bot passe
-    par ici — protection des noms, guides, messages d'aide — donc le nom
-    choisi s'applique partout sans exception."""
+    """Nom attendu d'une ressource gérée par le bot."""
     if guild_id is not None:
         custom = get_custom_name(guild_id, key)
         if custom:

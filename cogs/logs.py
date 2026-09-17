@@ -8,28 +8,6 @@ Un salon par type d'événement, que l'on allume et que l'on coupe à la carte.
     /logs-vocal activer:True                     rallume dans le salon mémorisé
     /logs-tout  activer:True salon:#logs         tous les types d'un coup
     /logs                                        l'état de chaque type
-
-Le bot ne crée aucun salon : l'administrateur désigne les siens.
-
-Types (voir KINDS) : vocal, message, queue, match, duel (ClanWar), clan,
-commande, join (arrivées et départs), moderation, serveur (salons, rôles,
-pseudos).
-
-Journaliser depuis un autre cog
--------------------------------
-    from cogs.logs import send_log
-
-    send_log(self.bot, guild.id, "queue", t(gid, "logs.queue_opened"),
-             user=author, fields=[(t(gid, "logs.f_queue"), name)])
-
-`send_log` rend la main tout de suite et ne lève jamais : un salon de logs
-supprimé ou fermé au bot ne doit pas faire échouer la queue qui l'appelle.
-Un champ vaut `(nom, valeur)` ou `(nom, valeur, inline)` ; un champ dont la
-valeur est vide est ignoré.
-
-L'ancien `/logs` enregistrait `{type: id du salon}`, sans interrupteur, et
-quatre de ses six types n'étaient jamais appelés. Ce format est relu et
-converti : un serveur déjà configuré ne perd rien.
 """
 
 from __future__ import annotations
@@ -266,11 +244,7 @@ class Logs(commands.Cog):
 
     async def _audit_entry(self, guild: discord.Guild, action: discord.AuditLogAction,
                            target_id: int) -> discord.AuditLogEntry | None:
-        """Qui a fait quoi, d'après le journal d'audit du serveur.
-
-        None sans la permission « Voir les logs du serveur », ou si rien de
-        récent ne concerne cette cible. Discord écrit l'entrée juste après
-        l'événement : on lui laisse une seconde."""
+        """Qui a fait quoi, d'après le journal d'audit du serveur."""
         if not guild.me.guild_permissions.view_audit_log:
             return None
         await asyncio.sleep(1)
@@ -402,8 +376,6 @@ class Logs(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     # Une commande par type, comme demandé : /logs-vocal activer:True salon:#x.
-    # Elles se ressemblent toutes volontairement — pour en ajouter une, copie
-    # un bloc, change le nom et le type, puis ajoute le type dans KINDS.
     @app_commands.command(name="logs-vocal", description="Logs vocaux : arrivées, départs, changements de salon, sourdines.")
     @app_commands.describe(activer=_ACTIVER, salon=_SALON)
     @app_commands.default_permissions(manage_guild=True)
@@ -634,10 +606,7 @@ class Logs(commands.Cog):
                       fields=[(t(gid, "logs.f_added"), " ".join(added), False),
                               (t(gid, "logs.f_removed"), " ".join(removed), False)])
 
-        # Sourdine posée depuis Discord. Celles de /timeout sont déjà
-        # journalisées par la commande, avec le vrai modérateur : on les
-        # écarte (auteur = le bot). Sans journal d'audit on ne peut pas faire
-        # la différence, et on préfère rien à un doublon.
+        # Sourdine posée depuis Discord.
         if (before.timed_out_until != after.timed_out_until
                 and self.target(gid, "moderation") is not None):
             entry = await self._audit_entry(after.guild, discord.AuditLogAction.member_update, after.id)

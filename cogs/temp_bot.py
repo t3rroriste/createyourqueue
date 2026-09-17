@@ -7,26 +7,6 @@ Commandes spécifiques pour le bot temporaire, réservées au owner :
 - /tempo   : remet le serveur entier à zéro et ne laisse que deux salons,
              « coming-soon » (texte, lecture seule, avec l'embed) et
              « Waiting Room » (vocal).
-
-/tempo — ce qui est fait
-------------------------
-Supprimé : tous les salons et catégories, tous les rôles que Discord laisse
-supprimer, les emojis, stickers, sons, événements et règles AutoMod.
-Remis à zéro : les permissions de @everyone (aucune), donc tout salon créé
-plus tard est invisible tant qu'on ne l'ouvre pas.
-Jamais touché : les membres (aucun kick, aucun ban, pseudos gardés), la
-liste des bannis, le nom et l'icône du serveur.
-
-Ce que Discord interdit de supprimer reste, mais rendu inaccessible :
-- les salons exigés par la Communauté (règlement, mises à jour) sont vidés
-  de leurs permissions et cachés à @everyone ;
-- les rôles des bots et des intégrations sont gérés par Discord ; le rôle
-  Booster perd ses permissions ;
-- les rôles placés au-dessus du rôle du bot restent tels quels : l'aperçu
-  les signale avant confirmation.
-
-Sécurité : les deux nouveaux salons sont créés AVANT toute suppression. Si
-leur création échoue, rien n'est détruit.
 """
 
 from __future__ import annotations
@@ -36,6 +16,7 @@ import logging
 import os
 
 import discord
+import embeds
 from discord import app_commands
 from discord.ext import commands
 
@@ -43,6 +24,7 @@ from cogs.reset import CAPTCHA_LENGTH, generate_code
 from config import OWNER_ID
 from json_store import write_json
 from rate_limit import throttled_each
+from visibility import DENIED, HIDDEN, ensure_history
 
 log = logging.getLogger("bot.temp_bot")
 
@@ -50,9 +32,7 @@ log = logging.getLogger("bot.temp_bot")
 COMING_SOON_NAME = "🚧・coming-soon"
 WAITING_ROOM_NAME = "⏳・Waiting Room"
 
-# Message « Coming soon » publié dans chaque salon. Sur disque : après un
-# redémarrage, /waiting remplace encore l'ancien message au lieu d'en
-# empiler un second.
+# Message « Coming soon » publié dans chaque salon.
 WAITING_FILE = "data/waiting_messages.json"
 
 
@@ -70,30 +50,17 @@ def load_waiting_messages() -> dict[int, int]:
         return {}
 
 
+WAITING_REASON = "/waiting : message visible par les nouveaux membres"
+
+
 async def open_history(channel: discord.TextChannel) -> str | None:
-    """Rend le message visible à qui arrive — ou revient — sur le serveur.
-
-    Sans « Voir les anciens messages », Discord ne montre à un membre que les
-    messages envoyés pendant qu'il est connecté : il quitte puis rejoint le
-    serveur, et le message a disparu pour lui. On ajoute donc cette permission
-    à @everyone dans le salon, en gardant le reste de ses permissions.
-
-    Renvoie un avertissement pour le owner, ou None si tout va bien."""
-    everyone = channel.guild.default_role
-    perms = channel.permissions_for(everyone)
-    if not perms.view_channel:
+    """Rend le message visible à qui arrive — ou revient — sur le serveur
+    (voir visibility.py). Renvoie un avertissement pour le owner, ou None."""
+    result = await ensure_history(channel, reason=WAITING_REASON)
+    if result == HIDDEN:
         return ("⚠️ Message envoyé, mais @everyone ne voit pas ce salon : "
                 "les nouveaux membres ne le verront pas.")
-    if perms.read_message_history:
-        return None
-    overwrite = channel.overwrites_for(everyone)
-    overwrite.read_message_history = True
-    try:
-        await channel.set_permissions(
-            everyone, overwrite=overwrite,
-            reason="/waiting : message visible par les nouveaux membres",
-        )
-    except discord.HTTPException:
+    if result == DENIED:
         return ("⚠️ Message envoyé, mais @everyone n'a pas **Voir les anciens messages** ici "
                 "et je n'ai pas pu le lui donner (il me faut **Gérer les permissions**) : "
                 "un membre qui quitte et revient ne verra plus le message.")
@@ -108,17 +75,14 @@ def waiting_embed() -> discord.Embed:
             ">>> 🇫🇷 : Le serveur Discord est en cours de création. Veuillez patienter.\n"
             "🇺🇸 : The Discord server is currently under construction. Please wait."
         ),
-        color=0x000000  # Noir
+        color=embeds.BLACK
     )
     embed.set_footer(text="L'equipe CYQ")
     return embed
 
 
 def split_roles(guild: discord.Guild) -> tuple[list[discord.Role], list[discord.Role]]:
-    """(rôles supprimables, rôles intouchables).
-
-    Intouchables : ceux gérés par Discord (bots, intégrations, Booster) et
-    ceux au-dessus du rôle du bot. @everyone n'est dans aucune des listes."""
+    """(rôles supprimables, rôles intouchables)."""
     deletable, untouchable = [], []
     for role in guild.roles:
         if role.is_default():
@@ -136,7 +100,7 @@ def build_preview_embed(guild: discord.Guild, code: str) -> discord.Embed:
             "Cette action est **irréversible**.\n"
             "Aucun membre n'est expulsé ni banni."
         ),
-        color=0xED4245,
+        color=embeds.ERROR,
     )
     embed.add_field(
         name="🗑️ Supprimé",
@@ -236,6 +200,7 @@ class TempBot(commands.Cog):
         self.bot = bot
         # Message waiting de chaque salon, pour le remplacer au prochain /waiting
         self.waiting_messages: dict[int, int] = load_waiting_messages()
+        self._refreshed = False
         # Serveurs où un /tempo tourne : deux purges croisées se marcheraient dessus.
         self.tempo_running: set[int] = set()
 
@@ -249,6 +214,42 @@ class TempBot(commands.Cog):
             write_json(WAITING_FILE, {str(c): m for c, m in self.waiting_messages.items()}, indent=4)
         except OSError as e:
             log.error(f"Messages d'attente non enregistrés : {e}")
+
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        # on_ready revient à chaque reconnexion : la remise à jour ne se fait
+        # qu'une fois par lancement du bot.
+        if self._refreshed:
+            return
+        self._refreshed = True
+        await self.refresh_waiting_messages()
+
+    async def refresh_waiting_messages(self) -> None:
+        """Au démarrage, chaque message Coming soon reprend l'embed actuel."""
+        changed = False
+        for channel_id, message_id in list(self.waiting_messages.items()):
+            channel = self.bot.get_channel(channel_id)
+            if not isinstance(channel, discord.TextChannel):
+                continue  # Serveur quitté ou momentanément indisponible
+            try:
+                await channel.get_partial_message(message_id).edit(embed=waiting_embed())
+            except discord.NotFound:
+                try:
+                    message = await channel.send(embed=waiting_embed())
+                except discord.HTTPException as e:
+                    log.warning(f"[{channel.guild.name}] Coming soon non republié dans #{channel.name} : {e}")
+                    continue
+                self.waiting_messages[channel_id] = message.id
+                changed = True
+            except discord.HTTPException as e:
+                log.warning(f"[{channel.guild.name}] Coming soon non mis à jour dans #{channel.name} : {e}")
+                continue
+            if await ensure_history(channel, reason=WAITING_REASON) in (HIDDEN, DENIED):
+                log.warning(f"[{channel.guild.name}] #{channel.name} : @everyone ne voit pas "
+                            "l'historique, le Coming soon disparaîtra pour qui quitte et revient.")
+        if changed:
+            self._save_waiting_messages()
+        log.info(f"{len(self.waiting_messages)} message(s) Coming soon remis à jour.")
 
     @app_commands.command(name="waiting", description="Envoie le message d'attente (owner uniquement)")
     @app_commands.guild_only()
@@ -370,7 +371,7 @@ class TempBot(commands.Cog):
             return discord.Embed(
                 title="❌ /tempo interrompu",
                 description=f"Les salons n'ont pas pu être créés ({e.text or e.status}).\n**Rien n'a été supprimé.**",
-                color=0xED4245,
+                color=embeds.ERROR,
             )
         keep = {coming_soon.id, waiting_room.id}
         log.warning(f"[{guild.name}] /tempo lancé par {author}")
@@ -476,7 +477,7 @@ class TempBot(commands.Cog):
         return discord.Embed(
             title="✅ Serveur remis à zéro" if not failed else "⚠️ Serveur remis à zéro, avec des échecs",
             description="\n".join(lines)[:4000],
-            color=0x57F287 if not failed else 0xFEE75C,
+            color=embeds.SUCCESS if not failed else embeds.WARNING,
         )
 
 

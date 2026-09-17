@@ -5,11 +5,6 @@ Commandes : /clear, /lock, /unlock,
             /warn, /warnings, /unwarn, /timeout, /untimeout
 
 Chaque action est journalisée dans le salon de /logs-moderation.
-
-- /clear : supprime un nombre de messages dans le salon.
-- /lock, /unlock : verrouille ou déverrouille un salon.
-- /warn, /warnings, /unwarn : historique d'avertissements persistant par membre.
-- /timeout, /untimeout : mise en sourdine temporaire (API native Discord).
 """
 
 import json
@@ -23,6 +18,7 @@ from discord.ext import commands
 
 from config import COLOR_SUCCESS, COLOR_ERROR, COLOR_INFO, COLOR_WARNING
 import embeds
+from guild_settings import is_status_panel_message
 from i18n import t
 from json_store import write_json
 from cogs.logs import send_log
@@ -88,13 +84,14 @@ class Moderation(commands.Cog):
     @app_commands.describe(nombre="Nombre de messages à supprimer (max 100)")
     @app_commands.checks.has_permissions(manage_messages=True)
     async def clears(self, interaction: discord.Interaction, nombre: app_commands.Range[int, 1, 100]):
-        # BUG FIX: vérifier que c'est bien un TextChannel (purge n'existe pas sur ForumChannel etc.)
+        # purge() n'existe pas sur un forum.
         if not isinstance(interaction.channel, discord.TextChannel):
             await interaction.response.send_message(t(interaction.guild_id, "common.text_channel_only"), ephemeral=True)
             return
         await interaction.response.defer(ephemeral=True)
-        deleted = await interaction.channel.purge(limit=nombre)
-        # BUG FIX: envoyer le followup manquant
+        # Le panneau /status reste en place : il est fait pour ne jamais partir.
+        deleted = await interaction.channel.purge(
+            limit=nombre, check=lambda m: not is_status_panel_message(interaction.guild_id, m.id))
         embed = discord.Embed(
             description=t(interaction.guild_id, "moderation.clears_done").format(count=len(deleted)),
             color=COLOR_SUCCESS,
@@ -158,11 +155,8 @@ class Moderation(commands.Cog):
         self._mod_log(interaction, "logs.mod_unlock", color=embeds.SUCCESS,
                       fields=[(t(interaction.guild_id, "logs.f_channel"), channel.mention)])
 
-    # /cleanup a été retiré : il cherchait des salons nommés « 🔵 Équipe 1 »
-    # et « 🔴 Équipe 2 », créés par un ancien système de queue. Le système
-    # actuel nomme les vocaux d'après les équipes de l'organisateur et les
-    # supprime lui-même en fin de match — la commande ne trouvait donc jamais
-    # rien à nettoyer.
+    # /cleanup a été retiré : il cherchait des salons nommés « 🔵 Équipe 1 » et
+    # « 🔴 Équipe 2 », créés par un ancien système de queue.
 
     # -------------------------------------------------------------
     # /warn

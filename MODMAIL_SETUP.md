@@ -58,7 +58,7 @@ Chaque ticket arrive dans le salon staff avec trois boutons :
 | Bouton | Effet |
 |---|---|
 | 🎯 **Prendre** | Prend le ticket en charge. À faire en premier. |
-| 📝 **Répondre** | Répond au membre. Seule la personne qui a pris le ticket peut répondre. |
+| 📝 **Répondre** | Répond au membre par un message simple « @staff : réponse », traduit dans sa langue. Seule la personne qui a pris le ticket peut répondre. |
 | 🔒 **Fermer** | Ferme le ticket et prévient le membre. |
 
 Les boutons sont dans la langue du serveur de support (en français si `SUPPORT_GUILD_ID` est ce serveur).
@@ -70,7 +70,7 @@ Les boutons d'un ticket ouvert **restent utilisables après un redémarrage** du
 ## Confidentialité
 
 - Le contenu des messages n'est jamais écrit dans les journaux du bot.
-- Pour être traduites, les réponses du staff sont envoyées au service Google Traduction.
+- Pour être traduits, les messages passent par Google Traduction ; quand Google est saturé, MyMemory prend le relais. Si les deux le sont, la réponse part sans traduction et le staff en est prévenu.
 
 ## Fichiers
 

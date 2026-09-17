@@ -11,16 +11,6 @@ Parcours :
    qu'il est ouvert, les messages suivants du membre y sont recopiés.
 4. Un membre du staff le prend en charge, répond — la réponse est traduite
    dans la langue du membre — puis le ferme.
-
-- Les sessions vivent dans `data/modmail_sessions.json` (écriture atomique).
-- Chaque ticket a ses propres identifiants de boutons, réenregistrés au
-  démarrage : un ticket ouvert reste utilisable après un redémarrage.
-- Détection de langue et traduction tournent hors de la boucle asyncio : un
-  appel réseau synchrone y gelait les trois bots, qui partagent la boucle.
-- Le contenu des messages n'est jamais écrit dans les journaux.
-- `MODMAIL_STAFF_ROLE_ID` (facultatif) réserve les boutons du ticket à un rôle.
-- Textes : `locales/*.json` → `modmail.*`. Côté membre, dans la langue
-  détectée de son message ; côté staff, dans la langue du serveur de support.
 """
 
 from __future__ import annotations
@@ -29,21 +19,25 @@ import asyncio
 import json
 import logging
 import os
+import time
 
 import discord
 from discord.ext import commands
 from langdetect import DetectorFactory, LangDetectException, detect
-from deep_translator import GoogleTranslator
+from deep_translator import GoogleTranslator, MyMemoryTranslator
+from deep_translator.exceptions import TooManyRequests
 
 from config import (
     COLOR_ERROR,
     COLOR_INFO,
     COLOR_SUCCESS,
+    COLOR_WARNING,
     DIAGNOSTIC_CHANNEL_ID,
     MODMAIL_STAFF_CHANNEL_ID,
     MODMAIL_STAFF_ROLE_ID,
 )
-from i18n import t, t_in
+import custom_emojis
+from i18n import get_lang, t, t_in
 from json_store import write_json
 
 log = logging.getLogger("bot.modmail")
@@ -84,10 +78,7 @@ def member_text(lang: str, key: str, **kwargs) -> str:
 
 
 def category_label(category: str, *, lang: str | None = None, guild_id: int | None = None) -> str:
-    """Libellé d'une catégorie, côté membre (`lang`) ou côté staff (`guild_id`).
-
-    Les sessions d'avant la traduction enregistraient directement le libellé
-    affiché (« 🐛 Bug ») : on le rend tel quel."""
+    """Libellé d'une catégorie, côté membre (`lang`) ou côté staff (`guild_id`)."""
     label_key = CATEGORY_LABEL_KEYS.get(category)
     if label_key is None:
         return str(category)
@@ -107,18 +98,73 @@ def detect_language(text: str) -> str:
     return lang if lang in SUPPORTED else "en"
 
 
-def translate_text(text: str, target: str) -> str:
-    """Traduit vers `target`, ou rend le texte tel quel si c'est impossible. Bloquant."""
+# Google Traduction (gratuit, sans clé) coupe l'accès un moment quand on
+# dépasse son quota : il répond alors 429 (TooManyRequests) à chaque appel, et
+# les réponses du staff partaient sans traduction.
+GOOGLE_COOLDOWN_SECONDS = 15 * 60
+# MyMemory refuse les textes de plus de 500 caractères : on découpe.
+MYMEMORY_CHUNK = 450
+MYMEMORY_CODES = {"fr": "fr-FR", "en": "en-GB", "es": "es-ES", "de": "de-DE", "ko": "ko-KR"}
+
+_google_blocked_until = 0.0
+
+
+def _chunks(text: str, size: int) -> list[tuple[str, str]]:
+    """Morceaux de `size` caractères au plus, coupés aux fins de ligne ou aux
+    espaces. Rend (morceau, séparateur à remettre après)."""
+    out = []
+    rest = text.strip()
+    while len(rest) > size:
+        cut = rest.rfind("\n", 0, size)
+        if cut <= 0:
+            cut = rest.rfind(" ", 0, size)
+        if cut <= 0:
+            cut = size
+        out.append((rest[:cut], "\n" if rest[cut:cut + 1] == "\n" else " "))
+        rest = rest[cut:].lstrip()
+    out.append((rest, ""))
+    return out
+
+
+def _translate_mymemory(text: str, source: str, target: str) -> str:
+    translator = MyMemoryTranslator(source=MYMEMORY_CODES[source], target=MYMEMORY_CODES[target])
+    pieces = []
+    for chunk, separator in _chunks(text, MYMEMORY_CHUNK):
+        translated = translator.translate(chunk)
+        # Quota épuisé : MyMemory répond 200 avec un avertissement à la place
+        # de la traduction — surtout ne pas l'envoyer au membre.
+        if not translated or "MYMEMORY WARNING" in translated.upper():
+            raise TooManyRequests()
+        pieces.append(translated + separator)
+    return "".join(pieces)
+
+
+def translate_text(text: str, target: str) -> tuple[str, bool]:
+    """Traduit vers `target`. Bloquant."""
+    global _google_blocked_until
     if not text or target not in SUPPORTED:
-        return text
+        return text, True
+    source = detect_language(text)
+    if source == target:
+        return text, True
+
+    if time.monotonic() >= _google_blocked_until:
+        try:
+            translated = GoogleTranslator(source="auto", target=target).translate(text)
+            if translated:
+                return translated, True
+        except TooManyRequests:
+            _google_blocked_until = time.monotonic() + GOOGLE_COOLDOWN_SECONDS
+            log.warning("Google Traduction saturé (429) : MyMemory prend le relais "
+                        f"pendant {GOOGLE_COOLDOWN_SECONDS // 60} min")
+        except Exception as e:  # service externe : toute panne est possible
+            log.warning(f"Google Traduction indisponible ({type(e).__name__}) : essai avec MyMemory")
+
     try:
-        if detect_language(text) == target:
-            return text
-        translated = GoogleTranslator(source="auto", target=target).translate(text)
+        return _translate_mymemory(text, source, target), True
     except Exception as e:  # service externe : toute panne est possible
         log.warning(f"Traduction impossible ({type(e).__name__}) : réponse envoyée sans traduction")
-        return text
-    return translated or text
+    return text, False
 
 
 # ----------------------------------------------------------------------
@@ -211,6 +257,8 @@ class ModMail(commands.Cog):
         self.bot = bot
         self.storage = ModMailStorage()
         self._restored = False
+        # Emojis perso de l'application ModMail (voir custom_emojis.fetch_own).
+        self.icons: dict[str, str] = {}
 
     async def cog_load(self) -> None:
         # Boutons de catégorie envoyés en MP : un exemplaire par langue suffit,
@@ -226,6 +274,7 @@ class ModMail(commands.Cog):
         if self._restored:
             return
         self._restored = True
+        self.icons = await custom_emojis.fetch_own(self.bot, ("letter", "communication"))
         channel = self.staff_channel()
         guild_id = channel.guild.id if channel is not None else None
         restored = 0
@@ -240,6 +289,20 @@ class ModMail(commands.Cog):
             log.info(f"{restored} ticket(s) modmail ouvert(s) réattaché(s)")
 
     # -- Outils ----------------------------------------------------------
+    def icon(self, name: str) -> str:
+        """Emoji perso de l'application ModMail, emoji Unicode à défaut."""
+        return self.icons.get(name) or custom_emojis.FALLBACKS[name]
+
+    async def staff_translation(self, text: str, language: str, guild_id: int) -> str | None:
+        """Le texte d'un membre traduit dans la langue du serveur staff."""
+        staff_language = get_lang(guild_id)
+        if not text or language == staff_language:
+            return None
+        translated, ok = await asyncio.to_thread(translate_text, text, staff_language)
+        if not ok:
+            return t(guild_id, "modmail.translation_unavailable")
+        return None if translated.strip() == text.strip() else translated
+
     def staff_channel(self) -> discord.abc.Messageable | None:
         channel_id = MODMAIL_STAFF_CHANNEL_ID or DIAGNOSTIC_CHANNEL_ID
         return self.bot.get_channel(channel_id) if channel_id else None
@@ -315,15 +378,19 @@ class ModMail(commands.Cog):
             return
         self.storage.update(session_id, user_language=language)
         gid = channel.guild.id
+        lines = [t(gid, "modmail.msg_original", text=(message.content or "—")[:1900])]
+        translation = await self.staff_translation(message.content, language, gid)
+        if translation:
+            lines.append(t(gid, "modmail.msg_translated", text=translation[:2000]))
+        # Plus de pied de page (identifiants, session) : l'heure suffit, le
+        # ticket d'origine porte déjà le membre et sa demande.
         embed = discord.Embed(
-            title=t(gid, "modmail.staff_message_title", user=str(message.author),
+            title=t(gid, "modmail.staff_message_title", icon=self.icon("letter"), user=str(message.author),
                     language=LANGUAGE_NAMES.get(language, language))[:256],
-            description=(message.content or "—")[:4096],
+            description="\n".join(lines)[:4096],
             color=COLOR_INFO,
             timestamp=message.created_at,
         )
-        embed.set_footer(text=t(gid, "modmail.staff_footer", user_id=message.author.id,
-                                session=session_id, language=language))
         try:
             await channel.send(embed=embed)
         except discord.HTTPException as e:
@@ -344,15 +411,21 @@ class ModMail(commands.Cog):
             return "modmail.err_staff_unreachable"
         session_id = self.storage.create(user.id, category, description, language)
         gid = channel.guild.id
+        parts = [
+            t(gid, "modmail.ticket_desc", user=user.mention, user_id=user.id),
+            "",
+            t(gid, "modmail.desc_original", text=description[:1900]),
+        ]
+        translation = await self.staff_translation(description, language, gid)
+        if translation:
+            parts.append(t(gid, "modmail.desc_translated", text=translation[:2000]))
         embed = discord.Embed(
-            title=t(gid, "modmail.ticket_title", category=category_label(category, guild_id=gid),
-                    language=LANGUAGE_NAMES.get(language, language))[:256],
-            description=t(gid, "modmail.ticket_desc", user=user.mention, user_id=user.id,
-                          description=description)[:4096],
+            title=t(gid, "modmail.ticket_title", icon=self.icon("letter"),
+                    category=category_label(category, guild_id=gid))[:256],
+            description="\n".join(parts)[:4096],
             color=COLOR_SUCCESS,
             timestamp=discord.utils.utcnow(),
         )
-        embed.set_footer(text=t(gid, "modmail.ticket_footer", session=session_id, language=language))
         try:
             message = await channel.send(embed=embed, view=StaffTicketView(self, session_id, gid))
         except discord.HTTPException as e:
@@ -426,12 +499,7 @@ class TicketModal(discord.ui.Modal):
 # Côté staff
 # ----------------------------------------------------------------------
 class StaffTicketView(discord.ui.View):
-    """Prendre, répondre, fermer.
-
-    Chaque ticket a ses propres identifiants (`modmail:take:<session>`) : ils
-    sont réattachés au bon message au démarrage, et la prise en charge est
-    enregistrée dans la session plutôt qu'en mémoire. Les tickets créés avant
-    cette version gardent les anciens identifiants partagés (`legacy`)."""
+    """Prendre, répondre, fermer."""
 
     def __init__(self, cog: ModMail, session_id: str, guild_id: int | None, *, legacy: bool = False) -> None:
         super().__init__(timeout=None)
@@ -481,7 +549,9 @@ class StaffTicketView(discord.ui.View):
         self.cog.storage.update(self.session_id, taken_by=interaction.user.id)
         message = interaction.message
         embed = message.embeds[0] if message is not None and message.embeds else discord.Embed(color=COLOR_SUCCESS)
-        embed.add_field(name=t(gid, "modmail.field_taken_by"), value=interaction.user.mention, inline=False)
+        taken = t(gid, "modmail.taken_line", icon=self.cog.icon("communication"),
+                  staff=interaction.user.mention)
+        embed.description = f"{embed.description or ''}\n\n{taken}"[:4096]
         self._mark_taken()
         await interaction.response.edit_message(embed=embed, view=self)
 
@@ -556,21 +626,24 @@ class StaffReplyModal(discord.ui.Modal):
         # réponse en moins de trois.
         await interaction.response.defer(ephemeral=True)
         language = session.get("user_language", "en")
-        text = await asyncio.to_thread(translate_text, self.answer.value, language)
+        text, translated = await asyncio.to_thread(translate_text, self.answer.value, language)
         user = await self.cog.fetch_user(session.get("user_id", 0))
-        sent = user is not None and await self.cog.dm(user, embed=discord.Embed(
-            title=member_text(language, "modmail.staff_response_title"),
-            description=text[:4096],
-            color=COLOR_INFO,
-        ))
+        # Un simple message, pas un embed : « @staff : réponse », comme une
+        # conversation. La mention ne notifie personne.
+        content = member_text(language, "modmail.reply_dm", staff=interaction.user.mention, message=text)
+        sent = user is not None and await self.cog.dm(
+            user, content[:2000], allowed_mentions=discord.AllowedMentions.none())
         if not sent:
             await interaction.followup.send(t(gid, "modmail.err_dm_closed"), ephemeral=True)
             return
         await interaction.followup.send(
             embed=discord.Embed(
                 title=t(gid, "modmail.reply_sent_title"),
-                description=t(gid, "modmail.reply_sent_desc", language=LANGUAGE_NAMES.get(language, language)),
-                color=COLOR_SUCCESS,
+                # Sans traduction, le staff doit le savoir : le membre lit le
+                # message dans la langue où il a été écrit.
+                description=t(gid, "modmail.reply_sent_desc", language=LANGUAGE_NAMES.get(language, language))
+                if translated else t(gid, "modmail.reply_sent_untranslated"),
+                color=COLOR_SUCCESS if translated else COLOR_WARNING,
             ),
             ephemeral=True,
         )

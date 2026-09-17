@@ -6,21 +6,6 @@ Commande : /poll — un sondage à boutons pour trancher avant une queue.
 « On joue à quoi ce soir ? », « 21h ou 22h ? » : ces questions se réglaient
 avec des réactions sur un message, qu'il fallait compter à la main et que
 n'importe qui pouvait fausser en cliquant sur tout.
-
-Ici, chaque option est un bouton, **une voix par personne** (changeable), et
-le résultat se met à jour tout seul sous les yeux de tout le monde.
-
-Points d'attention
-------------------
-- **Le sondage survit à un redémarrage.** Les votes sont enregistrés à chaque
-  clic et les boutons sont réattachés au démarrage : un sondage lancé le soir
-  fonctionne encore le lendemain.
-- **Les identifiants de bouton sont stables** (`cyq:poll:0`… `cyq:poll:4`).
-  discord.py refuse d'enregistrer une vue persistante dont un bouton a un
-  identifiant tiré au hasard — c'est ce qui l'empêchait de repartir.
-- **La question et les options sont du texte de membre** : elles passent par
-  `sanitize`, sinon un `@everyone` dans une option pingue tout le serveur à
-  chaque affichage.
 """
 
 from __future__ import annotations
@@ -31,6 +16,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import embeds
 import resources
 from guild_settings import get_poll, save_poll, delete_poll, get_polls
@@ -42,6 +28,21 @@ log = logging.getLogger("bot.poll")
 MAX_OPTIONS = 5          # une rangée de boutons : au-delà, l'embed devient illisible
 MIN_OPTIONS = 2
 OPTION_EMOJIS = ["🇦", "🇧", "🇨", "🇩", "🇪"]
+
+# Une option « Oui » ou « Non », dans l'une des cinq langues, prend l'emoji
+# perso du même nom au lieu de sa lettre — s'il a été téléversé (voir
+# custom_emojis.py).
+YES_WORDS = {"oui", "yes", "si", "sí", "ja", "예", "네"}
+NO_WORDS = {"non", "no", "nein", "아니오", "아니요"}
+
+
+def option_emoji(index: int, option: str) -> str:
+    word = option.strip().lower().rstrip("!.?")
+    if word in YES_WORDS and custom_emojis.has("yes"):
+        return custom_emojis.get("yes")
+    if word in NO_WORDS and custom_emojis.has("no"):
+        return custom_emojis.get("no")
+    return OPTION_EMOJIS[index]
 
 
 def parse_options(raw: str) -> list[str]:
@@ -86,7 +87,7 @@ def build_poll_embed(guild: discord.Guild, poll: dict) -> discord.Embed:
         lead = "👑 " if closed and count == best and count > 0 else ""
         name = f"{lead}**{option}**" if closed and lead else option
         lines.append(
-            f"{OPTION_EMOJIS[i]}  {name}\n"
+            f"{option_emoji(i, option)}  {name}\n"
             f"`{share:>3.0f}%`  ·  "
             + t(gid, "poll.votes", count=count)
         )
@@ -110,7 +111,7 @@ class PollView(discord.ui.View):
         for i, option in enumerate(options):
             button = discord.ui.Button(
                 label=option[:80],
-                emoji=OPTION_EMOJIS[i],
+                emoji=option_emoji(i, option),
                 style=discord.ButtonStyle.secondary,
                 custom_id=f"cyq:poll:{i}",
                 row=0,
@@ -198,11 +199,7 @@ class Poll(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """Réactive les boutons des sondages encore ouverts.
-
-        Une vue échoue parfois seule (message supprimé, options corrompues) :
-        chacune est réattachée dans son propre try, sinon un sondage cassé
-        empêcherait tous les suivants de repartir."""
+        """Réactive les boutons des sondages encore ouverts."""
         if self._restored:
             return
         self._restored = True

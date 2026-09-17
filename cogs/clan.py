@@ -6,37 +6,6 @@ Cog : Clans
 Une queue rassemble des joueurs pour une soirée ; un clan les garde. Il a un
 nom, un logo, éventuellement son propre serveur Discord, et un classement
 qui agrège les victoires de ses membres.
-
-Ce que fait la commande
------------------------
-- `/clan` — sans rien : ouvre la fiche de ton clan, ou la création si tu n'en
-  as pas encore.
-- `/clan inviter:@membre` — envoie l'invitation en message privé. Seul
-  l'invité peut l'accepter ou la refuser.
-- `/clan rejoindre:<nom>` — demande à entrer dans un clan. La demande attend
-  dans son salon, derrière le bouton **Invites**.
-- `/clantransfer` — passe la propriété d'un clan à un autre membre. Réservé
-  au rôle désigné dans `/option → Clan`.
-
-Le salon de liaison
--------------------
-Quand les clans sont activés (`/option → Clan`), la création d'un clan ouvre
-**un salon privé** dans la catégorie désignée : le clan et le staff, personne
-d'autre. On y trouve la fiche du clan — chef, effectif, lien du serveur —
-**tenue à jour en direct** à chaque arrivée et à chaque départ, et trois
-boutons : lancer un ClanWar, répondre aux défis reçus, traiter les demandes
-d'adhésion.
-
-Ce que le bot crée, et pourquoi c'est une exception
----------------------------------------------------
-Le bot ne crée jamais de rôle ni de salon **sauf ici** : un salon et un rôle
-`Clan - Nom`, à la demande explicite du propriétaire du bot. Ils appartiennent
-au clan, naissent avec lui et disparaissent avec lui. Tous les autres rôles
-restent **désignés** par l'administrateur dans `/option`.
-
-La guerre de clans (ClanWarSession et ses boutons) est dans
-cogs/clan_war.py, et les tickets du bouton « Problème » dans
-cogs/clan_tickets.py.
 """
 from __future__ import annotations
 
@@ -49,13 +18,15 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import embeds
 import resources
 from guild_settings import (
     MAX_CLAN_NAME, get_clans, clan_of, create_clan, clan_named, add_clan_member,
     remove_clan_member, get_clan, get_features, set_features, set_clan_fields,
     clan_by_channel, transfer_clan_leader, get_clan_requests, add_clan_request,
-    remove_clan_request, get_clan_war_session
+    remove_clan_request, get_clan_war_session, get_clan_announcement_count,
+    reset_clan_announcement, reset_all_clan_announcements,
 )
 from i18n import t
 from text_safety import sanitize
@@ -79,16 +50,17 @@ CLAN_ROLE_COLOUR = discord.Colour(0x010101)
 # clans concernés sont assez rares pour s'organiser à la main.
 MAX_WAR_SIZE = 5
 
+# Boutons des deux menus du salon de clan : un message du bot qui en porte un
+# est un ancien menu, à supprimer avant d'en republier un neuf.
+CLAN_MENU_IDS = {"cyq:clan:manage", "cyq:clan:req", "cyq:clan:hist", "cyq:clan:inv",
+                 "cyq:clan:war", "cyq:clan:dnd", "cyq:clan:ready"}
+
 
 # ----------------------------------------------------------------------
 # Statistiques
 # ----------------------------------------------------------------------
 def clan_stats(bot: commands.Bot, guild_id: int, clan: dict) -> tuple[int, int, float]:
-    """Victoires, défaites et ratio du clan.
-
-    Les chiffres viennent du classement des joueurs : un clan ne joue pas,
-    ses membres jouent. Tenir un second compteur en parallèle le ferait
-    diverger dès la première partie non enregistrée."""
+    """Victoires, défaites et ratio du clan."""
     cog = bot.get_cog("Classement")
     stats = getattr(cog, "player_stats", {}) if cog is not None else {}
     wins = losses = 0
@@ -114,10 +86,7 @@ def sorted_clans(bot: commands.Bot, guild_id: int) -> list[tuple[dict, int, int,
 # Fiche de clan
 # ----------------------------------------------------------------------
 def clan_embed(bot: commands.Bot, guild_id: int, clan: dict, *, invite: bool = False) -> discord.Embed:
-    """La fiche : nom, logo, ratio, effectif, membres, serveur du clan.
-
-    La même en message privé pour une invitation et sur le serveur pour la
-    consulter — on décide en connaissance de cause, pas sur un nom seul."""
+    """La fiche : nom, logo, ratio, effectif, membres, serveur du clan."""
     wins, losses, ratio = clan_stats(bot, guild_id, clan)
     members = clan.get("members", [])
     leader_id = clan.get("leader_id")
@@ -138,8 +107,7 @@ def clan_embed(bot: commands.Bot, guild_id: int, clan: dict, *, invite: bool = F
                     value=f"**{len(members)}**", inline=True)
 
     # Le chef en tête, puis les autres : on voit tout de suite à qui on a
-    # affaire. La liste est bornée — un clan de cent membres déborderait la
-    # limite de 1024 caractères d'un champ et Discord refuserait l'embed.
+    # affaire.
     names = [t(guild_id, "clan.member_leader", player=f"<@{leader_id}>")]
     names += [f"<@{uid}>" for uid in members if uid != leader_id]
     shown, extra = names[:30], max(0, len(names) - 30)
@@ -308,11 +276,7 @@ class ClanView(discord.ui.View):
 
 
 class InviteView(discord.ui.View):
-    """Les deux boutons de l'invitation, en message privé.
-
-    `interaction_check` est la vraie barrière : un message privé n'est visible
-    que par son destinataire, mais la vue est aussi renvoyée sur le serveur
-    quand les MP sont fermés — là, n'importe qui pourrait cliquer."""
+    """Les deux boutons de l'invitation, en message privé."""
 
     def __init__(self, cog: "Clan", guild_id: int, clan_id: str, invitee_id: int):
         super().__init__(timeout=None)
@@ -322,6 +286,8 @@ class InviteView(discord.ui.View):
         self.invitee_id = invitee_id
         self.accept.label = t(guild_id, "clan.btn_accept")
         self.decline.label = t(guild_id, "clan.btn_decline")
+        self.accept.emoji = custom_emojis.get("checkmark")
+        self.decline.emoji = custom_emojis.get("cross")
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id == self.invitee_id:
@@ -370,12 +336,9 @@ class InviteView(discord.ui.View):
 # Le salon du clan : fiche vivante et boutons
 # ----------------------------------------------------------------------
 class ClanSpaceView(discord.ui.View):
-    """Les quatre boutons sous la fiche, dans le salon du clan.
-
-    Vue **persistante** : elle doit répondre des semaines après avoir été
-    publiée, donc pas d'expiration et un identifiant fixe par bouton. Le clan
-    concerné n'est pas codé dans ces identifiants — il se déduit du salon où
-    l'on a cliqué, ce qui évite d'avoir un identifiant différent par clan."""
+    """Les quatre boutons de la fiche, dans le salon du clan : Clan Manage,
+    Request, History, Invites. Le ClanWar a son propre menu, juste en dessous
+    (ClanWarMenuView)."""
 
     def __init__(self, cog: "Clan"):
         super().__init__(timeout=None)
@@ -394,21 +357,17 @@ class ClanSpaceView(discord.ui.View):
             return None
         return clan
 
-    @discord.ui.button(label="ClanWar", style=discord.ButtonStyle.danger,
-                       emoji="⚔️", custom_id="cyq:clan:war")
-    async def war(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    @discord.ui.button(label="Clan Manage", style=discord.ButtonStyle.primary,
+                       emoji="🔧", custom_id="cyq:clan:manage")
+    async def manage(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         clan = await self._context(interaction)
         if clan is None:
             return
         gid = interaction.guild_id
-        rivals = [c for c in get_clans(gid).values() if c["id"] != clan["id"]]
-        if not rivals:
-            await interaction.response.send_message(t(gid, "clan.war_no_rival"), ephemeral=True)
-            return
+        # La même fiche que /clan : inviter (chef), quitter ou dissoudre.
         await interaction.response.send_message(
-            embed=embeds.base(gid, title=t(gid, "clan.war_title"),
-                              description=t(gid, "clan.war_pick_desc"), kind="error"),
-            view=WarSetupView(self.cog, gid, clan, rivals),
+            embed=clan_embed(self.cog.bot, gid, clan),
+            view=ClanView(self.cog, gid, clan, interaction.user.id),
             ephemeral=True,
         )
 
@@ -421,7 +380,7 @@ class ClanSpaceView(discord.ui.View):
         await self.cog.show_queue(interaction, clan, "wars")
 
     @discord.ui.button(label="History", style=discord.ButtonStyle.secondary,
-                       emoji="📜", custom_id="cyq:clan:hist")
+                       emoji="🧾", custom_id="cyq:clan:hist")
     async def history(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         clan = await self._context(interaction)
         if clan is None:
@@ -429,7 +388,7 @@ class ClanSpaceView(discord.ui.View):
         await self.cog.show_history(interaction, clan)
 
     @discord.ui.button(label="Invites", style=discord.ButtonStyle.secondary,
-                       emoji="✉️", custom_id="cyq:clan:inv")
+                       emoji="📧", custom_id="cyq:clan:inv")
     async def invites(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         clan = await self._context(interaction)
         if clan is None:
@@ -439,6 +398,85 @@ class ClanSpaceView(discord.ui.View):
                 t(interaction.guild_id, "clan.err_leader_only"), ephemeral=True)
             return
         await self.cog.show_queue(interaction, clan, "joins")
+
+
+def war_menu_embed(guild_id: int, clan: dict) -> discord.Embed:
+    """Le menu ClanWar, sous la fiche : lancer un ClanWar, et l'état du
+    clan — l'état retenu en gras, l'autre barré."""
+    ready = clan.get("war_ready", True)
+    return embeds.base(
+        guild_id,
+        title=t(guild_id, "clan.menu_title"),
+        description=(
+            t(guild_id, "clan.menu_start") + "\n"
+            + embeds.pick_line(guild_id, "clan.menu_dnd", "clan.menu_ready", not ready)
+            + "\n\n" + t(guild_id, "clan.menu_hint")
+        ),
+        kind="error",
+    )
+
+
+class ClanWarMenuView(discord.ui.View):
+    """Les boutons du menu ClanWar. Persistante, comme ClanSpaceView : le
+    clan se déduit du salon. Le bouton de l'état déjà actif est grisé."""
+
+    # Même contrôle que la fiche : le clan de ce salon, et un de ses membres.
+    _context = ClanSpaceView._context
+
+    def __init__(self, cog: "Clan", guild_id: int | None = None, is_ready: bool = True):
+        super().__init__(timeout=None)
+        self.cog = cog
+        if guild_id is not None:
+            self.dnd.label = t(guild_id, "clan.btn_dnd")[:80]
+            self.ready.label = t(guild_id, "clan.btn_ready")[:80]
+            self.dnd.disabled = not is_ready
+            self.ready.disabled = is_ready
+
+    @discord.ui.button(label="ClanWar", style=discord.ButtonStyle.danger,
+                       emoji="⚔️", custom_id="cyq:clan:war")
+    async def war(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+        clan = await self._context(interaction)
+        if clan is None:
+            return
+        gid = interaction.guild_id
+        if not clan.get("war_ready", True):
+            await interaction.response.send_message(t(gid, "clan.war_err_self_dnd"), ephemeral=True)
+            return
+        others = [c for c in get_clans(gid).values() if c["id"] != clan["id"]]
+        # Un clan en Ne pas déranger ne se défie pas : il n'est pas proposé.
+        rivals = [c for c in others if c.get("war_ready", True)]
+        if not rivals:
+            key = "clan.war_no_ready_rival" if others else "clan.war_no_rival"
+            await interaction.response.send_message(t(gid, key), ephemeral=True)
+            return
+        await interaction.response.send_message(
+            embed=embeds.base(gid, title=t(gid, "clan.war_title"),
+                              description=t(gid, "clan.war_pick_desc"), kind="error"),
+            view=WarSetupView(self.cog, gid, clan, rivals),
+            ephemeral=True,
+        )
+
+    @discord.ui.button(label="Ne pas déranger", style=discord.ButtonStyle.secondary,
+                       emoji="⭕", custom_id="cyq:clan:dnd")
+    async def dnd(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+        await self._set_ready(interaction, False)
+
+    @discord.ui.button(label="Prêt à jouer", style=discord.ButtonStyle.success,
+                       emoji="✔️", custom_id="cyq:clan:ready")
+    async def ready(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+        await self._set_ready(interaction, True)
+
+    async def _set_ready(self, interaction: discord.Interaction, ready: bool) -> None:
+        clan = await self._context(interaction)
+        if clan is None:
+            return
+        gid = interaction.guild_id
+        if interaction.user.id != clan.get("leader_id"):
+            await interaction.response.send_message(t(gid, "clan.err_leader_only"), ephemeral=True)
+            return
+        clan = set_clan_fields(gid, clan["id"], war_ready=ready) or clan
+        await interaction.response.edit_message(
+            embed=war_menu_embed(gid, clan), view=ClanWarMenuView(self.cog, gid, ready))
 
 
 class WarSetupView(discord.ui.View):
@@ -510,10 +548,7 @@ class WarSetupView(discord.ui.View):
 
 
 class WarAnswerView(discord.ui.View):
-    """Accepter ou refuser un défi, dans le salon du clan défié.
-
-    Persistante elle aussi : un défi posté le soir doit rester cliquable le
-    lendemain. Le défi concerné se retrouve par l'identifiant du message."""
+    """Accepter ou refuser un défi, dans le salon du clan défié."""
 
     def __init__(self, cog: "Clan", guild_id: int | None = None):
         super().__init__(timeout=None)
@@ -524,6 +559,8 @@ class WarAnswerView(discord.ui.View):
         if guild_id is not None:
             self.accept.label = t(guild_id, "clan.btn_accept")
             self.decline.label = t(guild_id, "clan.btn_decline")
+        self.accept.emoji = custom_emojis.get("checkmark")
+        self.decline.emoji = custom_emojis.get("cross")
 
     async def _resolve(self, interaction: discord.Interaction) -> tuple[dict, dict] | None:
         gid = interaction.guild_id
@@ -557,11 +594,7 @@ class WarAnswerView(discord.ui.View):
 
 
 class QueueView(discord.ui.View):
-    """Les demandes en attente : on en choisit une, puis on répond.
-
-    Le même écran sert aux défis reçus et aux demandes d'adhésion — deux
-    files, une seule mécanique. Les séparer en deux vues aurait garanti que
-    l'une prenne du retard sur l'autre."""
+    """Les demandes en attente : on en choisit une, puis on répond."""
 
     def __init__(self, cog: "Clan", guild: discord.Guild, clan: dict, kind: str,
                  entries: list[dict]):
@@ -598,6 +631,8 @@ class QueueView(discord.ui.View):
         self.add_item(select)
         self.accept.label = t(self.gid, "clan.btn_accept")
         self.decline.label = t(self.gid, "clan.btn_decline")
+        self.accept.emoji = custom_emojis.get("checkmark")
+        self.decline.emoji = custom_emojis.get("cross")
         self.accept.disabled = True
         self.decline.disabled = True
 
@@ -648,6 +683,7 @@ class Clan(commands.Cog):
         # Les boutons publiés dans les salons de clan doivent répondre après
         # un redémarrage : sans ces deux lignes, un clic reste sans effet.
         self.bot.add_view(ClanSpaceView(self))
+        self.bot.add_view(ClanWarMenuView(self))
         self.bot.add_view(WarAnswerView(self))
         
         # Restaurer les sessions de ClanWar actives
@@ -655,11 +691,16 @@ class Clan(commands.Cog):
         
         # Lancer la tâche de vérification des channels de liaison
         self._liaison_check_task = self.bot.loop.create_task(self._check_clan_liaison_channels())
-    
+
+        # Les deux menus de chaque salon de clan, republiés une fois connecté
+        self._menus_task = asyncio.create_task(self._repost_clan_menus())
+
     async def cog_unload(self) -> None:
         """Déchargement du cog : annule la tâche de fond et réinitialise les channels."""
         if hasattr(self, "_liaison_check_task"):
             self._liaison_check_task.cancel()
+        if hasattr(self, "_menus_task"):
+            self._menus_task.cancel()
         
         # Réinitialiser tous les channels de liaison quand le bot se déconnecte
         for guild in self.bot.guilds:
@@ -671,7 +712,6 @@ class Clan(commands.Cog):
                 log.error(f"Erreur lors de la réinitialisation des channels pour {guild.name}: {e}")
         
         # Réinitialiser tous les compteurs d'annonces
-        from guild_settings import reset_all_clan_announcements
         for guild in self.bot.guilds:
             try:
                 reset_all_clan_announcements(guild.id)
@@ -725,8 +765,6 @@ class Clan(commands.Cog):
     
     async def _check_clan_liaison_channels(self):
         """Tâche de fond qui vérifie toutes les 30 min si les channels doivent être réinitialisés."""
-        import asyncio
-        from guild_settings import get_clan_announcement_count
         
         while True:
             try:
@@ -757,13 +795,7 @@ class Clan(commands.Cog):
 
     # -- Rôle et pseudo du chef -----------------------------------------
     async def apply_leader_perks(self, member: discord.Member, clan: dict) -> list[str]:
-        """Rôle de chef et tag de clan dans le pseudo.
-
-        Le rôle n'est **pas créé** : c'est celui que l'administrateur a
-        désigné dans `/option → Rôle`. Sans désignation, le clan existe
-        quand même — on le dit, on ne bloque pas. Chaque échec renvoie une
-        ligne d'explication plutôt qu'un silence : « le bot n'a rien fait »
-        sans raison est le pire des retours."""
+        """Rôle de chef et tag de clan dans le pseudo."""
         gid = member.guild.id
         notes: list[str] = []
         name = sanitize(clan.get("name", "?"), MAX_CLAN_NAME)
@@ -789,10 +821,7 @@ class Clan(commands.Cog):
         return notes
 
     async def clear_perks(self, member: discord.Member, clan: dict) -> None:
-        """Retire le rôle et le tag quand on quitte ou dissout.
-
-        Le pseudo n'est remis à zéro que s'il porte bien le tag de CE clan :
-        écraser un pseudo choisi par le membre serait une intrusion."""
+        """Retire le rôle et le tag quand on quitte ou dissout."""
         role = resources.get_role(member.guild, "role_clan_leader")
         if role is not None and role in getattr(member, "roles", []):
             try:
@@ -835,10 +864,7 @@ class Clan(commands.Cog):
             pass
 
     async def open_clan_space(self, guild: discord.Guild | None, clan: dict) -> list[str]:
-        """Crée le rôle du clan et son salon privé, puis y publie la fiche.
-
-        Chaque échec renvoie une ligne d'explication et laisse le clan
-        exister : un clan sans salon reste un clan."""
+        """Crée le rôle du clan et son salon privé, puis y publie la fiche."""
         if guild is None or not self.enabled(guild.id):
             return []
         gid = guild.id
@@ -899,12 +925,9 @@ class Clan(commands.Cog):
             notes.append(t(gid, "clan.warn_channel_perm"))
             return notes
 
-        card = await channel.send(embed=self.space_embed(gid, clan))
-        # Un message qui ne porte que des boutons : l'espace invisible est le
-        # seul contenu accepté par Discord pour un message sans texte.
-        await channel.send(content=embeds.BLANK, view=ClanSpaceView(self))
         set_clan_fields(gid, clan["id"], channel_id=channel.id,
-                        role_id=role.id if role else None, card_message_id=card.id)
+                        role_id=role.id if role else None)
+        await self.post_clan_menus(channel, clan)
         notes.append(t(gid, "clan.space_open", channel=channel.mention))
         log.info(f"[{guild.name}] Salon du clan {name} ouvert : #{channel.name}")
         return notes
@@ -924,7 +947,6 @@ class Clan(commands.Cog):
         
         try:
             # Ne supprimer que les messages de demande de ClanWar (ceux qui contiennent "vs" ou "ClanWar")
-            import asyncio
             deleted_count = 0
             async for message in channel.history(limit=None):
                 # Garder l'embed de carte et les boutons
@@ -949,17 +971,58 @@ class Clan(commands.Cog):
             log.info(f"[{guild.name}] Demandes CW supprimées dans le channel de liaison du clan {clan.get('name')} ({deleted_count} messages)")
             
             # Réinitialiser le compteur d'annonces
-            from guild_settings import reset_clan_announcement
             reset_clan_announcement(gid, clan_id)
             
         except discord.HTTPException as e:
             log.error(f"[{guild.name}] Erreur lors de la réinitialisation du channel de liaison: {e}")
 
-    def space_embed(self, guild_id: int, clan: dict) -> discord.Embed:
-        """La fiche affichée dans le salon du clan.
+    # -- Les deux menus du salon ---------------------------------------
+    async def post_clan_menus(self, channel: discord.TextChannel, clan: dict) -> None:
+        """Publie la fiche avec ses quatre boutons, puis le menu ClanWar.
+        Leurs identifiants sont mémorisés pour les remplacer au démarrage."""
+        gid = channel.guild.id
+        card = await channel.send(embed=self.space_embed(gid, clan), view=ClanSpaceView(self))
+        menu = await channel.send(embed=war_menu_embed(gid, clan),
+                                  view=ClanWarMenuView(self, gid, clan.get("war_ready", True)))
+        set_clan_fields(gid, clan["id"], card_message_id=card.id, war_menu_message_id=menu.id)
 
-        Elle reprend la fiche habituelle et ajoute ce qui n'a de sens que
-        chez soi : depuis quand le clan existe."""
+    async def _clear_clan_menus(self, channel: discord.TextChannel, clan: dict) -> None:
+        """Supprime les menus déjà publiés : ceux dont l'identifiant est
+        mémorisé, et les anciens messages de boutons qui n'en avaient pas."""
+        stale = {clan.get("card_message_id"), clan.get("war_menu_message_id")} - {None}
+        async for message in channel.history(limit=50):
+            if self.bot.user is None or message.author.id != self.bot.user.id:
+                continue
+            ids = {getattr(child, "custom_id", None)
+                   for row in message.components for child in getattr(row, "children", [])}
+            if ids & CLAN_MENU_IDS:
+                stale.add(message.id)
+        for message_id in stale:
+            try:
+                await channel.get_partial_message(message_id).delete()
+            except discord.NotFound:
+                pass
+
+    async def _repost_clan_menus(self) -> None:
+        """Au démarrage, chaque salon de clan reçoit ses deux menus tout neufs."""
+        await self.bot.wait_until_ready()
+        for guild in list(self.bot.guilds):
+            if not self.enabled(guild.id):
+                continue
+            for clan in list(get_clans(guild.id).values()):
+                channel = self.clan_channel(guild, clan)
+                if channel is None:
+                    continue
+                try:
+                    await self._clear_clan_menus(channel, clan)
+                    await self.post_clan_menus(channel, clan)
+                except discord.HTTPException as e:
+                    log.warning(f"[{guild.name}] Menus du clan {clan.get('name')} non republiés : {e}")
+                # Cadence douce : deux cents clans ne partent pas d'un coup.
+                await asyncio.sleep(1)
+
+    def space_embed(self, guild_id: int, clan: dict) -> discord.Embed:
+        """La fiche affichée dans le salon du clan."""
         embed = clan_embed(self.bot, guild_id, clan)
         created = clan.get("created_at")
         if created:
@@ -985,7 +1048,7 @@ class Clan(commands.Cog):
             # La fiche a été supprimée à la main : on en republie une plutôt
             # que de laisser le salon sans rien.
             try:
-                card = await channel.send(embed=self.space_embed(guild.id, clan))
+                card = await channel.send(embed=self.space_embed(guild.id, clan), view=ClanSpaceView(self))
                 set_clan_fields(guild.id, clan["id"], card_message_id=card.id)
             except discord.HTTPException:
                 pass
@@ -1066,6 +1129,18 @@ class Clan(commands.Cog):
                 view=None)
             return
         
+        # L'état a pu changer depuis l'ouverture du menu : on relit les deux
+        # clans avant de publier le défi.
+        clan = get_clan(gid, clan["id"]) or clan
+        target = get_clan(gid, target["id"]) or target
+        if not clan.get("war_ready", True) or not target.get("war_ready", True):
+            description = (t(gid, "clan.war_err_self_dnd") if not clan.get("war_ready", True)
+                           else t(gid, "clan.war_err_target_dnd",
+                                  name=sanitize(target.get("name", "?"), MAX_CLAN_NAME)))
+            await interaction.response.edit_message(
+                embed=embeds.base(gid, description=description, kind="warning"), view=None)
+            return
+
         guild = interaction.guild
         channel = self.clan_channel(guild, target) if guild else None
         if channel is None:
@@ -1132,7 +1207,6 @@ class Clan(commands.Cog):
     def _clear_old_war_requests(self, guild_id: int, clan_id: str) -> None:
         """Supprime toutes les anciennes demandes de wars d'un clan."""
         try:
-            from guild_settings import get_clan_requests
             old_requests = get_clan_requests(guild_id, clan_id, "wars")
             for request in old_requests:
                 # On ne supprime que de la liste, pas les messages (ils seront supprimés automatiquement)
@@ -1218,7 +1292,6 @@ class Clan(commands.Cog):
                 clan["war_history"] = clan["war_history"][-20:]
             
             # Sauvegarder les modifications
-            from guild_settings import set_clan_fields
             set_clan_fields(guild_id, clan["id"], war_history=clan["war_history"])
         except Exception as e:
             log.error(f"Erreur lors de l'ajout à l'historique des wars: {e}")
@@ -1248,13 +1321,7 @@ class Clan(commands.Cog):
     # -- Demandes en attente ---------------------------------------------
     async def notify_join(self, guild: discord.Guild | None, clan: dict,
                           applicant: discord.abc.User) -> None:
-        """Annonce une demande d'adhésion dans le salon du clan.
-
-        Sans annonce, la demande dort derrière le bouton **Invites** : rien
-        n'invite le chef à aller regarder. Certains serveurs préfèrent ce
-        silence, d'où l'interrupteur de `/option → Clan`. On mentionne le chef
-        seul, et pas le rôle du clan — c'est lui qui décide, prévenir tout le
-        monde serait du bruit."""
+        """Annonce une demande d'adhésion dans le salon du clan."""
         if guild is None or not get_features(guild.id)["clan_notice"]:
             return
         channel = self.clan_channel(guild, clan)
@@ -1370,11 +1437,7 @@ class Clan(commands.Cog):
 
     # -- Classement des clans -------------------------------------------
     async def refresh_leaderboard(self, guild: discord.Guild | None) -> None:
-        """Republie le classement dès qu'un clan bouge.
-
-        Sans ça, le classement des clans n'apparaîtrait qu'à la fin de la
-        partie suivante — un clan créé le matin resterait invisible tout le
-        jour."""
+        """Republie le classement dès qu'un clan bouge."""
         if guild is None:
             return
         cog = self.bot.get_cog("Classement")
