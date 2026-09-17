@@ -320,7 +320,9 @@ def add_queue_history_entry(guild_id: int, entry: dict[str, Any]) -> None:
 
 
 MMR_DEFAULTS = {
-    "enabled": True,
+    # Éteint au départ : un serveur qui n'a rien demandé n'a ni salon de match,
+    # ni draft de capitaines. Il s'allume dans /option → MMR.
+    "enabled": False,
     "captains": True,        # vote des capitaines + draft avant la partie
     "start": 1000,
     "win": 15,
