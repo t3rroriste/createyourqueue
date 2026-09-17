@@ -20,3 +20,4 @@ bot_output.txt
 .DS_Store
 .claude/settings.local.json
 graphify-out/cache/
+locales.zip

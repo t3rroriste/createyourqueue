@@ -112,7 +112,7 @@ def build_schedule_embed(guild: discord.Guild) -> discord.Embed:
     nxt = next_occurrence(cfg) if on else None
     embed.add_field(
         name=t(gid, "auto.field_state"),
-        value=t(gid, "auto.on" if on else "auto.off"),
+        value=t(gid, "auto.on" if on else "auto.off", **embeds.icons()),
         inline=True,
     )
     embeds.stat(embed, t(gid, "auto.field_time"), cfg["time"])
@@ -175,7 +175,8 @@ class ChooserView(discord.ui.View):
             content=content, embed=self.embed_builder(self.panel.guild), view=self.panel
         )
 
-    @discord.ui.button(label="Retour", style=discord.ButtonStyle.secondary, emoji="↩️", row=1)
+    @discord.ui.button(label="Retour", style=discord.ButtonStyle.secondary,
+                       emoji=custom_emojis.get("replymsg"), row=1)
     async def back(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         await self.restore(interaction)
 
@@ -475,7 +476,7 @@ def build_season_embed(guild: discord.Guild) -> discord.Embed:
     embeds.brand(embed, guild)
     embed.add_field(
         name=t(gid, "auto.field_state"),
-        value=t(gid, "auto.on" if on else "auto.off"),
+        value=t(gid, "auto.on" if on else "auto.off", **embeds.icons()),
         inline=True,
     )
     embed.add_field(
@@ -485,7 +486,7 @@ def build_season_embed(guild: discord.Guild) -> discord.Embed:
     )
     embed.add_field(
         name=t(gid, "auto.field_announce"),
-        value=t(gid, "auto.on" if cfg["announce"] else "auto.off"),
+        value=t(gid, "auto.on" if cfg["announce"] else "auto.off", **embeds.icons()),
         inline=True,
     )
     archive = cfg.get("archive") or []

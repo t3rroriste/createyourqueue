@@ -118,16 +118,8 @@ class PollView(discord.ui.View):
             )
             button.callback = self._vote_callback(i)
             self.add_item(button)
-
-        close = discord.ui.Button(
-            label=t(guild_id, "poll.btn_close"),
-            emoji="🔒",
-            style=discord.ButtonStyle.danger,
-            custom_id="cyq:poll:close",
-            row=1,
-        )
-        close.callback = self._close_callback
-        self.add_item(close)
+        # Pas de bouton « Terminer » : un sondage se clôt avec /endpoll, réservé
+        # aux administrateurs.
 
     def _poll(self) -> dict | None:
         return get_poll(self.guild_id, self.message_id)
@@ -165,33 +157,6 @@ class PollView(discord.ui.View):
 
         return callback
 
-    async def _close_callback(self, interaction: discord.Interaction) -> None:
-        poll = self._poll()
-        if poll is None:
-            await interaction.response.send_message(t(self.guild_id, "poll.gone"), ephemeral=True)
-            return
-
-        user = interaction.user
-        allowed = user.id == poll.get("author_id") or (
-            isinstance(user, discord.Member)
-            and (user.guild_permissions.manage_messages or resources.is_staff(user))
-        )
-        if not allowed:
-            await interaction.response.send_message(t(self.guild_id, "poll.close_denied"), ephemeral=True)
-            return
-        if poll.get("closed"):
-            await interaction.response.send_message(t(self.guild_id, "poll.already_closed"), ephemeral=True)
-            return
-
-        poll["closed"] = True
-        save_poll(self.guild_id, poll)
-        for item in self.children:
-            item.disabled = True
-        await interaction.response.edit_message(
-            embed=build_poll_embed(interaction.guild, poll), view=self
-        )
-
-
 class Poll(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -208,12 +173,19 @@ class Poll(commands.Cog):
                 if poll.get("closed"):
                     continue
                 try:
-                    self.bot.add_view(
-                        PollView(self, guild.id, poll["message_id"], poll["options"]),
-                        message_id=poll["message_id"],
-                    )
+                    view = PollView(self, guild.id, poll["message_id"], poll["options"])
+                    self.bot.add_view(view, message_id=poll["message_id"])
                 except Exception as e:
                     log.error(f"Sondage non restauré sur {guild.name} : {e}")
+                    continue
+                # Les sondages publiés avant /endpoll portent encore un bouton
+                # « Terminer » : le message est remis à jour sans lui.
+                channel = guild.get_channel(poll.get("channel_id") or 0)
+                if channel is not None:
+                    try:
+                        await channel.get_partial_message(poll["message_id"]).edit(view=view)
+                    except discord.HTTPException:
+                        pass
 
     @app_commands.command(name="poll", description="Lance un sondage à boutons (jeu, horaire, format...).")
     @app_commands.describe(
@@ -291,6 +263,51 @@ class Poll(commands.Cog):
         await interaction.followup.send(
             t(gid, "poll.created", link=message.jump_url), ephemeral=True
         )
+
+    async def open_poll_choices(self, interaction: discord.Interaction,
+                                current: str) -> list[app_commands.Choice[str]]:
+        """Les sondages encore ouverts du serveur, les plus récents d'abord."""
+        gid = interaction.guild_id
+        if gid is None:
+            return []
+        wanted = current.casefold()
+        polls = [poll for poll in reversed(get_polls(gid))
+                 if not poll.get("closed") and wanted in poll.get("question", "").casefold()]
+        return [app_commands.Choice(name=poll["question"][:100], value=str(poll["message_id"]))
+                for poll in polls[:25]]
+
+    @app_commands.command(name="endpoll", description="Termine un sondage et affiche le résultat (administrateurs).")
+    @app_commands.describe(sondage="Le sondage à terminer")
+    @app_commands.autocomplete(sondage=open_poll_choices)
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
+    async def endpoll(self, interaction: discord.Interaction, sondage: str) -> None:
+        gid = interaction.guild_id
+        guild = interaction.guild
+        if guild is None:
+            return
+        poll = get_poll(gid, int(sondage)) if sondage.isdigit() else None
+        if poll is None:
+            await interaction.response.send_message(t(gid, "poll.gone"), ephemeral=True)
+            return
+        if poll.get("closed"):
+            await interaction.response.send_message(t(gid, "poll.already_closed"), ephemeral=True)
+            return
+
+        await interaction.response.defer(ephemeral=True)
+        poll["closed"] = True
+        save_poll(gid, poll)
+        channel_id = poll.get("channel_id") or 0
+        channel = guild.get_channel(channel_id)
+        if channel is not None:
+            try:
+                # Résultat final avec le gagnant, et plus aucun bouton de vote.
+                await channel.get_partial_message(poll["message_id"]).edit(
+                    embed=build_poll_embed(guild, poll), view=None)
+            except discord.HTTPException as e:
+                log.warning(f"[{guild.name}] Sondage clos mais message non mis à jour : {e}")
+        link = f"https://discord.com/channels/{gid}/{channel_id}/{poll['message_id']}"
+        await interaction.followup.send(t(gid, "poll.ended", link=link), ephemeral=True)
 
 
 async def setup(bot: commands.Bot) -> None:

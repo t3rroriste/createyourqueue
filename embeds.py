@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import discord
 
+import custom_emojis
 from i18n import t
 
 
@@ -119,21 +120,28 @@ def trend(current: int, previous: int) -> str:
     return "➖"
 
 
+def icons() -> dict[str, str]:
+    """Les pastilles d'état des embeds, à passer à `t()` : `{on}` et `{off}`.
+
+    Les boutons, eux, gardent les ronds 🟢 et 🔴 de Discord."""
+    return {"on": custom_emojis.get("discordon"), "off": custom_emojis.get("discordoff")}
+
+
 def state(on: bool) -> str:
     """Pastille d'état, identique partout où quelque chose s'active."""
-    return "🟢" if on else "🔴"
+    return custom_emojis.get("discordon" if on else "discordoff")
 
 
 def toggle_line(guild_id: int | None, on: bool) -> str:
-    """« **🟢 Activer** / ~~🔴 Désactiver~~ » selon l'état."""
+    """« **Activer** / ~~Désactiver~~ » selon l'état, avec la pastille."""
     return pick_line(guild_id, "wiz.opt_on", "wiz.opt_off", on)
 
 
 def pick_line(guild_id: int | None, first_key: str, second_key: str, first: bool) -> str:
     """Même lecture que `toggle_line`, pour un choix entre deux modes qui ne
     sont ni « allumé » ni « éteint » : le retenu en gras, l'autre barré."""
-    a = t(guild_id, first_key)
-    b = t(guild_id, second_key)
+    a = t(guild_id, first_key, **icons())
+    b = t(guild_id, second_key, **icons())
     if first:
         return f"**{a}** / ~~{b}~~"
     return f"~~{a}~~ / **{b}**"

@@ -19,6 +19,7 @@ from config import (
     COLOR_SUCCESS,
     GUNZFRANCE_GUILD_ID,
 )
+import custom_emojis
 import embeds
 import resources
 import net_safety
@@ -306,7 +307,7 @@ class AppearanceView(discord.ui.View):
     async def btn_nickname(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         await interaction.response.send_modal(NicknameModal(self.guild_id))
 
-    @discord.ui.button(label="←", style=discord.ButtonStyle.secondary, row=1)
+    @discord.ui.button(emoji=custom_emojis.get("replymsg"), style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         await interaction.response.edit_message(embed=_main_embed(self.guild), view=ConfigView(self.guild))
 
@@ -363,7 +364,7 @@ class ChannelsView(discord.ui.View):
             embed=roles_embed(self.guild), view=RolesView(self.guild)
         )
 
-    @discord.ui.button(label="←", style=discord.ButtonStyle.secondary, row=1)
+    @discord.ui.button(emoji=custom_emojis.get("replymsg"), style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         await interaction.response.edit_message(embed=_main_embed(self.guild), view=ConfigView(self.guild))
 
@@ -427,7 +428,7 @@ class RolesView(discord.ui.View):
             await interaction.response.edit_message(embed=roles_embed(self.guild), view=self)
         return callback
 
-    @discord.ui.button(label="←", style=discord.ButtonStyle.secondary, row=4)
+    @discord.ui.button(emoji=custom_emojis.get("replymsg"), style=discord.ButtonStyle.secondary, row=4)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         await interaction.response.edit_message(embed=_main_embed(self.guild), view=ConfigView(self.guild))
 

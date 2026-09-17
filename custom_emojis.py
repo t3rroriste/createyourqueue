@@ -40,6 +40,21 @@ FALLBACKS: dict[str, str] = {
     "green_point": "🟢",
     "yellow_point": "🟡",
     "red_point": "🔴",
+    # Lignes du panneau /status (la latence garde « stats »)
+    "loading": "⏳",
+    "discordannouncementwhite": "📢",
+    "members": "👥",
+    "game": "🎮",
+    # Récapitulatif de fin d'assistant et pastilles d'état des embeds
+    "auditlogmobile": "📋",
+    "discordvoicedark": "🎙️",
+    "guildadministratorwhitetheme": "👑",
+    "discordvoicelockdark": "🔒",
+    "settingsdark": "🎚️",
+    "discordon": "🟢",
+    "discordoff": "🔴",
+    # Boutons « Retour »
+    "replymsg": "↩️",
     # /schedule et /season
     "clock": "🕒",
     "pause": "⏸️",
@@ -82,6 +97,18 @@ MANUAL: dict[str, str] = {
     "statusonline": "<:971828statusonline:1549841319571230720>",
     "statusoffline": "<:460240statusoffline:1549841317197123694>",
     "off": "<:4247off:1549851998755495987>",
+    "loading": "<:1792loading:1550195889782521867>",
+    "discordannouncementwhite": "<:1697discordannouncementwhite:1550196381673595061>",
+    "members": "<:5837members:1550195892609486898>",
+    "game": "<:5093game:1550195891284090900>",
+    "auditlogmobile": "<:6137auditlogmobile:1550235949840080987>",
+    "discordvoicedark": "<:7443discordvoicedark:1550235952381960272>",
+    "guildadministratorwhitetheme": "<:9794guildadministratorwhitetheme:1550236511285280789>",
+    "discordvoicelockdark": "<:1761discordvoicelockdark:1550235950825734185>",
+    "settingsdark": "<:9256settingsdark:1550237590614179850>",
+    "discordon": "<:5847discordon:1550235957276442776>",
+    "discordoff": "<:7972discordoff:1550235953962942484>",
+    "replymsg": "<:8758replymsg:1550238827506049134>",
 }
 
 _loaded: dict[str, str] = dict(MANUAL)

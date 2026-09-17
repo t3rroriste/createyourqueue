@@ -30,6 +30,13 @@ log = logging.getLogger("bot.wizard")
 
 SLOT_KINDS = {key: kind for key, kind, _req in list(WIZARD_SLOTS) + list(OPTIONAL_SLOTS)}
 
+# Emojis perso du récapitulatif de fin (voir done_embed) ; ailleurs, l'assistant
+# garde ceux de SLOT_EMOJI.
+RECAP_EMOJI = {
+    "channel_queue_announcement": "discordannouncementwhite",
+    "voice_queue_waiting": "discordvoicedark",
+}
+
 SLOT_EMOJI = {
     "channel_queue_command": "🛠️",
     "channel_queue_announcement": "📢",
@@ -331,7 +338,8 @@ class OptionsWizard(discord.ui.View):
             content=None, embed=done_embed(self.guild), view=None
         )
 
-    @discord.ui.button(label="◀️ Retour", style=discord.ButtonStyle.secondary,
+    @discord.ui.button(label="Retour", emoji=custom_emojis.get("replymsg"),
+                       style=discord.ButtonStyle.secondary,
                        row=2, custom_id="cyq:wiz:back")
     async def back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """Retourne au panneau de configuration des salons."""
@@ -368,7 +376,7 @@ class SubPanel(discord.ui.View):
 
     def add_back(self, row: int) -> None:
         button = discord.ui.Button(
-            label=t(self.gid, "wiz.opt_back"), emoji="◀️",
+            label=t(self.gid, "wiz.opt_back"), emoji=custom_emojis.get("replymsg"),
             style=discord.ButtonStyle.secondary, row=row,
         )
 
@@ -783,12 +791,12 @@ def _rank_lines(gid: int, config: dict) -> list[str]:
 
 
 def _state_line(gid: int, on: bool) -> str:
-    """« 🟢 **Activé** / ~~Désactivé~~ » : l'état retenu en gras, l'autre barré."""
+    """« **Activé** / ~~Désactivé~~ » : l'état retenu en gras, l'autre barré."""
     yes = t(gid, "wiz.enabled_word")
     no = t(gid, "wiz.disabled_word")
     if on:
-        return f"🟢 **{yes}** / ~~{no}~~"
-    return f"🔴 ~~{yes}~~ / **{no}**"
+        return f"{embeds.state(True)} **{yes}** / ~~{no}~~"
+    return f"{embeds.state(False)} ~~{yes}~~ / **{no}**"
 
 
 class StaffPanel(SubPanel):
@@ -1186,21 +1194,28 @@ def done_embed(guild: discord.Guild) -> discord.Embed:
         if resource is None:
             continue
         shown = resource.mention if isinstance(resource, discord.TextChannel) else f"**{resource.name}**"
-        lines.append(f"{SLOT_EMOJI.get(key, '📁')} {t(gid, f'wiz.slot_{key}')} — {shown}")
+        icon = (custom_emojis.get(RECAP_EMOJI[key]) if key in RECAP_EMOJI
+                else SLOT_EMOJI.get(key, "📁"))
+        lines.append(f"{icon} {t(gid, f'wiz.slot_{key}')} — {shown}")
     staff = resources.get_role(guild, "role_staff")
     if staff is not None:
-        lines.append(f"👑 {t(gid, 'wiz.opt_staff')} — {staff.mention}")
+        lines.append(f"{custom_emojis.get('guildadministratorwhitetheme')} "
+                     f"{t(gid, 'wiz.opt_staff')} — {staff.mention}")
     connexion = resources.get_role(guild, "role_connexion")
     lines.append(
-        f"🔓 {t(gid, 'wiz.opt_connexion')} — "
+        f"{custom_emojis.get('discordvoicelockdark')} {t(gid, 'wiz.opt_connexion')} — "
         + (connexion.mention if connexion else t(gid, "wiz.not_set"))
     )
-    embeds.section(embed, t(gid, "wiz.done_recap"), "\n".join(lines) or "—")
+    embeds.section(embed, t(gid, "wiz.done_recap", icon=custom_emojis.get("auditlogmobile")),
+                   "\n".join(lines) or "—")
 
     embeds.section(
-        embed, t(gid, "wiz.done_features"),
+        embed, t(gid, "wiz.done_features", icon=custom_emojis.get("settingsdark")),
         f"{embeds.state(features['leaderboard'])} {t(gid, 'wiz.opt_btn_leaderboard')}"
-        + "\n" + f"{embeds.state(features['mvp'])} {t(gid, 'wiz.opt_btn_mmr')}",
+        + "\n" + f"{embeds.state(features['mvp'])} {t(gid, 'wiz.opt_btn_mmr')}"
+        # Whitelist : le vocal d'attente n'est filtré que si un rôle Connexion
+        # est désigné (voir la ligne du même rôle dans le récapitulatif).
+        + "\n" + f"{embeds.state(connexion is not None)} {t(gid, 'wiz.opt_whitelist')}",
     )
     return embed
 

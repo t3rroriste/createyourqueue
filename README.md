@@ -66,6 +66,7 @@ Chaque nouveau membre est mentionné dans les salons choisis, puis le message es
 | `/rematch` | Relance la dernière partie avec les mêmes réglages |
 | `/schedule` | Publie une queue automatiquement à l'heure choisie |
 | `/poll` | Un sondage à boutons (jeu, horaire, format…) |
+| `/endpoll sondage:` | Termine un sondage ouvert et affiche le résultat *(admin)* |
 | `/groupe` | Affiche ton groupe, ou le dissout |
 | `/history` | L'historique des dernières parties |
 | `/bl` `/unbl` | Bloque / débloque un membre de la queue |
@@ -155,6 +156,7 @@ Dans le salon des demandes, **un seul message par duel** sert d'historique : il 
 | `/rematch` `/bl` `/unbl` | Organisateur | **Oui** |
 | `/schedule` | Gérer le serveur | **Oui** |
 | `/poll` | Organisateur ou Gérer les messages | Non |
+| `/endpoll` | Administrateur | Non |
 | `/leaderboard` | Organisateur (option `partout:` : propriétaire du bot) | Non |
 | `/antilink` `/voice` | Organisateur | Non |
 | `/diagnostic` | Administrateur ou organisateur | Non |

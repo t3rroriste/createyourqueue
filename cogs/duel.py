@@ -458,7 +458,8 @@ class MatesPicker(discord.ui.View):
                                        min_values=1, max_values=MAX_TEAM_SIZE - 1, row=0)
         select.callback = self._picked(select)
         self.add_item(select)
-        back = discord.ui.Button(label=t(gid, "duel.btn_back")[:80], emoji="↩️", row=1,
+        back = discord.ui.Button(label=t(gid, "duel.btn_back")[:80],
+                                 emoji=custom_emojis.get("replymsg"), row=1,
                                  style=discord.ButtonStyle.secondary)
         back.callback = self._back
         self.add_item(back)

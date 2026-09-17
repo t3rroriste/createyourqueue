@@ -267,11 +267,11 @@ class Logs(commands.Cog):
         entry = self.config.get(gid, {}).get(kind)
         channel = guild.get_channel(entry["channel"]) if entry else None
         if entry and entry["on"] and channel is not None:
-            state, detail = "🟢", channel.mention
+            state, detail = embeds.state(True), channel.mention
         elif entry and entry["on"]:
             state, detail = "🟠", t(gid, "logs.state_missing")
         elif channel is not None:
-            state, detail = "🔴", t(gid, "logs.state_off", channel=channel.mention)
+            state, detail = embeds.state(False), t(gid, "logs.state_off", channel=channel.mention)
         else:
             state, detail = "⚫", t(gid, "logs.state_never")
         return f"{state} {icon} {t(gid, f'logs.kind_{kind}')}", detail

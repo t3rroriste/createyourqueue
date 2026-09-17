@@ -111,8 +111,10 @@ class StatusPanel(commands.Cog):
         """Le gros titre, au-dessus du cadre."""
         return "## " + t(guild_id, "status.head_online" if online else "status.head_offline", **_icons())
 
-    def _bullet(self, guild_id: int | None, label_key: str, value: str) -> str:
-        return t(guild_id, "status.bullet", label=t(guild_id, label_key), value=value, **_icons())
+    def _bullet(self, guild_id: int | None, label_key: str, value: str, icon: str = "stats") -> str:
+        # Chaque ligne a son emoji ; « stats » reste celui de la latence.
+        icons = {**_icons(), "stats": custom_emojis.get(icon)}
+        return t(guild_id, "status.bullet", label=t(guild_id, label_key), value=value, **icons)
 
     def build_embed(self, guild: discord.Guild | None, *, online: bool) -> discord.Embed:
         """Le cadre : l'état en une ligne, puis les chiffres en liste — pas en
@@ -140,13 +142,14 @@ class StatusPanel(commands.Cog):
 
             lines += [
                 self._bullet(guild_id, "status.field_uptime",
-                             f"**{_format_uptime(time.time() - self.started_at, guild_id)}**"),
+                             f"**{_format_uptime(time.time() - self.started_at, guild_id)}**", "loading"),
                 self._bullet(guild_id, "status.field_latency",
                              f"`{latency_ms} ms` · {self._quality(latency_ms, guild_id)}"),
-                self._bullet(guild_id, "status.field_servers", f"`{len(self.bot.guilds)}`"),
+                self._bullet(guild_id, "status.field_servers", f"`{len(self.bot.guilds)}`",
+                             "discordannouncementwhite"),
                 self._bullet(guild_id, "status.field_members",
-                             "`%s`" % f"{members:,}".replace(",", " ")),
-                self._bullet(guild_id, "status.field_queues", f"`{active}`"),
+                             "`%s`" % f"{members:,}".replace(",", " "), "members"),
+                self._bullet(guild_id, "status.field_queues", f"`{active}`", "game"),
                 "",
                 # Rendu par Discord en direct : dès que l'échéance est dépassée
                 # sans nouvelle mise à jour, le panneau est visiblement périmé.

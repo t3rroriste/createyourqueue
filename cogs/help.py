@@ -37,6 +37,7 @@ CATEGORIES = {
             ("/rematch", "help.cmd_rematch_desc"),
             ("/schedule", "help.cmd_schedule_desc"),
             ("/poll", "help.cmd_poll_desc"),
+            ("/endpoll", "help.cmd_endpoll_desc"),
             ("/clan", "help.cmd_clan_desc"),
             ("/clantransfer", "help.cmd_clantransfer_desc"),
             ("/cw", "help.cmd_cw_desc"),

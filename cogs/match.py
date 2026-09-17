@@ -856,11 +856,13 @@ def build_mmr_embed(guild: discord.Guild) -> discord.Embed:
     # Pas de footer, pas de branding
 
     embed.add_field(name=t(gid, "mmr.field_state"),
-                    value=t(gid, "auto.on" if on else "auto.off"), inline=True)
+                    value=t(gid, "auto.on" if on else "auto.off", **embeds.icons()), inline=True)
     embed.add_field(name=t(gid, "mmr.field_captains"),
-                    value=t(gid, "auto.on" if config["captains"] else "auto.off"), inline=True)
+                    value=t(gid, "auto.on" if config["captains"] else "auto.off", **embeds.icons()),
+                    inline=True)
     embed.add_field(name=t(gid, "mmr.field_roles"),
-                    value=t(gid, "auto.on" if config["rank_roles"] else "auto.off"), inline=True)
+                    value=t(gid, "auto.on" if config["rank_roles"] else "auto.off", **embeds.icons()),
+                    inline=True)
 
     embeds.section(
         embed, t(gid, "mmr.field_points"),
