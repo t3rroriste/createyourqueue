@@ -37,7 +37,7 @@ RECAP_EMOJI = {
     "channel_queue_announcement": "discordannouncementwhite",
     "voice_queue_waiting": "discordvoicedark",
     "channel_queue_resultat": "discordprofileactivitydark",
-    "channel_queue_classement": "insights",
+    "channel_queue_classement": "discordserverinsightsdark",
 }
 
 SLOT_EMOJI = {

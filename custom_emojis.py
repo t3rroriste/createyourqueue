@@ -53,7 +53,7 @@ FALLBACKS: dict[str, str] = {
     "settingsdark": "🎚️",
     "textlocked": "🛠️",
     "discordprofileactivitydark": "📜",
-    "insights": "📊",
+    "discordserverinsightsdark": "📊",
     "discordon": "🟢",
     "discordoff": "🔴",
     # Boutons « Retour »
@@ -114,7 +114,7 @@ MANUAL: dict[str, str] = {
     "replymsg": "<:8758replymsg:1550238827506049134>",
     "textlocked": "<:2064textlocked:1550274668085121064>",
     "discordprofileactivitydark": "<:1731discordprofileactivitydark:1550274368536580148>",
-    "insights": "<:9587insights:1550195893796347964>",
+    "discordserverinsightsdark": "<:1252discordserverinsightsdark:1550275988783370310>",
 }
 
 _loaded: dict[str, str] = dict(MANUAL)
