@@ -310,6 +310,7 @@ class Reset(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="reset", description="Remet le bot à zéro sur ce serveur (supprime salons et rôles).")
+    @app_commands.default_permissions(administrator=True)
     @app_commands.checks.has_permissions(administrator=True)
     async def reset(self, interaction: discord.Interaction) -> None:
         guild = interaction.guild

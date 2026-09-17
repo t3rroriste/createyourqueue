@@ -14,7 +14,7 @@ class AutoClean(commands.Cog):
     """Système de nettoyage automatique de salons."""
 
     # Groupe : /autoclean on, /autoclean off
-    autoclean = app_commands.Group(name="autoclean", description="Nettoyage automatique d'un salon.")
+    autoclean = app_commands.Group(name="autoclean", default_permissions=discord.Permissions(manage_messages=True), description="Nettoyage automatique d'un salon.")
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot

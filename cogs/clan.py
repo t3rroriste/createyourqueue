@@ -1164,6 +1164,7 @@ class Clan(commands.Cog):
         try:
             message = await channel.send(
                 content=role.mention if role is not None else None,
+                allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=[role] if role else False),
                 embed=embed, view=WarAnswerView(self, gid),
             )
         except discord.HTTPException:
@@ -1261,6 +1262,7 @@ class Clan(commands.Cog):
         try:
             await channel.send(
                 content=role.mention if role is not None else None,
+                allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=[role] if role else False),
                 embed=embeds.base(
                     gid,
                     title=t(gid, "clan.war_reply_title"),

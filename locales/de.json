@@ -1273,7 +1273,9 @@
         "ticket_field_staff": "Team",
         "ticket_footer_session": "Sitzung: {clan1} vs {clan2}",
         "ticket_answered_by": "Beantwortet von {staff}",
-        "ticket_dm_closed": "Dem Mitglied kann keine DM gesendet werden (DMs geschlossen)."
+        "ticket_dm_closed": "Dem Mitglied kann keine DM gesendet werden (DMs geschlossen).",
+        "war_vote_waiting": "Stimme gespeichert. Die Runde zählt, sobald ein Mitglied des anderen Clans denselben Sieger wählt.",
+        "war_vote_conflict": "⚠️ Der andere Clan hat einen anderen Sieger gewählt. Die Runde zählt, sobald beide Stimmen übereinstimmen."
     },
     "modmail": {
         "cat_bug": "Fehler",

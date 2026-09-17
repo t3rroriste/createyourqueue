@@ -52,6 +52,11 @@ SESSIONS_FILE = "data/modmail_sessions.json"
 LEGACY_SESSIONS_FILE = "modmail_sessions.json"
 
 SUPPORTED = ("fr", "en", "es", "de", "ko")
+
+# Anti-flood des MP : au-delà de FLOOD_MAX messages en FLOOD_WINDOW secondes,
+# les suivants sont ignorés (ni recopiés au staff, ni traduits).
+FLOOD_MAX = 5
+FLOOD_WINDOW = 10
 LANGUAGE_NAMES = {"fr": "Français", "en": "English", "es": "Español", "de": "Deutsch", "ko": "한국어"}
 
 # (clé enregistrée dans la session, emoji, style, clé du libellé)
@@ -257,6 +262,7 @@ class ModMail(commands.Cog):
         self.bot = bot
         self.storage = ModMailStorage()
         self._restored = False
+        self._recent: dict[int, list[float]] = {}
         # Emojis perso de l'application ModMail (voir custom_emojis.fetch_own).
         self.icons: dict[str, str] = {}
 
@@ -344,6 +350,12 @@ class ModMail(commands.Cog):
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot or not isinstance(message.channel, discord.DMChannel):
             return
+        now = time.monotonic()
+        recent = [at for at in self._recent.get(message.author.id, []) if now - at < FLOOD_WINDOW]
+        if len(recent) >= FLOOD_MAX:
+            self._recent[message.author.id] = recent
+            return
+        self._recent[message.author.id] = recent + [now]
 
         language = await asyncio.to_thread(detect_language, message.content)
 

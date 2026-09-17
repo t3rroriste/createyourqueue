@@ -1273,7 +1273,9 @@
         "ticket_field_staff": "Staff",
         "ticket_footer_session": "Sesión: {clan1} vs {clan2}",
         "ticket_answered_by": "Respondido por {staff}",
-        "ticket_dm_closed": "No se puede enviar un MD al miembro (MD cerrados)."
+        "ticket_dm_closed": "No se puede enviar un MD al miembro (MD cerrados).",
+        "war_vote_waiting": "Voto registrado. La manga cuenta cuando un miembro del otro clan elige al mismo ganador.",
+        "war_vote_conflict": "⚠️ El otro clan eligió otro ganador. La manga cuenta cuando ambos votos coinciden."
     },
     "modmail": {
         "cat_bug": "Error",

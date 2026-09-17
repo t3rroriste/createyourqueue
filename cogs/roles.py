@@ -414,7 +414,7 @@ class PanelBuilderView(discord.ui.View):
 
 class Roles(commands.Cog):
     # Groupe : /roles panel (configurer), /roles post (publier), /roles notif
-    roles = app_commands.Group(name="roles", description="Panneaux de rôles à cliquer.")
+    roles = app_commands.Group(name="roles", default_permissions=discord.Permissions(manage_roles=True), description="Panneaux de rôles à cliquer.")
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot

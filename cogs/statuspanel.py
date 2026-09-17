@@ -324,6 +324,7 @@ class StatusPanel(commands.Cog):
         activer="true : afficher le panneau · false : le retirer",
         salon="Salon du panneau (par défaut : le salon où tu tapes la commande)",
     )
+    @app_commands.default_permissions(manage_guild=True)
     @app_commands.checks.has_permissions(manage_guild=True)
     async def status(
         self,

@@ -335,6 +335,9 @@ class Diagnostic(commands.Cog):
 
         # Volontairement manuel : la synchronisation est une route très limitée
         # par Discord, elle ne doit pas partir à chaque appel de /diagnostic.
+        if resync and not interaction.user.guild_permissions.administrator:
+            await interaction.followup.send(t(interaction.guild_id, "common.no_permission"), ephemeral=True)
+            resync = False
         if resync:
             count = await sync_if_changed(self.bot, force=True)
             await interaction.followup.send(

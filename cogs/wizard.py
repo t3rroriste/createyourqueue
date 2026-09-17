@@ -1255,6 +1255,7 @@ class Wizard(commands.Cog):
         name="option",
         description="Les réglages facultatifs : rôle organisateur, salons en plus, classement et MVP.",
     )
+    @app_commands.default_permissions(manage_guild=True)
     @app_commands.checks.has_permissions(manage_guild=True)
     async def option(self, interaction: discord.Interaction) -> None:
         """Le panneau des facultatifs, à part et à volonté."""

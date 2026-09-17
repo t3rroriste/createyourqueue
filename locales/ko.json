@@ -1273,7 +1273,9 @@
         "ticket_field_staff": "스태프",
         "ticket_footer_session": "세션: {clan1} vs {clan2}",
         "ticket_answered_by": "{staff} 답변 완료",
-        "ticket_dm_closed": "멤버에게 DM을 보낼 수 없습니다 (DM 차단)."
+        "ticket_dm_closed": "멤버에게 DM을 보낼 수 없습니다 (DM 차단).",
+        "war_vote_waiting": "투표가 저장되었습니다. 상대 클랜 멤버가 같은 승자를 고르면 라운드가 집계됩니다.",
+        "war_vote_conflict": "⚠️ 상대 클랜이 다른 승자를 골랐습니다. 두 투표가 같아야 라운드가 집계됩니다."
     },
     "modmail": {
         "cat_bug": "버그",

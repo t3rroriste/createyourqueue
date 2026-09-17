@@ -34,7 +34,7 @@ def _ts(dt: datetime) -> str:
 
 class AntiRaid(commands.Cog):
     # Groupe de sous-commandes : /antiraid status, /antiraid config...
-    antiraid = app_commands.Group(name="antiraid", description="Protection anti-raid du serveur.")
+    antiraid = app_commands.Group(name="antiraid", default_permissions=discord.Permissions(manage_guild=True), description="Protection anti-raid du serveur.")
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot

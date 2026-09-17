@@ -1273,7 +1273,9 @@
         "ticket_field_staff": "Staff",
         "ticket_footer_session": "Session: {clan1} vs {clan2}",
         "ticket_answered_by": "Answered by {staff}",
-        "ticket_dm_closed": "Unable to DM the member (DMs closed)."
+        "ticket_dm_closed": "Unable to DM the member (DMs closed).",
+        "war_vote_waiting": "Vote saved. The round counts once a member of the other clan picks the same winner.",
+        "war_vote_conflict": "⚠️ The other clan picked a different winner. The round counts once both votes match."
     },
     "modmail": {
         "cat_bug": "Bug",

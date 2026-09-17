@@ -86,6 +86,7 @@ class Language(commands.Cog):
         name="language",
         description="Set the bot language for this server.",
     )
+    @app_commands.default_permissions(manage_guild=True)
     @app_commands.checks.has_permissions(manage_guild=True)
     async def setlanguage(self, interaction: discord.Interaction) -> None:
         gid = interaction.guild_id

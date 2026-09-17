@@ -840,6 +840,14 @@ class QueueConfigView(View):
             button.emoji = emoji
         self.sync_captains()
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        # Le panneau est posté dans le salon : sans ce contrôle, n'importe quel
+        # membre pouvait le régler et publier la queue avec son @everyone.
+        if self.cog._is_staff(interaction.user):
+            return True
+        await interaction.response.send_message(t(self.guild_id, "queue.organizers_only"), ephemeral=True)
+        return False
+
     def sync_captains(self) -> None:
         """Le bouton dit son état : vert allumé, gris éteint."""
         gid = self.guild_id
@@ -2283,6 +2291,13 @@ def build_score_embed(session: QueueSession, *, final: bool = False) -> discord.
 
 class ResultView(View):
     """Panel de suivi des scores : un bouton par équipe + Finish pour clore et publier le résultat."""
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        # Les points et la clôture écrivent le classement.
+        if self.cog._is_staff(interaction.user):
+            return True
+        await interaction.response.send_message(t(self.guild_id, "queue.organizers_only"), ephemeral=True)
+        return False
 
     TEAM_STYLES = [
         discord.ButtonStyle.primary,

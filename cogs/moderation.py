@@ -82,6 +82,7 @@ class Moderation(commands.Cog):
         description="Supprime un nombre de messages dans ce salon.",
     )
     @app_commands.describe(nombre="Nombre de messages à supprimer (max 100)")
+    @app_commands.default_permissions(manage_messages=True)
     @app_commands.checks.has_permissions(manage_messages=True)
     async def clears(self, interaction: discord.Interaction, nombre: app_commands.Range[int, 1, 100]):
         # purge() n'existe pas sur un forum.
@@ -108,6 +109,7 @@ class Moderation(commands.Cog):
         name="lock",
         description="Verrouille ce salon (empêche @everyone d'écrire).",
     )
+    @app_commands.default_permissions(manage_channels=True)
     @app_commands.checks.has_permissions(manage_channels=True)
     async def lock(self, interaction: discord.Interaction):
         if not isinstance(interaction.channel, discord.TextChannel):
@@ -135,6 +137,7 @@ class Moderation(commands.Cog):
         name="unlock",
         description="Déverrouille ce salon.",
     )
+    @app_commands.default_permissions(manage_channels=True)
     @app_commands.checks.has_permissions(manage_channels=True)
     async def unlock(self, interaction: discord.Interaction):
         if not isinstance(interaction.channel, discord.TextChannel):
@@ -163,6 +166,7 @@ class Moderation(commands.Cog):
     # -------------------------------------------------------------
     @app_commands.command(name="warn", description="Avertit un membre (avertissement enregistré).")
     @app_commands.describe(membre="Le membre à avertir", raison="Raison de l'avertissement")
+    @app_commands.default_permissions(moderate_members=True)
     @app_commands.checks.has_permissions(moderate_members=True)
     async def warn(self, interaction: discord.Interaction, membre: discord.Member, raison: str):
         gid = interaction.guild_id
@@ -200,6 +204,7 @@ class Moderation(commands.Cog):
     # -------------------------------------------------------------
     @app_commands.command(name="warnings", description="Affiche l'historique d'avertissements d'un membre.")
     @app_commands.describe(membre="Le membre à consulter")
+    @app_commands.default_permissions(moderate_members=True)
     @app_commands.checks.has_permissions(moderate_members=True)
     async def warnings_cmd(self, interaction: discord.Interaction, membre: discord.Member):
         gid = interaction.guild_id
@@ -228,6 +233,7 @@ class Moderation(commands.Cog):
     # -------------------------------------------------------------
     @app_commands.command(name="unwarn", description="Efface l'historique d'avertissements d'un membre.")
     @app_commands.describe(membre="Le membre dont effacer les avertissements")
+    @app_commands.default_permissions(manage_guild=True)
     @app_commands.checks.has_permissions(manage_guild=True)
     async def clearwarnings(self, interaction: discord.Interaction, membre: discord.Member):
         gid = interaction.guild_id
@@ -252,6 +258,7 @@ class Moderation(commands.Cog):
         minutes="Durée en minutes (max 40320 = 28 jours)",
         raison="Raison de la sourdine",
     )
+    @app_commands.default_permissions(moderate_members=True)
     @app_commands.checks.has_permissions(moderate_members=True)
     async def timeout(
         self,
@@ -285,6 +292,7 @@ class Moderation(commands.Cog):
     # -------------------------------------------------------------
     @app_commands.command(name="untimeout", description="Retire la sourdine d'un membre.")
     @app_commands.describe(membre="Le membre dont retirer la sourdine")
+    @app_commands.default_permissions(moderate_members=True)
     @app_commands.checks.has_permissions(moderate_members=True)
     async def untimeout(self, interaction: discord.Interaction, membre: discord.Member):
         gid = interaction.guild_id

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import discord
 import embeds
+import resources
 
 from guild_settings import MAX_CLAN_NAME, get_ticket_config
 from i18n import t
@@ -117,6 +118,13 @@ class TicketActionView(discord.ui.View):
         self.respond.label = t(session.guild_id, "clan.ticket_btn_reply")
         self.close.label = t(session.guild_id, "clan.ticket_btn_close")
     
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        user = interaction.user
+        if resources.is_staff(user) or getattr(user.guild_permissions, "manage_guild", False):
+            return True
+        await interaction.response.send_message(t(interaction.guild_id, "common.no_permission"), ephemeral=True)
+        return False
+
     @discord.ui.button(label="Répondre", style=discord.ButtonStyle.primary)
     async def respond(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         """Ouvre le modal de réponse."""

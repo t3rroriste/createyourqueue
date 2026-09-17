@@ -111,6 +111,14 @@ class CreateYourQueueBot(commands.Bot):
     """Bot standard, avec un arrêt propre."""
 
     def __init__(self, *args, **kwargs):
+        # Aucun @everyone ni ping de rôle sans autorisation explicite à l'envoi.
+        kwargs.setdefault("allowed_mentions", discord.AllowedMentions(
+            everyone=False, roles=False, users=True, replied_user=True))
+        # Serveurs uniquement : en MP, les commandes n'ont rien sur quoi agir, et
+        # le bot ne s'installe pas sur un compte utilisateur.
+        kwargs.setdefault("allowed_contexts", app_commands.AppCommandContext(
+            guild=True, dm_channel=False, private_channel=False))
+        kwargs.setdefault("allowed_installs", app_commands.AppInstallationType(guild=True, user=False))
         super().__init__(*args, **kwargs)
         self.diagnostic_channel_id = DIAGNOSTIC_CHANNEL_ID
         # Remplacé par run_bot() : c'est la clé du message de diagnostic.

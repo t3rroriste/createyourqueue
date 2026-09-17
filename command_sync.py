@@ -37,12 +37,17 @@ def _describe_parameter(param: app_commands.Parameter) -> dict[str, Any]:
     }
 
 
+def _flags(value: Any) -> Any:
+    return getattr(value, "value", None) if value is not None else None
+
+
 def _describe(command: Any) -> dict[str, Any]:
     """Représentation stable d'une commande ou d'un groupe, pour comparaison."""
     if isinstance(command, app_commands.Group):
         return {
             "name": command.name,
             "description": command.description,
+            "permissions": _flags(getattr(command, "default_permissions", None)),
             "options": sorted(
                 (_describe(sub) for sub in command.commands),
                 key=lambda d: d["name"],
@@ -52,11 +57,17 @@ def _describe(command: Any) -> dict[str, Any]:
         "name": command.name,
         "description": getattr(command, "description", ""),
         "params": [_describe_parameter(p) for p in getattr(command, "parameters", [])],
+        "permissions": _flags(getattr(command, "default_permissions", None)),
     }
 
 
 def fingerprint(tree: app_commands.CommandTree) -> str:
-    payload = sorted((_describe(c) for c in tree.get_commands()), key=lambda d: d["name"])
+    payload = {
+        "commands": sorted((_describe(c) for c in tree.get_commands()), key=lambda d: d["name"]),
+        "contexts": _flags(getattr(tree, "allowed_contexts", None)),
+        "installs": [getattr(tree.allowed_installs, "guild", None), getattr(tree.allowed_installs, "user", None)]
+        if getattr(tree, "allowed_installs", None) else None,
+    }
     blob = json.dumps(payload, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 

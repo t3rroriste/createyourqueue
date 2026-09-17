@@ -810,6 +810,7 @@ class Automation(commands.Cog):
 
     # -- Commandes -------------------------------------------------------
     @app_commands.command(name="schedule", description="Programme la publication automatique des queues.")
+    @app_commands.default_permissions(manage_guild=True)
     @app_commands.checks.has_permissions(manage_guild=True)
     async def schedule(self, interaction: discord.Interaction) -> None:
         guild = interaction.guild
@@ -820,6 +821,7 @@ class Automation(commands.Cog):
         )
 
     @app_commands.command(name="season", description="Remise à zéro mensuelle du classement (saisons).")
+    @app_commands.default_permissions(manage_guild=True)
     @app_commands.checks.has_permissions(manage_guild=True)
     async def season(self, interaction: discord.Interaction) -> None:
         guild = interaction.guild

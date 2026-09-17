@@ -1273,7 +1273,9 @@
         "ticket_field_staff": "Staff",
         "ticket_footer_session": "Session : {clan1} vs {clan2}",
         "ticket_answered_by": "Répondu par {staff}",
-        "ticket_dm_closed": "Impossible d'envoyer un message privé au membre (MP fermés)."
+        "ticket_dm_closed": "Impossible d'envoyer un message privé au membre (MP fermés).",
+        "war_vote_waiting": "Vote enregistré. La manche compte quand un membre de l'autre clan désigne le même gagnant.",
+        "war_vote_conflict": "⚠️ L'autre clan a désigné un autre gagnant. La manche compte quand vos deux votes sont identiques."
     },
     "modmail": {
         "cat_bug": "Bug",
