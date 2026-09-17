@@ -477,9 +477,7 @@
         "clan_request": "Join request",
         "clan_request_accepted": "Join request accepted",
         "clan_request_refused": "Join request refused",
-        "clan_transfer": "Clan transferred",
-        "clan_cw_on": "ClanWar enabled",
-        "clan_cw_off": "ClanWar disabled"
+        "clan_transfer": "Clan transferred"
     },
     "help": {
         "overview_title": "📚 CreateYourQueue · Help",
@@ -548,7 +546,6 @@
         "cmd_elo_desc": "Show your level, your rank and what's left to the next one.",
         "cmd_option_desc": "Organizer role, optional channels and features to enable.",
         "cmd_clan_desc": "Your clan: card, creation and invitations.",
-        "cmd_cw_desc": "Enable or disable the ClanWar system *(admin)*",
         "cmd_groupe_desc": "Show your party, or disband it.",
         "cmd_clantransfer_desc": "Transfer clan ownership to another member *(designated role)*",
         "cat_duel_label": "Duels",
@@ -1249,9 +1246,7 @@
         "war_abandon_cancelled": "Forfeit cancelled: the ClanWar goes on.",
         "war_forfeit_title": "🏳 Forfeit",
         "war_forfeit_desc": "**{winner}** wins: **{loser}** forfeited the ClanWar.",
-        "war_system_disabled": "❌ The ClanWar system is disabled.\nUse `/cw` to turn it on.",
-        "cw_enabled": "✅ ClanWar system **enabled**",
-        "cw_disabled": "❌ ClanWar system **disabled**",
+        "war_system_disabled": "❌ The ClanWar system is disabled.\nTurn on the **Clan** option in `/option`.",
         "ticket_disabled": "The ticket system is not enabled. Please contact an administrator.",
         "ticket_no_staff_channel": "No staff channel is set. Please contact an administrator.",
         "ticket_staff_channel_missing": "The staff channel cannot be found. Please contact an administrator.",

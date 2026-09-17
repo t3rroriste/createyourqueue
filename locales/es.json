@@ -477,9 +477,7 @@
         "clan_request": "Solicitud de ingreso",
         "clan_request_accepted": "Solicitud aceptada",
         "clan_request_refused": "Solicitud rechazada",
-        "clan_transfer": "Clan transferido",
-        "clan_cw_on": "ClanWar activado",
-        "clan_cw_off": "ClanWar desactivado"
+        "clan_transfer": "Clan transferido"
     },
     "help": {
         "overview_title": "📚 Ayuda · CreateYourQueue",
@@ -548,7 +546,6 @@
         "cmd_elo_desc": "Muestra tu nivel, tu rango y lo que falta para el siguiente.",
         "cmd_option_desc": "Rol de organizador, canales opcionales y funciones a activar.",
         "cmd_clan_desc": "Tu clan: ficha, creación e invitaciones.",
-        "cmd_cw_desc": "Activa o desactiva el sistema de ClanWar *(admin)*",
         "cmd_groupe_desc": "Muestra tu grupo, o lo disuelve.",
         "cmd_clantransfer_desc": "Transfiere la propiedad de un clan a otro miembro *(rol designado)*",
         "cat_duel_label": "Duelos",
@@ -1249,9 +1246,7 @@
         "war_abandon_cancelled": "Abandono cancelado: el ClanWar continúa.",
         "war_forfeit_title": "🏳 Abandono",
         "war_forfeit_desc": "**{winner}** gana: **{loser}** abandonó el ClanWar.",
-        "war_system_disabled": "❌ El sistema de ClanWar está desactivado.\nUsa `/cw` para activarlo.",
-        "cw_enabled": "✅ Sistema de ClanWar **activado**",
-        "cw_disabled": "❌ Sistema de ClanWar **desactivado**",
+        "war_system_disabled": "❌ El sistema de ClanWar está desactivado.\nActiva la opción **Clan** en `/option`.",
         "ticket_disabled": "El sistema de tickets no está activado. Contacta con un administrador.",
         "ticket_no_staff_channel": "No hay ningún canal de staff configurado. Contacta con un administrador.",
         "ticket_staff_channel_missing": "No se encuentra el canal de staff. Contacta con un administrador.",

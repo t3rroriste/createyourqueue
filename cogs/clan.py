@@ -23,7 +23,7 @@ import embeds
 import resources
 from guild_settings import (
     MAX_CLAN_NAME, get_clans, clan_of, create_clan, clan_named, add_clan_member,
-    remove_clan_member, get_clan, get_features, set_features, set_clan_fields,
+    remove_clan_member, get_clan, get_features, set_clan_fields,
     clan_by_channel, transfer_clan_leader, get_clan_requests, add_clan_request,
     remove_clan_request, get_clan_war_session, get_clan_announcement_count,
     reset_clan_announcement, reset_all_clan_announcements,
@@ -718,27 +718,6 @@ class Clan(commands.Cog):
             except Exception as e:
                 log.error(f"Erreur lors de la réinitialisation des compteurs pour {guild.name}: {e}")
     
-    @app_commands.command(name="cw", description="Activer ou désactiver le système de ClanWar")
-    @app_commands.default_permissions(administrator=True)
-    async def cw(self, interaction: discord.Interaction, enabled: bool):
-        """Active ou désactive le système de ClanWar."""
-        gid = interaction.guild_id
-        
-        # Mettre à jour le statut du ClanWar
-        set_features(gid, clan_wars=enabled)
-        send_log(self.bot, gid, "clan", t(gid, "logs.clan_cw_on" if enabled else "logs.clan_cw_off"),
-                 user=interaction.user)
-
-        # Message de confirmation
-        if enabled:
-            await interaction.response.send_message(
-                embed=embeds.base(gid, description=t(gid, "clan.cw_enabled"), kind="success")
-            )
-        else:
-            await interaction.response.send_message(
-                embed=embeds.base(gid, description=t(gid, "clan.cw_disabled"), kind="warning")
-            )
-    
     async def _restore_war_sessions(self) -> None:
         """Restaure les sessions de ClanWar actives après un redémarrage."""
         for guild in self.bot.guilds:
@@ -1121,9 +1100,9 @@ class Clan(commands.Cog):
         """Publie le défi dans le salon du clan visé et l'inscrit dans sa file."""
         gid = interaction.guild_id
         
-        # Vérifier si le système de ClanWar est activé
-        features = get_features(gid)
-        if not features or not features.get("clan_wars", False):
+        # Le ClanWar suit l'option Clan de /option : c'est elle qui ouvre les
+        # clans, leurs salons et leurs défis.
+        if not self.enabled(gid):
             await interaction.response.edit_message(
                 embed=embeds.base(gid, description=t(gid, "clan.war_system_disabled"), kind="error"),
                 view=None)

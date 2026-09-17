@@ -40,7 +40,6 @@ CATEGORIES = {
             ("/endpoll", "help.cmd_endpoll_desc"),
             ("/clan", "help.cmd_clan_desc"),
             ("/clantransfer", "help.cmd_clantransfer_desc"),
-            ("/cw", "help.cmd_cw_desc"),
             ("/groupe", "help.cmd_groupe_desc"),
             ("/history", "help.cmd_history_desc"),
             ("/bl", "help.cmd_bl_desc"),

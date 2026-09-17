@@ -477,9 +477,7 @@
         "clan_request": "Demande d'adhésion",
         "clan_request_accepted": "Demande d'adhésion acceptée",
         "clan_request_refused": "Demande d'adhésion refusée",
-        "clan_transfer": "Clan transféré",
-        "clan_cw_on": "ClanWar activé",
-        "clan_cw_off": "ClanWar désactivé"
+        "clan_transfer": "Clan transféré"
     },
     "help": {
         "overview_title": "📚 Aide · CreateYourQueue",
@@ -548,7 +546,6 @@
         "cmd_elo_desc": "Affiche ton niveau, ton rang et ce qu'il reste avant le suivant.",
         "cmd_option_desc": "Rôle organisateur, salons facultatifs et fonctions à activer.",
         "cmd_clan_desc": "Ton clan : fiche, création et invitations.",
-        "cmd_cw_desc": "Active ou désactive le système de ClanWar *(admin)*",
         "cmd_groupe_desc": "Affiche ton groupe, ou le dissout.",
         "cmd_clantransfer_desc": "Transfère la propriété d'un clan à un autre membre *(rôle désigné)*",
         "cat_duel_label": "Duels",
@@ -1249,9 +1246,7 @@
         "war_abandon_cancelled": "Abandon annulé : le ClanWar continue.",
         "war_forfeit_title": "🏳 Abandon",
         "war_forfeit_desc": "**{winner}** remporte la victoire : **{loser}** a abandonné le ClanWar.",
-        "war_system_disabled": "❌ Le système de ClanWar est désactivé.\nUtilise `/cw` pour l'activer.",
-        "cw_enabled": "✅ Système de ClanWar **activé**",
-        "cw_disabled": "❌ Système de ClanWar **désactivé**",
+        "war_system_disabled": "❌ Le système de ClanWar est désactivé.\nActive l'option **Clan** dans `/option`.",
         "ticket_disabled": "Le système de ticket n'est pas activé. Contactez un administrateur.",
         "ticket_no_staff_channel": "Aucun salon staff n'est configuré. Contactez un administrateur.",
         "ticket_staff_channel_missing": "Le salon staff est introuvable. Contactez un administrateur.",

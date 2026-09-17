@@ -77,7 +77,6 @@ Chaque nouveau membre est mentionné dans les salons choisis, puis le message es
 |---|---|
 | `/clan` | Ton clan : fiche, création, invitations, `rejoindre:` pour demander à entrer |
 | `/clantransfer` | Passe la propriété d'un clan à un autre membre *(rôle désigné)* |
-| `/cw` | Active ou désactive le système de ClanWar *(admin)* |
 
 Dans le salon de chaque clan, deux messages :
 - **la fiche**, avec 🔧 **Clan Manage** (inviter, quitter), 📩 **Request** (défis reçus), 🧾 **History**, 📧 **Invites** (demandes d'adhésion) ;
@@ -167,7 +166,7 @@ Dans le salon des demandes, **un seul message par duel** sert d'historique : il 
 | `/option` `/config` `/language` `/status` `/season` `/unwarn` | Gérer le serveur | Non |
 | `/logs` et les `/logs-…` | Gérer le serveur | Non |
 | `/antiraid` | Gérer le serveur (`/antiraid config` : Administrateur) | Non |
-| `/cw` `/config-duel` `/reset` | Administrateur | Non |
+| `/config-duel` `/reset` | Administrateur | Non |
 | `/waiting` `/tempo` *(bot temporaire)* | Propriétaire du bot (`OWNER_ID`) | Non |
 | `/ghost` *(bot temporaire)* | Administrateur | Non |
 | Message privé *(bot modmail)* | Tout le monde | Non |
@@ -437,7 +436,6 @@ Tout se fait depuis Discord, pas dans le code :
 - **`/config`** — les salons et rôles que le bot doit utiliser, et son apparence
 - **`/language`** — la langue du serveur
 - **`/status`** — le panneau d'état permanent
-- **`/cw`** — le système de ClanWar
 - **`/config-duel`** — les duels entre teams : catégorie des vocaux, salon des demandes, activation
 
 Dans l'assistant, **Terminer** est cliquable à tout moment : rien n'oblige à tout régler d'un coup.
