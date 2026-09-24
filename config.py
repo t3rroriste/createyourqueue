@@ -64,6 +64,7 @@ INITIAL_EXTENSIONS = [
     "cogs.diagnostic",
     "cogs.guard",  # Protection des noms de salons
     "cogs.reset",  # Remise a zero du serveur
+    "cogs.dashboard_api",  # API lue par le site web (eteinte sans cle)
 ]
 
 # ---------------------------------------------------------
@@ -82,6 +83,7 @@ SETUP_REQUIRED_COMMANDS = frozenset({
 TEMPORARY_EXTENSIONS = [
     "cogs.temp_bot",  # Commandes /waiting et /tempo
     "cogs.ghost",  # Commande /ghost : ghost ping d'arrivée (administrateurs)
+    "cogs.suggestions",  # Commande /suggestions : réactions de vote (administrateurs)
 ]
 
 # Extensions spécifiques pour le bot modmail
@@ -105,6 +107,15 @@ MODMAIL_STAFF_ROLE_ID = int(os.getenv("MODMAIL_STAFF_ROLE_ID", "0"))
 
 # Salon qui reçoit les messages de démarrage des bots. 0 = désactivé.
 DIAGNOSTIC_CHANNEL_ID = int(os.getenv("DIAGNOSTIC_CHANNEL_ID", "0"))
+
+# ---------------------------------------------------------
+# API du tableau de bord (voir cogs/dashboard_api.py)
+# Le site web tourne sur un autre serveur et interroge le bot par HTTP.
+# Clé vide = API éteinte, le bot n'ouvre aucun port.
+# ---------------------------------------------------------
+DASHBOARD_API_KEY  = os.getenv("DASHBOARD_API_KEY", "").strip()
+DASHBOARD_API_HOST = os.getenv("DASHBOARD_API_HOST", "0.0.0.0")
+DASHBOARD_API_PORT = int(os.getenv("DASHBOARD_API_PORT", "8080"))
 
 # ---------------------------------------------------------
 # Couleurs des embeds

@@ -12,6 +12,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 from config import COLOR_SUCCESS, COLOR_ERROR, COLOR_INFO, GUNZFRANCE_GUILD_ID
 from i18n import LANGUAGES, get_lang, set_lang, t
 from retranslate import retranslate_guild, summary_text
@@ -121,7 +122,8 @@ class Language(commands.Cog):
     ) -> None:
         if isinstance(error, app_commands.MissingPermissions):
             await interaction.response.send_message(
-                embed=discord.Embed(description="❌ Permission **Manage Server** required.", color=COLOR_ERROR),
+                embed=discord.Embed(description=f"{custom_emojis.get('cross')} Permission **Manage Server** required.",
+                                    color=COLOR_ERROR),
                 ephemeral=True,
             )
         else:

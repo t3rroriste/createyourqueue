@@ -26,6 +26,7 @@ from guild_settings import (
     save_queue_config,
     get_queue_config,
     queue_ready,
+    mark_first_queue,
     get_webhook_url,
     get_queue_presets,
     get_queue_preset,
@@ -825,9 +826,9 @@ class QueueConfigView(View):
             "num_teams": 2,
             "team_names": ["Team 1", "Team 2"],
             "max_players_per_team": 4,
-            "session": "Attente Queue",
+            "session": t(guild_id, "auto.preset_session_default"),
             "heure": None,
-            "type": "Organisation",
+            "type": t(guild_id, "auto.preset_type_default"),
             # Vote des capitaines : part du réglage du serveur (/option → MMR),
             # et se coupe pour cette queue-là sans le modifier — une partie
             # entre amis n'a pas besoin de draft, celle du soir si.
@@ -1427,6 +1428,7 @@ class QueueConfig(commands.Cog):
             await self.create_result_panel(guild, session, config_channel)
 
         self.save_sessions()
+        mark_first_queue(guild.id)
         asyncio.create_task(self.notify_queue_role(guild, session))
         send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_opened"), user=author,
                  color=embeds.SUCCESS,
@@ -2235,13 +2237,13 @@ class QueueConfig(commands.Cog):
             for team_name, members in session.teams.items():
                 for member in members:
                     if team_name == session.winner:
-                        classement_cog.add_win(member.id)
+                        classement_cog.add_win(guild.id, member.id)
                     else:
-                        classement_cog.add_loss(member.id)
+                        classement_cog.add_loss(guild.id, member.id)
 
             await classement_cog.save_classement_config()
 
-        classement_cog.record_queue()
+        classement_cog.record_queue(guild.id)
         await classement_cog.save_server_stats()
         await classement_cog.update_classement_channel(guild)
 

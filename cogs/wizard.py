@@ -22,7 +22,7 @@ from guild_settings import (
     WIZARD_SLOTS, OPTIONAL_SLOTS, get_features, set_features, channels_ready,
     queue_ready, set_resource_id, clear_resource_id, get_mmr_config, set_mmr_config,
     mark_setup_complete, get_setup_panel, get_queue_password, set_queue_password,
-    get_ticket_config, set_ticket_config,
+    get_ticket_config, set_ticket_config, queue_launched,
 )
 from i18n import t
 
@@ -1183,7 +1183,8 @@ def done_embed(guild: discord.Guild) -> discord.Embed:
     embed = embeds.base(
         gid,
         title=t(gid, "wiz.done_title"),
-        description=t(gid, "wiz.done_desc"),
+        # « Tape /queue pour ta première partie » : seulement avant la première.
+        description=None if queue_launched(gid) else t(gid, "wiz.done_desc"),
         kind="success",
         footer=t(gid, "wiz.done_footer"),
     )
@@ -1249,7 +1250,8 @@ class Wizard(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """Réactive les menus du message d'arrivée après un redémarrage."""
+        """Réactive les menus du message d'arrivée après un redémarrage, et le
+        redessine : une mise à jour du bot s'y voit tout de suite."""
         if self._restored:
             return
         self._restored = True
@@ -1258,9 +1260,14 @@ class Wizard(commands.Cog):
             if not panel or queue_ready(guild.id):
                 continue
             try:
-                view = (ChannelsWizard(guild, intro=True) if not channels_ready(guild.id)
-                        else OptionsWizard(guild))
+                if not channels_ready(guild.id):
+                    view, embed = ChannelsWizard(guild, intro=True), channels_embed(guild, intro=True)
+                else:
+                    view, embed = OptionsWizard(guild), options_embed(guild)
                 self.bot.add_view(view, message_id=panel["message_id"])
+                channel = guild.get_channel(panel.get("channel_id") or 0)
+                if channel is not None:
+                    await channel.get_partial_message(panel["message_id"]).edit(embed=embed, view=view)
             except Exception as e:
                 log.error(f"Panneau de configuration non restauré sur {guild.name} : {e}")
 

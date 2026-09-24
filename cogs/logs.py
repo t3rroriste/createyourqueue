@@ -228,6 +228,8 @@ class Logs(commands.Cog):
         return True
 
     def _deliver(self, channel: discord.TextChannel, guild_id: int, kind: str, embed: discord.Embed) -> None:
+        # Tous les logs en rouge, quel que soit leur type.
+        embed.colour = RED
         task = asyncio.create_task(self._send(channel, guild_id, kind, embed))
         self._pending.add(task)
         task.add_done_callback(self._pending.discard)
@@ -626,12 +628,18 @@ class Logs(commands.Cog):
         gid = interaction.guild_id
         if gid is None or self.target(gid, "commande") is None:
             return
-        options = "\n".join(f"`{name}` : {_option_value(value)}" for name, value in interaction.namespace)
-        channel = interaction.channel
-        self.emit(gid, "commande", t(gid, "logs.cmd_used"), user=interaction.user,
-                  description=f"**/{command.qualified_name}**",
-                  fields=[(t(gid, "logs.f_channel"), getattr(channel, "mention", None)),
-                          (t(gid, "logs.f_options"), options, False)])
+        # Format court, une ligne comme le message du /lock : ce log tombe à
+        # chaque commande.
+        icon, color = KINDS["commande"]
+        line = f"{icon} **/{command.qualified_name}** · {interaction.user.mention}"
+        channel = getattr(interaction.channel, "mention", None)
+        if channel:
+            line += f" · {channel}"
+        options = " · ".join(f"`{name}` : {_option_value(value).replace(chr(10), ' ')}"
+                             for name, value in interaction.namespace)
+        if options:
+            line += f"\n-# {options}"
+        self.emit_embed(gid, "commande", discord.Embed(description=_cut(line, 4096), color=color))
 
     # ------------------------------------------------------------------
     # Salons et rôles

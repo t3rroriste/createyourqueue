@@ -126,9 +126,9 @@ class Moderation(commands.Cog):
             description=t(interaction.guild_id, "moderation.locked"),
             color=COLOR_INFO,
         )
+        # Pas de log de modération : le message ci-dessus le dit déjà, dans
+        # le salon concerné.
         await interaction.response.send_message(embed=embed)
-        self._mod_log(interaction, "logs.mod_lock",
-                      fields=[(t(interaction.guild_id, "logs.f_channel"), channel.mention)])
 
     # -------------------------------------------------------------
     # /unlock
@@ -155,8 +155,6 @@ class Moderation(commands.Cog):
             color=COLOR_SUCCESS,
         )
         await interaction.response.send_message(embed=embed)
-        self._mod_log(interaction, "logs.mod_unlock", color=embeds.SUCCESS,
-                      fields=[(t(interaction.guild_id, "logs.f_channel"), channel.mention)])
 
     # /cleanup a été retiré : il cherchait des salons nommés « 🔵 Équipe 1 » et
     # « 🔴 Équipe 2 », créés par un ancien système de queue.

@@ -1,0 +1,12 @@
+# Dependances du site. Le bot a les siennes, a la racine du projet : les
+# deux tournent sur des machines differentes et ne partagent rien.
+fastapi==0.115.6
+uvicorn==0.34.0
+jinja2==3.1.5
+httpx==0.28.1
+
+# Signature du cookie de session (utilise par SessionMiddleware)
+itsdangerous==2.2.0
+
+# Meme version que le bot, pour lire le .env de la meme facon
+python-dotenv==1.2.2

@@ -13,7 +13,7 @@ Le bot parle **5 langues** (français, anglais, espagnol, allemand, coréen) et 
 | Bot | Rôle | Token dans `.env` | Cogs chargés (`config.py`) |
 |---|---|---|---|
 | **Principal** | Toutes les commandes ci-dessous | `DISCORD_TOKEN` | `INITIAL_EXTENSIONS` + `WELCOME_EXTENSIONS` |
-| **Temporaire** | `/waiting` et `/tempo` (remise à zéro totale du serveur), réservées au propriétaire ; `/ghost` (ghost ping d'arrivée), réservée aux administrateurs | `DISCORD_TOKEN_TEMPORAIRE` | `TEMPORARY_EXTENSIONS` |
+| **Temporaire** | `/waiting` et `/tempo` (remise à zéro totale du serveur), réservées au propriétaire ; `/ghost` (ghost ping d'arrivée) et `/suggestions` (réactions de vote), réservées aux administrateurs | `DISCORD_TOKEN_TEMPORAIRE` | `TEMPORARY_EXTENSIONS` |
 | **ModMail** | Support par message privé — voir [`MODMAIL_SETUP.md`](MODMAIL_SETUP.md) | `DISCORD_TOKEN_MODMAIL` | `MODMAIL_EXTENSIONS` |
 
 On choisit lesquels lancer avec `--bot` :
@@ -53,6 +53,15 @@ Chaque nouveau membre est mentionné dans les salons choisis, puis le message es
 - Dans chaque salon choisi, le bot a besoin de **Voir le salon** et **Envoyer des messages**, et le nouveau membre doit pouvoir voir le salon.
 - Les salons sont enregistrés dans `data/ghost_ping.json`.
 
+### 👍 `/suggestions` : réactions de vote (bot temporaire)
+
+`/suggestions activer:True salon:#suggestions` : chaque nouvelle suggestion reçoit automatiquement les réactions **Wobble4** (pour) et **Wobble3** (contre). `activer:False` coupe. Réservée aux administrateurs.
+
+- **Forum** : la réaction va sur le premier message de chaque post, pas sur les réponses. **Salon textuel** : sur chaque message d'un membre.
+- Les emojis sont cherchés par nom sur le serveur, puis dans l'application du bot temporaire (Developer Portal → Emojis). Introuvables : 👍 et 👎, et `/suggestions` le signale.
+- Le bot a besoin de **Voir le salon**, **Ajouter des réactions** et **Voir les anciens messages** dans ce salon.
+- Le salon est enregistré dans `data/suggestions.json`.
+
 ---
 
 ## 📋 Les commandes du bot principal
@@ -84,6 +93,8 @@ Dans le salon de chaque clan, deux messages :
 
 Les deux messages sont **republiés à chaque démarrage du bot**, sans rien perdre : membres, défis, historique et état restent enregistrés.
 
+Dans le salon de match d'un ClanWar, trois boutons : 🏴 **Manche** (un membre de chaque clan désigne le gagnant de la manche), 🏳 **Abandonné** (le chef abandonne, l'autre clan gagne) et ⚠️ **Problème**, qui ouvre un ticket dans le salon staff choisi dans `/option`. Le staff clique sur **Répondre** : le membre reçoit d'abord « ton ticket est pris en charge », puis chaque réponse en MP sous la forme **@staff :** … Il répond dans ce même MP et ses messages reviennent dans le salon staff, jusqu'à la clôture du ticket. La partie et les tickets survivent à un redémarrage du bot.
+
 **Duels entre teams** — une team de duel est temporaire (1, 3, 5 duels ou illimité) et n'a rien à voir avec un clan
 
 | Commande | Description |
@@ -92,7 +103,7 @@ Les deux messages sont **republiés à chaque démarrage du bot**, sans rien per
 | `/createteam` | Crée une team : joueurs (invités à accepter), nom, couleur, nombre de duels |
 | `/config-duel` | Catégorie des vocaux, salon des demandes, activation *(admin)* |
 
-Dans le salon des demandes, **un seul message par duel** sert d'historique : il est modifié à chaque étape (en attente, en cours, 🏆 vainqueur, relance — une ligne par partie) au lieu d'en publier un nouveau. Sous le message de fin, les deux leads désignent le vainqueur : il est enregistré quand ils choisissent la même team, ou quand un administrateur tranche.
+Quand un défi est accepté, le webhook **DuelBot** publie dans le salon des demandes « Duel en cours ! » avec les deux leads et leur team. Ce message est modifié au lieu d'en publier un nouveau : le vainqueur s'y inscrit une fois désigné, et une relance le repasse en cours. Il faut au bot la permission **Gérer les webhooks** sur ce salon (`/config-duel` la vérifie) ; sans elle, le message est publié sous le nom du bot plutôt que sous celui de DuelBot, mais l'historique reste là. Sous le message de fin du fil, les deux leads désignent le vainqueur : il est enregistré quand ils choisissent la même team, ou quand un administrateur tranche.
 
 À la fin d'un duel, le fil propose 🔁 **Relancer** : quand **tous les joueurs** ont cliqué (dans les 5 minutes, avant la suppression du fil), le même duel repart. Une relance est gratuite — elle ne consomme aucun duel, même pour une team à 1 duel — et on peut relancer à l'infini.
 
@@ -188,6 +199,14 @@ Nom à donner (lettres et chiffres ; le numéro d'emoji.gg devant et les `_` son
 | `stats` | Devant chaque chiffre du panneau `/status` |
 | `green_point` `yellow_point` `red_point` | Qualité du ping dans `/status` |
 | `clock` `pause` `calender` `notification` `clipboard` | Boutons de `/schedule` et `/season` |
+| `moderationmobiled` `thebestserveremojis` | Message « Duel en cours ! » du webhook DuelBot (titre, ligne du vainqueur) |
+| `Zoom125` | Tous les ⚠️ du bot principal (avertissements, ClanWar, boutons Problème et Confirmer du `/reset`). Le modmail et le bot temporaire gardent ⚠️ |
+| `clock` | Minuteur de l'annonce de début de ClanWar |
+| `timeout` | ClanWar annulé faute de chef |
+| `calender` | Champ « Depuis » de la fiche de clan |
+| `dndbadge` `onlinebadge` | « Ne pas déranger » et « Prêt à jouer » du salon de clan (boutons et menu ClanWar) |
+| `cross` | Tous les ❌ du bot principal (erreurs, refus) |
+| `discordpopularanimated` | Flamme des séries de victoires dans le classement, `/stats` et `/serverstats` |
 
 Le terminal affiche au démarrage `X/18 emoji(s) perso chargé(s) — absents : …` : c'est la liste de ceux qui manquent ou dont le nom ne correspond pas.
 
@@ -229,6 +248,7 @@ createyourqueue/
 ├── retranslate.py       # Renomme salons et rôles au changement de langue
 ├── MODMAIL_SETUP.md     # Mise en place du bot modmail
 ├── locales/             # fr.json, en.json, es.json, de.json, ko.json
+├── site/                # Le site web et son tableau de bord — voir site/README.md
 ├── data/                # Ce que le bot a mémorisé (dont les tickets modmail) — ne pas éditer à la main
 ├── tests/               # Les tests automatiques — voir « Vérifier »
 ├── graphify-out/        # La carte du code (graph.html) — voir plus bas
@@ -241,7 +261,7 @@ createyourqueue/
     ├── clan.py          # /clan, /clantransfer, /cw
     ├── duel.py          # /duel, /createteam, /config-duel — teams éphémères
     ├── clan_war.py      # ClanWar : session, boutons, abandon (importé par clan.py)
-    ├── clan_tickets.py  # Tickets du bouton « Problème » d'un ClanWar
+    ├── clan_tickets.py  # Tickets du bouton « Problème » : conversation staff ↔ membre en MP
     ├── party.py         # /groupe
     ├── wizard.py        # /option
     ├── welcome.py       # Message d'arrivée et choix de la langue
@@ -339,6 +359,7 @@ copy .env.example .env
 | `SUPPORT_INVITE` | Non — lien de `/support` et bouton du message d'arrivée (vide : le serveur de support officiel) |
 | `MODMAIL_GUILD_ID`, `MODMAIL_STAFF_CHANNEL_ID`, `MODMAIL_STAFF_ROLE_ID` | Pour le modmail |
 | `DIAGNOSTIC_CHANNEL_ID` | Non — salon qui reçoit les messages de démarrage des bots |
+| `DASHBOARD_API_KEY`, `DASHBOARD_API_HOST`, `DASHBOARD_API_PORT` | Seulement pour le site web — vide : le bot n'ouvre aucun port |
 
 Un token ne va **que dans `.env`**, jamais dans un fichier `.md`, `.py` ou `.json`. Aucun ID n'est écrit dans le code : tout se règle dans `.env`.
 
@@ -477,6 +498,35 @@ Puis, dans la session `screen` : `python3 bot.py --bot main`, et **Ctrl+A** puis
 - Crée un « Background Worker » (**pas** un Web Service)
 - Build : `pip install -r requirements.txt` · Start : `python bot.py --bot main`
 - Ajoute tes variables dans Environment Variables, et un disque persistant pour `data/`
+
+---
+
+## 🌐 Le site et le tableau de bord
+
+Le site (`site/`) tourne sur un **autre serveur** que le bot. Il fait deux choses :
+le bouton **Inviter le bot**, et le **tableau de bord** où un admin règle son serveur
+depuis un navigateur (langue, fonctions activées, salons et rôles).
+
+```
+Navigateur ──> Site (VPS) ──HTTP + clé──> Bot ──> data/*.json
+```
+
+Le site ne touche jamais aux fichiers du bot : il appelle l'API de
+[`cogs/dashboard_api.py`](cogs/dashboard_api.py), protégée par `DASHBOARD_API_KEY`.
+Tant que cette clé est vide dans le `.env`, l'API est éteinte et le bot n'ouvre aucun port.
+
+Le tableau de bord affiche aussi l'uptime, le nombre de membres et les commandes
+des dernières 24 h, pour les serveurs de la personne connectée.
+
+Le **journal des commandes** est réservé au propriétaire du bot (`OWNER_ID`) :
+un admin de serveur ne voit pas qui a lancé quoi chez lui. Le refus vient du bot
+lui-même, pas de la page. Ce journal reste dans la mémoire du bot (200 lignes,
+effacées à chaque redémarrage) et ne contient jamais les arguments des commandes.
+
+Qui peut modifier quoi : la personne se connecte avec Discord, et seuls les serveurs
+où elle est propriétaire ou a « Gérer le serveur » lui sont proposés.
+
+Installation complète (les deux côtés, nginx, HTTPS) : [`site/README.md`](site/README.md).
 
 ---
 

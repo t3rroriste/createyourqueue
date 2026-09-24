@@ -602,7 +602,7 @@ class Match(commands.Cog):
         # La serie vient du classement, seul endroit qui la tient a jour :
         # la recompter ici la ferait diverger des le premier decalage.
         board = self.bot.get_cog("Classement")
-        streaks = getattr(board, "player_stats", {}) if board is not None else {}
+        streaks = board.players(gid) if board is not None else {}
 
         changes = []
         # Une seule ecriture pour toute l equipe : sans ca, chaque joueur

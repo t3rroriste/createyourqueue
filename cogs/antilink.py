@@ -151,7 +151,7 @@ class AntiLink(commands.Cog):
             self.antilink_channels[guild_id][channel_id] = True
             await self.save_antilink_config()
             embed = discord.Embed(
-                description=t(guild_id, "moderation.antilink_on"),
+                description=t(guild_id, "moderation.antilink_on", channel=interaction.channel.mention),
                 color=COLOR_SUCCESS,
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -161,7 +161,7 @@ class AntiLink(commands.Cog):
             self.antilink_channels[guild_id][channel_id] = False
             await self.save_antilink_config()
             embed = discord.Embed(
-                description=t(guild_id, "moderation.antilink_off"),
+                description=t(guild_id, "moderation.antilink_off", channel=interaction.channel.mention),
                 color=COLOR_WARNING,
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)

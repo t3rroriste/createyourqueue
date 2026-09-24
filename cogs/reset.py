@@ -142,6 +142,7 @@ class ResetView(discord.ui.View):
     def _sync(self) -> None:
         gid = self.guild.id
         self.confirm.label = t(gid, "reset.btn_confirm")
+        self.confirm.emoji = custom_emojis.get("zoom125")
         self.stats.label = t(gid, "reset.btn_stats_on" if self.wipe_stats else "reset.btn_stats_off")
         self.stats.style = discord.ButtonStyle.danger if self.wipe_stats else discord.ButtonStyle.secondary
         self.cancel.label = t(gid, "reset.btn_cancel")
@@ -247,8 +248,7 @@ class ResetView(discord.ui.View):
         if self.wipe_stats:
             classement = interaction.client.get_cog("Classement")
             if classement is not None:
-                stats_wiped = len(classement.player_stats)
-                classement.player_stats.clear()
+                stats_wiped = len(classement.guild_stats.pop(gid, {}))
                 try:
                     await classement.save_classement_config()
                 except Exception as e:

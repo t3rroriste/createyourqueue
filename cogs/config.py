@@ -177,7 +177,7 @@ class NicknameModal(discord.ui.Modal):
             return
         except discord.HTTPException as e:
             await interaction.response.send_message(
-                embed=discord.Embed(description=f"❌ {e}", color=COLOR_ERROR),
+                embed=discord.Embed(description=f"{custom_emojis.get('cross')} {e}", color=COLOR_ERROR),
                 ephemeral=True,
             )
             return

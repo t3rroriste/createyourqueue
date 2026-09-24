@@ -603,7 +603,7 @@ def build_podium_embed(guild: discord.Guild, classement=None) -> discord.Embed:
     live = []
     if classement is not None:
         top = sorted(
-            classement.player_stats.items(),
+            classement.players(gid).items(),
             key=lambda x: (x[1].get("wins", 0), x[1].get("max_streak", 0)),
             reverse=True,
         )[:3]
@@ -755,8 +755,9 @@ class Automation(commands.Cog):
             return
 
         # Podium archivé AVANT la remise à zéro, sinon il est perdu.
+        players = classement.players(guild.id)
         top = sorted(
-            classement.player_stats.items(),
+            players.items(),
             key=lambda x: (x[1].get("wins", 0), x[1].get("max_streak", 0)),
             reverse=True,
         )[:3]
@@ -766,7 +767,7 @@ class Automation(commands.Cog):
         if cfg["keep_history"] and podium:
             add_season_archive(guild.id, {"period": period, "podium": podium})
 
-        for stats in classement.player_stats.values():
+        for stats in players.values():
             stats["wins"] = 0
             stats["losses"] = 0
             stats["streak"] = 0

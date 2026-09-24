@@ -11,12 +11,15 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from typing import Optional
-
 from config import COLOR_SUCCESS, COLOR_ERROR
+from i18n import t
 import resources
 
 log = logging.getLogger("bot.voice_manager")
+
+
+def _reply(guild_id: int | None, key: str, color: discord.Color, **kwargs) -> discord.Embed:
+    return discord.Embed(description=t(guild_id, key, **kwargs), color=color)
 
 
 class VoiceManager(commands.Cog):
@@ -27,115 +30,75 @@ class VoiceManager(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.voice_client: Optional[discord.VoiceClient] = None
 
     def _is_staff(self, member: discord.Member) -> bool:
         """Vérifie si un membre est staff."""
         return resources.is_staff(member)
-    
+
     @voice.command(name="join", description="Le bot rejoint ton salon vocal.")
     async def join(self, interaction: discord.Interaction):
         """Le bot rejoint le salon vocal de l'utilisateur."""
+        gid = interaction.guild_id
         if not self._is_staff(interaction.user):
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="❌ Cette commande est réservée aux organisateurs.",
-                    color=COLOR_ERROR
-                ),
-                ephemeral=True,
-            )
+                embed=_reply(gid, "queue.organizers_only", COLOR_ERROR), ephemeral=True)
             return
-        
+
         if not interaction.user.voice or not interaction.user.voice.channel:
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="❌ Vous devez être connecté à un salon vocal.",
-                    color=COLOR_ERROR
-                ),
-                ephemeral=True,
-            )
+                embed=_reply(gid, "voice.need_voice", COLOR_ERROR), ephemeral=True)
             return
-        
+
         voice_channel = interaction.user.voice.channel
-        
+        # La connexion de CE serveur : le bot peut être en vocal sur plusieurs
+        # serveurs à la fois.
+        current = interaction.guild.voice_client
+
         try:
-            if self.voice_client and self.voice_client.is_connected():
-                await self.voice_client.move_to(voice_channel)
+            if current is not None and current.is_connected():
+                await current.move_to(voice_channel)
             else:
-                self.voice_client = await voice_channel.connect()
-            
+                await voice_channel.connect()
+
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description=f"✅ J'ai rejoint {voice_channel.mention}",
-                    color=COLOR_SUCCESS
-                ),
+                embed=_reply(gid, "voice.joined", COLOR_SUCCESS, channel=voice_channel.mention),
                 ephemeral=True,
             )
             log.info(f"Bot rejoint {voice_channel.name} dans guild {interaction.guild_id}")
-            
+
         except discord.Forbidden:
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="❌ Je n'ai pas la permission de rejoindre ce salon vocal.",
-                    color=COLOR_ERROR
-                ),
-                ephemeral=True,
-            )
+                embed=_reply(gid, "voice.join_forbidden", COLOR_ERROR), ephemeral=True)
         except Exception as e:
             log.error(f"Erreur lors de la connexion vocale : {e}")
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="❌ Une erreur s'est produite lors de la connexion vocale.",
-                    color=COLOR_ERROR
-                ),
-                ephemeral=True,
-            )
-    
+                embed=_reply(gid, "voice.join_failed", COLOR_ERROR), ephemeral=True)
+
     @voice.command(name="leave", description="Le bot quitte le salon vocal.")
     async def leave(self, interaction: discord.Interaction):
         """Le bot quitte le salon vocal actuel."""
+        gid = interaction.guild_id
         if not self._is_staff(interaction.user):
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="❌ Cette commande est réservée aux organisateurs.",
-                    color=COLOR_ERROR
-                ),
-                ephemeral=True,
-            )
+                embed=_reply(gid, "queue.organizers_only", COLOR_ERROR), ephemeral=True)
             return
-        
-        if not self.voice_client or not self.voice_client.is_connected():
+
+        current = interaction.guild.voice_client
+        if current is None or not current.is_connected():
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="❌ Je ne suis pas connecté à un salon vocal.",
-                    color=COLOR_ERROR
-                ),
-                ephemeral=True,
-            )
+                embed=_reply(gid, "voice.not_connected", COLOR_ERROR), ephemeral=True)
             return
-        
+
         try:
-            await self.voice_client.disconnect()
-            self.voice_client = None
-            
+            await current.disconnect()
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="✅ J'ai quitté le salon vocal.",
-                    color=COLOR_SUCCESS
-                ),
-                ephemeral=True,
-            )
+                embed=_reply(gid, "voice.left", COLOR_SUCCESS), ephemeral=True)
             log.info(f"Bot a quitté le vocal dans guild {interaction.guild_id}")
-            
+
         except Exception as e:
             log.error(f"Erreur lors de la déconnexion vocale : {e}")
             await interaction.response.send_message(
-                embed=discord.Embed(
-                    description="❌ Une erreur s'est produite lors de la déconnexion.",
-                    color=COLOR_ERROR
-                ),
-                ephemeral=True,
-            )
+                embed=_reply(gid, "voice.leave_failed", COLOR_ERROR), ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

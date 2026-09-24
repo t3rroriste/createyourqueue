@@ -1,4 +1,4 @@
-﻿"""
+"""
 Garde-fous réseau pour les téléchargements déclenchés par un utilisateur
 (URL d'avatar ou de bannière personnalisée fournie via /config).
 """
@@ -12,21 +12,24 @@ from urllib.parse import urlparse
 import aiohttp
 
 
-def _is_public_hostname(hostname: str) -> bool:
+def is_public_address(address: str) -> bool:
     try:
-        infos = socket.getaddrinfo(hostname, None)
-    except socket.gaierror:
+        return ipaddress.ip_address(address.split("%")[0]).is_global
+    except ValueError:
         return False
-    if not infos:
-        return False
-    for info in infos:
-        try:
-            ip = ipaddress.ip_address(info[4][0])
-        except ValueError:
-            return False
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast or ip.is_unspecified:
-            return False
-    return True
+
+
+class PublicOnlyResolver(aiohttp.ThreadedResolver):
+    """Résolution DNS hors de la boucle, qui refuse toute adresse interne.
+
+    Le contrôle se fait sur l'adresse à laquelle aiohttp va vraiment se
+    connecter : un nom qui change de réponse entre deux résolutions ne passe pas."""
+
+    async def resolve(self, host: str, port: int = 0, family: socket.AddressFamily = socket.AF_INET):
+        infos = await super().resolve(host, port, family)
+        if not infos or not all(is_public_address(info["host"]) for info in infos):
+            raise OSError(f"adresse non publique refusée : {host}")
+        return infos
 
 
 async def safe_fetch(url: str, *, max_bytes: int, timeout: int = 15) -> bytes | None:
@@ -37,11 +40,18 @@ async def safe_fetch(url: str, *, max_bytes: int, timeout: int = 15) -> bytes | 
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https") or not parsed.hostname:
         return None
-    if not _is_public_hostname(parsed.hostname):
-        return None
+    # Une adresse IP écrite en clair ne passe pas par le résolveur.
+    try:
+        ipaddress.ip_address(parsed.hostname)
+    except ValueError:
+        pass
+    else:
+        if not is_public_address(parsed.hostname):
+            return None
 
     try:
-        async with aiohttp.ClientSession() as session:
+        connector = aiohttp.TCPConnector(resolver=PublicOnlyResolver())
+        async with aiohttp.ClientSession(connector=connector) as session:
             async with session.get(
                 url, timeout=aiohttp.ClientTimeout(total=timeout), allow_redirects=False
             ) as resp:
