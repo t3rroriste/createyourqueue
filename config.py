@@ -64,6 +64,7 @@ INITIAL_EXTENSIONS = [
     "cogs.diagnostic",
     "cogs.guard",  # Protection des noms de salons
     "cogs.reset",  # Remise a zero du serveur
+    "cogs.dashboard",  # /dashboard : lien vers la configuration web
 ]
 
 # ---------------------------------------------------------

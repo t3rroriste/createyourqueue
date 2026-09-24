@@ -22,5 +22,10 @@ COPY . .
 # volume persistant sur /app/data : sans lui, tout est effacé à chaque
 # redéploiement.
 
+# Dashboard web (/dashboard), désactivé tant que DASHBOARD_ENABLED ne vaut
+# pas 1. L'hébergeur impose souvent son propre PORT : il a la priorité sur
+# celui-ci (voir web/server.py).
+EXPOSE 8080
+
 # Le bot principal seul. Pour les trois bots : CMD ["python", "bot.py"]
 CMD ["python", "bot.py", "--bot", "main"]

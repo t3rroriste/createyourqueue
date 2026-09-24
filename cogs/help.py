@@ -145,6 +145,7 @@ CATEGORIES = {
         "commands": [
             ("/option", "help.cmd_option_desc"),
             ("/config", "help.cmd_config_desc"),
+            ("/dashboard", "help.cmd_dashboard_desc"),
             ("/language", "help.cmd_language_desc"),
             ("/diagnostic", "help.cmd_diagnostic_desc"),
             ("/reset", "help.cmd_reset_desc"),

@@ -127,6 +127,7 @@ Dans le salon des demandes, **un seul message par duel** sert d'historique : il 
 |---|---|
 | `/option` | Rôle organisateur, salons, fonctions à activer (dont les clans et le mot de passe des queues) |
 | `/config` | Salons, langue, et l'apparence du bot sur ce serveur — avatar, bannière, pseudo *(admin)* |
+| `/dashboard` | Un lien vers le dashboard web pour régler la queue depuis un navigateur *(admin ou organisateur)* |
 | `/language` | La langue du bot sur ce serveur |
 | `/roles` | Panneaux de rôles à cliquer |
 | `/voice` | Le bot rejoint ou quitte un vocal |
@@ -158,7 +159,7 @@ Dans le salon des demandes, **un seul message par duel** sert d'historique : il 
 | `/endpoll` | Administrateur | Non |
 | `/leaderboard` | Organisateur (option `partout:` : propriétaire du bot) | Non |
 | `/antilink` `/voice` | Organisateur | Non |
-| `/diagnostic` | Administrateur ou organisateur | Non |
+| `/diagnostic` `/dashboard` | Administrateur ou organisateur | Non |
 | `/clear` `/autoclean` | Gérer les messages | Non |
 | `/lock` `/unlock` | Gérer les salons | Non |
 | `/warn` `/warnings` `/timeout` `/untimeout` | Exclure temporairement des membres | Non |
@@ -190,6 +191,42 @@ Nom à donner (lettres et chiffres ; le numéro d'emoji.gg devant et les `_` son
 | `clock` `pause` `calender` `notification` `clipboard` | Boutons de `/schedule` et `/season` |
 
 Le terminal affiche au démarrage `X/18 emoji(s) perso chargé(s) — absents : …` : c'est la liste de ceux qui manquent ou dont le nom ne correspond pas.
+
+### 🖥️ Dashboard web (`/dashboard`)
+
+Régler le bot depuis un navigateur plutôt qu'avec des menus Discord. **Désactivé par défaut.** Deux pages :
+
+| Page | Ce qu'elle règle | Équivalent Discord |
+|---|---|---|
+| **Queue** | Nom, équipes, couleurs, joueurs par équipe, session, heure, type, vote des capitaines, presets | le panneau de `/queue` |
+| **Serveur** | Fonctions à activer, salons, rôles, réglages MMR, mot de passe des queues | `/option` |
+
+Un avantage qui n'est pas cosmétique : **un menu Discord plafonne à 25 entrées**. Sur un serveur avec 60 salons, le sélecteur de `/option` en cache une partie ; la liste déroulante web les montre tous.
+
+Ce n'est pas un second bot : le serveur web tourne **dans le process du bot**, sur `aiohttp` (déjà installé). Les deux interfaces lisent et écrivent la même configuration, en mémoire — un réglage fait sur le web est immédiatement celui que verra `/queue`.
+
+**Comment on se connecte** — pas d'OAuth2, pas de mot de passe. Un administrateur tape `/dashboard` : le bot, qui sait déjà qu'il est administrateur, répond en éphémère avec un lien **valable 5 minutes et utilisable une seule fois**. Le clic ouvre une session de 2 heures. À chaque page, les droits sont **relus sur Discord** : quitter le serveur ou perdre son rôle coupe l'accès aussitôt, sans attendre l'expiration du cookie.
+
+**Enregistrer ne lance pas de queue.** Le panneau Discord, lui, fait les deux à la fois. Ici la configuration est enregistrée, et c'est `/queue` sur Discord qui ouvre la partie — là où sont les joueurs.
+
+**Le dashboard ne crée ni salon ni rôle** : il désigne ceux qui existent déjà, exactement comme les sélecteurs de `/option`. Les mêmes règles s'appliquent que sur Discord — le rôle organisateur ne peut pas être @everyone, les clans ne s'allument pas sans catégorie, et effacer le mot de passe éteint l'option qui n'aurait plus rien à demander.
+
+Chaque section est un formulaire séparé : enregistrer les rôles ne réécrit pas les fonctions, donc deux administrateurs sur deux onglets ne s'effacent pas l'un l'autre.
+
+**Ce qui reste sur Discord** : rejoindre une queue, les duels, les matchs, `/clan`, `/groupe`, les sondages et la modération. Le dashboard est fait pour les administrateurs, pas pour les joueurs.
+
+Quatre variables dans `.env` (voir `.env.example`) :
+
+| Variable | Rôle |
+|---|---|
+| `DASHBOARD_ENABLED` | `1` pour l'activer. À `0`, `/dashboard` répond que le site est indisponible |
+| `DASHBOARD_BASE_URL` | L'adresse publique, sans `/` final — c'est elle qui compose le lien |
+| `DASHBOARD_SECRET` | La clé de signature, **32 caractères minimum** : `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
+| `DASHBOARD_PORT` | Le port d'écoute (8080 par défaut ; la variable `PORT` de l'hébergeur a la priorité) |
+
+Sans clé valable ou sans adresse, le dashboard **ne démarre pas** et le dit dans le terminal : le bot, lui, fonctionne normalement. En `http://`, le cookie n'est pas marqué `Secure` — à réserver aux essais en local.
+
+Sur Railway, le service doit être **web** (et non `worker`) pour recevoir un domaine. N'ajoute un `healthcheckPath` sur `/healthz` que si `DASHBOARD_ENABLED=1` : sinon rien n'écoute, et le déploiement échoue.
 
 ### Les salons et rôles
 
@@ -228,6 +265,14 @@ createyourqueue/
 ├── custom_emojis.py     # Emojis perso du bot, chargés par nom au démarrage
 ├── retranslate.py       # Renomme salons et rôles au changement de langue
 ├── MODMAIL_SETUP.md     # Mise en place du bot modmail
+├── web/                 # Dashboard web (/dashboard) — tourne dans le process du bot
+│   ├── server.py        # Serveur aiohttp, middlewares, démarrage/arrêt
+│   ├── auth.py          # Liens de connexion signés, cookie de session, CSRF
+│   ├── routes_queue.py  # Page Queue — l'équivalent du panneau de /queue
+│   ├── routes_server.py # Page Serveur — l'équivalent de /option
+│   ├── render.py        # Les briques HTML : cartes, lignes, interrupteurs
+│   ├── keys.py          # Clés typées d'aiohttp
+│   └── static/          # style.css, app.js
 ├── locales/             # fr.json, en.json, es.json, de.json, ko.json
 ├── data/                # Ce que le bot a mémorisé (dont les tickets modmail) — ne pas éditer à la main
 ├── tests/               # Les tests automatiques — voir « Vérifier »
@@ -246,6 +291,7 @@ createyourqueue/
     ├── wizard.py        # /option
     ├── welcome.py       # Message d'arrivée et choix de la langue
     ├── config.py        # /config
+    ├── dashboard.py     # /dashboard — le lien vers le dashboard web
     ├── roles.py         # /roles
     ├── moderation.py    # /clear, /warn, /timeout…
     ├── statuspanel.py   # /status
@@ -485,3 +531,5 @@ Puis, dans la session `screen` : `python3 bot.py --bot main`, et **Ctrl+A** puis
 - Ne mets **jamais** ton `.env` ou un token sur GitHub — le `.gitignore` fourni exclut déjà `.env`, `data/` (dont les tickets du modmail) et les journaux
 - Un token ne s'écrit **que** dans `.env`. Un token collé dans un `.md` ou un `.py` part sur GitHub avec le reste
 - Si un token a fuité, régénère-le immédiatement dans le Developer Portal (`Bot → Reset Token`) : l'ancien cesse alors de fonctionner
+- `DASHBOARD_SECRET` se traite comme un token : qui l'a peut se fabriquer une session d'administrateur sur n'importe quel serveur. La changer invalide instantanément tous les liens et toutes les sessions en cours
+- Les liens de `/dashboard` sont personnels, valables 5 minutes et à usage unique. Le bot les envoie en éphémère pour qu'ils ne restent pas dans l'historique d'un salon

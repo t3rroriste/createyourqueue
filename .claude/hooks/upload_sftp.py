@@ -6,40 +6,45 @@ Ne fait rien tout seul : Claude Code l'appelle après chaque Edit/Write
 (voir .claude/settings.json) en lui passant les infos de l'opération sur
 son entrée standard (stdin), au format JSON.
 
+L'hôte, l'utilisateur et les règles d'exclusion vivent dans `adkynet.py`,
+partagés avec `sync_all.py` : une seule liste d'exclusions à maintenir.
+
 Pré-requis :
     pip install paramiko
 
 Le mot de passe SFTP ne doit JAMAIS être écrit dans ce fichier. Il est lu
 depuis la variable d'environnement ADKYNET_SFTP_PASSWORD, à définir une
-fois sur ta machine (voir les instructions données à côté de ce fichier).
+fois sur ta machine :
+
+    setx ADKYNET_SFTP_PASSWORD "ton-mot-de-passe"
+
+(puis rouvrir le terminal ; `setx` n'affecte pas la session en cours)
 """
 
-import sys
-import os
 import json
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import adkynet  # noqa: E402
 
 try:
-    import paramiko
+    import paramiko  # noqa: F401
 except ImportError:
     print(
-        "[sync] Le module 'paramiko' n'est pas installé. "
+        "[sync] Le module 'paramiko' n'est pas installé — AUCUN envoi. "
         "Lance : pip install paramiko",
         file=sys.stderr,
     )
     sys.exit(0)  # on ne bloque jamais Claude Code pour ça
 
-# --- Paramètres de connexion à ton serveur AdKyNet -------------------
-REMOTE_HOST = "node2.adky.net"
-REMOTE_PORT = 2022
-REMOTE_USER = "bdexh0br.a197589d"
-REMOTE_PASSWORD = os.environ.get("ADKYNET_SFTP_PASSWORD")
-
 
 def main() -> None:
-    if not REMOTE_PASSWORD:
+    if not adkynet.password():
         print(
-            "[sync] ADKYNET_SFTP_PASSWORD n'est pas défini — upload ignoré. "
-            "Voir les instructions pour le configurer.",
+            "[sync] ADKYNET_SFTP_PASSWORD n'est pas défini — AUCUN envoi. "
+            'Lance : setx ADKYNET_SFTP_PASSWORD "ton-mot-de-passe" puis '
+            "rouvre le terminal.",
             file=sys.stderr,
         )
         return
@@ -55,40 +60,19 @@ def main() -> None:
         return  # rien à envoyer (dossier, fichier supprimé, etc.)
 
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
-    rel_path = os.path.relpath(local_path, project_dir).replace("\\", "/")
-
-    # On ne synchronise jamais les fichiers qui n'ont rien à faire sur le
-    # serveur (venv, cache, config locale de Claude...).
-    ignored_prefixes = ("venv/", "__pycache__/", ".git/", ".claude/", "tests/", "graphify-out/")
-    if any(rel_path.startswith(p) for p in ignored_prefixes):
-        return
-    # Jamais les secrets ni les données vivantes du serveur : les écraser
-    # depuis la copie locale ferait perdre les tokens ou la config des serveurs.
-    if rel_path in (".env", "locales.zip") or rel_path.startswith("data/") or rel_path.endswith(".log"):
+    rel_path = adkynet.to_relative(local_path, project_dir)
+    if rel_path.startswith("..") or adkynet.should_skip(rel_path):
         return
 
     remote_path = "/" + rel_path
-
     try:
-        transport = paramiko.Transport((REMOTE_HOST, REMOTE_PORT))
-        transport.connect(username=REMOTE_USER, password=REMOTE_PASSWORD)
-        sftp = paramiko.SFTPClient.from_transport(transport)
-
-        # Recrée les sous-dossiers manquants côté serveur si besoin.
-        remote_dir = os.path.dirname(remote_path)
-        path = ""
-        for part in remote_dir.strip("/").split("/"):
-            if not part:
-                continue
-            path += "/" + part
-            try:
-                sftp.stat(path)
-            except FileNotFoundError:
-                sftp.mkdir(path)
-
-        sftp.put(local_path, remote_path)
-        sftp.close()
-        transport.close()
+        transport, sftp = adkynet.connect()
+        try:
+            adkynet.ensure_remote_dir(sftp, remote_path)
+            sftp.put(local_path, remote_path)
+        finally:
+            sftp.close()
+            transport.close()
         print(f"[sync] {rel_path} envoyé sur AdKyNet", file=sys.stderr)
     except Exception as e:
         # On ne bloque jamais Claude Code même si l'upload échoue.

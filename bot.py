@@ -29,6 +29,7 @@ from discord.ext import commands
 
 import custom_emojis
 import embeds
+from web import server as web_server
 from command_sync import sync_if_changed
 from config import (
     COLOR_ERROR,
@@ -124,12 +125,18 @@ class CreateYourQueueBot(commands.Bot):
         # Remplacé par run_bot() : c'est la clé du message de diagnostic.
         self.bot_name = "Bot"
         self.presence_task: asyncio.Task | None = None
+        # Renseigné par web/server.py si le dashboard démarre (bot principal).
+        self.dashboard_runner = None
 
     async def setup_hook(self) -> None:
         # Juste après la connexion, avant que les cogs publient leurs
         # panneaux : les emojis perso sont prêts dès le premier message.
         if self.bot_name == "Main":
             await custom_emojis.load(self)
+            # Le dashboard vit dans ce process pour partager la mémoire de
+            # guild_settings (voir web/__init__.py). S'il ne démarre pas, il le
+            # signale et le bot continue normalement.
+            await web_server.start(self)
 
     async def send_diagnostic(self, bot_name: str, status: str = "online", has_error: bool = False):
         """Envoie ou met à jour un message de diagnostic dans le channel configuré."""
@@ -194,6 +201,10 @@ class CreateYourQueueBot(commands.Bot):
     async def close(self) -> None:
         if self.presence_task is not None:
             self.presence_task.cancel()
+
+        # Avant de couper la connexion Discord : le dashboard ne doit pas
+        # continuer à répondre alors que le bot n'a plus de serveurs à lire.
+        await web_server.stop(self)
 
         # Mettre à jour le diagnostic en offline avant de se déconnecter (sans supprimer le message)
         if self.bot_name and self.bot_name in diagnostic_message_ids:
