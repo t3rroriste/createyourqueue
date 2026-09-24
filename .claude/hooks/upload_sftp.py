@@ -50,14 +50,23 @@ def main() -> None:
         return
 
     # Claude Code envoie les infos de l'événement en JSON sur stdin.
+    #
+    # Tout ce qui empêche un envoi se DIT. Ce hook s'est tu pendant une
+    # semaine (paramiko manquant), le code partait sur l'hébergeur sans
+    # jamais passer par git, et personne ne l'a vu. Un silence ne doit plus
+    # jamais vouloir dire « je n'ai rien fait ».
     try:
         data = json.load(sys.stdin)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        print(f"[sync] Événement illisible, envoi ignoré : {e}", file=sys.stderr)
         return
 
     local_path = data.get("tool_input", {}).get("file_path")
-    if not local_path or not os.path.isfile(local_path):
-        return  # rien à envoyer (dossier, fichier supprimé, etc.)
+    if not local_path:
+        return  # un Edit/Write sans chemin : ce n'est pas une anomalie
+    if not os.path.isfile(local_path):
+        print(f"[sync] {local_path} introuvable, envoi ignoré", file=sys.stderr)
+        return
 
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
     rel_path = adkynet.to_relative(local_path, project_dir)
