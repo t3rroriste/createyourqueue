@@ -113,8 +113,16 @@ def main() -> int:
         return 0
 
     push = git(exe, "push")
-    if push.returncode != 0:
+    sortie = (push.stdout + push.stderr).strip()
+
+    # Une branche créée en local n'a pas encore de branche amont : ce n'est
+    # pas un conflit, juste un premier push. On le fait, sans rien écraser.
+    if push.returncode != 0 and "no upstream branch" in sortie:
+        branche = git(exe, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        push = git(exe, "push", "--set-upstream", "origin", branche)
         sortie = (push.stdout + push.stderr).strip()
+
+    if push.returncode != 0:
         print(f"[git] {len(fichiers)} fichier(s) enregistrés en local, mais le push a échoué.",
               file=sys.stderr)
         if "rejected" in sortie or "non-fast-forward" in sortie or "fetch first" in sortie:
