@@ -19,10 +19,34 @@ d'environnement ADKYNET_SFTP_PASSWORD.
 from __future__ import annotations
 
 import os
+import sys
 
-HOST = os.environ.get("ADKYNET_SFTP_HOST", "node2.adky.net")
-PORT = int(os.environ.get("ADKYNET_SFTP_PORT", "2022"))
-USER = os.environ.get("ADKYNET_SFTP_USER", "bdexh0br.a197589d")
+
+def _env(name: str, default: str | None = None) -> str | None:
+    """Variable d'environnement, avec un rattrapage propre à Windows.
+
+    Une variable définie avec SetEnvironmentVariable(..., "User") est écrite
+    dans le registre : les processus DÉJÀ lancés ne la voient pas, terminal
+    compris. On relit donc le registre quand le processus n'a rien — sinon on
+    annonce « mot de passe non défini » alors qu'il est bien enregistré, et on
+    cherche le problème au mauvais endroit."""
+    valeur = os.environ.get(name)
+    if valeur:
+        return valeur
+    if sys.platform == "win32":
+        try:
+            import winreg
+
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as cle:
+                return winreg.QueryValueEx(cle, name)[0] or default
+        except OSError:
+            return default
+    return default
+
+
+HOST = _env("ADKYNET_SFTP_HOST", "node2.adky.net")
+PORT = int(_env("ADKYNET_SFTP_PORT", "2022"))
+USER = _env("ADKYNET_SFTP_USER", "bdexh0br.a197589d")
 
 # Dossiers qui n'ont rien à faire sur le serveur : dépendances compilées
 # pour Windows, caches, historique git, réglages locaux de Claude, tests.
@@ -40,7 +64,7 @@ SKIP_SUFFIXES = (".log", ".pyc")
 
 
 def password() -> str | None:
-    return os.environ.get("ADKYNET_SFTP_PASSWORD")
+    return _env("ADKYNET_SFTP_PASSWORD")
 
 
 def to_relative(local_path: str, project_dir: str) -> str:
