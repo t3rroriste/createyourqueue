@@ -80,11 +80,46 @@ def walk_remote(sftp, base: str = "/") -> dict[str, tuple[int, int]]:
     return found
 
 
+def ouvrir():
+    """Ouvre la connexion, ou explique pourquoi elle échoue.
+
+    Une pile d'appels paramiko de trente lignes ne dit pas quoi corriger :
+    dans la quasi-totalité des cas, c'est le mot de passe."""
+    import paramiko
+
+    try:
+        return adkynet.connect()
+    except paramiko.AuthenticationException:
+        longueur = len(adkynet.password() or "")
+        print(
+            f"\nAuthentification refusée par {adkynet.HOST}.\n"
+            f"  utilisateur       : {adkynet.USER}\n"
+            f"  mot de passe      : {longueur} caractère(s) enregistré(s)\n\n"
+            "Sur un panneau Pterodactyl, le mot de passe SFTP est celui de ton\n"
+            "COMPTE du panneau, pas un mot de passe distinct. Si le nombre de\n"
+            "caractères ci-dessus ne correspond pas au tien, la variable a été\n"
+            "tronquée — `setx` coupe sur certains caractères spéciaux. Redéfinis-la\n"
+            "sans setx :\n\n"
+            '  $s = Read-Host "Mot de passe SFTP" -AsSecureString\n'
+            "  $p = [Runtime.InteropServices.Marshal]::PtrToStringBSTR("
+            "[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))\n"
+            '  [Environment]::SetEnvironmentVariable("ADKYNET_SFTP_PASSWORD", $p, "User")\n\n'
+            "puis rouvre le terminal.",
+        )
+        return None
+    except OSError as e:
+        print(f"\nConnexion impossible à {adkynet.HOST}:{adkynet.PORT} — {e}")
+        return None
+
+
 def comparer() -> int:
     """Montre ce que le serveur a et que ce PC n'a pas, sans rien modifier."""
     from datetime import datetime
 
-    transport, sftp = adkynet.connect()
+    lien = ouvrir()
+    if lien is None:
+        return 1
+    transport, sftp = lien
     try:
         distant = walk_remote(sftp)
     finally:
@@ -171,7 +206,10 @@ def main() -> int:
     if args.comparer:
         return comparer()
 
-    transport, sftp = adkynet.connect()
+    lien = ouvrir()
+    if lien is None:
+        return 1
+    transport, sftp = lien
     sent = failed = 0
     try:
         for rel in wanted:
