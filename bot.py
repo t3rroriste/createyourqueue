@@ -19,8 +19,6 @@ import socket
 
 from dotenv import load_dotenv
 
-# .env AVANT tout import du projet : config.py lit ses variables au moment où
-# il est importé.
 load_dotenv()
 
 import discord
@@ -44,10 +42,6 @@ from config import (
 from guild_settings import is_setup_complete, load_settings
 from i18n import load_langs, t
 
-# ---------------------------------------------------------
-# Logging — configuré avant de charger les données, qui peuvent signaler
-# un fichier illisible.
-# ---------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] %(name)s: %(message)s",
@@ -55,23 +49,19 @@ logging.basicConfig(
 )
 log = logging.getLogger("bot")
 
-# Couleurs pour les diagnostics
 DIAGNOSTIC_COLOR_SUCCESS = COLOR_SUCCESS
 DIAGNOSTIC_COLOR_ERROR = COLOR_ERROR
 
-# Stockage partagé pour les IDs de messages de diagnostic
 diagnostic_message_ids = {}
 
 load_langs()
 load_settings()
 
-# Parser d'arguments pour le choix du bot
 parser = argparse.ArgumentParser(description="CreateYourQueue Bot")
 parser.add_argument("--bot", choices=["main", "temporaire", "modmail", "both", "all"], default="all",
                     help="Quel bot lancer (main, temporaire, modmail, both pour main+temporaire, ou all pour les trois)")
 args = parser.parse_args()
 
-# Vérification des tokens
 MAIN_TOKEN = os.getenv("DISCORD_TOKEN")
 TEMP_TOKEN = os.getenv("DISCORD_TOKEN_TEMPORAIRE")
 MODMAIL_TOKEN = os.getenv("DISCORD_TOKEN_MODMAIL")
@@ -98,9 +88,7 @@ elif args.bot == "modmail":
     if not MODMAIL_TOKEN:
         raise RuntimeError("DISCORD_TOKEN_MODMAIL manquant ! Ajoute-le dans le fichier .env")
 
-# ---------------------------------------------------------
-# Intents
-# ---------------------------------------------------------
+
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -111,30 +99,24 @@ class CreateYourQueueBot(commands.Bot):
     """Bot standard, avec un arrêt propre."""
 
     def __init__(self, *args, **kwargs):
-        # Aucun @everyone ni ping de rôle sans autorisation explicite à l'envoi.
         kwargs.setdefault("allowed_mentions", discord.AllowedMentions(
             everyone=False, roles=False, users=True, replied_user=True))
-        # Serveurs uniquement : en MP, les commandes n'ont rien sur quoi agir, et
-        # le bot ne s'installe pas sur un compte utilisateur.
         kwargs.setdefault("allowed_contexts", app_commands.AppCommandContext(
             guild=True, dm_channel=False, private_channel=False))
         kwargs.setdefault("allowed_installs", app_commands.AppInstallationType(guild=True, user=False))
         super().__init__(*args, **kwargs)
         self.diagnostic_channel_id = DIAGNOSTIC_CHANNEL_ID
-        # Remplacé par run_bot() : c'est la clé du message de diagnostic.
         self.bot_name = "Bot"
         self.presence_task: asyncio.Task | None = None
 
     async def setup_hook(self) -> None:
-        # Juste après la connexion, avant que les cogs publient leurs
-        # panneaux : les emojis perso sont prêts dès le premier message.
         if self.bot_name == "Main":
             await custom_emojis.load(self)
 
     async def send_diagnostic(self, bot_name: str, status: str = "online", has_error: bool = False):
         """Envoie ou met à jour un message de diagnostic dans le channel configuré."""
         if self.diagnostic_channel_id == 0:
-            return  # Pas de channel de diagnostic configuré
+            return  
 
         try:
             diagnostic_channel = self.get_channel(self.diagnostic_channel_id)
@@ -142,16 +124,15 @@ class CreateYourQueueBot(commands.Bot):
                 log.warning(f"Channel diagnostic introuvable: {self.diagnostic_channel_id}")
                 return
 
-            # Déterminer la couleur selon le statut
             if status == "online":
                 if has_error:
-                    color = COLOR_WARNING  # Orange s'il y a une erreur
+                    color = COLOR_WARNING  
                     status_text = "🟡 ONLINE (Error)"
                 else:
-                    color = DIAGNOSTIC_COLOR_SUCCESS  # Vert si tout est OK
+                    color = DIAGNOSTIC_COLOR_SUCCESS  
                     status_text = "🟢 ONLINE"
             else:
-                color = DIAGNOSTIC_COLOR_ERROR  # Rouge si offline
+                color = DIAGNOSTIC_COLOR_ERROR  
                 status_text = "🔴 OFFLINE"
 
             timestamp = discord.utils.utcnow()
@@ -163,27 +144,22 @@ class CreateYourQueueBot(commands.Bot):
                 timestamp=timestamp
             )
 
-            # Utiliser le stockage partagé pour retrouver le message existant
             message_id = diagnostic_message_ids.get(bot_name)
 
-            # Si un message existe déjà, le mettre à jour
             if message_id:
                 try:
                     old_message = await diagnostic_channel.fetch_message(message_id)
                     await old_message.edit(embed=embed)
                     log.info(f"Message de diagnostic mis à jour pour {bot_name}")
                 except discord.NotFound:
-                    # Le message n'existe plus, en créer un nouveau
                     message = await diagnostic_channel.send(embed=embed)
                     diagnostic_message_ids[bot_name] = message.id
                     log.info(f"Nouveau message de diagnostic créé pour {bot_name}")
                 except Exception as e:
                     log.error(f"Erreur lors de la mise à jour du diagnostic: {e}")
-                    # En cas d'erreur, créer un nouveau message
                     message = await diagnostic_channel.send(embed=embed)
                     diagnostic_message_ids[bot_name] = message.id
             else:
-                # Créer un nouveau message
                 message = await diagnostic_channel.send(embed=embed)
                 diagnostic_message_ids[bot_name] = message.id
                 log.info(f"Message de diagnostic envoyé pour {bot_name}")
@@ -195,7 +171,6 @@ class CreateYourQueueBot(commands.Bot):
         if self.presence_task is not None:
             self.presence_task.cancel()
 
-        # Mettre à jour le diagnostic en offline avant de se déconnecter (sans supprimer le message)
         if self.bot_name and self.bot_name in diagnostic_message_ids:
             try:
                 diagnostic_channel = self.get_channel(self.diagnostic_channel_id)
@@ -212,7 +187,7 @@ class CreateYourQueueBot(commands.Bot):
                             )
                             await old_message.edit(embed=embed)
                         except discord.NotFound:
-                            pass  # Le message n'existe plus, ce n'est pas grave
+                            pass 
                         except Exception as e:
                             log.error(f"Erreur lors de la mise à jour du diagnostic: {e}")
             except Exception as e:
@@ -240,8 +215,7 @@ async def global_setup_check(interaction: discord.Interaction) -> bool:
     command = interaction.command
     if command is None:
         return True
-    # Une sous-commande (/roles panel) se juge sur sa commande racine : sinon
-    # /antiraid status passerait, « status » étant autorisée seule.
+
     root = getattr(command, "root_parent", None) or command
     if root.name not in SETUP_REQUIRED_COMMANDS:
         return True
@@ -249,7 +223,6 @@ async def global_setup_check(interaction: discord.Interaction) -> bool:
     if is_setup_complete(interaction.guild_id):
         return True
 
-    # Dans la langue du serveur : t(None, …) répondrait toujours en anglais.
     gid = interaction.guild_id
     embed = embeds.base(
         gid,
@@ -276,17 +249,13 @@ async def on_app_command_error(
     elif isinstance(error, app_commands.CommandOnCooldown):
         message = t(gid, "errors.cooldown", seconds=round(error.retry_after))
     elif isinstance(error, app_commands.CheckFailure):
-        # /setup non fait : global_setup_check a déjà répondu.
         return
     else:
         command = interaction.command.name if interaction.command else "?"
         log.exception(f"Erreur non gérée dans /{command}", exc_info=error)
         message = t(gid, "errors.generic")
 
-    # La commande n'a pas abouti : le journal du tableau de bord la compte
-    # comme ratée (voir cogs/dashboard_api.py). Personne n'écoute si l'API
-    # est éteinte. Les refus de /setup sont partis plus haut : ils ne sont
-    # pas des échecs, juste une configuration qui n'est pas finie.
+
     interaction.client.dispatch("app_command_failed", interaction)
 
     try:
@@ -295,8 +264,6 @@ async def on_app_command_error(
         else:
             await interaction.response.send_message(message, ephemeral=True)
     except discord.HTTPException:
-        # Salon supprimé, interaction expirée : le message d'erreur est perdu,
-        # mais la trace est déjà dans les logs.
         pass
 
 
@@ -312,7 +279,6 @@ async def cycle_presence(bot_instance: commands.Bot) -> None:
     """Fait tourner la bio du bot cycliquement : servers -> queues -> total -> repeat"""
     while True:
         try:
-            # Récupérer les informations
             queue_cog = bot_instance.get_cog("QueueConfig")
             active = 0
             if queue_cog is not None:
@@ -325,7 +291,6 @@ async def cycle_presence(bot_instance: commands.Bot) -> None:
 
             servers_count = len(bot_instance.guilds)
 
-            # Cycle : servers -> queues -> total -> help
             statuses = [
                 f"{servers_count} servers",
                 f"{active} queues",
@@ -338,7 +303,7 @@ async def cycle_presence(bot_instance: commands.Bot) -> None:
                     await bot_instance.change_presence(
                         activity=discord.CustomActivity(name=status)
                     )
-                    await asyncio.sleep(20)  # Attendre 20 secondes
+                    await asyncio.sleep(20)  
                 except discord.HTTPException as e:
                     log.error(f"Statut non mis a jour : {e}")
         except asyncio.CancelledError:
@@ -349,8 +314,8 @@ async def cycle_presence(bot_instance: commands.Bot) -> None:
 
 
 GATEWAY_HOST = "gateway.discord.gg"
-RETRY_START = 5      # secondes avant le premier nouvel essai
-RETRY_MAX = 300      # plafond : 5 minutes entre deux essais
+RETRY_START = 5     
+RETRY_MAX = 300      
 
 
 async def wait_for_network() -> None:
@@ -387,10 +352,9 @@ async def run_bot(token: str, bot_name: str, is_temp: bool = False, is_modmail: 
     """
     bot = CreateYourQueueBot(command_prefix="!", intents=intents, help_command=None)
     bot.bot_name = bot_name
-    bot.tree.on_error = on_app_command_error  # type: ignore[method-assign]
+    bot.tree.on_error = on_app_command_error 
     if not is_temp and not is_modmail:
-        # Le contrôle « serveur configuré » ne concerne que le bot principal.
-        bot.tree.interaction_check = global_setup_check  # type: ignore[method-assign]
+        bot.tree.interaction_check = global_setup_check  
 
     @bot.event
     async def on_ready():
@@ -402,7 +366,6 @@ async def run_bot(token: str, bot_name: str, is_temp: bool = False, is_modmail: 
         elif not is_temp:
             start_presence_cycle(bot)
 
-        # Envoyer le diagnostic de démarrage (sans erreur par défaut)
         await bot.send_diagnostic(bot_name, status="online", has_error=False)
 
     @bot.event
@@ -412,7 +375,6 @@ async def run_bot(token: str, bot_name: str, is_temp: bool = False, is_modmail: 
         await bot.send_diagnostic(bot_name, status="online", has_error=False)
 
     async with bot:
-        # Choisir les extensions selon le type de bot
         if is_modmail:
             extensions = MODMAIL_EXTENSIONS
         elif is_temp:
@@ -440,7 +402,6 @@ async def run_bot(token: str, bot_name: str, is_temp: bool = False, is_modmail: 
             )
 
 
-# Un port local par bot, tenu ouvert tant que le processus vit : c'est le verrou.
 INSTANCE_BASE_PORT = int(os.getenv("BOT_INSTANCE_PORT", "47310"))
 INSTANCE_PORTS = {"Main": 0, "Temporaire": 1, "ModMail": 2}
 MODE_BOTS = {
@@ -489,8 +450,6 @@ async def main():
 
 
 if __name__ == "__main__":
-    # Deux instances du même bot reçoivent chacune chaque clic : l'une répond,
-    # l'autre échoue en « Unknown interaction ».
     instance_locks = claim_instances(MODE_BOTS[args.bot])
     if isinstance(instance_locks, str):
         log.critical(f"[{instance_locks}] tourne déjà sur cette machine : "
