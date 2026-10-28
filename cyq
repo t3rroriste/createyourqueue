@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Raccourci : ./cyq <verbe>  ->  outils/cyq.sh
+# Son jumeau Windows est cyq.cmd, a cote.
+exec "$(cd "$(dirname "$0")" && pwd)/outils/cyq.sh" "$@"

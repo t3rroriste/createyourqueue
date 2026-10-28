@@ -81,17 +81,17 @@ dans l'autre, ne jamais « harmoniser » les deux.
 
 ### Un fichier neuf doit être déclaré
 
-`outils/fichiers-du-site.ps1` est la seule liste de ce qui part en ligne.
+`outils/fichiers_du_site.py` est la seule liste de ce qui part en ligne.
 Une page, une feuille ou un script absent de cette liste ne part pas —
 `servers.css`, `dashboard.css` et `support.html` en ont fait les frais.
-`outils/numeroter-versions.ps1` avertit quand une page réclame un fichier
+`outils/numeroter_versions.py` avertit quand une page réclame un fichier
 non déclaré ; il ne connaît pas les pages elles-mêmes, qu'il faut ajouter
 à la main.
 
 ### Après chaque modification de CSS ou de JS
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File outils/numeroter-versions.ps1
+python outils/numeroter_versions.py
 ```
 
 Le script renumérote les `?v=` de toutes les pages. Sans lui, le navigateur
@@ -101,7 +101,7 @@ avant d'enregistrer ; à la main, c'est cette commande.
 ### Essayer en local
 
 ```
-.\cyq local
+.\cyq local        (sur le MacBook : ./cyq local)
 ```
 
 Puis `http://localhost:8765/welcome.html?guild=test&motion=on` par exemple.
@@ -128,18 +128,33 @@ la consomme — et les deux implémentations, PHP et Python.
 
 ## Synchro et publication
 
-`.\cyq veille` tient les deux PC et les deux hébergeurs à jour tout seul.
-`README.md` explique le mécanisme et les garde-fous. Ce qu'il faut savoir
-ici : **ne jamais lancer une publication de sa propre initiative.**
-`.\cyq publier`, `outils/publier-site.ps1` et `outils/publier-bot.py`
+`cyq veille` tient les deux machines et les deux hébergeurs à jour tout
+seul. `README.md` explique le mécanisme et les garde-fous. Ce qu'il faut
+savoir ici : **ne jamais lancer une publication de sa propre initiative.**
+`cyq publier`, `outils/publier_site.py` et `outils/publier_bot.py`
 envoient en production sur `cyqbot.eu` et sur le serveur du bot. Ce sont
 des commandes qu'on demande.
+
+### Deux machines, deux systèmes
+
+Le PC fixe est sous Windows, le portable est un MacBook. **Tout
+l'outillage est en Python**, pour cette raison : `outils/cyq.ps1` et
+`outils/cyq.sh` sont deux portes d'entrée sur les mêmes scripts. Un geste
+nouveau s'écrit dans un `.py` ; les deux fronts l'appellent. Écrire la
+logique dans l'un des deux fronts, c'est garantir qu'elle manquera sur
+l'autre machine.
+
+Ce qui reste propre à chaque système, et seulement cela : le coffre à mots
+de passe (`outils/secrets_locaux.py` — DPAPI contre Trousseau) et le
+lancement au démarrage (dossier Démarrage contre `launchd`).
 
 ## Secrets — à ne jamais lire ni recopier
 
 - `bot/.env` — jetons du bot et de l'application Discord.
 - `site/api/secrets.php` — `CLIENT_SECRET` de l'OAuth Discord.
-- `outils/reglages/lws.config.ps1` et `lws.pass` — identifiants FTP.
+- `outils/reglages/lws.json` — identifiants FTP (et l'ancien `lws.config.ps1`).
+- Les mots de passe FTP et SFTP ne sont dans aucun fichier du dépôt : ils
+  vivent dans le coffre du système.
 
 Ces fichiers sont refusés en lecture par `.claude/settings.json`. Les
 modèles `.env.example`, `secrets.exemple.php` et `lws.config.exemple.ps1`

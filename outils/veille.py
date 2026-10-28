@@ -98,9 +98,8 @@ def site_touche(exe: str) -> bool:
 
 
 def numeroter() -> None:
-    script = os.path.join(OUTILS_DIR, "numeroter-versions.ps1")
     subprocess.run(
-        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script],
+        [sys.executable, os.path.join(OUTILS_DIR, "numeroter_versions.py"), "--silencieux"],
         cwd=RACINE, capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
 
@@ -113,8 +112,8 @@ def changements_a_publier(exe: str) -> list[str]:
     tete = synchro_git.git(exe, "rev-parse", "HEAD").stdout.strip()
     if not depuis:
         # Première publication depuis cette machine : on ne devine pas, on
-        # prend tout. `publier-site.ps1` envoie de toute façon la liste
-        # complète, et `publier-bot.py` sans --fichiers aussi.
+        # prend tout. `publier_site.py` envoie de toute façon la liste
+        # complète, et `publier_bot.py` sans --fichiers aussi.
         return ["*"]
     if depuis == tete:
         return []
@@ -127,11 +126,10 @@ def changements_a_publier(exe: str) -> list[str]:
 
 
 def publier_site() -> bool:
-    script = os.path.join(OUTILS_DIR, "publier-site.ps1")
-    # -NoBump : les `?v=` ont déjà été posés avant le commit, et les reposer
-    # ici ferait repartir la boucle.
+    # --sans-numerotation : les `?v=` ont déjà été posés avant le commit, et
+    # les reposer ici ferait repartir la boucle.
     res = subprocess.run(
-        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-NoBump"],
+        [sys.executable, os.path.join(OUTILS_DIR, "publier_site.py"), "--sans-numerotation"],
         cwd=RACINE, capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     if res.returncode == 0:
@@ -143,7 +141,7 @@ def publier_site() -> bool:
 
 
 def publier_bot(fichiers: list[str] | None) -> bool:
-    script = os.path.join(OUTILS_DIR, "publier-bot.py")
+    script = os.path.join(OUTILS_DIR, "publier_bot.py")
     commande = [sys.executable, script]
     if fichiers:
         commande += ["--fichiers", *fichiers]

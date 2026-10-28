@@ -13,6 +13,9 @@
 #
 # Pourquoi une seule porte d'entrée : les scripts en dessous ont des noms
 # clairs mais des arguments à retenir. Ici, il n'y a qu'un verbe.
+#
+# Son jumeau macOS est `cyq.sh`, verbe pour verbe. Les deux appellent les
+# mêmes scripts Python : il n'y a qu'une implémentation de chaque geste.
 # =========================================================================
 
 param(
@@ -56,7 +59,7 @@ function Veille-Active {
 switch ($Verbe) {
 
   'amorcer' {
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $outils 'amorcer.ps1') @Reste
+    & python (Join-Path $outils 'amorcer.py') @Reste
   }
 
   'veille' {
@@ -89,10 +92,10 @@ switch ($Verbe) {
     # Une publication demandée à la main ne consulte pas la pause : si on
     # tape la commande, c'est qu'on veut publier.
     Write-Host "=== le site vers LWS ==="
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $outils 'publier-site.ps1') @Reste
+    & python (Join-Path $outils 'publier_site.py') @Reste
     Write-Host ""
     Write-Host "=== le bot vers AdKyNet ==="
-    & python (Join-Path $outils 'publier-bot.py')
+    & python (Join-Path $outils 'publier_bot.py')
   }
 
   'etat' {

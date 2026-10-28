@@ -1,10 +1,11 @@
 # =========================================================================
-# LA commande du PC portable. Une seule, à coller dans PowerShell :
+# LA commande d'une machine Windows neuve. Une seule, à coller dans
+# PowerShell (le MacBook a la sienne : outils/installer.sh) :
 #
 #   powershell -NoProfile -Command "irm https://raw.githubusercontent.com/t3rroriste/createyourqueue/main/outils/installer.ps1 | iex"
 #
 # Elle récupère tout — le bot Discord, le site, l'API, les outils — puis
-# enchaîne sur amorcer.ps1, qui demande les identifiants et pose la veille.
+# enchaîne sur amorcer.py, qui demande les identifiants et pose la veille.
 #
 # Ce fichier est fait pour être LU PAR LE RÉSEAU, pas lancé depuis le
 # disque : il est donc enregistré sans BOM, parce qu'une BOM arrivant dans

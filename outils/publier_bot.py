@@ -16,9 +16,9 @@ elles vivent dans `outils/adkynet.py`, écrites une seule fois — donc ni
 Il n'efface rien à distance : un fichier présent sur AdKyNet mais absent en
 local reste en place.
 
-    python outils/publier-bot.py --comparer   # ce que le SERVEUR a et que ce PC n'a pas
-    python outils/publier-bot.py --apercu     # lister ce qui partirait, sans envoyer
-    python outils/publier-bot.py              # envoyer tout le bot
+    python outils/publier_bot.py --comparer   # ce que le SERVEUR a et que ce PC n'a pas
+    python outils/publier_bot.py --apercu     # lister ce qui partirait, sans envoyer
+    python outils/publier_bot.py              # envoyer tout le bot
 
 Lance `--comparer` AVANT le premier envoi depuis une machine neuve. Du code
 peut avoir été poussé sur AdKyNet depuis l'autre PC sans jamais passer par

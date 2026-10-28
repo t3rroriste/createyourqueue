@@ -33,3 +33,9 @@
 *.ps1 text eol=crlf
 *.cmd text eol=crlf
 *.bat text eol=crlf
+
+# Et l'inverse pour le Mac : un script shell dont les lignes finissent en
+# CRLF répond « bad interpreter: /usr/bin/env bash^M » et ne démarre pas.
+# `cyq` n'a pas d'extension, il faut donc le nommer.
+*.sh text eol=lf
+cyq   text eol=lf

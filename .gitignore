@@ -19,8 +19,11 @@
 # n'a aucune raison d'exister ailleurs que sur le serveur et sur ce PC.
 site/api/secrets.php
 
-# Les identifiants FTP de LWS, et le mot de passe retenu par Windows.
-# `lws.config.exemple.ps1` reste versionné : c'est le modèle à remplir.
+# Les identifiants FTP de LWS, et les mots de passe retenus par le coffre
+# du système. `lws.config.exemple.ps1` reste versionné : c'est le modèle.
+# lws.json est la version lisible des deux machines ; l'ancienne .ps1 reste
+# ignorée tant qu'elle traîne sur le PC Windows.
+outils/reglages/lws.json
 outils/reglages/lws.config.ps1
 outils/reglages/*.pass
 

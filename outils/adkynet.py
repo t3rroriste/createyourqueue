@@ -67,6 +67,18 @@ SKIP_SUFFIXES = (".log", ".pyc")
 
 
 def password() -> str | None:
+    """Le mot de passe SFTP, rangé par `secrets_locaux` là où le système le
+    range : DPAPI sur Windows, Trousseau sur macOS. La variable
+    d'environnement reste prioritaire, et sert de secours si le coffre est
+    inaccessible."""
+    try:
+        import secrets_locaux
+
+        valeur = secrets_locaux.lire("adkynet")
+        if valeur:
+            return valeur
+    except ImportError:
+        pass
     return _env("ADKYNET_SFTP_PASSWORD")
 
 

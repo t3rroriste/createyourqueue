@@ -25,25 +25,34 @@ qu'on édite est celui qui part en ligne.
 
 ## La commande
 
-```
-.\cyq aide
-```
+Le même verbe des deux côtés. Sur le PC fixe `.\cyq`, sur le MacBook
+`./cyq` — c'est la seule différence.
 
 | Verbe | Effet |
 | --- | --- |
-| `.\cyq amorcer` | Prépare ce PC. À faire une fois par machine. |
-| `.\cyq veille` | Lance la synchro continue, en arrière-plan. |
-| `.\cyq arret` | L'arrête. |
-| `.\cyq synchro` | Un passage tout de suite. |
-| `.\cyq publier` | Met en ligne maintenant : site sur LWS, bot sur AdKyNet. |
-| `.\cyq etat` | Où en est tout : git, veille, dernière publication. |
-| `.\cyq pause` | La synchro continue, la mise en ligne attend. |
-| `.\cyq reprendre` | Lève la pause — et lève un conflit réglé. |
-| `.\cyq local` | Sert le site sur `http://localhost:8765`. |
+| `cyq amorcer` | Prépare cette machine. À faire une fois par machine. |
+| `cyq veille` | Lance la synchro continue, en arrière-plan. |
+| `cyq arret` | L'arrête. |
+| `cyq synchro` | Un passage tout de suite. |
+| `cyq publier` | Met en ligne maintenant : site sur LWS, bot sur AdKyNet. |
+| `cyq etat` | Où en est tout : git, veille, dernière publication. |
+| `cyq pause` | La synchro continue, la mise en ligne attend. |
+| `cyq reprendre` | Lève la pause — et lève un conflit réglé. |
+| `cyq local` | Sert le site sur `http://localhost:8765`. |
 
-## Travailler depuis le PC portable
+Les deux portes d'entrée (`outils/cyq.ps1` et `outils/cyq.sh`) appellent
+les **mêmes** scripts Python. Il n'y a qu'une implémentation de chaque
+geste : elle ne peut pas diverger d'une machine à l'autre.
 
-Une seule commande, à coller dans PowerShell sur la machine neuve :
+## Installer une machine
+
+Une seule commande. Sur le **MacBook**, dans le Terminal :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/t3rroriste/createyourqueue/main/outils/installer.sh | bash
+```
+
+Sur un **PC Windows**, dans PowerShell :
 
 ```powershell
 powershell -NoProfile -Command "irm https://raw.githubusercontent.com/t3rroriste/createyourqueue/main/outils/installer.ps1 | iex"
@@ -51,10 +60,19 @@ powershell -NoProfile -Command "irm https://raw.githubusercontent.com/t3rroriste
 
 Elle récupère le bot, le site, l'API et les outils, installe les
 dépendances, demande les identifiants qui ne sont pas dans le dépôt, et
-pose la veille au démarrage de Windows.
+pose la veille au démarrage de la session — dans `launchd` sur le Mac, dans
+le dossier Démarrage sur Windows.
 
-Ensuite, il n'y a plus rien à taper : ce qu'on enregistre sur un PC est sur
-l'autre dans la demi-minute, et en ligne dans la foulée.
+Ensuite, il n'y a plus rien à taper : ce qu'on enregistre sur une machine
+est sur l'autre dans la demi-minute, et en ligne dans la foulée.
+
+### Ce qui ne se synchronise pas : les mots de passe
+
+Chaque machine a son coffre — DPAPI sur Windows, le Trousseau sur macOS —
+et aucun des deux ne sait lire celui de l'autre. C'est voulu : un mot de
+passe chiffré pour ton compte Windows ne doit pas être déchiffrable par
+quelqu'un qui aurait copié le dossier. Le MacBook les redemande une fois, à
+l'amorçage.
 
 ## Comment la synchro marche
 
@@ -90,21 +108,32 @@ garantit fichier par fichier :
 | --- | --- | --- |
 | `bot/.env` | Jetons Discord du bot | Sur chaque PC, et sur AdKyNet |
 | `site/api/secrets.php` | `CLIENT_SECRET` Discord | Déposé à la main sur LWS |
-| `outils/reglages/lws.config.ps1` | Identifiants FTP | Sur chaque PC |
-| `outils/reglages/lws.pass` | Mot de passe FTP, chiffré | Sur chaque PC |
-| `ADKYNET_SFTP_PASSWORD` | Mot de passe SFTP | Variable d'environnement |
+| `outils/reglages/lws.json` | Identifiants FTP | Sur chaque machine |
+| mot de passe FTP | — | DPAPI (Windows) ou Trousseau (macOS) |
+| mot de passe SFTP AdKyNet | — | DPAPI (Windows) ou Trousseau (macOS) |
 
 `.env.example`, `lws.config.exemple.ps1` et `secrets.exemple.php` sont là
 pour documenter les champs : ce sont eux qu'on édite et qu'on cite.
 
-`lws.pass` est chiffré par Windows pour ton compte sur cette machine : la
-copie ne sert à rien sur l'autre PC, qui redemande le mot de passe une fois.
+Les variables d'environnement `LWS_FTP_PASS` et `ADKYNET_SFTP_PASSWORD`
+restent prioritaires sur le coffre, quand on veut forcer une valeur le
+temps d'une session.
 
 ## Ajouter un fichier au site
 
 Une page, une feuille ou un script neuf doit être déclaré dans
-`outils/fichiers-du-site.ps1`, et nulle part ailleurs. Sans ça il ne part
+`outils/fichiers_du_site.py`, et nulle part ailleurs. Sans ça il ne part
 pas, et la page s'affiche en HTML nu en production — c'est arrivé à
 `servers.css`, à `dashboard.css`, puis à `support.html`.
-`outils/numeroter-versions.ps1` avertit quand une page réclame un fichier
+`outils/numeroter_versions.py` avertit quand une page réclame un fichier
 qui n'est pas déclaré.
+
+## Comparer avec ce qui est en ligne
+
+```bash
+python outils/publier_site.py --recuperer /tmp/prod
+```
+
+Télécharge la version publiée dans un dossier à part, sans rien envoyer.
+C'est comme ça qu'on a retrouvé les commentaires effacés de
+`dashboard.html` le 28 octobre.
