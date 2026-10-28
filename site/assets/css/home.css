@@ -291,10 +291,15 @@ html::-webkit-scrollbar { display: none; }
 
 /* ============================== héros ================================= */
 
-/* Le héros est une couche épinglée : la première section vient glisser
-   par-dessus lui pendant qu'il recule. C'est le geste signature de la
-   référence, et sans lui le défilement paraît plat. */
-.hero { position: sticky; top: 0; z-index: 1; }
+/* Le héros ne s'épingle plus. Il l'a été — `position: sticky` — pour que
+   les modules viennent glisser par-dessus lui pendant qu'il reculait. Le
+   geste était joli isolément, mais il se lisait comme une SECONDE FENÊTRE
+   qui recouvrait la première : on ne descendait plus dans une page, on en
+   ouvrait une autre. L'accueil défile désormais d'un seul tenant, et
+   `.homemods` n'a plus de calque à porter.
+
+   Rien ne remplace `position`, parce qu'il n'y a rien à remplacer : le
+   héros est redevenu un bloc ordinaire dans le flux. */
 .hero__in {
   position: relative;
   min-height: calc(100dvh - var(--gutter) * 2);
@@ -441,29 +446,49 @@ html::-webkit-scrollbar { display: none; }
     transition-duration: .001ms !important;
   }
   /* Le scrub, l'empilement et la parallaxe sont coupés côté JS ; ici on
-     garantit surtout qu'aucun contenu ne reste masqué. */
-  .hero { position: static; }
+     garantit surtout qu'aucun contenu ne reste masqué.
+
+     Il y avait ici `.hero { position: static }` et `.hero__in
+     { min-height: 0 }`, pour défaire l'épinglage quand on demande moins de
+     mouvement. Le héros n'est plus épinglé pour personne : défaire n'a plus
+     de sens, et raccourcir le héros donnait à ce réglage une mise en page à
+     lui, différente de celle de tout le monde sans aucune raison. */
   .hero__in { transform: none !important; filter: none !important; opacity: 1 !important; }
-  .hero__in { min-height: 0; }
 }
 
 
 /* ================= la page Modules, reprise dans l'accueil ============= */
 
-/* Le calque qui passe PAR-DESSUS le héros.
-   Le héros est en `position: sticky` et son bloc conteneur est la coque
-   entière : il reste donc épinglé pendant tout le défilement. Sans ce
-   `z-index` et ce fond opaque, les six modules défileraient DERRIÈRE lui
-   et resteraient invisibles — on ne verrait que le héros, de haut en bas.
-   Le rayon n'est repris qu'en haut : les deux blocs se referment l'un sur
-   l'autre, comme le héros le fait déjà avec le sien. */
-.homemods {
-  position: relative; z-index: 2;
-  background: var(--bg);
-  border-radius: var(--r-shell) var(--r-shell) 0 0;
-}
+/* `.homemods` était un calque : le héros étant épinglé, il fallait un fond
+   opaque et un `z-index` au-dessus de lui, sans quoi les six modules
+   défilaient DERRIÈRE le héros et restaient invisibles. Le héros n'est plus
+   épinglé, donc il n'y a plus de calque — et c'est précisément ce fond
+   `--bg`, plus sombre que le `--panel` de la coque, qui donnait l'impression
+   d'une seconde fenêtre posée sur la première.
+
+   L'enveloppe reste quand même, et elle a maintenant un vrai métier : elle
+   est ce qui distingue « les modules lus dans l'accueil » de « les modules
+   lus sur leur propre page ». modules.css est écrite pour une page entière
+   dédiée ; les deux retouches ci-dessous la ramènent à un chapitre parmi
+   d'autres, et elles ne peuvent toucher que l'accueil.
+
+   Elle n'a donc plus de style à elle — seulement un nom, qui sert de
+   portée. Lui laisser un `position: relative` orphelin ferait croire à un
+   calage dont rien ne dépend. */
 
 /* L'en-tête des modules réserve la place de la nav fixe sur sa propre
    page. Ici la nav est déjà passée depuis longtemps quand on arrive :
    cette réserve ferait un trou d'une hauteur d'écran. */
 .homemods .mhead { padding-top: var(--sp-4); min-height: 0; }
+
+/* Un module par écran, c'est la mise en page de modules.html : on y vient
+   pour lire les six fonctions l'une après l'autre, et la pleine hauteur
+   donne à chacune le temps d'exister. Dans l'accueil, la même règle hache
+   le défilement en six écrans pleins — six fenêtres de plus après celle du
+   héros, exactement ce qu'on vient de retirer.
+
+   Les 120 px de `--sp-5` que `.mod` porte déjà en haut et en bas suffisent
+   à séparer deux modules ; le filet du haut fait le reste. Sous 1100 px,
+   modules.css annule déjà cette hauteur pour tout le monde : cette règle
+   ne concerne donc que le grand écran. */
+.homemods .mod { min-height: 0; }

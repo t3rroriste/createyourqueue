@@ -12,9 +12,9 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610282333">
+<link rel="stylesheet" href="assets/css/home.css?v=202610290043">
 <!-- La page Modules est reprise entière dans l'accueil : sa feuille suit. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610282333">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610290043">
 <script>
 // Le titre est masqué jusqu'à ce que le découpage en mots soit prêt, sinon on
 // le voit d'abord en un bloc puis sauter. Le retrait automatique après 1,8 s ne
@@ -121,11 +121,18 @@
        résumé serait un second texte à tenir à jour, et il finirait par
        mentir. modules.html reste en place et sert les mêmes ancres.
 
-       L'enveloppe n'est PAS décorative. Le héros est en `position: sticky`
-       et son bloc conteneur est toute la coque : sans un calque au-dessus
-       de lui, il resterait épinglé par-dessus les six modules sur toute la
-       hauteur de la page, et on ne verrait jamais rien d'autre que lui.
-       C'est exactement ce qui se passait avant cette div. -->
+       L'enveloppe n'est PAS décorative, mais son rôle a changé. Elle a été
+       le calque qui passait par-dessus un héros épinglé — sans lui, les
+       modules défilaient derrière le héros et on ne voyait que lui. Le
+       héros n'est plus épinglé depuis que l'accueil défile d'un seul
+       tenant, donc ce calque n'existe plus.
+
+       Ce qu'elle fait aujourd'hui : elle désigne « les modules lus dans
+       l'accueil ». modules.css est écrite pour une page entière qui ne
+       contient qu'eux ; deux règles de home.css s'accrochent ici pour la
+       ramener à un chapitre — l'en-tête ne réserve plus la place de la nav,
+       et un module ne fait plus un écran de haut. Retirer cette div rendrait
+       ces deux règles impossibles à viser sans toucher modules.html. -->
   <div class="homemods">
     <!-- ======================= en-tête ======================= -->
     <header class="mhead">
@@ -576,14 +583,14 @@
   </footer>
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610282333"></script>
-<script src="assets/js/config.js?v=202610282333"></script>
-<script src="assets/js/lang/fr.js?v=202610282333"></script>
-<script src="assets/js/lang/en.js?v=202610282333"></script>
-<script src="assets/js/lang/es.js?v=202610282333"></script>
-<script src="assets/js/lang/de.js?v=202610282333"></script>
-<script src="assets/js/lang/ko.js?v=202610282333"></script>
-<script src="assets/js/app.js?v=202610282333"></script>
-<script src="assets/js/page-home.js?v=202610282333"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610290043"></script>
+<script src="assets/js/config.js?v=202610290043"></script>
+<script src="assets/js/lang/fr.js?v=202610290043"></script>
+<script src="assets/js/lang/en.js?v=202610290043"></script>
+<script src="assets/js/lang/es.js?v=202610290043"></script>
+<script src="assets/js/lang/de.js?v=202610290043"></script>
+<script src="assets/js/lang/ko.js?v=202610290043"></script>
+<script src="assets/js/app.js?v=202610290043"></script>
+<script src="assets/js/page-home.js?v=202610290043"></script>
 </body>
 </html>
