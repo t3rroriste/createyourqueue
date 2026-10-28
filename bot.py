@@ -283,6 +283,12 @@ async def on_app_command_error(
         log.exception(f"Erreur non gérée dans /{command}", exc_info=error)
         message = t(gid, "errors.generic")
 
+    # La commande n'a pas abouti : le journal du tableau de bord la compte
+    # comme ratée (voir cogs/dashboard_api.py). Personne n'écoute si l'API
+    # est éteinte. Les refus de /setup sont partis plus haut : ils ne sont
+    # pas des échecs, juste une configuration qui n'est pas finie.
+    interaction.client.dispatch("app_command_failed", interaction)
+
     try:
         if interaction.response.is_done():
             await interaction.followup.send(message, ephemeral=True)

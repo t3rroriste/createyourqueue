@@ -1,0 +1,19 @@
+{% extends "guild_base.html" %}
+{% block section_intro %}tout est éteint tant que tu ne l'allumes pas{% endblock %}
+
+{% block section_content %}
+{% for key, label in features.items() %}
+  <label class="setting toggle">
+    <div class="setting-label">
+      <strong>{{ label[0] }}</strong>
+      <p class="hint">{{ label[1] }}</p>
+    </div>
+    <div class="setting-control">
+      <input type="checkbox" name="feature_{{ key }}" {% if guild.features.get(key) %}checked{% endif %}>
+      <span class="slider" aria-hidden="true"></span>
+    </div>
+  </label>
+{% endfor %}
+{% endblock %}
+
+{% block save_note %}Une fonction éteinte ne supprime rien, elle disparaît seulement.{% endblock %}

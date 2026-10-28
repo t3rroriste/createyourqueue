@@ -137,11 +137,11 @@ def toggle_line(guild_id: int | None, on: bool) -> str:
     return pick_line(guild_id, "wiz.opt_on", "wiz.opt_off", on)
 
 
-def pick_line(guild_id: int | None, first_key: str, second_key: str, first: bool) -> str:
+def pick_line(guild_id: int | None, first_key: str, second_key: str, first: bool, **extra: str) -> str:
     """Même lecture que `toggle_line`, pour un choix entre deux modes qui ne
     sont ni « allumé » ni « éteint » : le retenu en gras, l'autre barré."""
-    a = t(guild_id, first_key, **icons())
-    b = t(guild_id, second_key, **icons())
+    a = t(guild_id, first_key, **icons(), **extra)
+    b = t(guild_id, second_key, **icons(), **extra)
     if first:
         return f"**{a}** / ~~{b}~~"
     return f"~~{a}~~ / **{b}**"

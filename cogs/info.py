@@ -11,7 +11,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import embeds
-from config import BOT_AUTHOR, SUPPORT_INVITE
+from config import DASHBOARD_URL, BOT_AUTHOR, SUPPORT_INVITE
 from i18n import t
 
 log = logging.getLogger("bot.info")
@@ -117,6 +117,17 @@ class Info(commands.Cog):
         )
         embeds.align(embed)
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="dashboard", description="Le lien du panneau de configuration en ligne.")
+    async def dashboard(self, interaction: discord.Interaction):
+        """Le panneau se configure dans un navigateur : encore faut-il en
+        connaître l'adresse. Un message simple, comme /support — Discord
+        affiche lui-même l'aperçu du lien juste en dessous."""
+        gid = interaction.guild_id
+        await interaction.response.send_message(
+            t(gid, "dashboard.message", link=DASHBOARD_URL),
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
     @app_commands.command(name="support", description="Le lien du serveur de support du bot.")
     async def support(self, interaction: discord.Interaction):

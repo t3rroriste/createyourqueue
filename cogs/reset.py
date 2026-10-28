@@ -19,7 +19,7 @@ from discord.ext import commands
 
 import custom_emojis
 import embeds
-from guild_settings import get_resource_id, reset_guild, set_setup_panel
+from guild_settings import get_resource_id, reset_guild
 from i18n import t
 from rate_limit import throttled_each
 from text_safety import NO_PINGS
@@ -142,6 +142,7 @@ class ResetView(discord.ui.View):
     def _sync(self) -> None:
         gid = self.guild.id
         self.confirm.label = t(gid, "reset.btn_confirm")
+        self.confirm.emoji = custom_emojis.get("zoom125")
         self.stats.label = t(gid, "reset.btn_stats_on" if self.wipe_stats else "reset.btn_stats_off")
         self.stats.style = discord.ButtonStyle.danger if self.wipe_stats else discord.ButtonStyle.secondary
         self.cancel.label = t(gid, "reset.btn_cancel")
@@ -247,8 +248,7 @@ class ResetView(discord.ui.View):
         if self.wipe_stats:
             classement = interaction.client.get_cog("Classement")
             if classement is not None:
-                stats_wiped = len(classement.player_stats)
-                classement.player_stats.clear()
+                stats_wiped = len(classement.guild_stats.pop(gid, {}))
                 try:
                     await classement.save_classement_config()
                 except Exception as e:
@@ -282,8 +282,10 @@ class ResetView(discord.ui.View):
             except discord.HTTPException:
                 log.warning(f"[{guild.name}] Compte-rendu de reset non remis à {interaction.user}.")
 
-        # 5. Republier l'assistant dans un salon encore vivant : après un
-        # reset, le serveur se retrouve dans l'état d'un premier ajout.
+        # 5. Après un reset, le serveur se retrouve dans l'état d'un premier
+        # ajout : il reçoit donc exactement le même message que ce jour-là,
+        # un lien vers le tableau de bord. L'assistant n'est plus republié
+        # ici, la configuration ne se fait plus dans un salon.
         me = guild.me
         # Comparaison par ID : les objets salons restent en cache après
         # suppression, `not in targets` laisserait passer un salon mort.
@@ -296,13 +298,10 @@ class ResetView(discord.ui.View):
         if channel is None:
             return
         try:
-            from cogs.wizard import channels_embed, ChannelsWizard
-            view = ChannelsWizard(guild, intro=True)
-            message = await channel.send(embed=channels_embed(guild, intro=True), view=view)
-            set_setup_panel(guild.id, channel.id, message.id)
-            interaction.client.add_view(view, message_id=message.id)
-        except Exception as e:
-            log.error(f"[{guild.name}] Assistant non republié après le reset : {e}")
+            from cogs.welcome import join_embed, join_view
+            await channel.send(embed=join_embed(), view=join_view())
+        except discord.HTTPException as e:
+            log.error(f"[{guild.name}] Message d'accueil non renvoyé après le reset : {e}")
 
 
 class Reset(commands.Cog):

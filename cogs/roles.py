@@ -418,6 +418,7 @@ class Roles(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self._restored = False
 
     def can_manage(self, user: discord.abc.User) -> bool:
         """Configurer un panneau de rôles revient à distribuer des rôles :
@@ -430,11 +431,25 @@ class Roles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """Réattache les vues des panneaux publiés (sinon leurs boutons ne
-        répondent plus après un redémarrage)."""
+        """Réattache les boutons des panneaux publiés et redessine le message :
+        une mise à jour du bot s'applique aussi aux panneaux déjà en place."""
+        if self._restored:
+            return
+        self._restored = True
         for guild in self.bot.guilds:
             for panel in get_role_panels(guild.id):
-                self.register_panel_view(panel)
+                if not panel.get("message_id"):
+                    continue
+                view = RolePanelView(panel)
+                self.bot.add_view(view, message_id=panel["message_id"])
+                channel = guild.get_channel(panel.get("channel_id") or 0)
+                if channel is None:
+                    continue
+                try:
+                    await channel.get_partial_message(panel["message_id"]).edit(
+                        embed=build_panel_embed(guild, panel), view=view)
+                except discord.HTTPException as e:
+                    log.warning(f"[{guild.name}] Panneau de rôles non redessiné : {e}")
 
     # ------------------------------------------------------------------
     # Clic sur un bouton de panneau

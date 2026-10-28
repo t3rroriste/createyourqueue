@@ -66,7 +66,8 @@ class AutoClean(commands.Cog):
     @app_commands.checks.has_permissions(manage_messages=True)
     async def on(self, interaction: discord.Interaction, salon: discord.TextChannel, interval: int = 20):
         """Configure le nettoyage automatique d'un salon."""
-        await interaction.response.defer()
+        # Réponse visible par celui qui lance la commande seulement.
+        await interaction.response.defer(ephemeral=True)
 
         guild_id = interaction.guild_id
 
@@ -75,7 +76,7 @@ class AutoClean(commands.Cog):
                 description=t(guild_id, "moderation.error_manage_channel"),
                 color=embeds.ERROR,
             )
-            await interaction.followup.send(embed=embed)
+            await interaction.followup.send(embed=embed, ephemeral=True)
             return
 
         # Annuler la tâche existante si elle existe
@@ -113,7 +114,7 @@ class AutoClean(commands.Cog):
                 description=t(guild_id, "moderation.autoclean_off"),
                 color=embeds.ERROR,
             )
-            await interaction.followup.send(embed=embed)
+            await interaction.followup.send(embed=embed, ephemeral=True)
             return
 
         self.clean_tasks[guild_id].cancel()

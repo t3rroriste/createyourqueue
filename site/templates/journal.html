@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Journal — CreateYourQueue{% endblock %}
+{% block page_title %}Journal des commandes{% endblock %}
+
+{% block content %}
+{% if problem %}
+  <p class="banner warn">Le bot est injoignable ({{ problem }}).</p>
+{% endif %}
+
+<section>
+  <div class="section-head">
+    <h2>Dernières commandes</h2>
+    <span class="section-count">{{ journal | length }} ligne{{ "s" if journal | length > 1 }}</span>
+  </div>
+
+  {% include "_journal_table.html" %}
+
+  <p class="footnote">
+    Le journal vit dans la mémoire du bot : 200 lignes au maximum, remises à zéro
+    à chaque redémarrage. Les arguments des commandes n'y figurent jamais.
+  </p>
+</section>
+{% endblock %}

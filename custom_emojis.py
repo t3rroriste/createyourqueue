@@ -32,6 +32,9 @@ FALLBACKS: dict[str, str] = {
     # Sondages : options « Oui » et « Non »
     "yes": "✅",
     "no": "❌",
+    # Message d'arrivée du bot (cogs/welcome.py)
+    "hellowave": "👋",
+    "wobble6": "📊",
     # Panneau /status
     "tools": "⚙️",
     "statusonline": "🟢",
@@ -69,6 +72,17 @@ FALLBACKS: dict[str, str] = {
     "communication": "🎯",
     # Duels : bouton « Fin » (fermer le fil tout de suite)
     "off": "⏹️",
+    # Duels : message public « Duel en cours ! » (webhook DuelBot)
+    "moderationmobiled": "⚔️",
+    "thebestserveremojis": "🏆",
+    # ClanWar : avertissement de préparation, annulation faute de chef
+    "zoom125": "⚠️",
+    "timeout": "❌",
+    # Classement : série de victoires
+    "discordpopularanimated": "🔥",
+    # Salon de clan : boutons « Ne pas déranger » et « Prêt à jouer »
+    "dndbadge": "⭕",
+    "onlinebadge": "✔️",
 }
 
 # Autres noms acceptés pour le même emoji.
@@ -166,6 +180,12 @@ async def fetch_own(client: discord.Client, names) -> dict[str, str]:
     if missing:
         log.info(f"Emoji(s) absent(s) de l'application {client.user} : {', '.join(missing)}")
     return own
+
+
+def find(emojis, name: str):
+    """L'emoji de la liste qui porte ce nom, avec ou sans numéro d'emoji.gg."""
+    wanted = _squash(name)
+    return next((emoji for emoji in emojis if _squash(emoji.name) == wanted), None)
 
 
 def get(name: str) -> str:

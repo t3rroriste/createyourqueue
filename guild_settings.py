@@ -86,12 +86,21 @@ def _ensure(guild_id: int) -> dict[str, Any]:
 
 
 def is_setup_complete(guild_id: int | None) -> bool:
+    """Le serveur est-il prêt à se servir du bot ?
+
+    Deux façons d'y arriver depuis que la configuration vit sur le site :
+    l'assistant Discord, qui pose le drapeau, ou le tableau de bord, qui
+    désigne simplement les salons obligatoires. Sans ce second cas, un
+    serveur réglé entièrement depuis cyqbot.eu resterait bloqué pour
+    toujours : plus rien, à l'arrivée du bot, ne lance l'assistant."""
     if guild_id is None:
         return False
     from config import GUNZFRANCE_GUILD_ID
     if GUNZFRANCE_GUILD_ID and guild_id == GUNZFRANCE_GUILD_ID:
         return True
-    return bool(_settings.get(guild_id, {}).get("setup_complete"))
+    if _settings.get(guild_id, {}).get("setup_complete"):
+        return True
+    return channels_ready(guild_id)
 
 
 def mark_setup_complete(guild_id: int, user_id: int) -> None:
@@ -304,6 +313,20 @@ def next_role_panel_id(guild_id: int) -> int:
 MAX_QUEUE_HISTORY = 20
 
 
+def mark_first_queue(guild_id: int) -> None:
+    """Une queue a été publiée sur ce serveur : le récapitulatif de /option ne
+    propose plus d'en créer une première. Effacé par /reset."""
+    info = _ensure(guild_id)
+    if not info.get("queue_launched"):
+        info["queue_launched"] = True
+        save_settings()
+
+
+def queue_launched(guild_id: int) -> bool:
+    info = _settings.get(guild_id, {})
+    return bool(info.get("queue_launched") or info.get("queue_history"))
+
+
 def get_queue_history(guild_id: int) -> list[dict[str, Any]]:
     """Historique des dernières queues terminées pour un serveur, plus récente en premier."""
     return list(reversed(_settings.get(guild_id, {}).get("queue_history", [])))
@@ -465,6 +488,16 @@ def set_setup_panel(guild_id: int, channel_id: int, message_id: int) -> None:
     info = _ensure(guild_id)
     info["setup_panel"] = {"channel_id": channel_id, "message_id": message_id}
     save_settings()
+
+
+def clear_setup_panel(guild_id: int) -> bool:
+    """Oublie le panneau d'assistant d'un serveur. Vrai s'il y en avait un."""
+    info = _settings.get(guild_id, {})
+    if "setup_panel" not in info:
+        return False
+    del info["setup_panel"]
+    save_settings()
+    return True
 
 
 def get_custom_names(guild_id: int) -> dict[str, str]:
@@ -939,6 +972,57 @@ def set_ticket_config(guild_id: int, config: dict[str, Any]) -> None:
         _settings[guild_id] = {}
     _settings[guild_id]["ticket_config"] = config
     save_settings()
+
+
+# ----------------------------------------------------------------------
+# Tickets « Problème » d'un ClanWar (voir cogs/clan_tickets.py)
+#
+# Rangés ici et pas en mémoire : un redémarrage ne doit pas couper la
+# conversation entre le staff et le membre.
+# ----------------------------------------------------------------------
+MAX_CLAN_TICKETS = 100
+
+
+def get_clan_tickets(guild_id: int) -> dict[str, Any]:
+    """Tous les tickets d'un serveur, ouverts comme clôturés."""
+    return _settings.get(guild_id, {}).get("clan_tickets", {})
+
+
+def get_clan_ticket(guild_id: int, ticket_id: Any) -> dict[str, Any] | None:
+    return get_clan_tickets(guild_id).get(str(ticket_id))
+
+
+def save_clan_ticket(guild_id: int, ticket: dict[str, Any]) -> None:
+    """Enregistre un ticket. Les plus vieux clôturés partent au-delà de
+    MAX_CLAN_TICKETS : les réglages n'ont pas à grossir sans fin."""
+    tickets = _ensure(guild_id).setdefault("clan_tickets", {})
+    tickets[str(ticket["id"])] = ticket
+    if len(tickets) > MAX_CLAN_TICKETS:
+        closed = sorted((t for t in tickets.values() if t.get("closed")),
+                        key=lambda entry: entry.get("created_at", 0))
+        for old in closed[:len(tickets) - MAX_CLAN_TICKETS]:
+            tickets.pop(str(old["id"]), None)
+    save_settings()
+
+
+def update_clan_ticket(guild_id: int, ticket_id: Any, **fields: Any) -> dict[str, Any] | None:
+    ticket = get_clan_ticket(guild_id, ticket_id)
+    if ticket is None:
+        return None
+    ticket.update(fields)
+    save_settings()
+    return ticket
+
+
+def open_clan_ticket_of(guild_id: int, user_id: int) -> dict[str, Any] | None:
+    """Le ticket encore ouvert de ce membre, le plus récent s'il y en a plusieurs."""
+    mine = [ticket for ticket in get_clan_tickets(guild_id).values()
+            if ticket.get("user_id") == user_id and not ticket.get("closed")]
+    return max(mine, key=lambda ticket: ticket.get("created_at", 0)) if mine else None
+
+
+def open_clan_tickets(guild_id: int) -> list[dict[str, Any]]:
+    return [ticket for ticket in get_clan_tickets(guild_id).values() if not ticket.get("closed")]
 
 
 def get_clan_announcement_count(guild_id: int, clan_id: int) -> int:

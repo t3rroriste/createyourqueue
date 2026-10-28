@@ -1,0 +1,20 @@
+{% extends "guild_base.html" %}
+{% block section_intro %}la langue de tous les messages du bot{% endblock %}
+
+{% block section_content %}
+<div class="setting">
+  <div class="setting-label">
+    <label for="language">Langue du bot</label>
+    <p class="hint">Embeds, boutons et messages d'erreur. Chaque serveur a la sienne.</p>
+  </div>
+  <div class="setting-control">
+    <select id="language" name="language">
+      {% for code, name in guild.languages.items() %}
+        <option value="{{ code }}" {% if code == guild.language %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+{% endblock %}
+
+{% block save_note %}Le bot change de langue sans redémarrer.{% endblock %}

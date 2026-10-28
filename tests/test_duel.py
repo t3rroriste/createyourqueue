@@ -51,10 +51,31 @@ class FakeMessage:
         self.content = content
         self.embed = kwargs.get("embed")
         self.view = kwargs.get("view")
+        self.allowed_mentions = kwargs.get("allowed_mentions")
+        self.webhook = None
         self.edits = []
 
     async def edit(self, **kwargs):
         self.edits.append(kwargs)
+
+
+class FakeWebhook:
+    def __init__(self, channel, name):
+        self.channel = channel
+        self.name = name
+        self.token = "jeton"
+
+    async def send(self, content=None, *, wait=False, **kwargs):
+        message = FakeMessage(self.channel.guild.new_id(), content, **kwargs)
+        message.webhook = self.name
+        self.channel.sent.append(message)
+        return message
+
+    async def edit_message(self, message_id, **kwargs):
+        message = next((m for m in self.channel.sent if m.id == message_id and m.webhook), None)
+        if message is None:
+            raise discord.NotFound(SimpleNamespace(status=404, reason="Not Found"), "message inconnu")
+        message.edits.append(kwargs)
 
 
 class FakeThread:
@@ -95,9 +116,18 @@ class FakeChannel:
         self.mention = f"<#{channel_id}>"
         self.thread_kwargs = []
         self.sent = []
+        self.hooks = []
 
     def permissions_for(self, member):
         return discord.Permissions.all()
+
+    async def webhooks(self):
+        return list(self.hooks)
+
+    async def create_webhook(self, *, name, avatar=None, reason=None):
+        hook = FakeWebhook(self, name)
+        self.hooks.append(hook)
+        return hook
 
     async def send(self, content=None, **kwargs):
         message = FakeMessage(self.guild.new_id(), content, **kwargs)
@@ -209,7 +239,7 @@ class DuelCase(unittest.IsolatedAsyncioTestCase):
         self.alpha = self.make_team("Alpha", "🔴", leader=1, mates=[2], duels=3)
         self.bravo = self.make_team("Bravo", "🔵", leader=3, mates=[4], duels=1)
 
-        self.cog = duel.Duel(SimpleNamespace(guilds=[guild], add_view=lambda *a, **k: None))
+        self.cog = duel.Duel(SimpleNamespace(guilds=[guild], user=None, add_view=lambda *a, **k: None))
         self.cog.play_announce = mock.AsyncMock()
 
     def make_team(self, name, color, *, leader, mates, duels):
@@ -335,19 +365,33 @@ class DuelFlowTest(DuelCase):
 
 class HistoryTest(DuelCase):
     def history(self, message):
-        return (message.edits[-1]["embed"] if message.edits else message.embed).description
+        """Le texte du message public du duel : celui de l'embed publié, ou
+        celui de la dernière modification."""
+        payload = message.edits[-1] if message.edits else {"embed": message.embed}
+        embed = payload.get("embed")
+        if embed is not None:
+            return embed.description or ""
+        return payload.get("content") or message.content or ""
+
+    def assert_no_winner_yet(self, message):
+        text = self.history(message)
+        self.assertIn(t(GID, "duel.live_title"), text)
+        self.assertTrue(text.endswith(f"**{t(GID, 'duel.live_winner')}** :"), text)
 
     async def test_one_message_follows_the_whole_duel_rematch_included(self):
         session, lobby, thread = await self.start()
         self.assertEqual(len(self.requests.sent), 1)
         message = self.requests.sent[0]
-        self.assertIn(t(GID, "duel.hist_waiting"), self.history(message))
+        self.assertEqual(message.webhook, "DuelBot", "envoyé par le webhook, pas par le bot")
+        self.assertFalse(message.allowed_mentions.users, "les leads sont cités sans être pingés")
+        self.assertIn("> <@1> **(Alpha)** Vs <@3> **(Bravo)**", self.history(message))
+        self.assert_no_winner_yet(message)
 
         await self.join(lobby, 1, 2, 3, 4)
-        self.assertIn(t(GID, "duel.hist_playing"), self.history(message))
+        self.assert_no_winner_yet(message)
 
         await self.cog.stop_from_button(FakeInteraction(self.guild, self.member(1), channel_id=thread.id))
-        self.assertIn(t(GID, "duel.hist_pending"), self.history(message))
+        self.assert_no_winner_yet(message)
         end = thread.sent[-1]
         self.assertEqual({c.custom_id for c in end.view.children},
                          {"cyq:duel:rematch", "cyq:duel:close", "cyq:duel:win_a", "cyq:duel:win_b"})
@@ -355,25 +399,54 @@ class HistoryTest(DuelCase):
         # Un joueur qui n'est pas lead ne vote pas ; un lead seul ne suffit pas.
         stranger = FakeInteraction(self.guild, self.member(2), message_id=end.id, channel_id=thread.id)
         await self.cog.vote_winner(stranger, "a")
-        self.assertIn(t(GID, "duel.hist_pending"), self.history(message))
+        self.assert_no_winner_yet(message)
         await self.cog.vote_winner(FakeInteraction(self.guild, self.member(1), message_id=end.id,
                                                    channel_id=thread.id), "a")
-        self.assertIn(t(GID, "duel.hist_pending"), self.history(message))
+        self.assert_no_winner_yet(message)
         # Bravo (1 duel) est dissoute à la fin : son lead vote quand même.
         await self.cog.vote_winner(FakeInteraction(self.guild, self.member(3), message_id=end.id,
                                                    channel_id=thread.id), "a")
-        won = t(GID, "duel.hist_won", team="**🔴 Alpha**")
-        self.assertIn(won, self.history(message))
+        text = self.history(message)
+        self.assertIn(t(GID, "duel.live_done"), text)
+        self.assertTrue(text.endswith(f"**{t(GID, 'duel.live_winner')}** : <@1> **(Alpha)**"), text)
 
         for uid in (1, 2, 3, 4):
             await self.cog.vote_rematch(FakeInteraction(self.guild, self.member(uid), message_id=end.id,
                                                         channel_id=thread.id))
         self.assertEqual(len(self.requests.sent), 1, "la relance modifie le même message")
-        lines = self.history(message).splitlines()
-        self.assertEqual(len(lines), 2)
-        self.assertIn(won, lines[0])
-        self.assertIn(t(GID, "duel.hist_rematch"), lines[1])
-        self.assertIn(t(GID, "duel.hist_waiting"), lines[1])
+        self.assert_no_winner_yet(message)
+        self.assertEqual(len(self.requests.hooks), 1, "un seul webhook DuelBot par salon")
+
+    async def test_an_existing_duelbot_webhook_is_reused(self):
+        existing = await self.requests.create_webhook(name="DuelBot")
+        await self.start()
+        self.assertEqual(self.requests.hooks, [existing])
+
+    async def test_without_manage_webhooks_the_bot_posts_the_history_itself(self):
+        async def refused(**_kwargs):
+            raise discord.Forbidden(SimpleNamespace(status=403, reason="Forbidden"), "webhook refusé")
+
+        with mock.patch.object(self.requests, "create_webhook", refused):
+            await self.start()
+            self.assertEqual(len(self.requests.sent), 1, "l'historique est publié quand même")
+            message = self.requests.sent[0]
+            self.assertIsNone(message.webhook, "publié par le bot, faute de webhook")
+            self.assertIn("> <@1> **(Alpha)** Vs <@3> **(Bravo)**", self.history(message))
+
+            record = next(iter(gs.get_duel_history(GID).values()))
+            record["games"][-1].update(state="won", winner="a")
+            await self.cog.update_history(self.guild, record)
+            self.assertEqual(len(self.requests.sent), 1, "le même message est modifié")
+            self.assertIn(t(GID, "duel.live_done"), self.history(message))
+
+    async def test_an_old_history_message_is_replaced(self):
+        _, lobby, _ = await self.start()
+        record = next(iter(gs.get_duel_history(GID).values()))
+        old = await self.requests.send(embed="ancien historique")
+        record["message_id"] = old.id
+        await self.join(lobby, 1, 2, 3, 4)
+        self.assertNotEqual(record["message_id"], old.id)
+        self.assertEqual(self.requests.sent[-1].webhook, "DuelBot")
 
     async def test_an_admin_decides_alone_and_a_deleted_thread_closes_the_vote(self):
         _, lobby, thread = await self.start()
@@ -382,13 +455,13 @@ class HistoryTest(DuelCase):
         message, end = self.requests.sent[0], thread.sent[-1]
 
         await self.cog.tick(self.guild, now=10**12)
-        self.assertIn(t(GID, "duel.hist_undecided"), self.history(message))
+        self.assertIn(t(GID, "duel.live_undecided"), self.history(message))
 
         late = FakeInteraction(self.guild, FakeMember(self.guild, 50, admin=True), message_id=end.id,
                                channel_id=thread.id)
         await self.cog.vote_winner(late, "b")
         late.response.send_message.assert_awaited_once()
-        self.assertIn(t(GID, "duel.hist_undecided"), self.history(message))
+        self.assertIn(t(GID, "duel.live_undecided"), self.history(message))
 
     async def test_end_button_deletes_the_thread_and_updates_the_history(self):
         _, lobby, thread = await self.start()
@@ -405,7 +478,7 @@ class HistoryTest(DuelCase):
         lead = FakeInteraction(self.guild, self.member(3), message_id=end.id, channel_id=thread.id)
         await self.cog.close_from_button(lead)
         self.assertTrue(thread.deleted)
-        self.assertIn(t(GID, "duel.hist_undecided"), self.history(message))
+        self.assertIn(t(GID, "duel.live_undecided"), self.history(message))
         self.assertNotIn((GID, thread.id), self.cog._rematch)
 
     async def test_end_button_refuses_while_a_rematch_is_playing(self):
@@ -424,7 +497,9 @@ class HistoryTest(DuelCase):
     async def test_nobody_comes_marks_the_game_cancelled(self):
         session, lobby, _ = await self.start()
         await self.cog.tick(self.guild, now=session["created_at"] + duel.JOIN_TIMEOUT + 1)
-        self.assertIn(t(GID, "duel.hist_cancelled"), self.history(self.requests.sent[0]))
+        text = self.history(self.requests.sent[0])
+        self.assertIn(t(GID, "duel.live_done"), text)
+        self.assertIn(t(GID, "duel.live_cancelled"), text)
 
 
 class ChallengeTest(DuelCase):
@@ -591,11 +666,15 @@ class DiscordLimitsTest(DuelCase):
                     duel.request_embed(GID, big, big, duel.MAX_ROUNDS), duel.lobby_embed(GID, session),
                     duel.started_embed(GID, session), duel.panel_embed(GID, 1), duel.panel_embed(GID, 8),
                     duel.config_embed(self.guild),
-                    duel.history_embed(GID, {**next(iter(gs.get_duel_history(GID).values())),
-                                             "games": [{"state": "won", "winner": "a", "rematch": True}] * 25}),
                 ]
                 for embed in panels:
                     self.assertEqual(self.embed_problems(embed), [])
+                record = next(iter(gs.get_duel_history(GID).values()))
+                for game in ({"state": "waiting"}, {"state": "won", "winner": "b"},
+                             {"state": "cancelled"}, {"state": "undecided"}):
+                    text = duel.live_message(GID, {**record, "name_b": big["name"], "games": [game]})
+                    self.assertLessEqual(len(text), 2000)
+                    self.assertNotRegex(text, r"\{\w+\}|\bduel\.[a-z_]+")
                 for key in ("err_size", "err_size_max", "err_already_sent", "err_target_in_duel"):
                     text = duel.error_text(GID, f"duel.{key}", big, self.alpha)
                     self.assertNotRegex(text, r"\{\w+\}")

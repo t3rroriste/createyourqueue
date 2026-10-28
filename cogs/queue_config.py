@@ -7,6 +7,8 @@ Système de queue avec embed et boutons, sans formulaires.
 import asyncio
 import hmac
 import logging
+import math
+import time
 import json
 import os
 import re
@@ -26,6 +28,7 @@ from guild_settings import (
     save_queue_config,
     get_queue_config,
     queue_ready,
+    mark_first_queue,
     get_webhook_url,
     get_queue_presets,
     get_queue_preset,
@@ -71,6 +74,11 @@ COLOR_PALETTE = [
 DEFAULT_TEAM_CIRCLES = [c[0] for c in COLOR_PALETTE[:8]]
 
 # Bornes des menus « nombre d'équipes » et « joueurs par équipe ».
+# Le temps mort entre deux queues. Il protège d'un double clic et des
+# annonces en rafale : @everyone part à chaque ouverture, et deux en
+# dix secondes font fuir un serveur.
+QUEUE_COOLDOWN = 15
+
 TEAMS_MIN, TEAMS_MAX = 2, 6
 PLAYERS_MIN, PLAYERS_MAX = 1, 6
 
@@ -151,6 +159,10 @@ class QueueSession:
         self.result_message = None  # panel de suivi des scores dans le salon queue
         self.waiting_channel = None
         self.config_channel = None
+        # Le fil privé qui porte les panneaux de l'organisateur. Distinct de
+        # config_channel : celui-ci reste le salon de commandes, où vont les
+        # comptes rendus, et qui survit à la queue.
+        self.panel_channel = None
         self.team_channels = {}  # team_name -> discord.VoiceChannel, créés au lancement
         self.waiting_players = []
         self.teams = {}
@@ -276,6 +288,7 @@ class QueueSession:
             "announcement_channel_id": getattr(self.announcement_channel, "id", None),
             "message_id": getattr(self.message, "id", None),
             "config_channel_id": getattr(self.config_channel, "id", None),
+            "panel_channel_id": getattr(self.panel_channel, "id", None),
             "launch_message_id": getattr(self.launch_message, "id", None),
             "result_message_id": getattr(self.result_message, "id", None),
             "waiting_channel_id": getattr(self.waiting_channel, "id", None),
@@ -309,11 +322,17 @@ class QueueSession:
 
         config_channel = guild.get_channel(data.get("config_channel_id") or 0)
         session.config_channel = config_channel
-        if config_channel:
+
+        # Un fil n'est pas dans get_channel() : il a son propre registre.
+        pid = data.get("panel_channel_id") or 0
+        session.panel_channel = guild.get_thread(pid) or guild.get_channel(pid) or config_channel
+
+        porteur = session.panel_channel
+        if porteur:
             if data.get("launch_message_id"):
-                session.launch_message = config_channel.get_partial_message(data["launch_message_id"])
+                session.launch_message = porteur.get_partial_message(data["launch_message_id"])
             if data.get("result_message_id"):
-                session.result_message = config_channel.get_partial_message(data["result_message_id"])
+                session.result_message = porteur.get_partial_message(data["result_message_id"])
 
         session.waiting_channel = guild.get_channel(data.get("waiting_channel_id") or 0)
         for name, cid in (data.get("team_channel_ids") or {}).items():
@@ -351,9 +370,20 @@ class QueueSession:
         cfg = self.queue_config
         queue_name = sanitize(str(cfg.get("queue_name", "Queue")), 80)
 
+        # La couleur de la barre : celle que l'organisateur a choisie dans
+        # le panneau, le noir d'origine sinon. Une valeur abîmée ne doit pas
+        # empêcher l'annonce de partir — on retombe sur le noir.
+        couleur = embeds.BLACK
+        brut = str(cfg.get("embed_color") or "").strip()
+        if brut.startswith("#") and len(brut) == 7:
+            try:
+                couleur = discord.Colour(int(brut[1:], 16))
+            except ValueError:
+                couleur = embeds.BLACK
+
         embed = discord.Embed(
             title=t(gid, "queue.ann_title", name=queue_name),
-            color=embeds.BLACK,
+            color=couleur,
         )
 
         # Tout le corps tient dans la description : des champs séparés
@@ -825,9 +855,9 @@ class QueueConfigView(View):
             "num_teams": 2,
             "team_names": ["Team 1", "Team 2"],
             "max_players_per_team": 4,
-            "session": "Attente Queue",
+            "session": t(guild_id, "auto.preset_session_default"),
             "heure": None,
-            "type": "Organisation",
+            "type": t(guild_id, "auto.preset_type_default"),
             # Vote des capitaines : part du réglage du serveur (/option → MMR),
             # et se coupe pour cette queue-là sans le modifier — une partie
             # entre amis n'a pas besoin de draft, celle du soir si.
@@ -1359,6 +1389,9 @@ class QueueConfig(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.active_sessions = {}
+        # Dernière ouverture ou fermeture par serveur, pour le délai
+        # de QUEUE_COOLDOWN secondes. En mémoire : voir cooldown_restant().
+        self._derniere_queue = {}
         self.result_messages = {}
         self.session_by_message = {}
         self._restored = False
@@ -1373,6 +1406,18 @@ class QueueConfig(commands.Cog):
 
     def get_classement_cog(self):
         return self.bot.get_cog("Classement")
+
+    def cooldown_restant(self, guild_id: int) -> int:
+        """Secondes à attendre avant de pouvoir rouvrir une queue, 0 sinon.
+
+        En mémoire seulement : un redémarrage du bot remet le compteur à
+        zéro, et c'est très bien — on protège d'un geste répété, pas d'un
+        abus qui mériterait un fichier.
+        """
+        depuis = time.monotonic() - self._derniere_queue.get(guild_id, 0.0)
+        # Arrondi au-dessus : annoncer « 0 s » quand il reste une fraction
+        # de seconde ferait échouer le clic suivant sans rien expliquer.
+        return max(0, math.ceil(QUEUE_COOLDOWN - depuis))
 
     async def open_queue(self, guild, author, config, *, fallback_channel=None):
         """Publie une queue et met en place tous ses panneaux."""
@@ -1407,26 +1452,78 @@ class QueueConfig(commands.Cog):
         self.active_sessions[guild.id] = session
         self.session_by_message[message.id] = session
 
+        # À partir d'ici, l'annonce EST publiée et la queue existe. Ce qui
+        # suit l'habille : verrous du vocal, panneau de lancement, panneau
+        # de résultat. Un droit manquant sur l'un d'eux faisait remonter
+        # l'exception jusqu'en haut, donc sans `save_sessions()` : la queue
+        # vivait en mémoire, l'annonce était en ligne, et plus rien ne
+        # pouvait la fermer — il fallait redémarrer le bot. Une queue mal
+        # habillée vaut mieux que cette queue fantôme, donc on continue et
+        # on écrit ce qui a manqué dans les logs.
         waiting_channel = resources.get_voice_channel(guild, "voice_queue_waiting")
         session.waiting_channel = waiting_channel
-        await self.clear_connexion_role(guild, reason="Nouvelle queue : reset des accès")
-        await self.apply_waiting_lock(guild, waiting_channel, open_for_connexion=True)
+        try:
+            await self.clear_connexion_role(guild, reason="Nouvelle queue : reset des accès")
+            await self.apply_waiting_lock(guild, waiting_channel, open_for_connexion=True)
+        except discord.Forbidden:
+            log.warning(
+                f"Queue ouverte sur {guild.id} sans verrouiller le vocal d'attente : "
+                f"droits manquants (gérer les salons / gérer les rôles)"
+            )
 
         config_channel = resources.get_text_channel(guild, "channel_queue_command") or fallback_channel
         session.config_channel = config_channel
-        if config_channel is not None:
-            await self.lock_queue_channel_to_staff(guild, config_channel)
-            panel_embed = embeds.base(
-                guild.id,
-                title=t(guild.id, "queue.panel_launch_title"),
-                description=t(guild.id, "queue.panel_launch_desc"),
-            )
-            session.launch_message = await config_channel.send(
-                embed=panel_embed, view=LaunchView(self, session)
-            )
-            await self.create_result_panel(guild, session, config_channel)
 
+        # Les commandes de l'organisateur — lancer, compter les points,
+        # terminer — vont dans un FIL PRIVÉ ouvert sous l'annonce. Elles ne
+        # regardent que lui, et un fil se referme avec la queue au lieu de
+        # laisser traîner des boutons morts dans un salon permanent.
+        #
+        # Le fil privé n'est pas garanti : un serveur peut le refuser, et
+        # l'ancien chemin — les panneaux dans le salon de commandes — reste
+        # alors en place. Une queue ne doit pas échouer pour un fil.
+        porteur = config_channel
+        try:
+            fil = await queue_channel.create_thread(
+                name=t(guild.id, "queue.thread_name",
+                       queue=sanitize(str(config.get("queue_name", "Queue")), 60))[:100],
+                type=discord.ChannelType.private_thread,
+                invitable=False,
+                reason="Queue ouverte : panneau de l'organisateur",
+            )
+            await fil.add_user(author)
+            session.panel_channel = fil
+            porteur = fil
+        except (discord.HTTPException, AttributeError) as e:
+            log.warning(f"Fil privé impossible sur {guild.id}, panneaux dans le salon : {e}")
+            session.panel_channel = config_channel
+
+        if porteur is not None:
+            try:
+                # Le verrou ne s'applique qu'à un vrai salon : un fil n'a pas
+                # de permissions propres, il hérite de son salon parent.
+                if config_channel is not None and not isinstance(porteur, discord.Thread):
+                    await self.lock_queue_channel_to_staff(guild, config_channel)
+                panel_embed = embeds.base(
+                    guild.id,
+                    title=t(guild.id, "queue.panel_launch_title"),
+                    description=t(guild.id, "queue.panel_launch_desc"),
+                )
+                session.launch_message = await porteur.send(
+                    embed=panel_embed, view=LaunchView(self, session)
+                )
+                await self.create_result_panel(guild, session, porteur)
+            except discord.Forbidden:
+                # Sans panneau de lancement, la queue se mène depuis
+                # l'annonce et les commandes ; elle n'est pas perdue.
+                log.warning(
+                    f"Queue ouverte sur {guild.id} sans panneau de lancement : "
+                    f"droits manquants dans {getattr(porteur, 'id', '?')}"
+                )
+
+        self._derniere_queue[guild.id] = time.monotonic()
         self.save_sessions()
+        mark_first_queue(guild.id)
         asyncio.create_task(self.notify_queue_role(guild, session))
         send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_opened"), user=author,
                  color=embeds.SUCCESS,
@@ -1585,6 +1682,41 @@ class QueueConfig(commands.Cog):
                 await self.clear_connexion_role(guild, reason="Démarrage : aucune queue en inscription")
             await self.apply_waiting_lock(guild, waiting, open_for_connexion=recruiting)
 
+    async def close_queue(self, guild: discord.Guild, author) -> dict | None:
+        """Ferme la queue en cours. Rend son résumé, ou None s'il n'y en a pas.
+
+        Même chemin que le bouton « Annuler » du panneau de lancement : le
+        journal d'abord, le démontage ensuite. Le site passe par ici plutôt
+        que d'appeler `teardown_session` lui-même, sinon la fermeture
+        depuis le panneau web ne laisserait aucune trace dans Discord,
+        alors que la même fermeture depuis Discord en laisse une.
+        """
+        session = self.active_sessions.get(guild.id)
+        if session is None or session.ended:
+            return None
+
+        nom = str(session.queue_config.get("queue_name", "Queue"))
+        joueurs = len(session.waiting_players)
+
+        send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_cancelled"), user=author,
+                 color=embeds.ERROR,
+                 fields=[(t(guild.id, "logs.f_queue"), sanitize(nom, 60)),
+                         (t(guild.id, "logs.f_players"), joueurs)])
+
+        # L'annonce est MODIFIÉE, pas supprimée : les joueurs qui l'ont vue
+        # passer doivent pouvoir comprendre ce qu'elle est devenue plutôt
+        # que de la voir disparaître. build_embed() rend déjà l'état
+        # « terminé » dès que la session l'est.
+        session.ended = True
+        try:
+            await session.message.edit(embed=session.build_embed())
+        except (discord.HTTPException, AttributeError) as e:
+            log.error(f"Annonce non mise à jour à la fermeture : {e}")
+
+        await self.teardown_session(guild, session, cancelled=False)
+        self._derniere_queue[guild.id] = time.monotonic()
+        return {"queueName": nom, "players": joueurs}
+
     async def teardown_session(self, guild: discord.Guild, session: "QueueSession", *, cancelled: bool = False):
         """Nettoyage commun de fin de queue : supprime les salons d'équipe, purge et
         reverrouille le salon queue, et libère la session (mémoire + disque)."""
@@ -1608,6 +1740,17 @@ class QueueConfig(commands.Cog):
         await self.clear_connexion_role(guild, reason="Queue terminée : accès révoqué")
         waiting_channel = session.waiting_channel or resources.get_voice_channel(guild, "voice_queue_waiting")
         await self.apply_waiting_lock(guild, waiting_channel, open_for_connexion=False)
+
+        # Le fil de l'organisateur s'en va avec la queue : ses boutons ne
+        # commandent plus rien, et un fil qu'on laisse s'archive sans jamais
+        # disparaître de la liste.
+        fil = session.panel_channel
+        if isinstance(fil, discord.Thread):
+            try:
+                await fil.delete(reason="Queue terminée : fil de l'organisateur")
+            except discord.HTTPException as e:
+                log.error(f"Fil de l'organisateur non supprimé : {e}")
+            session.panel_channel = None
 
         if session.config_channel:
             try:
@@ -1841,7 +1984,17 @@ class QueueConfig(commands.Cog):
             await report("queue.notif_no_members", role=role.name)
             return
 
-        description = t(
+        # Un message écrit par l'organisateur remplace le texte d'origine,
+        # UNE seule fois : il est effacé juste après l'envoi, et la queue
+        # suivante retrouve le message habituel. C'est ce qui le rend utile
+        # — on annonce un événement, pas une consigne permanente.
+        sur_mesure = str(session.queue_config.get("notif_message") or "").strip()
+        if sur_mesure:
+            cfg_courante = get_queue_config(gid) or {}
+            cfg_courante.pop("notif_message", None)
+            save_queue_config(gid, cfg_courante)
+
+        description = sur_mesure or t(
             gid,
             "queue.notif_dm_desc",
             author=session.author.display_name,
@@ -2235,13 +2388,13 @@ class QueueConfig(commands.Cog):
             for team_name, members in session.teams.items():
                 for member in members:
                     if team_name == session.winner:
-                        classement_cog.add_win(member.id)
+                        classement_cog.add_win(guild.id, member.id)
                     else:
-                        classement_cog.add_loss(member.id)
+                        classement_cog.add_loss(guild.id, member.id)
 
             await classement_cog.save_classement_config()
 
-        classement_cog.record_queue()
+        classement_cog.record_queue(guild.id)
         await classement_cog.save_server_stats()
         await classement_cog.update_classement_channel(guild)
 

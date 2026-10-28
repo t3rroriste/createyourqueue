@@ -1,9 +1,24 @@
 """
 Cog : Welcome
 =============
-Le message d'arrivée : quand le bot rejoint un serveur, il se présente et fait
-choisir la langue. Le même message passe ensuite au choix des salons
-(voir cogs/wizard.py).
+Le message d'arrivée : quand le bot rejoint un serveur, il dit bonjour et
+renvoie au panneau web. Rien d'autre.
+
+Il y avait ici un parcours complet : choix de la langue par boutons, puis
+passage au choix des salons (cogs/wizard.py). Il a été retiré le
+11/10/2026, parce que toute la configuration vit maintenant sur
+cyqbot.eu. Configurer un serveur à coups de menus dans un salon était la
+seule solution tant qu'il n'y avait pas de panneau ; elle laissait un
+message d'assistant épinglé dans le salon de tout le monde, et elle
+dupliquait des réglages qui existent désormais ailleurs, en mieux.
+
+Ce qui N'A PAS été retiré, et qui reste donc joignable :
+  · /setup et /option ouvrent toujours l'assistant dans Discord ;
+  · cogs/reset.py republie toujours son panneau après une remise à zéro ;
+  · LanguageSelectView est conservée — cogs/wizard.py l'importe pour son
+    bouton « revenir à la langue », et les messages déjà envoyés sur les
+    serveurs existants continuent de répondre.
+Supprimer tout ça est une autre décision, qui casserait ces trois chemins.
 """
 
 from __future__ import annotations
@@ -13,8 +28,8 @@ import logging
 import discord
 from discord.ext import commands
 
-from config import COLOR_INFO
-from guild_settings import set_setup_panel
+import custom_emojis
+import embeds
 from i18n import set_lang, t
 
 log = logging.getLogger("bot.welcome")
@@ -31,9 +46,52 @@ LANGUAGES = [
     ("ko", "한국어", "🇰🇷"),
 ]
 
+# Le message d'arrivée, en embed.
+#
+# En anglais et sans traduction : la langue du serveur n'est plus demandée à
+# l'arrivée, donc on ne la connaît pas encore au moment d'écrire. L'anglais
+# est le plus sûr des défauts, et le lien, lui, parle toutes les langues.
+DASHBOARD_URL = "https://cyqbot.eu/"
+JOIN_TITLE = "Thanks for adding me !"
+JOIN_BODY = "Manage all your discord with dashboard !"
+
+
+def join_embed() -> discord.Embed:
+    """Le message d'arrivée : tout dans la description, pas de titre
+    d'embed, pour garder exactement la mise en forme demandée.
+
+    Les deux emojis viennent de l'application (Developer Portal → Emojis).
+    S'ils n'y sont pas, custom_emojis rend 👋 et 📊 : le message reste
+    lisible, il perd juste les emojis perso."""
+    hello = custom_emojis.get("hellowave")
+    dashboard = custom_emojis.get("wobble6")
+    return embeds.base(
+        None,
+        description=(f"{hello} **{JOIN_TITLE}**\n\n"
+                     f"{dashboard} **{JOIN_BODY}**\n\n"
+                     f"> {DASHBOARD_URL}"),
+    )
+
+
+def join_view() -> discord.ui.View:
+    """Le bouton Dashboard.
+
+    Un bouton de lien n'a pas d'identifiant et n'appelle jamais le bot :
+    il n'y a donc rien à réenregistrer au démarrage, il marchera encore
+    dans un an sur un message publié aujourd'hui."""
+    view = discord.ui.View(timeout=None)
+    view.add_item(discord.ui.Button(label="Dashboard", url=DASHBOARD_URL,
+                                    style=discord.ButtonStyle.link))
+    return view
+
 
 class LanguageSelectView(discord.ui.View):
-    """Les cinq boutons de langue du message d'arrivée."""
+    """Les cinq boutons de langue.
+
+    Plus envoyée à l'arrivée, mais toujours vivante : wizard.py s'en sert
+    pour revenir au choix de la langue, et les messages déjà postés sur les
+    serveurs doivent continuer de répondre après un redémarrage.
+    """
 
     def __init__(self, guild_id: int = 0) -> None:
         super().__init__(timeout=None)
@@ -77,12 +135,14 @@ class LanguageSelectView(discord.ui.View):
 
 
 class Welcome(commands.Cog):
-    """Système d'accueil et sélection de langue."""
+    """Le message d'arrivée, et rien de plus."""
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     async def cog_load(self) -> None:
+        # Les panneaux de langue déjà en place sur les serveurs doivent
+        # répondre après un redémarrage, même si on n'en envoie plus.
         self.bot.add_view(LanguageSelectView())
 
     @staticmethod
@@ -98,25 +158,18 @@ class Welcome(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild) -> None:
-        """Envoyé quand le bot rejoint un serveur."""
+        """Un seul message, aucune suite."""
         channel = self._pick_channel(guild)
         if channel is None:
             log.info(f"[{guild.name}] Aucun salon où écrire : message d'arrivée non envoyé.")
             return
 
-        embed = discord.Embed(
-            title=t(guild.id, "welcome.title"),
-            description=t(guild.id, "welcome.description"),
-            color=COLOR_INFO,
-        )
         try:
-            message = await channel.send(embed=embed, view=LanguageSelectView(guild.id))
+            await channel.send(embed=join_embed(), view=join_view())
         except discord.HTTPException as e:
             log.error(f"[{guild.name}] Message d'arrivée non envoyé : {e}")
             return
-        # Mémorisé pour que l'assistant réattache ses menus de salons à ce
-        # message après un redémarrage (voir cogs/wizard.py, on_ready).
-        set_setup_panel(guild.id, channel.id, message.id)
+
         log.info(f"[{guild.name}] Message d'arrivée envoyé dans #{channel.name}.")
 
 

@@ -1,0 +1,51 @@
+{# Le tableau des serveurs, partagé par le tableau de bord et la page Serveurs. #}
+{% if guilds %}
+  <div class="panel">
+    <table class="servers">
+      <thead>
+        <tr>
+          <th>Serveur</th>
+          <th>Identifiant</th>
+          <th class="num">Membres</th>
+          <th>Bot arrivé le</th>
+          <th>État</th>
+          <th class="cell-action"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for guild in guilds %}
+          <tr>
+            <td class="cell-strong">{{ guild.name }}</td>
+            <td class="cell-id">{{ guild.id }}</td>
+            <td class="num">{{ guild.members | count if guild.bot_present else "—" }}</td>
+            <td class="muted">{{ guild.joined or "—" }}</td>
+            <td>
+              {% if not guild.bot_present %}
+                <span class="tag">Bot absent</span>
+              {% elif guild.available %}
+                <span class="tag ok"><span class="dot"></span>En ligne</span>
+              {% else %}
+                <span class="tag err">Coupé</span>
+              {% endif %}
+            </td>
+            <td class="cell-action">
+              {% if guild.bot_present %}
+                <a class="button small" href="/dashboard/{{ guild.id }}/general">Configurer</a>
+              {% else %}
+                <a class="button primary small" href="{{ invite_url }}" target="_blank" rel="noopener">Inviter le bot</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="panel">
+    <p class="empty-line">
+      Aucun serveur à configurer.
+      <a href="{{ invite_url }}" target="_blank" rel="noopener">Invite le bot</a>
+      sur un serveur dont tu es admin, puis reviens ici.
+    </p>
+  </div>
+{% endif %}

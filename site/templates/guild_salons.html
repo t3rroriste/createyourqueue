@@ -1,0 +1,29 @@
+{% extends "guild_base.html" %}
+{% block section_intro %}le bot ne crée aucun salon, il écrit dans les tiens{% endblock %}
+
+{% block section_content %}
+{% for key, label in channels.items() %}
+  {% set current = guild.resources.get(key) %}
+  <div class="setting">
+    <div class="setting-label">
+      <label for="resource_{{ key }}">{{ label[0] }}</label>
+      <p class="hint">{{ label[2] }}</p>
+    </div>
+    <div class="setting-control">
+      <select id="resource_{{ key }}" name="resource_{{ key }}">
+        <option value="">— aucun —</option>
+        {% for option in options[label[1]] %}
+          <option value="{{ option.id }}" {% if current and current.id == option.id %}selected{% endif %}>
+            {% if label[1] == "voice" %}[vocal] {% else %}#{% endif %}{{ option.name }}
+          </option>
+        {% endfor %}
+      </select>
+      {% if current and not current.name %}
+        <p class="alert">Le salon choisi n'existe plus, redésigne-le.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+{% endblock %}
+
+{% block save_note %}Laisse « aucun » pour ce dont tu ne te sers pas.{% endblock %}

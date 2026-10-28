@@ -16,6 +16,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import resources
 from command_sync import sync_if_changed
 import embeds
@@ -58,7 +59,9 @@ class Check:
         self.status, self.label, self.detail = status, label, detail
 
     def line(self) -> str:
-        return f"{ICONS[self.status]} {self.label}" + (f" : {self.detail}" if self.detail else "")
+        custom = {WARN: "zoom125", FAIL: "cross"}.get(self.status)
+        icon = custom_emojis.get(custom) if custom else ICONS[self.status]
+        return f"{icon} {self.label}" + (f" : {self.detail}" if self.detail else "")
 
 
 def _flatten(data: dict, prefix: str = "") -> set[str]:

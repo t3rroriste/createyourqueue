@@ -1,23 +1,25 @@
-﻿"""
+"""
 Cog : Classement
 ================
 Système de classement persistant — victoires, défaites, win rate, séries.
-Commandes : /classement, /stats
+Chaque serveur a son propre classement.
+Commandes : /stats, /serverstats
 """
 
 import logging
 import json
 import os
 import asyncio
-from collections import defaultdict
 from datetime import datetime, timedelta
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+import custom_emojis
 import embeds
 import resources
+from config import SUPPORT_GUILD_ID
 from guild_settings import get_classement_message_id, set_classement_message_id, get_clans
 from i18n import t
 from rate_limit import throttled_each
@@ -33,46 +35,76 @@ SERVERSTATS_SAVE_FILE = "data/serverstats.json"
 MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 
 
+def new_stats() -> dict:
+    return {"wins": 0, "losses": 0, "streak": 0, "max_streak": 0, "weekly_wins": 0}
+
+
+def parse_classement(data: dict) -> dict[int, dict[int, dict]]:
+    """{guild_id: {user_id: stats}} depuis le contenu du fichier.
+
+    L'ancien format, un seul classement pour tous les serveurs, est rattaché
+    au serveur support : c'est le seul où le bot tournait avant la sortie."""
+    if any(isinstance(value, dict) and "wins" in value for value in data.values()):
+        log.warning(f"Ancien classement commun rattaché au serveur support ({SUPPORT_GUILD_ID}).")
+        data = {str(SUPPORT_GUILD_ID): data}
+    result: dict[int, dict[int, dict]] = {}
+    for gid, players in data.items():
+        bucket = result.setdefault(int(gid), {})
+        for uid, stats in players.items():
+            merged = new_stats()
+            merged.update(stats)
+            bucket[int(uid)] = merged
+    return result
+
+
 def _win_rate(stats: dict) -> float:
     total = stats["wins"] + stats.get("losses", 0)
     return (stats["wins"] / total * 100) if total > 0 else 0.0
 
 
 def _streak_label(streak: int) -> str:
+    fire = custom_emojis.get("discordpopularanimated")
     if streak >= 5:
-        return f"🔥🔥 **{streak}**"
+        return f"{fire}{fire} **{streak}**"
     if streak >= 3:
-        return f"🔥 **{streak}**"
+        return f"{fire} **{streak}**"
     return f"**{streak}**"
 
 
 class Classement(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.player_stats: dict[int, dict] = defaultdict(
-            lambda: {"wins": 0, "losses": 0, "streak": 0, "max_streak": 0, "weekly_wins": 0}
-        )
+        # {guild_id: {user_id: stats}} : un classement par serveur.
+        self.guild_stats: dict[int, dict[int, dict]] = {}
         self.server_stats: dict = {"total_queues": 0}
         self.last_mvp_check: datetime | None = None
+        self._loaded = False
         self._synced = False  # Flag pour éviter les synchronisations multiples
         self._mvp_task_started = False  # idem pour la tâche de fond MVP hebdo
 
     def _is_staff(self, member: discord.Member) -> bool:
         return resources.is_staff(member)
 
+    def players(self, guild_id: int | None) -> dict[int, dict]:
+        """Les stats des joueurs d'un serveur, sans rien créer."""
+        return self.guild_stats.get(guild_id, {})
+
     @commands.Cog.listener()
     async def on_ready(self):
         """Chargement des configs et synchronisation au démarrage du bot."""
-        # Charger les configurations
-        await self.load_classement_config()
-        await self.load_mvp_config()
-        await self.load_server_stats()
-        
+        # Une seule fois : relu après une reconnexion, le fichier écraserait
+        # ce qui n'est pas encore enregistré.
+        if not self._loaded:
+            self._loaded = True
+            await self.load_classement_config()
+            await self.load_mvp_config()
+            await self.load_server_stats()
+
         # Synchroniser le classement (une seule fois)
         if not self._synced:
             await self.sync_classement_on_ready()
             self._synced = True
-        
+
         # Démarrer le check MVP hebdomadaire (une seule fois : on_ready peut se
         # redéclencher après une reconnexion, et cette tâche tourne en boucle
         # infinie — sans garde, une reconnexion en créerait une deuxième et
@@ -91,13 +123,9 @@ class Classement(commands.Cog):
         try:
             with open(CLASSEMENT_SAVE_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            for uid_str, stats in data.items():
-                uid = int(uid_str)
-                self.player_stats[uid] = stats
-                # Migration : champs ajoutés après la v1
-                self.player_stats[uid].setdefault("losses", 0)
-                self.player_stats[uid].setdefault("weekly_wins", 0)
-            log.info(f"Classement chargé : {len(self.player_stats)} joueur(s)")
+            self.guild_stats = parse_classement(data)
+            count = sum(len(players) for players in self.guild_stats.values())
+            log.info(f"Classement chargé : {count} joueur(s) sur {len(self.guild_stats)} serveur(s)")
         except Exception as e:
             log.error(f"Erreur chargement classement : {e}")
 
@@ -115,7 +143,9 @@ class Classement(commands.Cog):
 
     async def save_classement_config(self):
         try:
-            write_json(CLASSEMENT_SAVE_FILE, dict(self.player_stats), indent=4)
+            data = {str(gid): {str(uid): stats for uid, stats in players.items()}
+                    for gid, players in self.guild_stats.items() if players}
+            write_json(CLASSEMENT_SAVE_FILE, data, indent=4)
         except Exception as e:
             log.error(f"Erreur sauvegarde classement : {e}")
 
@@ -125,6 +155,10 @@ class Classement(commands.Cog):
         try:
             with open(SERVERSTATS_SAVE_FILE, "r", encoding="utf-8") as f:
                 self.server_stats = json.load(f)
+            # Ancien compteur unique : rattaché au serveur support.
+            if "guilds" not in self.server_stats and SUPPORT_GUILD_ID:
+                self.server_stats["guilds"] = {
+                    str(SUPPORT_GUILD_ID): self.server_stats.get("total_queues", 0)}
         except Exception as e:
             log.error(f"Erreur chargement serverstats : {e}")
 
@@ -134,8 +168,10 @@ class Classement(commands.Cog):
         except Exception as e:
             log.error(f"Erreur sauvegarde serverstats : {e}")
 
-    def record_queue(self):
+    def record_queue(self, guild_id: int):
         self.server_stats["total_queues"] = self.server_stats.get("total_queues", 0) + 1
+        per_guild = self.server_stats.setdefault("guilds", {})
+        per_guild[str(guild_id)] = per_guild.get(str(guild_id), 0) + 1
 
     async def save_mvp_config(self):
         try:
@@ -146,16 +182,19 @@ class Classement(commands.Cog):
     # ------------------------------------------------------------------
     # Mise à jour des stats
     # ------------------------------------------------------------------
-    def add_win(self, user_id: int):
-        s = self.player_stats[user_id]
+    def _entry(self, guild_id: int, user_id: int) -> dict:
+        return self.guild_stats.setdefault(guild_id, {}).setdefault(user_id, new_stats())
+
+    def add_win(self, guild_id: int, user_id: int):
+        s = self._entry(guild_id, user_id)
         s["wins"] += 1
         s["weekly_wins"] += 1
         s["streak"] += 1
         if s["streak"] > s["max_streak"]:
             s["max_streak"] = s["streak"]
 
-    def add_loss(self, user_id: int):
-        s = self.player_stats[user_id]
+    def add_loss(self, guild_id: int, user_id: int):
+        s = self._entry(guild_id, user_id)
         s["streak"] = 0
         s["losses"] = s.get("losses", 0) + 1
 
@@ -176,27 +215,18 @@ class Classement(commands.Cog):
                 await asyncio.sleep(3600)
 
     async def assign_mvp_role(self):
-        if not self.player_stats:
-            return
-        sorted_players = sorted(
-            self.player_stats.items(),
-            key=lambda x: x[1]["weekly_wins"],
-            reverse=True,
-        )
-        top_id, top_stats = sorted_players[0]
-        if top_stats["weekly_wins"] == 0:
-            return
-
-        # top_stats est une RÉFÉRENCE vers l'entrée de player_stats : la remise
-        # à zéro ci-dessous l'écrase.
-        mvp_wins = top_stats["weekly_wins"]
-
-        # Réinitialiser les wins hebdo
-        for uid in self.player_stats:
-            self.player_stats[uid]["weekly_wins"] = 0
-        await self.save_classement_config()
-
+        """Le MVP de la semaine de chaque serveur, puis remise à zéro des wins hebdo."""
         for guild in self.bot.guilds:
+            players = self.players(guild.id)
+            if not players:
+                continue
+            top_id, top_stats = max(players.items(), key=lambda x: x[1]["weekly_wins"])
+            mvp_wins = top_stats["weekly_wins"]
+            for stats in players.values():
+                stats["weekly_wins"] = 0
+            if mvp_wins == 0:
+                continue
+
             try:
                 mvp_role = resources.get_role(guild, "role_mvp_week")
                 # Le rôle MVP est **désigné** par l'administrateur, jamais
@@ -252,6 +282,8 @@ class Classement(commands.Cog):
             except Exception as e:
                 log.error(f"Erreur MVP dans {guild.name} : {e}")
 
+        await self.save_classement_config()
+
     # ------------------------------------------------------------------
     # Construction des embeds
     # ------------------------------------------------------------------
@@ -276,7 +308,7 @@ class Classement(commands.Cog):
     ) -> discord.Embed:
         """Classement en tableau aligné."""
         sorted_players = sorted(
-            self.player_stats.items(),
+            self.players(guild_id).items(),
             key=lambda x: (x[1]["wins"], x[1].get("max_streak", 0)),
             reverse=True,
         )
@@ -308,7 +340,8 @@ class Classement(commands.Cog):
                 rank=embeds.MEDALS[rank] if rank <= 3 else f"`{rank}`",
                 player=self._player_name(guild, uid),
                 wins=s["wins"], losses=s.get("losses", 0),
-                streak=t(guild_id, "classement.row_streak", n=streak) if streak >= 3 else "",
+                streak=t(guild_id, "classement.row_streak", n=streak,
+                         fire=custom_emojis.get("discordpopularanimated")) if streak >= 3 else "",
             ))
         embed.description = '\n'.join(rows)
         return embed
@@ -336,23 +369,24 @@ class Classement(commands.Cog):
 
         rows, shown = [], 0
         length = 0
-        
+
         # Recréer la fonction sorted_clans localement
         def _sorted_clans(guild_id: int):
             """Clans triés par victoires, puis par ratio à égalité."""
             clans = get_clans(guild_id).values()
+            players = self.players(guild_id)
             rows = []
             for clan in clans:
                 wins = losses = 0
                 for uid in clan.get("members", []):
-                    entry = self.player_stats.get(uid) or {}
+                    entry = players.get(uid) or {}
                     wins += int(entry.get("wins", 0))
                     losses += int(entry.get("losses", 0))
                 ratio = wins / losses if losses else float(wins)
                 rows.append((clan, wins, losses, ratio))
             rows.sort(key=lambda r: (r[1], r[3]), reverse=True)
             return rows
-        
+
         for rank, (clan, wins, losses, ratio) in enumerate(_sorted_clans(gid), start=1):
             line = t(
                 gid, "clan.board_row",
@@ -438,65 +472,10 @@ class Classement(commands.Cog):
     # ------------------------------------------------------------------
     # Commandes
     # ------------------------------------------------------------------
-    @app_commands.command(
-        name="leaderboard",
-        description="Met à jour le classement dans 📃・queue-classement (staff uniquement).",
-    )
-    @app_commands.describe(partout="Republier le classement sur TOUS les serveurs (propriétaire du bot)")
-    async def classement(self, interaction: discord.Interaction, partout: bool = False):
-        guild_id = interaction.guild_id
-        if not isinstance(interaction.user, discord.Member) or not self._is_staff(interaction.user):
-            await interaction.response.send_message(
-                embed=embeds.base(guild_id, description=t(guild_id, "common.members_only"), kind="error"),
-                ephemeral=True,
-            )
-            return
-
-        if partout:
-            # Réservé au propriétaire : un staff local n'a rien à faire sur les
-            # autres serveurs, et un rafraîchissement global coûte un appel API
-            # par serveur.
-            if not await self.bot.is_owner(interaction.user):
-                await interaction.response.send_message(
-                    embed=embeds.base(guild_id, kind="error",
-                                      description=t(guild_id, "classement.owner_only")),
-                    ephemeral=True,
-                )
-                return
-            await interaction.response.defer(ephemeral=True)
-            done, skipped = await self.refresh_everywhere()
-            await interaction.followup.send(
-                embed=embeds.base(
-                    guild_id, kind="success",
-                    description=t(guild_id, "classement.updated_all", done=done, skipped=skipped),
-                ),
-                ephemeral=True,
-            )
-            return
-
-        ch = resources.get_text_channel(interaction.guild, "channel_queue_classement")
-        if not ch:
-            await interaction.response.send_message(
-                embed=embeds.base(
-                    guild_id, kind="error",
-                    description=t(
-                        guild_id, "classement.channel_not_found",
-                        channel=resources.resource_name(guild_id, "channel_queue_classement"),
-                    ),
-                ),
-                ephemeral=True,
-            )
-            return
-
-        await interaction.response.defer(ephemeral=True)
-        await self.update_classement_channel(interaction.guild)
-        await interaction.followup.send(
-            embed=embeds.base(
-                guild_id, kind="success",
-                description=t(guild_id, "classement.updated", channel=ch.mention),
-            ),
-            ephemeral=True,
-        )
+    # /leaderboard a ete retiree le 14/10/2026 : le classement se
+    # republie tout seul apres chaque match, et le panneau web permet de
+    # le forcer. Une commande de plus pour un geste que personne ne fait
+    # a la main, c'est une commande de trop dans la liste.
 
     @app_commands.command(
         name="stats",
@@ -507,7 +486,8 @@ class Classement(commands.Cog):
         guild_id = interaction.guild_id
         target = membre or interaction.user
         uid = target.id
-        s = self.player_stats[uid]
+        players = self.players(guild_id)
+        s = players.get(uid) or new_stats()
         losses = s.get("losses", 0)
         total = s["wins"] + losses
         wr = _win_rate(s)
@@ -516,7 +496,7 @@ class Classement(commands.Cog):
         sorted_ids = [
             uid_
             for uid_, _ in sorted(
-                self.player_stats.items(),
+                players.items(),
                 key=lambda x: (x[1]["wins"], x[1].get("max_streak", 0)),
                 reverse=True,
             )
@@ -525,7 +505,7 @@ class Classement(commands.Cog):
 
         embed = embeds.base(
             guild_id,
-            title=t(guild_id, "classement.stats_title", name=target.display_name),
+            title=t(guild_id, "classement.stats_title", player=target.display_name),
             kind="gold" if rank and rank <= 3 else "brand",
             timestamp=True,
             footer=t(guild_id, "classement.stats_footer"),
@@ -561,8 +541,9 @@ class Classement(commands.Cog):
     )
     async def serverstats(self, interaction: discord.Interaction):
         guild_id = interaction.guild_id
-        players = [(uid, s) for uid, s in self.player_stats.items() if s["wins"] > 0 or s.get("losses", 0) > 0]
-        total_queues  = self.server_stats.get("total_queues", 0)
+        players = [(uid, s) for uid, s in self.players(guild_id).items()
+                   if s["wins"] > 0 or s.get("losses", 0) > 0]
+        total_queues  = self.server_stats.get("guilds", {}).get(str(guild_id), 0)
         total_wins    = sum(s["wins"] for _, s in players)
         total_players = len(players)
 
@@ -592,7 +573,8 @@ class Classement(commands.Cog):
             )
         if best_streak and best_streak[1]["max_streak"] > 0:
             highlights.append(
-                f"🔥  {t(guild_id, 'classement.serverstats_streak')} — <@{best_streak[0]}>"
+                f"{custom_emojis.get('discordpopularanimated')}  "
+                f"{t(guild_id, 'classement.serverstats_streak')} — <@{best_streak[0]}>"
                 f"  **{best_streak[1]['max_streak']}** {streak_word}"
             )
         if best_weekly and best_weekly[1].get("weekly_wins", 0) > 0:

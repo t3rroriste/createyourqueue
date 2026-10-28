@@ -1,0 +1,13 @@
+# Dépendances du site (à installer sur le VPS du site, pas sur celui du bot).
+#   python -m venv venv
+#   venv/bin/pip install -r requirements.txt
+#
+# Les versions ne sont pas figées ici : une fois que le site tourne, fige-les
+# avec « venv/bin/pip freeze > requirements.txt » pour réinstaller à l'identique.
+fastapi
+uvicorn[standard]
+jinja2
+httpx
+python-dotenv
+itsdangerous
+python-multipart

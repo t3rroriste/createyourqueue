@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — CreateYourQueue{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+{% if problem %}
+  <p class="banner warn">Le bot est injoignable ({{ problem }}). Les chiffres ci-dessous ne sont pas à jour.</p>
+{% endif %}
+
+<div class="stats-row">
+  <div class="stat">
+    <div class="stat-label">En ligne depuis</div>
+    <div class="stat-value">{{ stats.uptime_seconds | uptime if stats else "—" }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Serveurs</div>
+    <div class="stat-value">{{ stats.servers | count if stats else "—" }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Membres</div>
+    <div class="stat-value">{{ stats.users | count if stats else "—" }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Commandes (24 h)</div>
+    <div class="stat-value">{{ stats.commands_24h | count if stats else "—" }}</div>
+    {% if stats and stats.uptime_seconds < 86400 %}
+      <div class="stat-note">depuis le démarrage du bot</div>
+    {% endif %}
+  </div>
+</div>
+
+{% if is_owner %}
+<section>
+  <div class="section-head">
+    <h2>Dernières commandes</h2>
+    <span class="section-count"><a href="/dashboard/journal">Voir tout le journal</a></span>
+  </div>
+  {% include "_journal_table.html" %}
+</section>
+{% endif %}
+
+<section>
+  <div class="section-head">
+    <h2>Tes serveurs</h2>
+    <span class="section-count">
+      {{ guilds | selectattr("bot_present") | list | length }} sur {{ guilds | length }} ont le bot
+    </span>
+  </div>
+  {% include "_servers_table.html" %}
+</section>
+{% endblock %}

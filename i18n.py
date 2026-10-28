@@ -1,4 +1,4 @@
-﻿"""
+"""
 i18n — Moteur de traduction multi-langue
 =========================================
 Utilisation : from i18n import t
@@ -10,7 +10,10 @@ Langues : fr (défaut CreateYourQueue), en (défaut autres serveurs), es, de, ko
 
 import json
 import os
+import re
 from typing import Any
+
+import custom_emojis
 from json_store import write_json
 import logging
 
@@ -28,6 +31,13 @@ LANGUAGES: dict[str, dict[str, str]] = {
     "de": {"name": "Deutsch",   "flag": "🇩🇪"},
     "ko": {"name": "한국어",     "flag": "🇰🇷"},
 }
+
+# ⚠️ et ❌ s'affichent avec les emojis perso Zoom125 et cross du bot principal.
+# Le modmail et le bot temporaire (ghost ping, suggestions) sont d'autres
+# applications : un emoji d'application ne s'affiche que pour la sienne, ils
+# gardent les emojis de Discord.
+_CUSTOM = ((re.compile("⚠️?"), "zoom125"), (re.compile("❌"), "cross"))
+_OTHER_BOTS = ("modmail.", "ghost.", "suggest.")
 
 
 # Cache des cles deja resolues : {langue: {cle: valeur}}. Vide au rechargement.
@@ -84,6 +94,16 @@ def _get_locale(lang: str) -> dict:
     return _locale_cache[lang]
 
 
+def _emojis(key: str, text: str) -> str:
+    """Remplace ⚠️ et ❌ par les emojis perso, avant d'insérer les variables :
+    le texte saisi par un membre n'est jamais touché."""
+    if key.startswith(_OTHER_BOTS):
+        return text
+    for pattern, name in _CUSTOM:
+        text = pattern.sub(custom_emojis.get(name), text)
+    return text
+
+
 def t(guild_id: int | None, key: str, **kwargs: Any) -> str:
     """Translate a dot-separated key for the given guild's language."""
     lang  = get_lang(guild_id)
@@ -94,7 +114,7 @@ def t(guild_id: int | None, key: str, **kwargs: Any) -> str:
         value = _resolve("fr", key)
     if value is None:
         return key
-    text = str(value)
+    text = _emojis(key, str(value))
     if kwargs:
         try:
             return text.format(**kwargs)
@@ -108,7 +128,7 @@ def t_in(lang: str, key: str, **kwargs: Any) -> str:
     value = _resolve(lang, key)
     if value is None:
         return ""
-    text = str(value)
+    text = _emojis(key, str(value))
     if kwargs:
         try:
             return text.format(**kwargs)

@@ -20,9 +20,10 @@ import resources
 from config import SUPPORT_INVITE
 from guild_settings import (
     WIZARD_SLOTS, OPTIONAL_SLOTS, get_features, set_features, channels_ready,
-    queue_ready, set_resource_id, clear_resource_id, get_mmr_config, set_mmr_config,
-    mark_setup_complete, get_setup_panel, get_queue_password, set_queue_password,
-    get_ticket_config, set_ticket_config,
+    set_resource_id, clear_resource_id, get_mmr_config, set_mmr_config,
+    mark_setup_complete, get_setup_panel, clear_setup_panel,
+    get_queue_password, set_queue_password,
+    get_ticket_config, set_ticket_config, queue_launched,
 )
 from i18n import t
 
@@ -1183,7 +1184,8 @@ def done_embed(guild: discord.Guild) -> discord.Embed:
     embed = embeds.base(
         gid,
         title=t(gid, "wiz.done_title"),
-        description=t(gid, "wiz.done_desc"),
+        # « Tape /queue pour ta première partie » : seulement avant la première.
+        description=None if queue_launched(gid) else t(gid, "wiz.done_desc"),
         kind="success",
         footer=t(gid, "wiz.done_footer"),
     )
@@ -1249,26 +1251,32 @@ class Wizard(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """Réactive les menus du message d'arrivée après un redémarrage."""
+        """Retire les panneaux d'assistant laissés sur les serveurs.
+
+        Ce panneau était publié à l'arrivée du bot et redessiné à chaque
+        démarrage. Il n'est plus envoyé depuis que tout se règle sur
+        cyqbot.eu : ceux qui traînent encore deviennent le message
+        d'accueil, lien compris, plutôt que des boutons morts. Une fois
+        transformés, ils sont oubliés et plus jamais touchés."""
         if self._restored:
             return
         self._restored = True
+        from cogs.welcome import join_embed, join_view
+
         for guild in self.bot.guilds:
             panel = get_setup_panel(guild.id)
-            if not panel or queue_ready(guild.id):
+            if not panel:
                 continue
-            try:
-                view = (ChannelsWizard(guild, intro=True) if not channels_ready(guild.id)
-                        else OptionsWizard(guild))
-                self.bot.add_view(view, message_id=panel["message_id"])
-            except Exception as e:
-                log.error(f"Panneau de configuration non restauré sur {guild.name} : {e}")
-
-    @commands.Cog.listener()
-    async def on_guild_join(self, guild: discord.Guild) -> None:
-        """Désactivé - Le cog welcome gère maintenant l'accueil."""
-        # L'accueil est géré par cogs/welcome.py
-        pass
+            channel = guild.get_channel(panel.get("channel_id") or 0)
+            if channel is not None:
+                try:
+                    await channel.get_partial_message(panel["message_id"]).edit(
+                        content=None, embed=join_embed(), view=join_view())
+                except discord.HTTPException as e:
+                    # Message supprimé à la main, salon devenu muet : rien à
+                    # sauver, on l'oublie quand même ci-dessous.
+                    log.info(f"[{guild.name}] Ancien panneau non remplacé : {e}")
+            clear_setup_panel(guild.id)
 
     @app_commands.command(
         name="option",

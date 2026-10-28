@@ -1,0 +1,31 @@
+{# Le journal des commandes, partagé par le tableau de bord et la page Journal. #}
+<div class="panel">
+  {% if journal %}
+    <table class="journal">
+      <thead>
+        <tr>
+          <th>Heure</th><th>Serveur</th><th>Membre</th><th>Commande</th><th>État</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in journal %}
+          <tr>
+            <td class="cell-time">{{ row.at | clock }}</td>
+            <td class="cell-strong">{{ row.guild }}</td>
+            <td class="muted">{{ row.user }}</td>
+            <td class="cell-command">{{ row.command }}</td>
+            <td>
+              {% if row.status == "ERR" %}
+                <span class="tag err">Échec</span>
+              {% else %}
+                <span class="tag ok"><span class="dot"></span>OK</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty-line">Aucune commande depuis le dernier démarrage du bot.</p>
+  {% endif %}
+</div>

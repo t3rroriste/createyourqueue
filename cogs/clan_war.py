@@ -23,11 +23,12 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
+import custom_emojis
 import embeds
 import resources
 from guild_settings import (
     MAX_CLAN_NAME, get_clan, set_clan_war_session, clear_clan_war_session,
-    get_ticket_config, increment_clan_announcement,
+    get_mmr_config, get_player_mmr, get_ticket_config, increment_clan_announcement,
 )
 from i18n import t
 from text_safety import sanitize
@@ -62,6 +63,11 @@ class ClanWarSession:
         self.clan2 = clan2
         self.size = size
         self.started = False
+        # `started` : la préparation a commencé. `match_started` : la partie
+        # est lancée. `ended` : la guerre est finie (abandon, timeout, fin).
+        # Les trois sont distincts : confondre les deux derniers rendait le
+        # bouton « Abandonné » inutile dès le début du match.
+        self.match_started = False
         self.ended = False
         self.preparation_end_time = None
         self.voice_channel = None
@@ -78,7 +84,12 @@ class ClanWarSession:
         self.clan1_points = 0
         self.clan2_points = 0
         self.round_votes = {}  # clan du votant -> [clan désigné gagnant, id du votant]
+        # Qui a réellement joué, figé au lancement du match : le tableau des
+        # résultats parle d'eux, pas de tout le clan.
+        self.players = {"clan1": [], "clan2": []}
+        self.score_messages = {}  # salon de clan -> message du tableau de score
         self.main_embed_message = None  # Stocke le message principal pour les mises à jour
+        self.main_embed_message_id = None  # Le même, relu depuis le disque
 
     def to_dict(self) -> dict[str, Any]:
         """Sérialise la session pour persistance."""
@@ -91,10 +102,12 @@ class ClanWarSession:
             "clan2_id": self.clan2["id"],
             "size": self.size,
             "started": self.started,
+            "match_started": self.match_started,
             "ended": self.ended,
             "preparation_end_time": self.preparation_end_time,
             "voice_channel_id": getattr(self.voice_channel, "id", None),
             "captain_vote_channel_id": getattr(self.captain_vote_channel, "id", None),
+            "main_embed_message_id": getattr(self.main_embed_message, "id", None),
             "notification_messages": self.notification_messages,
             "countdown_started": self.countdown_started,
             "team_channels": {
@@ -104,6 +117,8 @@ class ClanWarSession:
             "clan1_points": self.clan1_points,
             "clan2_points": self.clan2_points,
             "round_votes": self.round_votes,
+            "players": self.players,
+            "score_messages": self.score_messages,
         }
 
     @classmethod
@@ -120,10 +135,15 @@ class ClanWarSession:
 
         session = cls(cog, guild, clan1, clan2, data.get("size", 1))
         session.started = data.get("started", False)
+        session.match_started = data.get("match_started", False)
         session.ended = data.get("ended", False)
         session.preparation_end_time = data.get("preparation_end_time")
-        session.notification_messages = data.get("notification_messages", {})
+        # Le JSON rend des clés en texte : sans ce passage en entier,
+        # get_channel() ne retrouve plus les salons des deux clans.
+        session.notification_messages = {int(cid): mid
+                                         for cid, mid in (data.get("notification_messages") or {}).items()}
         session.countdown_started = data.get("countdown_started", False)
+        session.main_embed_message_id = data.get("main_embed_message_id")
 
         # Reconstruire les channels
         voice_channel_id = data.get("voice_channel_id")
@@ -147,6 +167,11 @@ class ClanWarSession:
         session.clan2_points = data.get("clan2_points", 0)
         session.round_votes = {side: vote for side, vote in (data.get("round_votes") or {}).items()
                                if side in ("clan1", "clan2")}
+        players = data.get("players") or {}
+        session.players = {side: [int(uid) for uid in players.get(side) or []]
+                           for side in ("clan1", "clan2")}
+        session.score_messages = {int(cid): mid
+                                  for cid, mid in (data.get("score_messages") or {}).items()}
 
         return session
 
@@ -297,15 +322,16 @@ class ClanWarSession:
         initial_remaining = self.preparation_end_time - time.time()
         initial_minutes = int(initial_remaining // 60)
         initial_seconds = int(initial_remaining % 60)
-        initial_timer = t(gid, "clan.war_timer",
-                         minutes=f"{initial_minutes:02d}", seconds=f"{initial_seconds:02d}")
+        initial_timer = t(gid, "clan.war_timer", clock=custom_emojis.get("clock"),
+                          minutes=f"{initial_minutes:02d}", seconds=f"{initial_seconds:02d}")
 
         # Notifier le clan 1
         channel1 = self.cog.clan_channel(self.guild, self.clan1)
         if channel1:
             try:
                 voice_mention = self.voice_channel.mention if self.voice_channel else "@vocal"
-                base_desc = t(gid, "clan.war_started_desc", voice=voice_mention)
+                base_desc = t(gid, "clan.war_started_desc", voice=voice_mention,
+                              warn=custom_emojis.get("zoom125"))
                 description = f"{base_desc}\n\n{initial_timer}"
                 embed = discord.Embed(
                     title=t(gid, "clan.war_started_title"),
@@ -326,7 +352,8 @@ class ClanWarSession:
         if channel2:
             try:
                 voice_mention = self.voice_channel.mention if self.voice_channel else "@vocal"
-                base_desc = t(gid, "clan.war_started_desc", voice=voice_mention)
+                base_desc = t(gid, "clan.war_started_desc", voice=voice_mention,
+                              warn=custom_emojis.get("zoom125"))
                 description = f"{base_desc}\n\n{initial_timer}"
                 embed = discord.Embed(
                     title=t(gid, "clan.war_started_title"),
@@ -356,7 +383,7 @@ class ClanWarSession:
                 await asyncio.sleep(1)
 
             # Temps écoulé - annuler le monitoring et vérifier si le match a commencé
-            if not self.ended:
+            if not self.ended and not self.match_started:
                 log.info(f"[{self.guild.name}] Temps écoulé, annulation du monitoring")
                 monitoring_task.cancel()
                 await self._check_leader_presence_and_start()
@@ -378,21 +405,17 @@ class ClanWarSession:
             if channel:
                 try:
                     message = await channel.fetch_message(message_id)
-                    timer_text = t(self.guild_id, "clan.war_timer",
-                                  minutes=f"{minutes:02d}", seconds=f"{seconds:02d}")
+                    timer_text = t(self.guild_id, "clan.war_timer", clock=custom_emojis.get("clock"),
+                                   minutes=f"{minutes:02d}", seconds=f"{seconds:02d}")
 
-                    # Remplacer le minuteur existant dans la description
+                    # Le minuteur est toujours le dernier paragraphe (voir
+                    # _send_war_notifications) : on le remplace, quel que soit
+                    # l'emoji devant.
                     embed = message.embeds[0] if message.embeds else None
-                    if embed:
-                        # La description contient le timer à la fin, on le remplace
+                    if embed and embed.description:
                         lines = embed.description.split('\n\n')
-                        if lines and lines[-1].startswith('⏱️'):
-                            # Remplacer la dernière ligne (le timer)
-                            lines[-1] = timer_text
-                            new_description = '\n\n'.join(lines)
-                        else:
-                            # Ajouter le timer s'il n'existe pas
-                            new_description = embed.description + f"\n\n{timer_text}"
+                        lines[-1] = timer_text
+                        new_description = '\n\n'.join(lines)
 
                         new_embed = discord.Embed(
                             title=embed.title,
@@ -405,7 +428,7 @@ class ClanWarSession:
 
     async def _check_leader_presence_and_start(self):
         """Vérifie la présence des leaders et lance le match si présents."""
-        if self.ended:
+        if self.ended or self.match_started:
             return
 
         log.info(f"[{self.guild.name}] Vérification de la présence des leaders")
@@ -443,19 +466,20 @@ class ClanWarSession:
         # Nettoyer la session persistée
         clear_clan_war_session(self.guild_id)
 
-        # Envoyer les notifications d'annulation
-        for channel_id, message_id in self.notification_messages.items():
-            channel = self.guild.get_channel(channel_id)
-            if channel:
-                try:
-                    embed = embeds.base(
-                        self.guild_id,
-                        description=t(self.guild_id, "clan.war_leader_missing"),
-                        kind="error"
-                    )
-                    await channel.send(embed=embed)
-                except discord.HTTPException:
-                    pass
+        # La guerre n'a jamais commencé : pas de tableau de résultats, juste
+        # la raison, dans des salons qu'on a d'abord remis au propre.
+        embed = embeds.base(
+            self.guild_id,
+            description=t(self.guild_id, "clan.war_leader_missing",
+                          icon=custom_emojis.get("timeout")),
+            kind="error"
+        )
+        await self._clean_clan_channels()
+        for _clan, channel in self._clan_channels():
+            try:
+                await channel.send(embed=embed)
+            except discord.HTTPException:
+                pass
 
         # Nettoyer les channels
         await self.cancel()
@@ -474,7 +498,7 @@ class ClanWarSession:
         log.info(f"[{self.guild.name}] Monitoring du vocal: limite={max_players}, channel={self.voice_channel.name}")
 
         try:
-            while not self.ended:
+            while not self.ended and not self.match_started:
                 # Vérifier si les 2 leaders sont présents
                 leader1_present = False
                 leader2_present = False
@@ -516,7 +540,7 @@ class ClanWarSession:
         log.info(f"[{self.guild.name}] Monitoring du vocal: limite={max_players}, channel={self.voice_channel.name}")
 
         try:
-            while not self.ended:
+            while not self.ended and not self.match_started:
                 current_players = len(self.voice_channel.members)
                 log.info(f"[{self.guild.name}] Joueurs dans le vocal: {current_players}/{max_players}")
 
@@ -540,7 +564,7 @@ class ClanWarSession:
         log.info(f"[{self.guild.name}] Countdown démarré: {countdown}s")
 
         try:
-            while countdown > 0 and not self.ended:
+            while countdown > 0 and not self.ended and not self.match_started:
                 max_players = self.size * 2
                 current_players = len(self.voice_channel.members) if self.voice_channel else 0
 
@@ -561,7 +585,7 @@ class ClanWarSession:
                 await asyncio.sleep(1)
                 countdown -= 1
 
-            if countdown <= 0 and not self.ended:
+            if countdown <= 0 and not self.ended and not self.match_started:
                 # Le compte à rebours est terminé, lancer le match
                 log.info(f"[{self.guild.name}] Countdown terminé, lancement du match")
                 await self._start_match()
@@ -610,20 +634,27 @@ class ClanWarSession:
         """Lance la partie après la période de préparation."""
         log.info(f"[{self.guild.name}] === DÉBUT DE _start_match ===")
 
-        if self.ended:
-            log.warning(f"[{self.guild.name}] Match déjà terminé, annulation")
+        if self.ended or self.match_started:
+            log.warning(f"[{self.guild.name}] Match déjà lancé ou terminé, annulation")
             return
 
-        self.ended = True
+        self.match_started = True
 
-        # Nettoyer la session persistée car la phase de préparation est terminée
-        log.info(f"[{self.guild.name}] Nettoyage de la session persistée")
-        clear_clan_war_session(self.guild_id)
+        # La session reste sur le disque pendant la partie : sans elle, un
+        # redémarrage laissait les boutons du salon de match sans effet.
+        set_clan_war_session(self.guild_id, self.to_dict())
         self._log("logs.duel_started", color=embeds.SUCCESS)
 
-        # Envoyer un message pour dire que le match est lancé
-        log.info(f"[{self.guild.name}] Envoi de la notification de démarrage")
-        await self._send_match_started_notification()
+        # Qui joue : ceux qui sont dans le vocal de préparation, avant que
+        # tout le monde soit déplacé dans les vocaux d'équipe.
+        self._snapshot_players()
+
+        # Les deux chefs et leurs membres sont là : le message de préparation
+        # et son minuteur n'ont plus rien à dire. Le salon de chaque clan ne
+        # garde que le tableau du score.
+        log.info(f"[{self.guild.name}] Nettoyage des salons de clan et publication du score")
+        await self._clean_clan_channels()
+        await self.post_score_messages()
 
         # Créer les channels vocaux séparés pour chaque équipe (déplace les joueurs)
         log.info(f"[{self.guild.name}] Création des channels vocaux d'équipe")
@@ -632,27 +663,6 @@ class ClanWarSession:
         # Le bot rejoint le vocal pour annoncer que le match va commencer
         log.info(f"[{self.guild.name}] Tentative de rejoindre le vocal pour annoncer le début")
         await self._bot_voice_announce()
-
-        # Attendre 15 secondes avant de déplacer les joueurs
-        log.info(f"[{self.guild.name}] Attente de 15 secondes avant le déplacement des joueurs")
-        await asyncio.sleep(15)
-
-        # Déplacer les membres du vocal de préparation vers leurs vocaux d'équipe
-        log.info(f"[{self.guild.name}] Déplacement des joueurs vers leurs vocaux d'équipe")
-        if self.voice_channel:
-            for member in self.voice_channel.members:
-                if member.id in self.clan1.get("members", []):
-                    try:
-                        await member.move_to(self.team_channels["team1"])
-                        log.info(f"[{self.guild.name}] {member.name} déplacé vers {self.team_channels['team1'].name}")
-                    except discord.HTTPException:
-                        pass
-                elif member.id in self.clan2.get("members", []):
-                    try:
-                        await member.move_to(self.team_channels["team2"])
-                        log.info(f"[{self.guild.name}] {member.name} déplacé vers {self.team_channels['team2'].name}")
-                    except discord.HTTPException:
-                        pass
 
         # Attendre 15 secondes avant de déplacer les joueurs
         log.info(f"[{self.guild.name}] Attente de 15 secondes avant le déplacement des joueurs")
@@ -685,27 +695,6 @@ class ClanWarSession:
 
         log.info(f"[{self.guild.name}] ClanWar lancé: {self.clan1.get('name')} vs {self.clan2.get('name')}")
         log.info(f"[{self.guild.name}] === FIN DE _start_match ===")
-
-    async def _send_match_started_notification(self):
-        """Envoie une notification que le match est lancé."""
-        gid = self.guild_id
-        name1 = sanitize(self.clan1.get("name", "?"), MAX_CLAN_NAME)
-        name2 = sanitize(self.clan2.get("name", "?"), MAX_CLAN_NAME)
-
-        for channel_id, message_id in self.notification_messages.items():
-            channel = self.guild.get_channel(channel_id)
-            if channel:
-                try:
-                    embed = discord.Embed(
-                        title=t(gid, "clan.war_start_title"),
-                        description=t(gid, "clan.war_start_desc",
-                                     clan1=name1, clan2=name2, size=self.size),
-                        color=embeds.BLACK
-                    )
-                    # Pas de footer
-                    await channel.send(embed=embed)
-                except discord.HTTPException:
-                    pass
 
     async def _create_team_voice_channels(self):
         """Crée des channels vocaux séparés pour chaque équipe et y déplace les joueurs."""
@@ -856,22 +845,9 @@ class ClanWarSession:
         log.info(f"[{self.guild.name}] Victoire par abandon: {winner_name} gagne contre {loser_name}")
         self._log("logs.duel_timeout", winner=winner_name, loser=loser_name)
 
-        # Notifier les deux clans
-        for channel_id, message_id in self.notification_messages.items():
-            channel = self.guild.get_channel(channel_id)
-            if channel:
-                try:
-                    embed = discord.Embed(
-                        title=t(self.guild_id, "clan.war_timeout_title"),
-                        description=t(self.guild_id, "clan.war_timeout_desc", winner=winner_name, loser=loser_name),
-                        color=embeds.BLACK
-                    )
-                    await channel.send(embed=embed)
-                except discord.HTTPException:
-                    pass
-
-        # Terminer la session
-        await self.cancel()
+        # Les salons des deux clans ne gardent que le tableau des résultats.
+        await self.finish(t(self.guild_id, "clan.war_timeout_desc",
+                            winner=winner_name, loser=loser_name))
 
     async def _bot_voice_announce(self):
         """Le bot rejoint le vocal et annonce le début de la partie."""
@@ -958,6 +934,10 @@ class ClanWarSession:
             )
 
             self.main_embed_message = await self.captain_vote_channel.send(embed=embed, view=ClanWarActionView(self))
+            self.main_embed_message_id = self.main_embed_message.id
+            # Le salon et son message sont notés : c'est ce qui permet de
+            # raccrocher les boutons après un redémarrage.
+            set_clan_war_session(self.guild_id, self.to_dict())
 
             log.info(f"[{self.guild.name}] Channel de match créé: {channel_name}")
 
@@ -1024,6 +1004,140 @@ class ClanWarSession:
         except discord.HTTPException as e:
             log.error(f"[{self.guild.name}] Erreur lors de la création du channel: {e}")
 
+    # -- Les salons des deux clans : un seul message de guerre à la fois --
+    def _clan_channels(self) -> list[tuple[dict, discord.TextChannel]]:
+        """Les salons de liaison des deux clans, quand ils existent encore."""
+        pairs = []
+        for clan in (self.clan1, self.clan2):
+            channel = self.cog.clan_channel(self.guild, clan)
+            if channel is not None:
+                pairs.append((clan, channel))
+        return pairs
+
+    async def _clean_clan_channels(self) -> None:
+        """Ne laisse que les deux embeds dans les salons des deux clans."""
+        for clan, channel in self._clan_channels():
+            await self.cog.wipe_clan_channel(channel, clan)
+        self.notification_messages = {}
+        self.score_messages = {}
+
+    def _snapshot_players(self) -> None:
+        """Fige qui joue, clan par clan : ceux qui sont dans le vocal de
+        préparation au moment du lancement, pas tout le clan."""
+        self.players = {"clan1": [], "clan2": []}
+        if self.voice_channel is None:
+            return
+        for member in self.voice_channel.members:
+            if member.id in self.clan1.get("members", []):
+                self.players["clan1"].append(member.id)
+            elif member.id in self.clan2.get("members", []):
+                self.players["clan2"].append(member.id)
+
+    def score_embed(self) -> discord.Embed:
+        """Le tableau du score : seul message de la guerre dans les salons de clan."""
+        gid = self.guild_id
+        name1 = sanitize(self.clan1.get("name", "?"), MAX_CLAN_NAME)
+        name2 = sanitize(self.clan2.get("name", "?"), MAX_CLAN_NAME)
+        return discord.Embed(
+            title=t(gid, "clan.war_score_title"),
+            description=t(gid, "clan.war_score_desc",
+                          clan1=name1, points1=self.clan1_points,
+                          clan2=name2, points2=self.clan2_points),
+            color=embeds.BLACK,
+        )
+
+    async def post_score_messages(self) -> None:
+        """Publie le tableau du score dans les salons des deux clans."""
+        embed = self.score_embed()
+        for _clan, channel in self._clan_channels():
+            try:
+                message = await channel.send(embed=embed)
+                self.score_messages[channel.id] = message.id
+            except discord.HTTPException as e:
+                log.warning(f"[{self.guild.name}] Tableau du score non publié dans #{channel.name} : {e}")
+        set_clan_war_session(self.guild_id, self.to_dict())
+
+    async def update_score_messages(self) -> None:
+        """Le tableau suit le score : il est modifié, jamais republié."""
+        embed = self.score_embed()
+        for channel_id, message_id in list(self.score_messages.items()):
+            channel = self.guild.get_channel(int(channel_id))
+            if channel is None:
+                continue
+            try:
+                await channel.get_partial_message(int(message_id)).edit(embed=embed)
+            except discord.HTTPException:
+                # Message supprimé à la main : on cesse de le suivre.
+                self.score_messages.pop(channel_id, None)
+
+    def result_embed(self, description: str) -> discord.Embed:
+        """Le tableau des résultats : score final, capitaines et MMR des joueurs."""
+        gid = self.guild_id
+        name1 = sanitize(self.clan1.get("name", "?"), MAX_CLAN_NAME)
+        name2 = sanitize(self.clan2.get("name", "?"), MAX_CLAN_NAME)
+        embed = discord.Embed(
+            title=t(gid, "clan.war_result_title"),
+            description=description,
+            color=embeds.BLACK,
+        )
+        embed.add_field(
+            name=t(gid, "clan.war_result_score"),
+            value=f"**{name1}** `{self.clan1_points}` – `{self.clan2_points}` **{name2}**",
+            inline=False,
+        )
+
+        config = get_mmr_config(gid)
+        # Capitaines et MMR ne s'affichent que si le serveur les a allumés
+        # dans /option : ailleurs, ces lignes ne voudraient rien dire.
+        if config.get("captains"):
+            lines = [t(gid, "clan.war_result_captain_line", clan=name, player=f"<@{clan['leader_id']}>")
+                     for clan, name in ((self.clan1, name1), (self.clan2, name2))
+                     if clan.get("leader_id")]
+            if lines:
+                embed.add_field(name=t(gid, "clan.war_result_captains"),
+                                value="\n".join(lines), inline=False)
+
+        if config.get("enabled"):
+            for side, name in (("clan1", name1), ("clan2", name2)):
+                lines = [t(gid, "clan.war_result_mmr_line", player=f"<@{uid}>",
+                           mmr=get_player_mmr(gid, uid, config["start"]))
+                         for uid in self.players.get(side, [])]
+                if lines:
+                    embed.add_field(name=t(gid, "clan.war_result_team", clan=name),
+                                    value="\n".join(lines)[:1024], inline=True)
+        return embed
+
+    async def finish(self, description: str) -> None:
+        """Fin de la guerre : les salons des deux clans sont vidés et ne
+        gardent que le tableau des résultats, puis tout se ferme."""
+        if self.ended:
+            return
+        embed = self.result_embed(description)
+        await self._clean_clan_channels()
+        for _clan, channel in self._clan_channels():
+            try:
+                await channel.send(embed=embed)
+            except discord.HTTPException as e:
+                log.warning(f"[{self.guild.name}] Tableau des résultats non publié dans #{channel.name} : {e}")
+        await self.cancel()
+
+    async def resume_match(self) -> None:
+        """Après un redémarrage : raccroche les boutons du salon de match et
+        relance la surveillance des chefs."""
+        channel = self.captain_vote_channel
+        if channel is not None and self.main_embed_message_id:
+            try:
+                self.main_embed_message = await channel.fetch_message(int(self.main_embed_message_id))
+                await self.main_embed_message.edit(view=ClanWarActionView(self))
+            except discord.HTTPException as e:
+                log.warning(f"[{self.guild.name}] Boutons du salon de match non raccrochés : {e}")
+        # Les salons de clan ont été vidés au redémarrage : le tableau du
+        # score y revient, à jour, à la place de celui qui vient de partir.
+        self.score_messages = {}
+        await self.post_score_messages()
+        self.leader_timeout_task = asyncio.create_task(self._monitor_leader_timeout())
+        log.info(f"[{self.guild.name}] Match de ClanWar repris: {self.clan1.get('name')} vs {self.clan2.get('name')}")
+
     async def forfeit(self, leader_id: int) -> None:
         """Abandon demandé par le chef d'un des deux clans : l'autre clan gagne."""
         if self.ended:
@@ -1037,21 +1151,8 @@ class ClanWarSession:
         log.info(f"[{self.guild.name}] ClanWar abandonné par {loser_name} : victoire de {winner_name}")
         self._log("logs.duel_forfeit", user=self.guild.get_member(leader_id),
                   winner=winner_name, loser=loser_name)
-        embed = discord.Embed(
-            title=t(self.guild_id, "clan.war_forfeit_title"),
-            description=t(self.guild_id, "clan.war_forfeit_desc", winner=winner_name, loser=loser_name),
-            color=embeds.BLACK,
-        )
-        # Les clés deviennent des chaînes quand la session est relue depuis le disque.
-        for channel_id in list(self.notification_messages):
-            channel = self.guild.get_channel(int(channel_id))
-            if channel is None:
-                continue
-            try:
-                await channel.send(embed=embed)
-            except discord.HTTPException as e:
-                log.warning(f"[{self.guild.name}] Annonce d'abandon non envoyée : {e}")
-        await self.cancel()
+        await self.finish(t(self.guild_id, "clan.war_forfeit_desc",
+                            winner=winner_name, loser=loser_name))
         active = getattr(self.cog, "active_war_sessions", None)
         if isinstance(active, dict):
             active.pop(str(self.guild_id), None)
@@ -1089,6 +1190,11 @@ class ClanWarSession:
 
         # Nettoyer la session persistée
         clear_clan_war_session(self.guild_id)
+        # Et la session en mémoire : sans ça, le serveur ne peut plus lancer
+        # de ClanWar tant que le bot tourne.
+        active = getattr(self.cog, "active_war_sessions", None)
+        if isinstance(active, dict) and active.get(str(self.guild_id)) is self:
+            active.pop(str(self.guild_id), None)
 
         log.info(f"[{self.guild.name}] ClanWar annulé: {self.clan1.get('name')} vs {self.clan2.get('name')}")
 
@@ -1103,6 +1209,7 @@ class ClanWarActionView(discord.ui.View):
         self.round.label = t(gid, "clan.war_btn_round")
         self.abandon.label = t(gid, "clan.war_btn_abandon")
         self.problem.label = t(gid, "clan.war_btn_problem")
+        self.problem.emoji = custom_emojis.get("zoom125")
 
     @discord.ui.button(label="Manche", style=discord.ButtonStyle.secondary, emoji="🏴", custom_id="cyq:clanwar:round")
     async def round(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
@@ -1259,6 +1366,8 @@ class RoundVoteView(discord.ui.View):
             session.clan1_points += 1
         else:
             session.clan2_points += 1
+        # Le score survit à un redémarrage.
+        set_clan_war_session(session.guild_id, session.to_dict())
         voted = session.clan1 if clan_choice == "clan1" else session.clan2
         send_log(interaction.client, session.guild_id, "duel", t(session.guild_id, "logs.duel_round"), user=user,
                  description=t(session.guild_id, "logs.duel_round_desc", player=user.mention,
@@ -1299,3 +1408,6 @@ class RoundVoteView(discord.ui.View):
 
             # Éditer le message principal existant
             await session.main_embed_message.edit(embed=main_embed, view=ClanWarActionView(session))
+
+        # Et le tableau du score dans les salons des deux clans.
+        await session.update_score_messages()

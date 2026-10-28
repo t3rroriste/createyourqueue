@@ -59,7 +59,8 @@ def main() -> None:
 
     # On ne synchronise jamais les fichiers qui n'ont rien à faire sur le
     # serveur (venv, cache, config locale de Claude...).
-    ignored_prefixes = ("venv/", "__pycache__/", ".git/", ".claude/", "tests/", "graphify-out/")
+    # "site/" est le site web : il tourne sur l'autre VPS, pas sur le serveur du bot.
+    ignored_prefixes = ("venv/", "__pycache__/", ".git/", ".claude/", "tests/", "graphify-out/", "site/")
     if any(rel_path.startswith(p) for p in ignored_prefixes):
         return
     # Jamais les secrets ni les données vivantes du serveur : les écraser

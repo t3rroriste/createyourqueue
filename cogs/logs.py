@@ -21,7 +21,6 @@ from datetime import timedelta
 from typing import Any, Iterable
 
 import discord
-from discord import app_commands
 from discord.ext import commands
 
 import embeds
@@ -55,8 +54,6 @@ YELLOW = embeds.WARNING
 # Ce qu'il faut au bot pour publier un log.
 _SEND_PERMS = ("view_channel", "send_messages", "embed_links")
 
-_ACTIVER = "True pour activer ces logs, False pour les couper"
-_SALON = "Le salon qui les reçoit (facultatif pour rallumer le salon mémorisé)"
 
 
 # ----------------------------------------------------------------------
@@ -228,6 +225,8 @@ class Logs(commands.Cog):
         return True
 
     def _deliver(self, channel: discord.TextChannel, guild_id: int, kind: str, embed: discord.Embed) -> None:
+        # Tous les logs en rouge, quel que soit leur type.
+        embed.colour = RED
         task = asyncio.create_task(self._send(channel, guild_id, kind, embed))
         self._pending.add(task)
         task.add_done_callback(self._pending.discard)
@@ -257,212 +256,53 @@ class Logs(commands.Cog):
             return None
         return None
 
-    # ------------------------------------------------------------------
-    # Commandes
-    # ------------------------------------------------------------------
-    def _line(self, guild: discord.Guild, kind: str) -> tuple[str, str]:
-        """(titre, état) d'un type, pour /logs et les confirmations."""
-        gid = guild.id
-        icon, _ = KINDS[kind]
-        entry = self.config.get(gid, {}).get(kind)
-        channel = guild.get_channel(entry["channel"]) if entry else None
-        if entry and entry["on"] and channel is not None:
-            state, detail = embeds.state(True), channel.mention
-        elif entry and entry["on"]:
-            state, detail = "🟠", t(gid, "logs.state_missing")
-        elif channel is not None:
-            state, detail = embeds.state(False), t(gid, "logs.state_off", channel=channel.mention)
-        else:
-            state, detail = "⚫", t(gid, "logs.state_never")
-        return f"{state} {icon} {t(gid, f'logs.kind_{kind}')}", detail
-
     @staticmethod
     def _missing_perms(channel: discord.TextChannel) -> list[str]:
         perms = channel.permissions_for(channel.guild.me)
         return [name for name in _SEND_PERMS if not getattr(perms, name)]
 
-    async def _configure(self, interaction: discord.Interaction, kinds: list[str],
-                         activer: bool, salon: discord.TextChannel | None) -> None:
-        gid = interaction.guild_id
-        guild = interaction.guild
-        if gid is None or guild is None:
-            await interaction.response.send_message(t(gid, "common.members_only"), ephemeral=True)
-            return
-        entries = self.config.setdefault(gid, {})
-
-        if not activer:
-            for kind in kinds:
-                if kind in entries:
-                    entries[kind]["on"] = False
-            self._save()
-            await self._confirm(interaction, kinds, skipped=[])
-            return
-
-        # Salon choisi, ou à défaut celui mémorisé pour chaque type.
-        plan: dict[str, discord.TextChannel] = {}
-        skipped = []
-        for kind in kinds:
-            channel = salon
-            if channel is None:
-                remembered = guild.get_channel(entries.get(kind, {}).get("channel") or 0)
-                channel = remembered if isinstance(remembered, discord.TextChannel) else None
-            if channel is None:
-                skipped.append(kind)
-            else:
-                plan[kind] = channel
-        if not plan:
-            await interaction.response.send_message(
-                embed=embeds.base(gid, description=t(gid, "logs.need_channel"), kind="error"),
-                ephemeral=True)
-            return
-
-        # Vérifié avant d'enregistrer : un salon où le bot ne peut pas écrire
-        # donnerait des logs activés qui n'arrivent jamais, sans explication.
-        for channel in {c.id: c for c in plan.values()}.values():
-            missing = self._missing_perms(channel)
-            if missing:
-                await interaction.response.send_message(
-                    embed=embeds.base(gid, kind="error", description=t(
-                        gid, "logs.cant_send", channel=channel.mention, perms=", ".join(missing))),
-                    ephemeral=True)
-                return
-
-        for kind, channel in plan.items():
-            entries[kind] = {"on": True, "channel": channel.id}
-        self._save()
-        await self._confirm(interaction, kinds, skipped=skipped)
-
-        # Un mot dans chaque salon activé : on voit tout de suite où arrivent
-        # les logs, et que le bot peut vraiment y écrire.
-        by_channel: dict[int, list[str]] = {}
-        for kind, channel in plan.items():
-            by_channel.setdefault(channel.id, []).append(kind)
-        for channel_id, channel_kinds in by_channel.items():
-            channel = guild.get_channel(channel_id)
-            labels = ", ".join(f"{KINDS[k][0]} {t(gid, f'logs.kind_{k}')}" for k in channel_kinds)
-            embed = embeds.base(gid, title=t(gid, "logs.hello_title"),
-                                description=t(gid, "logs.hello_desc", kinds=labels,
-                                              member=interaction.user.mention),
-                                kind="success", timestamp=True)
-            try:
-                await channel.send(embed=embed)
-            except discord.HTTPException as e:
-                log.warning(f"[{guild.name}] Message d'activation des logs non publié : {e}")
-
-    async def _confirm(self, interaction: discord.Interaction, kinds: list[str], *, skipped: list[str]) -> None:
-        gid = interaction.guild_id
-        lines = [f"{title} — {detail}" for title, detail in
-                 (self._line(interaction.guild, kind) for kind in kinds)]
-        if skipped:
-            names = ", ".join(t(gid, f"logs.kind_{k}") for k in skipped)
-            lines.append("\n" + t(gid, "logs.skipped", kinds=names))
-        await interaction.response.send_message(
-            embed=embeds.base(gid, title=t(gid, "logs.updated_title"),
-                              description="\n".join(lines), kind="success"),
-            ephemeral=True)
-
-    @app_commands.command(name="logs", description="Affiche l'état de chaque type de logs.")
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs(self, interaction: discord.Interaction):
-        gid = interaction.guild_id
-        embed = embeds.base(gid, title=t(gid, "logs.overview_title"),
-                            description=t(gid, "logs.overview_desc") + f"\n{embeds.RULE}")
+    # ------------------------------------------------------------------
+    # Lu et écrit par le tableau de bord (voir cogs/dashboard_api.py)
+    #
+    # Les commandes /logs, /logs-vocal, /logs-message… ont été retirées le
+    # 11/10/2026 : douze commandes pour cocher dix cases, c'était le genre
+    # de réglage qui se fait mieux sur une page web. Le cog, lui, écrit
+    # toujours les logs exactement comme avant.
+    # ------------------------------------------------------------------
+    def dashboard_state(self, guild: discord.Guild) -> dict[str, dict]:
+        """L'état de chaque type : allumé ou non, et dans quel salon."""
+        entries = self.config.get(guild.id, {})
+        state = {}
         for kind in KINDS:
-            title, detail = self._line(interaction.guild, kind)
-            embed.add_field(name=title, value=f"{detail}\n*{t(gid, f'logs.what_{kind}')}*", inline=False)
-        embeds.brand(embed, interaction.guild)
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+            entry = entries.get(kind) or {}
+            channel_id = entry.get("channel")
+            channel = guild.get_channel(channel_id) if channel_id else None
+            state[kind] = {
+                "on": bool(entry.get("on")),
+                "channel": str(channel_id) if channel_id else None,
+                # Le site affiche « à redésigner » quand le salon a disparu.
+                "channel_name": channel.name if channel is not None else None,
+                # Et prévient quand le bot n'a pas le droit d'y écrire :
+                # sinon le type reste allumé et silencieux, sans raison visible.
+                "writable": (not self._missing_perms(channel)
+                             if isinstance(channel, discord.TextChannel) else None),
+            }
+        return state
 
-    # Une commande par type, comme demandé : /logs-vocal activer:True salon:#x.
-    @app_commands.command(name="logs-vocal", description="Logs vocaux : arrivées, départs, changements de salon, sourdines.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_vocal(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["vocal"], activer, salon)
-
-    @app_commands.command(name="logs-message", description="Logs des messages modifiés et supprimés.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_message(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["message"], activer, salon)
-
-    @app_commands.command(name="logs-queue", description="Logs des queues : ouverture, inscriptions, lancement, résultat.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_queue(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["queue"], activer, salon)
-
-    @app_commands.command(name="logs-match", description="Logs des matchs : capitaines, draft, MVP, MMR.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_match(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["match"], activer, salon)
-
-    @app_commands.command(name="logs-duel", description="Logs des duels de clans (ClanWar) : défis, lancement, manches, fin.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_duel(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["duel"], activer, salon)
-
-    @app_commands.command(name="logs-clan", description="Logs des clans : création, membres, invitations, transferts.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_clan(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["clan"], activer, salon)
-
-    @app_commands.command(name="logs-commande", description="Logs des commandes utilisées, avec leurs options.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_commande(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["commande"], activer, salon)
-
-    @app_commands.command(name="logs-join", description="Logs des arrivées et départs du serveur.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_join(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["join"], activer, salon)
-
-    @app_commands.command(name="logs-moderation", description="Logs de modération : bans, expulsions, sourdines, avertissements.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_moderation(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["moderation"], activer, salon)
-
-    @app_commands.command(name="logs-serveur", description="Logs du serveur : salons et rôles créés ou supprimés, pseudos, rôles des membres.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_serveur(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, ["serveur"], activer, salon)
-
-    @app_commands.command(name="logs-tout", description="Active ou coupe tous les types de logs d'un coup.")
-    @app_commands.describe(activer=_ACTIVER, salon=_SALON)
-    @app_commands.default_permissions(manage_guild=True)
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.guild_only()
-    async def logs_tout(self, interaction: discord.Interaction, activer: bool, salon: discord.TextChannel | None = None):
-        await self._configure(interaction, list(KINDS), activer, salon)
+    def dashboard_update(self, guild: discord.Guild, changes: dict[str, dict]) -> None:
+        """Applique ce que le site envoie : un salon et un interrupteur par type."""
+        entries = self.config.setdefault(guild.id, {})
+        for kind, wanted in changes.items():
+            entry = entries.setdefault(kind, {"on": False, "channel": None})
+            if "channel" in wanted:
+                entry["channel"] = wanted["channel"]
+            if "on" in wanted:
+                entry["on"] = bool(wanted["on"])
+            # Allumé sans salon, ça n'écrit nulle part : autant l'éteindre
+            # pour de bon, et que le site le montre éteint.
+            if entry["on"] and not entry["channel"]:
+                entry["on"] = False
+        self._save()
 
     # ------------------------------------------------------------------
     # Vocal
@@ -626,12 +466,18 @@ class Logs(commands.Cog):
         gid = interaction.guild_id
         if gid is None or self.target(gid, "commande") is None:
             return
-        options = "\n".join(f"`{name}` : {_option_value(value)}" for name, value in interaction.namespace)
-        channel = interaction.channel
-        self.emit(gid, "commande", t(gid, "logs.cmd_used"), user=interaction.user,
-                  description=f"**/{command.qualified_name}**",
-                  fields=[(t(gid, "logs.f_channel"), getattr(channel, "mention", None)),
-                          (t(gid, "logs.f_options"), options, False)])
+        # Format court, une ligne comme le message du /lock : ce log tombe à
+        # chaque commande.
+        icon, color = KINDS["commande"]
+        line = f"{icon} **/{command.qualified_name}** · {interaction.user.mention}"
+        channel = getattr(interaction.channel, "mention", None)
+        if channel:
+            line += f" · {channel}"
+        options = " · ".join(f"`{name}` : {_option_value(value).replace(chr(10), ' ')}"
+                             for name, value in interaction.namespace)
+        if options:
+            line += f"\n-# {options}"
+        self.emit_embed(gid, "commande", discord.Embed(description=_cut(line, 4096), color=color))
 
     # ------------------------------------------------------------------
     # Salons et rôles

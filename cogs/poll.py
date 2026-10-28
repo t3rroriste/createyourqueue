@@ -178,12 +178,13 @@ class Poll(commands.Cog):
                 except Exception as e:
                     log.error(f"Sondage non restauré sur {guild.name} : {e}")
                     continue
-                # Les sondages publiés avant /endpoll portent encore un bouton
-                # « Terminer » : le message est remis à jour sans lui.
+                # Le message est redessiné : une mise à jour du bot s'applique
+                # aussi aux sondages déjà ouverts.
                 channel = guild.get_channel(poll.get("channel_id") or 0)
                 if channel is not None:
                     try:
-                        await channel.get_partial_message(poll["message_id"]).edit(view=view)
+                        await channel.get_partial_message(poll["message_id"]).edit(
+                            embed=build_poll_embed(guild, poll), view=view)
                     except discord.HTTPException:
                         pass
 

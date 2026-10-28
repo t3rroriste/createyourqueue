@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}CreateYourQueue{% endblock %}
+
+{% block content %}
+<section class="landing">
+  <p class="eyebrow">Bot Discord · queues, matchs, clans</p>
+  <h1>CreateYourQueue</h1>
+  <p class="lead">
+    Le bot qui organise les parties de ton serveur : files d'attente, équipes,
+    classement et clans. Gratuit, en cinq langues.
+  </p>
+
+  <div class="actions">
+    <a class="button primary" href="{{ invite_url }}" target="_blank" rel="noopener">Inviter le bot</a>
+    <a class="button" href="/dashboard">Accéder au dashboard</a>
+  </div>
+
+  <p class="footnote">
+    L'invitation ouvre Discord et demande sur quel serveur ajouter le bot.
+    Le dashboard demande ta connexion Discord, pour savoir quels serveurs tu administres.
+  </p>
+</section>
+{% endblock %}

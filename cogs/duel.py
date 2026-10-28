@@ -62,7 +62,8 @@ ANNOUNCE_MAX_SECONDS = 30
 CATEGORY_PERMS = ("view_channel", "manage_channels", "manage_roles",
                   "move_members", "connect", "speak")
 CHANNEL_PERMS = ("view_channel", "send_messages", "read_message_history",
-                 "create_private_threads", "send_messages_in_threads", "manage_threads")
+                 "create_private_threads", "send_messages_in_threads", "manage_threads",
+                 "manage_webhooks")
 
 # Annonce vocale du début d'un duel, une par langue, générée avec gTTS (comme
 # les traductions de l'annonce de queue).
@@ -238,10 +239,10 @@ def started_embed(guild_id: int, session: dict) -> discord.Embed:
     return embed
 
 
-# Couleur de l'historique selon l'état de la dernière partie.
-HISTORY_KIND = {"waiting": "warning", "playing": "warning", "pending": "brand",
-                "won": "gold", "cancelled": "neutral", "undecided": "neutral"}
-MAX_HISTORY_LINES = 20
+# Le message public d'un duel part dans le salon des demandes par ce webhook.
+WEBHOOK_NAME = "DuelBot"
+QUIET = discord.AllowedMentions.none()
+LIVE_ENDINGS = {"cancelled": "duel.live_cancelled", "undecided": "duel.live_undecided"}
 
 
 def side_label(source: dict, side: str) -> str:
@@ -253,34 +254,36 @@ def winner_labels(guild_id: int, source: dict) -> tuple[str, str]:
     return tuple(t(guild_id, "duel.btn_win", team=side_label(source, side)) for side in ("a", "b"))
 
 
-def history_embed(guild_id: int, record: dict) -> discord.Embed:
-    """Le message d'historique d'un duel : une ligne par partie, modifiée au
-    fil du duel. Un seul message pour tout le duel, relances comprises : le
-    salon des demandes ne se remplit pas d'un message par étape."""
-    games = record.get("games") or [{"state": "waiting"}]
-    lines = []
-    for number, game in enumerate(games, 1):
-        state = game.get("state", "waiting")
-        if state == "won":
-            text = t(guild_id, "duel.hist_won", team=f"**{side_label(record, game.get('winner', 'a'))}**")
-        else:
-            text = t(guild_id, f"duel.hist_{state}")
-        lines.append(t(guild_id, "duel.hist_game", n=number, state=text)
-                     + (t(guild_id, "duel.hist_rematch") if game.get("rematch") else ""))
-    embed = embeds.base(
-        guild_id,
-        title=t(guild_id, "duel.hist_title", number=f"{record.get('number', 0):02d}",
-                team_a=side_label(record, "a"), team_b=side_label(record, "b"))[:256],
-        description="\n".join(lines[-MAX_HISTORY_LINES:]),
-        kind=HISTORY_KIND.get(games[-1].get("state"), "brand"),
-        timestamp=True,
-    )
-    for side in ("a", "b"):
-        embed.add_field(name=t(guild_id, "duel.field_team_players", name=side_label(record, side))[:256],
-                        value=roster(record.get(f"players_{side}", []), record.get(f"leader_{side}")) or "—",
-                        inline=True)
-    embed.add_field(name=t(guild_id, "duel.field_rounds"), value=rounds_value(record.get("rounds")), inline=True)
-    return embed
+def live_message(guild_id: int, record: dict) -> str:
+    """« Duel en cours ! », les deux leads avec leur team, puis le vainqueur
+    une fois désigné. Suit la dernière partie, relance comprise."""
+    def side(key: str) -> str:
+        lead = record.get(f"leader_{key}")
+        name = f"**({sanitize(record.get(f'name_{key}', '?'), MAX_TEAM_NAME)})**"
+        return f"<@{lead}> {name}" if lead else name
+
+    game = (record.get("games") or [{}])[-1]
+    state = game.get("state", "waiting")
+    if state == "won" and game.get("winner") in ("a", "b"):
+        winner = side(game["winner"])
+    elif state in LIVE_ENDINGS:
+        winner = t(guild_id, LIVE_ENDINGS[state])
+    else:
+        winner = ""
+    title = t(guild_id, "duel.live_done" if winner else "duel.live_title")
+    return (f"{custom_emojis.get('moderationmobiled')} {title}\n"
+            f"> {side('a')} Vs {side('b')}\n"
+            f"> {custom_emojis.get('thebestserveremojis')} **{t(guild_id, 'duel.live_winner')}** : {winner}").rstrip()
+
+
+def live_embed(guild_id: int, record: dict) -> discord.Embed:
+    """Le même texte, en embed. Un seul message suit le duel du début à la
+    fin : tant que la partie tourne il reste en cours, et à l'annonce du
+    vainqueur il est modifié — jamais remplacé par un nouveau message."""
+    game = (record.get("games") or [{}])[-1]
+    done = game.get("state") in LIVE_ENDINGS or game.get("state") == "won"
+    return embeds.base(guild_id, description=live_message(guild_id, record),
+                       kind="success" if done else "info")
 
 
 def panel_embed(guild_id: int, user_id: int) -> discord.Embed:
@@ -759,6 +762,8 @@ class Duel(commands.Cog):
         self._voice_locks: dict[int, asyncio.Lock] = {}
         # Relances proposées : (serveur, fil) -> instantané du duel et votes.
         self._rematch: dict[tuple[int, int], dict] = {}
+        # Webhook DuelBot de chaque salon des demandes.
+        self._webhooks: dict[int, discord.Webhook] = {}
 
     async def cog_load(self) -> None:
         # Sans ces lignes, les boutons publiés avant un redémarrage ne
@@ -1462,24 +1467,75 @@ class Duel(commands.Cog):
             add_duel_trash(gid, interaction.channel_id, time.time() + THREAD_GRACE)
 
     # -- Historique et vainqueur ---------------------------------------------
+    async def duel_webhook(self, channel: discord.TextChannel) -> discord.Webhook | None:
+        """Le webhook DuelBot du salon des demandes, créé au premier besoin."""
+        hook = self._webhooks.get(channel.id)
+        if hook is not None:
+            return hook
+        try:
+            hook = next((h for h in await channel.webhooks() if h.name == WEBHOOK_NAME and h.token), None)
+            if hook is None:
+                user = self.bot.user
+                avatar = await user.display_avatar.read() if user else None
+                hook = await channel.create_webhook(name=WEBHOOK_NAME, avatar=avatar,
+                                                    reason="Messages publics des duels")
+        except discord.DiscordException as e:
+            log.warning(f"[{channel.guild.name}] Webhook {WEBHOOK_NAME} indisponible : {e}")
+            return None
+        self._webhooks[channel.id] = hook
+        return hook
+
     async def update_history(self, guild: discord.Guild, record: dict) -> None:
-        """Publie le message d'historique, ou le modifie s'il existe déjà."""
+        """Publie le message public du duel par le webhook DuelBot, ou le modifie.
+
+        Sans la permission « Gérer les webhooks », le bot publie sous son
+        propre nom : l'historique manquait complètement dans le salon des
+        demandes, au lieu de simplement changer d'avatar."""
         channel = self.requests_channel(guild)
         if channel is None:
             return
-        embed = history_embed(guild.id, record)
+        embed = live_embed(guild.id, record)
         try:
+            hook = await self.duel_webhook(channel)
             if record.get("message_id"):
-                try:
-                    await channel.get_partial_message(record["message_id"]).edit(embed=embed)
+                if await self._edit_history(channel, hook, record, embed):
                     return
-                except discord.NotFound:
-                    record["message_id"] = None  # supprimé à la main : republié
-            message = await channel.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+                # Message supprimé à la main, webhook supprimé, ou message
+                # de l'ancien historique : on en publie un nouveau.
+                record["message_id"] = None
+                hook = await self.duel_webhook(channel)
+            if hook is not None:
+                message = await hook.send(embed=embed, username=WEBHOOK_NAME,
+                                          allowed_mentions=QUIET, wait=True)
+            else:
+                message = await channel.send(embed=embed, allowed_mentions=QUIET)
             record["message_id"] = message.id
+            record["by_webhook"] = hook is not None
             save_duel_history(guild.id, record)
         except Exception as e:
-            log.warning(f"[{guild.name}] Historique du duel non mis à jour : {e}")
+            log.warning(f"[{guild.name}] Message du duel non mis à jour : {e}")
+
+    async def _edit_history(self, channel: discord.TextChannel, hook: discord.Webhook | None,
+                            record: dict, embed: discord.Embed) -> bool:
+        """Modifie le message public du duel. Faux s'il faut en republier un.
+
+        `content=None` efface le texte des duels publiés avant l'embed :
+        sans ça, l'ancien message garderait son texte sous le nouvel embed."""
+        try:
+            # Les duels d'avant cette version n'ont pas le champ : ils
+            # venaient tous du webhook.
+            if record.get("by_webhook", True):
+                if hook is None:
+                    return False
+                await hook.edit_message(record["message_id"], content=None, embed=embed,
+                                        allowed_mentions=QUIET)
+            else:
+                await channel.get_partial_message(record["message_id"]).edit(
+                    content=None, embed=embed, allowed_mentions=QUIET)
+            return True
+        except discord.HTTPException:
+            self._webhooks.pop(channel.id, None)
+            return False
 
     async def set_game(self, guild: discord.Guild, session: dict, **fields) -> None:
         """Met à jour la partie de ce duel dans son historique, puis le message."""

@@ -1,0 +1,35 @@
+# =========================================================================
+# Fins de ligne : le dépôt stocke du LF, les deux PC écrivent du LF.
+#
+# Pourquoi c'est ici et pas dans un réglage de machine : sans cette ligne,
+# Windows convertit en CRLF à chaque extraction, et le PC qui n'a pas le
+# même réglage voit TOUS les fichiers comme modifiés. Entre deux machines
+# qui se synchronisent toutes les trente secondes, ça produit un conflit
+# par fichier et par aller-retour — c'est exactement ce qui faisait
+# apparaître quarante fichiers « modifiés » sans qu'une ligne ait bougé.
+# =========================================================================
+
+* text=auto eol=lf
+
+# Le binaire ne se convertit pas : git ne doit jamais y toucher.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.mp3  binary
+*.wav  binary
+*.ttf  binary
+*.woff binary
+*.woff2 binary
+*.zip  binary
+*.rar  binary
+*.pdf  binary
+*.kdbx binary
+
+# Les scripts PowerShell et les .cmd sont lancés par Windows : il les lit
+# en CRLF sans broncher, mais un .cmd en LF peut casser sur les anciennes
+# versions. On les fixe en CRLF, c'est leur plateforme.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf

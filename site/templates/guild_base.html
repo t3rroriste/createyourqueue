@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ sections[section][0] }} · {{ guild.name }} — CreateYourQueue{% endblock %}
+{% block page_title %}{{ guild.name }}{% endblock %}
+
+{% block content %}
+<p class="crumb"><a href="/dashboard/serveurs">Serveurs</a> / {{ guild.name }}</p>
+
+<div class="stats-row">
+  <div class="stat">
+    <div class="stat-label">Membres</div>
+    <div class="stat-value">{{ guild.members | count }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Langue du bot</div>
+    <div class="stat-value small">{{ guild.languages[guild.language] }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Configuration</div>
+    <div class="stat-value small">{{ "Terminée" if guild.setup_complete else "À terminer" }}</div>
+    {% if not guild.setup_complete %}<div class="stat-note">lance /config sur Discord</div>{% endif %}
+  </div>
+  <div class="stat">
+    <div class="stat-label">Identifiant</div>
+    <div class="stat-value small mono">{{ guild.id }}</div>
+  </div>
+</div>
+
+<section>
+  <nav class="tabs" aria-label="Catégories de configuration">
+    {% for key, label in sections.items() %}
+      <a class="tab{% if key == section %} current{% endif %}"
+         href="/dashboard/{{ guild.id }}/{{ key }}"
+         {% if key == section %}aria-current="page"{% endif %}>{{ label[0] }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if saved %}<p class="banner ok">Enregistré. Le bot applique le changement tout de suite.</p>{% endif %}
+
+  <div class="section-head">
+    <h2>{{ sections[section][0] }}</h2>
+    <span class="section-count">{% block section_intro %}{% endblock %}</span>
+  </div>
+
+  <form method="post">
+    <div class="settings">
+      {% block section_content %}{% endblock %}
+    </div>
+
+    <div class="save-bar">
+      <span class="note">{% block save_note %}{% endblock %}</span>
+      <button class="button primary" type="submit">Enregistrer</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

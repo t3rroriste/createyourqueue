@@ -2,7 +2,12 @@
 Cog : Config
 ============
 Commande : /config
-Panneau interactif pour personnaliser le bot (avatar, bannière, pseudo, salons, langue).
+Panneau interactif pour l'apparence du bot (avatar, bannière, surnom) et le
+renommage de ses salons et rôles.
+
+Ce qui en est parti le 11/10/2026, parce que le tableau de bord le fait :
+la langue du serveur, la désignation des salons et celle des rôles. Deux
+endroits pour un même réglage, c'est un moyen sûr de se contredire.
 """
 
 from __future__ import annotations
@@ -20,11 +25,10 @@ from config import (
     GUNZFRANCE_GUILD_ID,
 )
 import custom_emojis
-import embeds
 import resources
 import net_safety
 from guild_settings import set_custom_name
-from i18n import LANGUAGES, get_lang, set_lang, t
+from i18n import t
 from text_safety import sanitize
 
 log = logging.getLogger("bot.config")
@@ -50,18 +54,12 @@ async def _fetch_image(url: str) -> bytes | None:
 
 def _main_embed(guild: discord.Guild) -> discord.Embed:
     gid = guild.id
-    lang = LANGUAGES.get(get_lang(gid), LANGUAGES["en"])
     me = guild.me
 
     embed = discord.Embed(
         title=t(gid, "config.main_title"),
-        description=t(gid, "config.main_desc"),
+        description=t(gid, "config.main_desc") + "\n\n" + t(gid, "config.main_dashboard"),
         color=COLOR_INFO,
-    )
-    embed.add_field(
-        name=t(gid, "config.field_language"),
-        value=f"{lang['flag']} **{lang['name']}**",
-        inline=True,
     )
     embed.add_field(
         name=t(gid, "config.field_nickname"),
@@ -177,7 +175,7 @@ class NicknameModal(discord.ui.Modal):
             return
         except discord.HTTPException as e:
             await interaction.response.send_message(
-                embed=discord.Embed(description=f"❌ {e}", color=COLOR_ERROR),
+                embed=discord.Embed(description=f"{custom_emojis.get('cross')} {e}", color=COLOR_ERROR),
                 ephemeral=True,
             )
             return
@@ -192,57 +190,18 @@ class NicknameModal(discord.ui.Modal):
         )
 
 
-class ConfigLanguageSelect(discord.ui.Select):
-    def __init__(self, guild_id: int, parent_view: "ConfigView"):
-        current = get_lang(guild_id)
-        options = [
-            discord.SelectOption(
-                label=info["name"],
-                emoji=info["flag"],
-                value=code,
-                default=(code == current),
-            )
-            for code, info in LANGUAGES.items()
-        ]
-        super().__init__(
-            placeholder=t(guild_id, "language.select_placeholder"),
-            options=options,
-            min_values=1,
-            max_values=1,
-            row=0,
-        )
-        self.guild_id = guild_id
-        self.parent_view = parent_view
-
-    async def callback(self, interaction: discord.Interaction) -> None:
-        set_lang(self.guild_id, self.values[0])
-        info = LANGUAGES[self.values[0]]
-        embed = discord.Embed(
-            title=t(self.guild_id, "config.language_title"),
-            description=t(self.guild_id, "language.changed", language=info["name"]),
-            color=COLOR_SUCCESS,
-        )
-        embed.set_footer(text=t(self.guild_id, "config.footer"))
-        await interaction.response.edit_message(embed=embed, view=self.parent_view)
-
-
 class ConfigView(discord.ui.View):
+    """Ce que /config sait encore faire.
+
+    La langue, les salons et les rôles sont partis sur cyqbot.eu le
+    11/10/2026 : les régler à deux endroits, c'était deux endroits à tenir
+    à jour et un moyen sûr de se contredire. Restent ici l'apparence du
+    bot et le renommage de ses salons, que le site ne fait pas."""
+
     def __init__(self, guild: discord.Guild):
         super().__init__(timeout=600)
         self.guild = guild
         self.guild_id = guild.id
-
-    @discord.ui.button(label="🌐", style=discord.ButtonStyle.primary, row=0, custom_id="cfg:lang")
-    async def btn_language(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        view = discord.ui.View(timeout=600)
-        view.add_item(ConfigLanguageSelect(self.guild_id, self))
-        embed = discord.Embed(
-            title=t(self.guild_id, "config.language_title"),
-            description=t(self.guild_id, "language.select_desc"),
-            color=COLOR_INFO,
-        )
-        embed.set_footer(text=t(self.guild_id, "config.footer"))
-        await interaction.response.edit_message(embed=embed, view=view)
 
     @discord.ui.button(label="🎨", style=discord.ButtonStyle.secondary, row=0, custom_id="cfg:appearance")
     async def btn_appearance(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
@@ -253,20 +212,40 @@ class ConfigView(discord.ui.View):
             color=COLOR_INFO,
         )
         embed.set_footer(text=t(gid, "config.footer"))
-        view = AppearanceView(self.guild)
-        await interaction.response.edit_message(embed=embed, view=view)
+        await interaction.response.edit_message(embed=embed, view=AppearanceView(self.guild))
 
-    @discord.ui.button(label="📁", style=discord.ButtonStyle.secondary, row=0, custom_id="cfg:channels")
-    async def btn_channels(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    @discord.ui.button(label="✏️", style=discord.ButtonStyle.primary, row=0, custom_id="cfg:rename")
+    async def btn_rename(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        """Choisir un salon ou un rôle du bot, puis lui donner le nom qu'on veut."""
         gid = self.guild_id
-        embed = discord.Embed(
-            title=t(gid, "config.channels_title"),
-            description=t(gid, "config.channels_desc"),
-            color=COLOR_INFO,
+        options = []
+        for key, kind in RENAMABLE_RESOURCES:
+            resource = _resolve_resource(self.guild, key, kind)
+            if resource is None:
+                continue
+            options.append(
+                discord.SelectOption(
+                    label=resources.resource_name(gid, key)[:100],
+                    value=key,
+                    description=t(gid, f"config.kind_{kind}")[:100],
+                    emoji=RESOURCE_EMOJI.get(kind, "📁"),
+                )
+            )
+        if not options:
+            await interaction.response.send_message(t(gid, "config.rename_nothing"), ephemeral=True)
+            return
+
+        select = discord.ui.Select(placeholder=t(gid, "config.rename_pick"), options=options[:25])
+
+        async def pick(choice: discord.Interaction) -> None:
+            await choice.response.send_modal(RenameModal(self.guild, select.values[0]))
+
+        select.callback = pick
+        view = discord.ui.View(timeout=300)
+        view.add_item(select)
+        await interaction.response.send_message(
+            content=t(gid, "config.rename_help"), view=view, ephemeral=True
         )
-        embed.set_footer(text=t(gid, "config.footer"))
-        view = ChannelsView(self.guild)
-        await interaction.response.edit_message(embed=embed, view=view)
 
     @discord.ui.button(label="🏠", style=discord.ButtonStyle.success, row=1, custom_id="cfg:home")
     async def btn_home(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
@@ -308,127 +287,6 @@ class AppearanceView(discord.ui.View):
         await interaction.response.send_modal(NicknameModal(self.guild_id))
 
     @discord.ui.button(emoji=custom_emojis.get("replymsg"), style=discord.ButtonStyle.secondary, row=1)
-    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        await interaction.response.edit_message(embed=_main_embed(self.guild), view=ConfigView(self.guild))
-
-
-class ChannelsView(discord.ui.View):
-    def __init__(self, guild: discord.Guild):
-        super().__init__(timeout=600)
-        self.guild = guild
-        self.guild_id = guild.id
-
-    @discord.ui.button(label="Choisir les salons", style=discord.ButtonStyle.success,
-                       emoji="🛠️", row=0)
-    async def btn_create(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        """Ouvre l'assistant de désignation des salons."""
-        from cogs.wizard import open_wizard
-        await open_wizard(interaction)
-
-    @discord.ui.button(label="Renommer", style=discord.ButtonStyle.primary, emoji="✏️", row=0)
-    async def btn_rename(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        """Choisir un salon ou un rôle du bot, puis lui donner le nom qu'on veut."""
-        gid = self.guild_id
-        options = []
-        for key, kind in RENAMABLE_RESOURCES:
-            resource = _resolve_resource(self.guild, key, kind)
-            if resource is None:
-                continue
-            options.append(
-                discord.SelectOption(
-                    label=resources.resource_name(gid, key)[:100],
-                    value=key,
-                    description=t(gid, f"config.kind_{kind}")[:100],
-                    emoji=RESOURCE_EMOJI.get(kind, "📁"),
-                )
-            )
-        if not options:
-            await interaction.response.send_message(t(gid, "config.rename_nothing"), ephemeral=True)
-            return
-
-        select = discord.ui.Select(placeholder=t(gid, "config.rename_pick"), options=options[:25])
-
-        async def pick(choice: discord.Interaction) -> None:
-            await choice.response.send_modal(RenameModal(self.guild, select.values[0]))
-
-        select.callback = pick
-        view = discord.ui.View(timeout=300)
-        view.add_item(select)
-        await interaction.response.send_message(
-            content=t(gid, "config.rename_help"), view=view, ephemeral=True
-        )
-
-    @discord.ui.button(label="Rôles", style=discord.ButtonStyle.primary, emoji="🎭", row=0)
-    async def btn_roles(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        await interaction.response.edit_message(
-            embed=roles_embed(self.guild), view=RolesView(self.guild)
-        )
-
-    @discord.ui.button(emoji=custom_emojis.get("replymsg"), style=discord.ButtonStyle.secondary, row=1)
-    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        await interaction.response.edit_message(embed=_main_embed(self.guild), view=ConfigView(self.guild))
-
-
-# Rôles utilisés par le bot, tous facultatifs : il n'en crée aucun, c'est
-# l'administrateur qui crée les siens et dit lequel sert à quoi.
-OPTIONAL_ROLES = [
-    ("role_connexion", "🔓"),
-    ("role_queue_notif", "🔔"),
-    ("role_mvp_week", "🏅"),
-]
-
-
-def roles_embed(guild: discord.Guild) -> discord.Embed:
-    gid = guild.id
-    staff = resources.get_role(guild, "role_staff")
-    lines = [
-        f"👑 ・{t(gid, 'wiz.opt_staff')} — "
-        + (staff.mention if staff else t(gid, "wiz.not_set"))
-    ]
-    for key, emoji in OPTIONAL_ROLES:
-        role = resources.get_role(guild, key)
-        lines.append(
-            f"{emoji} ・{t(gid, f'roles.slot_{key}')} — "
-            + (role.mention if role else t(gid, "wiz.not_set"))
-            + f"\n*{t(gid, f'roles.slot_{key}_help')}*"
-        )
-    embed = embeds.base(
-        gid,
-        title=t(gid, "roles.cfg_title"),
-        description=t(gid, "roles.cfg_desc") + "\n\n" + "\n".join(lines),
-        footer=t(gid, "roles.cfg_footer"),
-    )
-    embeds.brand(embed, guild)
-    return embed
-
-
-class RolesView(discord.ui.View):
-    """Un menu par rôle : on désigne un rôle existant du serveur."""
-
-    def __init__(self, guild: discord.Guild):
-        super().__init__(timeout=600)
-        self.guild = guild
-        gid = guild.id
-        for index, (key, emoji) in enumerate(OPTIONAL_ROLES):
-            select = discord.ui.RoleSelect(
-                placeholder=f"{emoji}  {t(gid, f'roles.slot_{key}')}"[:150], row=index
-            )
-            select.callback = self._assign(key, select)
-            self.add_item(select)
-
-    def _assign(self, key: str, select: discord.ui.RoleSelect):
-        async def callback(interaction: discord.Interaction) -> None:
-            role = select.values[0]
-            if role.is_default():
-                await interaction.response.send_message(
-                    t(self.guild.id, "wiz.opt_staff_everyone"), ephemeral=True
-                )
-                return
-            resources.set_resource_id(self.guild.id, key, role.id)
-            await interaction.response.edit_message(embed=roles_embed(self.guild), view=self)
-        return callback
-
-    @discord.ui.button(emoji=custom_emojis.get("replymsg"), style=discord.ButtonStyle.secondary, row=4)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         await interaction.response.edit_message(embed=_main_embed(self.guild), view=ConfigView(self.guild))
 

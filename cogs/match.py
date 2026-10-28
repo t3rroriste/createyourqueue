@@ -24,6 +24,7 @@ Déroulé d'une partie
 
 from __future__ import annotations
 
+import io
 import logging
 import time
 
@@ -31,6 +32,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
+import elo_card
 import embeds
 import mmr
 import resources
@@ -40,7 +42,7 @@ from guild_settings import (
     deferred_save,
     get_match_state, set_match_state,
 )
-from i18n import t
+from i18n import get_lang, t
 from rate_limit import throttled_each
 from text_safety import NO_PINGS, USERS_ONLY, sanitize
 from cogs.logs import send_log
@@ -602,7 +604,7 @@ class Match(commands.Cog):
         # La serie vient du classement, seul endroit qui la tient a jour :
         # la recompter ici la ferait diverger des le premier decalage.
         board = self.bot.get_cog("Classement")
-        streaks = getattr(board, "player_stats", {}) if board is not None else {}
+        streaks = board.players(gid) if board is not None else {}
 
         changes = []
         # Une seule ecriture pour toute l equipe : sans ca, chaque joueur
@@ -837,7 +839,91 @@ class Match(commands.Cog):
             inline=True,
         )
         embeds.align(embed)
+
+        # La carte, si les polices sont livrées. Elle REMPLACE l'embed :
+        # afficher les deux dirait deux fois la même chose, et c'est l'image
+        # qu'on regarde. Un échec de dessin retombe sur l'embed, qui reste
+        # construit au-dessus — /elo ne doit jamais répondre « erreur ».
+        fichier = await self._carte_elo(interaction, target, value, tiers, current)
+        if fichier is not None:
+            await interaction.response.send_message(file=fichier)
+            return
+
         await interaction.response.send_message(embed=embed)
+
+    async def _carte_elo(self, interaction, membre, valeur, tiers, palier):
+        """La carte de niveau en pièce jointe, ou None si on ne peut pas."""
+        if not elo_card.carte_disponible() or palier is None:
+            return None
+
+        gid = interaction.guild_id
+        try:
+            echelle_brute = mmr.sorted_tiers({"tiers": tiers})
+            rang = max(0, next((i for i, x in enumerate(echelle_brute)
+                                if x["min"] == palier["min"]), 0))
+            echelle = [(str(x.get("name") or "?"), int(x.get("min", 0)),
+                        _rvb(x.get("color", 0xF1C40F))) for x in echelle_brute]
+
+            stats = {}
+            board = self.bot.get_cog("Classement")
+            if board is not None:
+                stats = (board.players(gid) or {}).get(membre.id, {}) or {}
+
+            try:
+                avatar = await membre.display_avatar.replace(size=256, format="png").read()
+            except (discord.HTTPException, ValueError):
+                avatar = None       # sans photo, la carte met l'initiale
+
+            png = elo_card.dessiner(
+                pseudo=membre.display_name,
+                mmr=valeur,
+                palier_index=rang,
+                paliers=echelle,
+                victoires=int(stats.get("wins", 0) or 0),
+                defaites=int(stats.get("losses", 0) or 0),
+                serie=int(stats.get("streak", 0) or 0),
+                record=int(stats.get("max_streak", 0) or 0),
+                clan=_nom_du_clan(self.bot, membre),
+                avatar=avatar,
+                langue=get_lang(gid),
+                textes={cle: t(gid, "mmr.card_" + cle) for cle in _CARTE_TEXTES},
+            )
+        except Exception:
+            log.exception("Carte /elo non dessinée")
+            return None
+
+        return discord.File(io.BytesIO(png), filename="elo.png")
+
+
+# Les libellés de la carte, lus dans les cinq langues du bot.
+_CARTE_TEXTES = ("next", "pts", "w", "l", "s1", "sN", "record", "top", "above", "none")
+
+
+def _rvb(couleur) -> tuple:
+    """Une couleur Discord (entier) en triplet rouge-vert-bleu."""
+    v = int(couleur)
+    return ((v >> 16) & 255, (v >> 8) & 255, v & 255)
+
+
+def _nom_du_clan(bot, membre) -> str:
+    """Le clan du membre, s'il en a un et si le cog des clans sait le dire.
+
+    On n'invente pas d'accès à ses fichiers : s'il n'expose rien, la carte
+    se passe de cette ligne, et elle est prévue pour.
+    """
+    cog = bot.get_cog("Clan")
+    for nom_methode in ("clan_of_member", "clan_du_membre", "member_clan"):
+        trouver = getattr(cog, nom_methode, None)
+        if trouver is None:
+            continue
+        try:
+            clan = trouver(membre)
+        except Exception:
+            return ""
+        if isinstance(clan, dict):
+            return str(clan.get("name") or "")
+        return str(clan or "")
+    return ""
 
 
 # ----------------------------------------------------------------------

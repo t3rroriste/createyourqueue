@@ -12,3 +12,7 @@ davey==0.1.6
 # Bot modmail : détection de la langue des messages et traduction des réponses
 langdetect==1.0.9
 deep-translator==1.11.4
+
+# Carte /elo : l'image de niveau est dessinee a chaque appel
+# (voir elo_card.py). Sans Pillow, /elo garde son embed.
+Pillow==12.3.0
