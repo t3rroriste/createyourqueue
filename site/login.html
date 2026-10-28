@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion — CreateYourQueue</title>
+<meta name="description" content="Connecte ton compte Discord pour configurer CreateYourQueue.">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/home.css?v=202610282305">
+<link rel="stylesheet" href="assets/css/auth.css?v=202610282305">
+<script>
+// Même garde que l'accueil : le bloc reste masqué le temps que le script
+// pose les états de départ, et se découvre tout seul après 1,8 s si le
+// script n'arrive jamais. La page ne peut donc pas rester blanche.
+(function (h) {
+  h.classList.remove('no-js');
+  h.classList.add('motion-pending');
+  if (/[?&]motion=on(&|$)/.test(location.search)) h.classList.add('motion-force');
+  setTimeout(function () { h.classList.remove('motion-pending'); }, 1800);
+})(document.documentElement);
+</script>
+</head>
+<body>
+
+<!-- Le cadre arrondi, fixe : il garde les coins de la coque visibles
+     quand on descend dans la page. Purement visuel. -->
+<div class="cadre" aria-hidden="true"></div>
+
+<a class="skip" href="#main" data-i18n="c.skip">Aller au contenu</a>
+
+<nav class="nav" aria-label="Principale" data-nav>
+  <a class="nav__mark" href="index.html" data-site="index.html">
+    <img src="assets/img/logo.png" alt="" width="22" height="22">
+    <span>CreateYourQueue</span>
+  </a>
+  <div class="nav__links">
+    <a href="#" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
+    <a href="modules.html" data-site="modules.html" data-i18n="m.nav">Modules</a>
+    <a href="#" data-cfg-link="SUPPORT_URL" data-i18n="n.support">Support</a>
+  </div>
+  <div class="langmenu">
+    <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
+            aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.lang">
+      <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
+    </div>
+  </div>
+  <a class="pill pill--ghost pill--sm" href="index.html" data-site="index.html" data-i18n="c.back">Retour</a>
+</nav>
+
+<main class="shell" id="main">
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="auth" data-auth>
+
+    <!-- ============ étape 1 — connecter le compte Discord ============ -->
+    <section class="auth__step" data-step="login" data-anim>
+      <div class="auth__mark" aria-hidden="true">
+        <span class="auth__disc"><img src="assets/img/logo.png" alt="" width="34" height="34"></span>
+        <span class="auth__tie"></span>
+        <span class="auth__disc auth__disc--brand">
+          <svg width="34" height="34" viewBox="0 0 127.14 96.36" fill="#fff" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+        </span>
+      </div>
+
+      <h1 class="auth__title auth__title--solo" data-i18n="au.loginTitle">Connecte ton compte Discord</h1>
+
+      <a class="pill pill--discord" href="#" data-discord-login>
+        <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="#5865F2" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+        <span data-i18n="h.loginBtn">Se connecter avec Discord</span>
+        <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+      </a>
+    </section>
+
+    <!-- ========= étape 2 — inviter le bot, puis choisir le serveur ==== -->
+    <section class="auth__step" data-step="invite" hidden data-anim>
+      <span class="auth__who" data-who hidden>
+        <span class="auth__avatar" data-who-avatar aria-hidden="true"></span>
+        <span class="auth__name" data-who-name></span>
+      </span>
+
+      <h1 class="auth__title auth__title--solo" data-i18n="au.inviteTitle">Invite le bot sur ton serveur</h1>
+
+      <a class="pill pill--invite" href="#" data-invite-bot>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span data-i18n="au.inviteBtn">Ajouter CreateYourQueue</span>
+      </a>
+
+      <div class="auth__sep" data-i18n="au.thenOpen">Puis ouvre le panneau</div>
+
+      <div class="auth__guilds" data-guilds aria-live="polite"></div>
+
+      <a class="auth__link" href="#" data-refresh-guilds data-i18n="c.refresh">Actualiser</a>
+    </section>
+
+    <!-- ===================== erreur de connexion ==================== -->
+    <section class="auth__step" data-step="error" hidden data-anim>
+      <div class="auth__alert">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg>
+        <div>
+          <p style="font-weight:500;font-size:13.5px" data-err-title></p>
+          <p class="fine" data-err-body style="margin-top:4px"></p>
+        </div>
+      </div>
+      <a class="pill" href="login.html" data-i18n="c.retry">Réessayer</a>
+    </section>
+
+  </div>
+</main>
+
+<script src="assets/js/vendor/anime.umd.min.js?v=202610282305"></script>
+<script src="assets/js/config.js?v=202610282305"></script>
+<script src="assets/js/lang/fr.js?v=202610282305"></script>
+<script src="assets/js/lang/en.js?v=202610282305"></script>
+<script src="assets/js/lang/es.js?v=202610282305"></script>
+<script src="assets/js/lang/de.js?v=202610282305"></script>
+<script src="assets/js/lang/ko.js?v=202610282305"></script>
+<script src="assets/js/app.js?v=202610282305"></script>
+<script src="assets/js/page-login.js?v=202610282305"></script>
+</body>
+</html>

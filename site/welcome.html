@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Préparation du panneau — CreateYourQueue</title>
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/home.css?v=202610282305">
+<link rel="stylesheet" href="assets/css/auth.css?v=202610282305">
+<script>
+(function (h) {
+  h.classList.remove('no-js');
+  if (/[?&]motion=on(&|$)/.test(location.search)) h.classList.add('motion-force');
+})(document.documentElement);
+</script>
+</head>
+<body>
+
+<!-- Le cadre arrondi, fixe : il garde les coins de la coque visibles
+     quand on descend dans la page. Purement visuel. -->
+<div class="cadre" aria-hidden="true"></div>
+
+<main class="shell" id="main">
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="splash" data-splash>
+    <div class="splash__halo" aria-hidden="true" data-halo></div>
+
+    <div class="splash__logo">
+      <img src="assets/img/logo.png" alt="CreateYourQueue" width="92" height="92" data-logo>
+    </div>
+
+    <!-- Le nom et son trait sont UN bloc : la grille se dimensionne sur le
+         nom, et le trait prend exactement sa largeur. Les séparer les
+         ferait diverger dès que la police change de métrique. -->
+    <div class="splash__bloc">
+      <h1 class="splash__title" data-title data-i18n="au.splashTitle">CreateYourQueue</h1>
+
+      <!-- La barre de progression. Quatre, parce que quatre jalons réels
+           la poussent : le nombre n'est pas décoratif, et l'augmenter sans
+           ajouter de jalon ferait mentir l'écran.
+           `role="progressbar"` et non une zone live : la valeur change
+           quatre fois en cinq secondes, un lecteur d'écran doit pouvoir la
+           consulter sans être interrompu à chaque poussée. -->
+      <div class="splash__trait" data-trait
+           role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"
+           data-i18n-attr="aria-label:au.splashPrep"
+           aria-label="Préparation du panneau">
+        <span class="splash__fil" data-fil aria-hidden="true"></span>
+        <span class="splash__tete" data-tete aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <p class="lead splash__lead" data-lead data-i18n="au.splashLead"></p>
+
+    <!-- Plus de lien « Ouvrir maintenant » : l'écran ne se saute pas.
+         La sortie repose donc entièrement sur le minuteur de 5 s, qui est
+         un setTimeout posé avant toute animation — un onglet en
+         arrière-plan gèle les images, jamais les minuteurs.
+         Le <noscript> est la seule issue restante quand le script ne
+         s'exécute pas du tout : sans lui, la page serait un cul-de-sac. -->
+    <noscript>
+      <p class="splash__skip"><a href="servers.html">Choisir un serveur</a></p>
+    </noscript>
+  </div>
+</main>
+
+<script src="assets/js/vendor/anime.umd.min.js?v=202610282305"></script>
+<script src="assets/js/config.js?v=202610282305"></script>
+<script src="assets/js/lang/fr.js?v=202610282305"></script>
+<script src="assets/js/lang/en.js?v=202610282305"></script>
+<script src="assets/js/lang/es.js?v=202610282305"></script>
+<script src="assets/js/lang/de.js?v=202610282305"></script>
+<script src="assets/js/lang/ko.js?v=202610282305"></script>
+<script src="assets/js/app.js?v=202610282305"></script>
+<script src="assets/js/page-welcome.js?v=202610282305"></script>
+</body>
+</html>

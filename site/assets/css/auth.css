@@ -1,0 +1,576 @@
+/* =========================================================================
+   CreateYourQueue — connexion et accueil animé
+   Se pose SUR home.css, dont elle reprend les jetons : noir chaud, Geist,
+   coque arrondie, grain, pilules. Elle n'ajoute aucune couleur : le bleu
+   de Discord reste dans le logo, jamais dans un aplat de l'interface.
+   ========================================================================= */
+
+/* ============================ la scène ================================ */
+
+/* Les deux pages n'ont qu'un bloc, centré dans la coque. Pas de héros
+   collant ici : rien ne défile, donc rien à retenir en haut. */
+.auth {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: calc(100dvh - var(--gutter) * 2 - 96px);
+  padding: var(--sp-4) var(--sp-3) var(--sp-5);
+}
+
+.auth__step { width: 100%; max-width: 460px; }
+.auth__step[hidden] { display: none; }
+
+.auth__eyebrow { display: block; margin-bottom: var(--sp-2); }
+
+.auth__title {
+  font-size: clamp(26px, 4.4vw, 38px);
+  line-height: 1.12;
+  margin-bottom: var(--sp-1);
+}
+
+.auth__lead { margin: 0 auto var(--sp-3); max-width: 38ch; }
+
+/* Un titre sans accroche sous lui : c'est alors LUI qui porte l'écart
+   avant le bouton, sinon les deux se collent. */
+.auth__title--solo { margin-bottom: var(--sp-3); }
+
+/* La mention sous le bouton. Elle dit ce que le site demande à Discord ;
+   c'est la seule chose qui rassure vraiment avant un écran d'autorisation. */
+.auth__fine {
+  display: flex; align-items: flex-start; gap: 8px;
+  justify-content: center; text-align: left;
+  max-width: 38ch; margin: var(--sp-2) auto 0;
+}
+.auth__fine svg { flex: 0 0 auto; margin-top: 2px; color: var(--ink-40); }
+
+/* ====================== le bouton Discord ============================= */
+
+/* Une pilule pleine, comme le CTA de l'accueil : sur un écran, un seul
+   objet est rempli, et ici c'est celui-là. Le logo garde sa couleur de
+   marque, le reste est monochrome. */
+.pill--discord {
+  gap: 10px;
+  padding-left: 22px;
+
+  /* Le reflet est découpé par la pilule elle-même : il ne déborde jamais
+     sur la page. `isolation` enferme le mode de fusion dans ce bouton,
+     sinon il irait chercher le fond de la section pour se composer. */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 260ms var(--e-out), background 200ms var(--e-soft),
+              box-shadow 300ms var(--e-soft);
+}
+.pill--discord svg { flex: 0 0 auto; }
+
+/* ---- le reflet qui balaie le bouton -----------------------------------
+   Une bande inclinée qui traverse en boucle tant que la souris reste là.
+
+   Elle est TEINTÉE, et pas blanche : la pilule est déjà crème, et vire au
+   blanc pur au survol — un reflet blanc dessus ne se verrait pas. Le bleu
+   de Discord, lui, se lit sur le crème, et passe aussi sur le disque
+   sombre de la flèche. Le cœur de la bande garde une pointe de blanc, qui
+   ne sert que là, sur le disque.
+
+   Elle ne s'anime qu'au survol ou au focus : au repos, le bouton ne bouge
+   pas. */
+.pill--discord::after {
+  content: "";
+  position: absolute; top: -60%; bottom: -60%; left: 0;
+  width: 38%;
+  background: linear-gradient(100deg,
+    transparent 10%,
+    rgba(88,101,242,.34) 38%,
+    rgba(255,255,255,.72) 50%,
+    rgba(88,101,242,.34) 62%,
+    transparent 90%);
+  transform: translateX(-180%) rotate(8deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.pill--discord:hover,
+.pill--discord:focus-visible {
+  /* Il se soulève. Quatre pixels : assez pour que le décollage se voie
+     franchement, pas assez pour déplacer quoi que ce soit autour. */
+  transform: translateY(-4px);
+  /* La lumière reste pendant le survol : un halo aux couleurs de Discord,
+     très diffus, posé sous le bouton — pas un néon autour. */
+  box-shadow: 0 10px 30px -12px rgba(88, 101, 242, .85),
+              0 2px 10px -6px rgba(0, 0, 0, .5);
+}
+.pill--discord:hover::after,
+.pill--discord:focus-visible::after {
+  /* Vitesse CONSTANTE, et pas une courbe d'assouplissement : une lumière
+     qui passe ne ralentit pas en chemin. Avec --e-out, la bande traversait
+     en 300 ms puis attendait hors du bouton — on ne la voyait jamais. */
+  animation: pilule-reflet 1400ms linear infinite;
+}
+/* L'enfoncement l'emporte sur le soulèvement : on repart de zéro, sinon
+   les deux transformations s'annulent à moitié et le clic ne se sent pas. */
+.pill--discord:active { transform: translateY(0) scale(.97); }
+
+/* La traversée occupe 55 % du cycle, le reste est une pause : sans elle,
+   le reflet tournerait en continu et deviendrait un gyrophare. */
+@keyframes pilule-reflet {
+  0%        { transform: translateX(-120%) rotate(8deg); opacity: 0; }
+  8%        { opacity: 1; }
+  45%       { opacity: 1; }
+  55%       { transform: translateX(300%) rotate(8deg);  opacity: 0; }
+  100%      { transform: translateX(300%) rotate(8deg);  opacity: 0; }
+}
+
+/* ---- « Ajouter CreateYourQueue » -------------------------------------
+   La pilule de base réserve sa marge de droite au disque de la flèche :
+   `padding: 0 8px 0 22px`. Ce bouton-ci n'a pas de flèche, donc son texte
+   arrivait à 8 px du bord alors qu'il part de 22 px à gauche — d'où
+   l'impression de travers. On rétablit une marge égale des deux côtés.
+
+   Il se soulève comme l'autre, avec une ombre qui s'étire sous lui au
+   lieu d'un halo coloré : ce bouton-ci n'appartient pas à Discord. */
+.pill--invite {
+  padding: 0 24px;
+  transition: transform 260ms var(--e-out), background 200ms var(--e-soft),
+              box-shadow 300ms var(--e-soft);
+}
+.pill--invite:hover,
+.pill--invite:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px -16px rgba(0, 0, 0, .95),
+              0 4px 10px -6px rgba(0, 0, 0, .6);
+}
+.pill--invite:active { transform: translateY(0) scale(.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pill--discord::after { animation: none !important; opacity: 0; }
+  .pill--discord:hover, .pill--discord:focus-visible,
+  .pill--invite:hover,  .pill--invite:focus-visible { transform: none; }
+}
+
+/* Le disque qui porte le logo Discord à côté du titre. Quatrième famille
+   de formes de la D.A. (coque, carte, pilule, disque) : c'est elle. */
+.auth__mark {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-2);
+  margin: 0 auto var(--sp-3);
+}
+.auth__disc {
+  display: grid; place-items: center;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--raised);
+  box-shadow: inset 0 1px 0 rgba(244,241,236,.06);
+}
+.auth__disc--brand { background: #5865F2; }
+.auth__disc img { width: 34px; height: 34px; }
+
+/* ---- le trait qui relie les deux disques : le compte et le bot, liés ---
+   Il ne décore pas. Il dit qu'il va se passer quelque chose ENTRE ces deux
+   comptes, et que rien n'est encore fait. Une impulsion part du logo CYQ,
+   traverse, et le disque Discord accuse réception par un anneau — la
+   poignée de main, jouée en boucle.
+
+   Au survol du bouton, la cadence double et le trait s'éclaircit : le
+   geste qu'on s'apprête à faire est montré avant d'être fait. L'effet est
+   piloté par UNE variable, --liaison, pour que les trois animations
+   restent synchronisées quoi qu'il arrive.
+
+   Seuls transform et opacity sont animés : aucune mise en page ne bouge. */
+
+.auth__mark { --liaison: 1900ms; }
+
+.auth__tie {
+  position: relative;
+  width: 48px; height: 2px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+/* Le trait au repos. Il vit dans un pseudo-élément pour que le parent
+   puisse masquer l'impulsion qui le traverse. */
+.auth__tie::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, var(--hair), var(--ink-40), var(--hair));
+  opacity: .85;
+  transition: opacity 200ms var(--e-out, ease);
+}
+/* L'impulsion. Elle part avant le bord gauche et sort par la droite, donc
+   on ne la voit jamais apparaître ni disparaître sur place. */
+.auth__tie::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0;
+  width: 16px; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--ink), transparent);
+  transform: translateX(-18px);
+  animation: tie-impulsion var(--liaison) cubic-bezier(.45,0,.25,1) infinite;
+}
+@keyframes tie-impulsion {
+  0%        { transform: translateX(-18px); opacity: 0; }
+  12%       { opacity: 1; }
+  48%       { transform: translateX(48px);  opacity: 1; }
+  58%, 100% { transform: translateX(62px);  opacity: 0; }
+}
+
+/* Les deux anneaux : l'un au départ, l'autre à l'arrivée. Le second est
+   retardé du temps que met l'impulsion à traverser — c'est ce décalage qui
+   fait lire « ça part d'ici, ça arrive là » plutôt que « ça clignote ». */
+.auth__disc { position: relative; }
+.auth__disc::after {
+  content: ""; position: absolute; inset: -1px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-40);
+  opacity: 0;
+  animation: disque-anneau var(--liaison) ease-out infinite;
+}
+.auth__disc--brand::after {
+  border-color: rgba(88, 101, 242, .85);
+  animation-delay: calc(var(--liaison) * .42);
+}
+@keyframes disque-anneau {
+  0%        { opacity: .6; transform: scale(1); }
+  70%, 100% { opacity: 0;  transform: scale(1.22); }
+}
+
+/* ---- l'amplification au survol du bouton ------------------------------
+   :has() permet de réagir au survol d'un élément VOISIN sans une ligne de
+   JavaScript. Un navigateur qui ne le connaît pas ignore simplement ces
+   règles : l'animation de repos continue de tourner, rien ne casse.
+   :focus-visible est traité comme le survol — au clavier aussi, on voit ce
+   que le bouton promet. */
+.auth__step:has(.pill--discord:hover) .auth__mark,
+.auth__step:has(.pill--discord:focus-visible) .auth__mark {
+  --liaison: 800ms;
+}
+.auth__step:has(.pill--discord:hover) .auth__tie::before,
+.auth__step:has(.pill--discord:focus-visible) .auth__tie::before {
+  opacity: 1;
+}
+.auth__step:has(.pill--discord:hover) .auth__disc,
+.auth__step:has(.pill--discord:focus-visible) .auth__disc {
+  transform: scale(1.05);
+}
+.auth__step:has(.pill--discord:hover) .auth__disc::after,
+.auth__step:has(.pill--discord:focus-visible) .auth__disc::after {
+  border-width: 2px;
+}
+.auth__disc { transition: transform 260ms var(--e-soft, cubic-bezier(.16,1,.3,1)); }
+
+/* Mouvement réduit : la règle globale de home.css ramène toutes les durées
+   à 0,001 ms, ce qui ferait clignoter l'impulsion au lieu de l'arrêter. On
+   la retire franchement, et il reste un trait fixe — qui dit la même chose,
+   en silence. */
+@media (prefers-reduced-motion: reduce) {
+  .auth__tie::after, .auth__disc::after { animation: none; opacity: 0; }
+  .auth__disc { transition: none; }
+}
+
+/* ========================= la personne ================================ */
+
+/* Une fois connectée, on montre QUI est connecté. Sans ça, l'étape 2
+   demande d'inviter un bot sans dire sur quel compte on se trouve. */
+.auth__who {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 6px 14px 6px 6px;
+  margin-bottom: var(--sp-2);
+  background: var(--film);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-pill);
+}
+.auth__avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--raised); object-fit: cover;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 500; color: var(--ink-60);
+}
+.auth__name { font-size: 13px; font-weight: 500; }
+
+/* ====================== la liste des serveurs ========================= */
+
+.auth__guilds {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: var(--sp-2);
+  text-align: left;
+}
+
+.gcard {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  background: var(--film);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-media);
+  color: inherit;
+  transition: background 160ms var(--e-soft), border-color 160ms var(--e-soft);
+}
+.gcard:hover { background: var(--raised); border-color: rgba(244,241,236,.14); }
+.gcard:active { transform: scale(.995); }
+
+/* ---- l'arrivée de la liste --------------------------------------------
+   « Actualiser » remplace le contenu de la boîte : les cartes sont des
+   éléments NEUFS à chaque fois, donc l'animation rejoue d'elle-même, sans
+   que le JavaScript ait à la déclencher.
+
+   `backwards` est ce qui rend la cascade possible : sans lui, une carte en
+   attente de son tour s'afficherait à sa place définitive avant de sauter
+   au début de l'animation. Le retard vient du rang posé par le JS, plafonné
+   pour qu'une liste de vingt serveurs ne mette pas deux secondes à
+   apparaître. */
+.gcard {
+  animation: gcard-arrivee 420ms var(--e-soft) backwards;
+  animation-delay: calc(min(var(--i, 0), 8) * 55ms);
+}
+@keyframes gcard-arrivee {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gcard { animation: none; }
+}
+
+.gcard__icon {
+  flex: 0 0 auto;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--raised-2); object-fit: cover;
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 500; color: var(--ink-60);
+}
+.gcard__body { flex: 1 1 auto; min-width: 0; }
+.gcard__name {
+  display: block; font-size: 13.5px; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.gcard__meta { display: block; font-size: 11.5px; color: var(--ink-60); }
+.gcard__go { flex: 0 0 auto; color: var(--ink-40); }
+.gcard:hover .gcard__go { color: var(--accent); }
+
+/* ============================ divers ================================== */
+
+.auth__sep {
+  display: flex; align-items: center; gap: 12px;
+  margin: var(--sp-3) 0 var(--sp-2);
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-40);
+}
+.auth__sep::before, .auth__sep::after {
+  content: ''; flex: 1 1 auto; height: 1px; background: var(--hair);
+}
+
+.auth__link {
+  display: inline-block; margin-top: var(--sp-2);
+  font-size: 12.5px; color: var(--ink-60);
+  border-bottom: 1px solid var(--hair);
+}
+.auth__link:hover { color: var(--ink); border-bottom-color: var(--ink-40); }
+
+/* Le cadre d'erreur. Pas de rouge : la D.A. n'a qu'un accent, et une
+   panne de connexion se lit très bien avec un mot et un glyphe. */
+.auth__alert {
+  display: flex; gap: 10px; text-align: left;
+  padding: 14px 16px;
+  background: var(--film);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-media);
+  margin-bottom: var(--sp-2);
+}
+.auth__alert svg { flex: 0 0 auto; margin-top: 2px; color: var(--accent); }
+
+/* ==================== l'écran d'accueil animé ========================= */
+
+/* welcome.html. L'attente ne compte plus, elle s'étend.
+
+   La version précédente rangeait quatre jetons dans quatre emplacements :
+   quatre à-coups, la grammaire d'un formulaire en plusieurs étapes. Ici le
+   nom de la marque se compose, et UN SEUL trait de cuivre s'étend sous
+   lui. Les quatre jalons réels n'ont pas bougé — ils poussent le même
+   trait, et quatre poussées sur un objet continu se lisent comme une
+   accélération, pas comme un comptage.
+
+   Tout ce qui bouge bouge en `transform` ou en `opacity`. Le halo garde le
+   `filter: blur()` du héros de l'accueil, mais il est POSÉ, jamais animé :
+   une grande surface floue animée en continu coûte une passe de
+   composition par image.
+
+   L'accent cuivre a un seul emploi sur cet écran : le trait et sa pointe,
+   qui sont le même objet. Le reste est au filet. */
+.splash {
+  position: relative; z-index: 2;
+  isolation: isolate;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: calc(100dvh - var(--gutter) * 2);
+  text-align: center;
+  padding: var(--sp-3);
+
+  /* La sortie porte sur le groupe entier : un seul objet s'efface, pas
+     six qui se décalent. 70 ms en ease-in — la seule courbe ease-in de la
+     feuille, et elle est ici parce qu'on veut l'écran vide AVANT la fin de
+     la durée, pas un fondu qu'on regarde. */
+  transition: opacity 70ms cubic-bezier(.4, 0, 1, 1),
+              transform 70ms cubic-bezier(.4, 0, 1, 1);
+}
+.splash.is-leaving { opacity: 0; transform: scale(.994); }
+
+.splash__logo {
+  display: grid; place-items: center;
+  margin-bottom: var(--sp-2);
+}
+.splash__logo img {
+  width: 92px; height: 92px;
+  /* will-change posé une fois : le logo est le seul objet de l'entrée qui
+     change d'échelle, et il le fait dans les 800 premières ms. */
+  will-change: transform, opacity;
+}
+
+/* Le halo derrière le logo, repris du héros de l'accueil.
+   Centré par inset + margin:auto, et SURTOUT pas par un translate : le
+   script anime son échelle, et anime.js réécrit la propriété `transform`
+   entière. Un translate de centrage posé ici serait effacé à la première
+   image, et le halo partirait dans un coin. */
+.splash__halo {
+  position: absolute; z-index: -1;
+  inset: 0; margin: auto;
+  width: min(560px, 80vw); height: min(560px, 80vw);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(192,138,90,.16), transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+/* ------------------------- le nom et son trait ------------------------ */
+
+/* `inline-grid` et non un bloc : la grille se dimensionne sur le nom, et
+   le trait, étiré sur la colonne, fait EXACTEMENT sa largeur. Sans ça il
+   faudrait mesurer le texte en JS, donc attendre le chargement de la
+   police pour ne pas poser un trait à la mauvaise longueur. */
+.splash__bloc {
+  display: inline-grid;
+  justify-items: stretch;
+  margin-bottom: var(--sp-2);
+}
+
+/* Plus grand que l'ancien titre, et plus serré. À cette taille le nom
+   cesse d'être une légende sous un logo : il devient l'objet qu'on
+   regarde pendant que le reste charge. */
+.splash__title {
+  font-size: clamp(26px, 4.4vw, 38px);
+  font-weight: 500;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin: 0;
+  white-space: pre;      /* une espace du nom reste une espace, pas un repli */
+}
+
+/* Chaque lettre est translatée séparément à l'entrée : il lui faut donc
+   une boîte, et `inline-block` est la seule qui n'ajoute pas de ligne. */
+.splash__title span {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* La piste. 1 px au filet : elle existe avant que le cuivre arrive, sinon
+   le trait semblerait surgir du vide à la première poussée. */
+.splash__trait {
+  position: relative;
+  height: 1px;
+  margin-top: 14px;
+  background: var(--hair);
+}
+
+/* Le fil de cuivre. `scaleX` et non une largeur : une largeur animée
+   recalcule la mise en page à chaque image, une échelle ne touche que le
+   compositeur. L'origine à gauche parce qu'on avance vers la droite.
+   620 ms : c'est long pour un quart de course, et c'est voulu — on doit
+   voir le trait POUSSER, pas le trouver déjà plus loin. */
+.splash__fil {
+  position: absolute; inset: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  will-change: transform;
+  transition: transform 620ms var(--e-out);
+}
+
+/* La pointe. Elle voyage avec le bout du fil — d'où un élément séparé :
+   la pointe d'un objet mis à l'échelle serait écrasée par cette même
+   échelle. Son souffle est la seule boucle de l'écran, et il existe pour
+   une raison précise : si le réseau traîne, le trait doit avoir l'air
+   d'attendre quelque chose, pas d'être bloqué. */
+.splash__tete {
+  position: absolute; top: 50%; left: 0;
+  width: 3px; height: 3px; margin: -1px 0 0 -1px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+  transition: transform 620ms var(--e-out);
+  animation: splash-souffle 2600ms var(--e-soft) infinite;
+}
+
+/* Amplitude calée sur la surface : 3 px de côté, il faut donc descendre
+   bas en opacité pour que le battement se remarque — mais seulement si on
+   le cherche. */
+@keyframes splash-souffle {
+  0%, 100% { opacity: .34; }
+  50%      { opacity: 1; }
+}
+
+/* Arrivée au bout : le souffle s'arrête. Une pointe qui continue de
+   battre sur un trait plein dirait « il reste quelque chose », alors
+   qu'il ne reste que le basculement. */
+.splash__tete.is-done {
+  animation: none;
+  opacity: 1;
+}
+
+.splash__lead { max-width: 34ch; }
+
+/* L'écran ne se saute plus : ces règles ne servent QUE au <noscript> de
+   welcome.html, la seule issue restante quand le script ne s'exécute pas
+   du tout. Elles sont donc conservées, et volontairement discrètes. */
+.splash__skip {
+  margin-top: var(--sp-3);
+  font-size: 12.5px; color: var(--ink-40);
+}
+.splash__skip a { border-bottom: 1px solid var(--hair); }
+.splash__skip a:hover { color: var(--ink); }
+
+/* ========================== petit écran =============================== */
+
+@media (max-width: 560px) {
+  .auth { padding: var(--sp-3) var(--sp-2) var(--sp-4); }
+  .auth__disc { width: 54px; height: 54px; }
+  .auth__disc img { width: 28px; height: 28px; }
+  .splash__logo img { width: 74px; height: 74px; }
+  /* Le trait suit le nom, qui suit le clamp : rien à régler ici. Seul
+     l'écart entre les deux se resserre, la ligne étant plus courte. */
+  .splash__trait { margin-top: 12px; }
+}
+
+/* ===================== moins de mouvement ============================= */
+
+/* La page reste entièrement utilisable sans animation : le JS pose les
+   états finaux et le trait avance quand même.
+   « Moins de mouvement » ne veut pas dire « plus rien » : la progression
+   reste visible, c'est la durée du geste et le souffle qui disparaissent,
+   et l'attente est ramenée à 1,5 s puisqu'il n'y a plus rien à regarder.
+   `html:not(.motion-force)` : le drapeau ?motion=on rend l'animation même
+   sur une machine réglée en mouvement réduit, pour pouvoir la vérifier. */
+@media (prefers-reduced-motion: reduce) {
+  .gcard:active { transform: none; }
+
+  html:not(.motion-force) .splash__fil,
+  html:not(.motion-force) .splash__tete {
+    transition-duration: 180ms;
+  }
+
+  /* Le souffle est un mouvement continu : c'est précisément ce qu'on
+     retire. La pointe reste visible, posée. */
+  html:not(.motion-force) .splash__tete {
+    animation: none;
+    opacity: .9;
+  }
+
+  html:not(.motion-force) .splash { transition: opacity 70ms linear; }
+  html:not(.motion-force) .splash.is-leaving { transform: none; }
+}

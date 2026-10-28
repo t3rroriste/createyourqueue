@@ -1,0 +1,469 @@
+/* =========================================================================
+   CreateYourQueue — accueil
+   Feuille de style AUTONOME : elle ne partage rien avec app.css, qui
+   continue de servir le sélecteur de serveur et le tableau de bord.
+   C'est ce qui garantit que cette D.A. ne fuite pas dans la console.
+
+   Direction : noir chaud, une seule famille typographique, aucune couleur
+   d'interface, quatre familles de formes (coque, carte, pilule, disque).
+   ========================================================================= */
+
+:root {
+  /* --- noir chaud, jamais bleuté --- */
+  --bg:       #0A0908;
+  --panel:    #121110;
+  --raised:   #24211F;
+  --raised-2: #2E2A28;
+
+  /* --- encre --- */
+  --ink:    #F4F1EC;                    /* 17.8:1 sur --panel */
+  --ink-60: rgba(244,241,236,.60);      /*  6.5:1 — plancher du texte courant */
+  --ink-40: rgba(244,241,236,.40);      /*  3.5:1 — JAMAIS de texte courant :
+                                           réservé au décor */
+  --hair:   rgba(244,241,236,.08);
+  --film:   rgba(244,241,236,.05);      /* fond des pilules fantômes */
+
+  /* --- l'unique accent, tenu en laisse ---
+     Trois emplois autorisés : la flèche d'un CTA, le point de pagination
+     actif, un indicateur de delta positif. Jamais un fond, jamais un
+     dégradé, jamais deux fois dans le même écran. */
+  --accent: #C08A5A;                    /* 6.3:1 sur --panel */
+
+  /* --- formes : le rayon n'est jamais uniforme --- */
+  --r-shell: 36px;
+  --r-card:  24px;
+  --r-media: 20px;
+  --r-pill:  999px;
+  --gutter:  16px;
+
+  /* --- respiration --- */
+  --sp-1: 8px; --sp-2: 16px; --sp-3: 32px; --sp-4: 64px; --sp-5: 120px; --sp-6: 200px;
+
+  /* --- mouvement --- */
+  --e-out:  cubic-bezier(.16,1,.3,1);
+  --e-soft: cubic-bezier(.4,0,.2,1);
+
+  --sans: 'Geist', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  color-scheme: dark;
+}
+
+/* ============================== base ================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* Anti-flash de l'ouverture.
+   Le titre est découpé en lignes par anime.js, et ce découpage ne peut se
+   faire qu'une fois les polices chargées, sinon les lignes sont mesurées sur
+   la police de repli. Entre le premier rendu et ce moment-là, on verrait le
+   titre en un bloc, puis se recomposer. On le masque donc jusqu'au signal,
+   posé par le script du <head> et retiré soit par le motion, soit par son
+   propre minuteur. Rien n'est masqué si la personne a demandé moins de
+   mouvement : dans ce cas il n'y a pas d'ouverture à cacher. */
+@media (prefers-reduced-motion: no-preference) {
+  html.motion-pending [data-nav],
+  html.motion-pending .hero__copy > *,
+  html.motion-pending [data-hero="matter"] { visibility: hidden; }
+}
+/* Même masque quand ?motion=on force l'ouverture : la media query ci-dessus
+   ne s'applique pas sur une machine qui demande moins de mouvement, et sans
+   ça le titre apparaît d'un bloc avant que le découpage soit prêt. */
+html.motion-force.motion-pending [data-nav],
+html.motion-force.motion-pending .hero__copy > *,
+html.motion-force.motion-pending [data-hero="matter"] { visibility: hidden; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.55 var(--sans);
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+  padding: var(--gutter);
+}
+
+:lang(ko) { line-height: 1.75; }
+
+h1, h2, h3 { margin: 0; font-weight: 500; letter-spacing: -0.03em; }
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+
+/* Un seul anneau de focus, jamais supprimé. */
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip {
+  position: absolute; left: 24px; top: -70px; z-index: 200;
+  background: var(--ink); color: var(--bg);
+  padding: 12px 18px; border-radius: var(--r-pill); font-weight: 500;
+  transition: top 240ms var(--e-out);
+}
+.skip:focus { top: 24px; }
+
+.label {
+  font-size: 11px; font-weight: 500; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-60);
+}
+.lead { font-size: 15px; line-height: 1.6; color: var(--ink-60); }
+.fine { font-size: 12.5px; line-height: 1.55; color: var(--ink-60); }
+
+/* =========================== la coque ================================= */
+
+/* Geste n°1 contre « trop de carré » : le conteneur racine est lui-même
+   arrondi et détaché des bords. Rien ne touche un angle droit d'écran. */
+.shell {
+  position: relative;
+  background: var(--panel);
+  border-radius: var(--r-shell);
+  min-height: calc(100dvh - var(--gutter) * 2);
+  box-shadow: 0 60px 120px -60px rgba(0,0,0,.9);
+}
+
+/* ---- le cadre, toujours là --------------------------------------------
+   Les coins arrondis de la coque appartenaient au haut de la page : dès
+   qu'on descendait, on les perdait et le contenu touchait les bords de
+   l'écran. Ce calque les redonne en permanence — il est fixe, le contenu
+   défile dessous.
+
+   L'ombre de 9999 px peint tout ce qui déborde du rectangle arrondi avec
+   le fond de la page : c'est elle qui fait la découpe, sans masque ni
+   filtre, donc sans rien coûter au défilement. `pointer-events: none` :
+   on doit pouvoir cliquer à travers. */
+.cadre {
+  position: fixed;
+  inset: var(--gutter);
+  z-index: 30;
+  border-radius: var(--r-shell);
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px var(--bg);
+}
+
+/* La molette de la page, retirée : le cadre fait le bord, une barre grise
+   collée contre lui le casserait. Le défilement reste entier — molette,
+   clavier, glissement tactile. */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+
+/* Le grain. C'est lui qui retire le rendu « généré ». */
+.grain {
+  position: absolute; inset: 0; z-index: 3;
+  border-radius: var(--r-shell);
+  pointer-events: none; opacity: .03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ====================== navigation en pilule ========================== */
+
+/* Elle reste sous la main pendant tout le défilement, donc position: fixed.
+   Le calc reprend la gouttière du body : la pilule garde exactement la
+   position qu'elle avait quand elle était posée dans la coque.
+   Elle est sortie de .shell dans le HTML : la coque reçoit un transform à
+   l'ouverture, et un ancêtre transformé annule position: fixed. */
+/* Posée par app.js dès qu'on quitte le haut de la page. Elle remonte de
+   sa propre hauteur plus la marge de la coque : au-delà, on verrait son
+   bord bas flotter une fraction de seconde. L'opacité suit pour qu'elle
+   ne traverse pas le contenu en partant. */
+/* `!important` à contrecœur, et pour une raison précise : anime.js pose un
+   `transform` EN LIGNE sur la barre pendant l'animation d'ouverture, et un
+   style en ligne bat toujours une classe. Sans ça, la barre refusait de
+   s'effacer sur l'accueil, les modules et le panneau — partout où une
+   animation la touche. */
+.nav.is-hidden {
+  transform: translate3d(0, calc(-100% - var(--gutter) - 24px), 0) !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+/* Au clavier, on ne perd jamais ce qu'on vient d'atteindre. */
+.nav:focus-within {
+  transform: none !important;
+  opacity: 1 !important;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav { transition: none; }
+}
+
+.nav {
+  position: fixed; z-index: 40; top: calc(var(--gutter) + 20px); left: 0; right: 0;
+  margin: 0 auto; width: max-content;
+  display: flex; align-items: center; gap: 28px;
+  padding: 7px 7px 7px 20px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--hair);
+  max-width: calc(100% - 32px);
+  /* Le mouvement de l'effacement, posé ici : la barre est la même sur
+     toutes les pages, son comportement aussi. */
+  transition: transform 280ms var(--e-out), opacity 200ms var(--e-soft);
+}
+.nav__mark { display: flex; align-items: center; gap: 9px; }
+.nav__mark img { width: 22px; height: 22px; display: block; }
+.nav__mark span { font-size: 13px; font-weight: 500; white-space: nowrap; }
+.nav__links { display: flex; align-items: center; gap: 28px; }
+.nav__links a { font-size: 13px; color: var(--ink-60); white-space: nowrap; }
+.nav__links a:hover { color: var(--ink); }
+
+/* ======================= quatre formes, zéro rectangle ================ */
+
+/* 1 — pilule claire : l'action principale */
+.pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 44px; padding: 0 8px 0 22px;
+  border-radius: var(--r-pill); border: none;
+  background: var(--ink); color: var(--bg);
+  font: 500 14px var(--sans); letter-spacing: -0.01em;
+  cursor: pointer; white-space: nowrap;
+  transition: transform 260ms var(--e-out), background 200ms var(--e-soft);
+}
+.pill:hover { background: #fff; }
+.pill:active { transform: scale(.97); }
+.pill__arrow {
+  width: 30px; height: 30px; border-radius: 50%; flex: 0 0 auto;
+  display: grid; place-items: center;
+  background: var(--bg); color: var(--accent);   /* le seul accent de l'écran */
+  transition: transform 240ms var(--e-out);
+}
+.pill:hover .pill__arrow { transform: translate(2px,-2px); }
+
+/* ---- le bouton du héros ----------------------------------------------
+   Lui seul se soulève et grandit au survol : c'est l'action principale de
+   la page, et la seule qui mérite d'être traitée autrement que les autres
+   pilules. Trois pixels vers le haut, 3 % de plus, et une ombre qui
+   s'étire dessous pour que le décollage se voie plutôt que de se deviner.
+
+   À savoir si l'on touche à l'ouverture : anime.js écrit `transform` en
+   style inline, et un style inline l'emporte sur `:hover`. page-home.js
+   efface donc ces transformations une fois la cascade finie, sinon ce
+   survol-ci resterait sans effet. */
+.pill[data-hero="cta"] {
+  transition: transform 260ms var(--e-out), background 200ms var(--e-soft),
+              box-shadow 300ms var(--e-soft);
+}
+.pill[data-hero="cta"]:hover,
+.pill[data-hero="cta"]:focus-visible {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 16px 32px -18px rgba(0,0,0,.95),
+              0 5px 12px -8px rgba(0,0,0,.6);
+}
+.pill[data-hero="cta"]:active { transform: translateY(0) scale(.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pill[data-hero="cta"]:hover,
+  .pill[data-hero="cta"]:focus-visible { transform: none; }
+}
+.pill[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+
+/* 2 — pilule fantôme : tout le reste */
+.pill--ghost {
+  background: var(--film); color: var(--ink);
+  border: 1px solid var(--hair);
+  padding: 0 20px; height: 40px; font-size: 13px;
+}
+.pill--ghost:hover { background: rgba(255,255,255,.1); }
+.pill--sm { height: 34px; padding: 0 16px; font-size: 12.5px; }
+
+/* 3 — disque : les contrôles */
+.disc {
+  width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.07); border: none; color: var(--ink);
+  cursor: pointer;
+  transition: transform 260ms var(--e-out), background 200ms var(--e-soft);
+}
+.disc:hover { background: rgba(255,255,255,.12); }
+.disc:active { transform: scale(.97); }
+
+/* 4 — texte souligné : le tertiaire */
+.underlined {
+  text-decoration: underline; text-underline-offset: 6px;
+  text-decoration-color: var(--hair); color: var(--ink-60);
+}
+.underlined:hover { color: var(--ink); text-decoration-color: var(--ink-60); }
+
+/* ============================== héros ================================= */
+
+/* Le héros est une couche épinglée : la première section vient glisser
+   par-dessus lui pendant qu'il recule. C'est le geste signature de la
+   référence, et sans lui le défilement paraît plat. */
+.hero { position: sticky; top: 0; z-index: 1; }
+.hero__in {
+  position: relative;
+  min-height: calc(100dvh - var(--gutter) * 2);
+  padding: 156px var(--sp-4) 0;   /* dégage la nav fixe, plus une respiration */
+  display: grid; grid-template-columns: minmax(0, 46%) minmax(0, 1fr);
+  gap: var(--sp-4); align-items: start;
+  transform-origin: 50% 0;
+  background: var(--panel);
+  border-radius: var(--r-shell) var(--r-shell) 0 0;
+  overflow: clip;                      /* rogne le halo, pas les collants */
+}
+
+.hero__copy { position: relative; z-index: 2; }
+
+/* Bas de casse, aligné à gauche, ragged right assumé. Pas de justification,
+   pas de text-wrap:balance : les lignes doivent rester inégales. */
+.hero__title {
+  font-size: clamp(2.5rem, 4.4vw, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+  text-transform: lowercase;
+  margin-bottom: var(--sp-3);
+}
+.hero__lead { max-width: 42ch; margin-bottom: var(--sp-3); }
+
+.hero__note {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-top: var(--sp-2); max-width: 46ch;
+}
+.hero__note svg { flex: 0 0 auto; margin-top: 3px; color: var(--ink-40); }
+
+/* La matière : à la place de la photo détourée de la référence, un halo
+   très large qui n'a ni arête ni cadre — il s'éteint dans le fond. */
+.matter {
+  position: relative; z-index: 1;
+  aspect-ratio: 1 / 1; width: 118%; max-width: 760px; justify-self: end;
+  margin-top: -120px; margin-right: -140px; margin-left: -18%;
+  border-radius: 50%;
+  background:
+    radial-gradient(52% 48% at 44% 40%, rgba(244,241,236,.26), transparent 68%),
+    radial-gradient(38% 34% at 64% 58%, rgba(192,138,90,.20), transparent 70%),
+    radial-gradient(70% 62% at 52% 50%, rgba(244,241,236,.05), transparent 76%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+
+/* ============================== pied ================================== */
+
+.foot {
+  position: relative; z-index: 2;
+  background: var(--panel);
+  border-radius: 0 0 var(--r-shell) var(--r-shell);
+  border-top: 1px solid var(--hair);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+}
+.foot a { font-size: 12.5px; color: var(--ink-60); }
+.foot a:hover { color: var(--ink); }
+.foot__end { margin-left: auto; display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+
+/* ======================== menu de langue ============================== */
+
+.langmenu { position: relative; }
+.langmenu__panel {
+  position: absolute; z-index: 60; top: calc(100% + 10px); right: 0;
+  min-width: 190px; padding: 6px; display: none;
+  background: var(--raised); border: 1px solid var(--hair);
+  border-radius: var(--r-media);
+  box-shadow: 0 40px 80px -40px rgba(0,0,0,.9);
+}
+.langmenu[data-open="true"] .langmenu__panel { display: block; }
+.langmenu__opt {
+  width: 100%; min-height: 40px; display: flex; align-items: center; gap: 12px;
+  padding: 0 14px; background: none; border: none; border-radius: var(--r-pill);
+  color: var(--ink); font: 400 13px var(--sans); text-align: left; cursor: pointer;
+}
+.langmenu__opt:hover { background: var(--film); }
+.langmenu__opt .code { margin-left: auto; font-size: 11px; color: var(--ink-40); }
+.langmenu__opt[aria-checked="true"] { font-weight: 500; background: var(--film); }
+
+/* Drapeau + pays. Le code ISO a droite faisait doublon avec le drapeau,
+   il est masqué plutôt que retiré du HTML : il sert encore de repère au
+   moment de traduire, et le remettre est une ligne. */
+.langmenu__opt .code { display: none; }
+.flag { flex: 0 0 auto; display: block; border-radius: 50%; }
+
+/* ===================== avertissement de configuration ================= */
+
+.setup {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-top: var(--sp-3); max-width: 60ch;
+  padding: 16px 18px; border-radius: var(--r-card);
+  background: var(--raised);
+}
+.setup svg { flex: 0 0 auto; margin-top: 2px; color: var(--accent); }
+.setup b { display: block; font-weight: 500; margin-bottom: 4px; }
+.setup code { font-size: 12px; color: var(--ink); }
+
+/* Le champ de saisie du CLIENT_ID, dans le bandeau. */
+.setup__form { margin-top: 14px; display: grid; gap: 8px; }
+.setup__form label { color: var(--ink-60); }
+.setup__row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.setup__row input {
+  flex: 1 1 220px; min-width: 0; height: 38px; padding: 0 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hair); background: var(--bg); color: var(--ink);
+  font: 400 13px var(--sans); letter-spacing: 0;
+  transition: border-color 180ms var(--e-soft);
+}
+.setup__row input::placeholder { color: var(--ink-40); }
+.setup__row input:focus-visible { outline: none; border-color: var(--ink-60); }
+.setup__row input:user-invalid { border-color: var(--accent); }
+.setup__hint { margin: 0; color: var(--ink-60); }
+.setup__hint[data-etat="ok"] { color: var(--ink); }
+
+/* =========================== responsive =============================== */
+
+@media (max-width: 1100px) {
+  .hero__in { grid-template-columns: minmax(0,1fr); padding-top: 144px; }
+  .matter { justify-self: center; margin: 0 auto; max-width: 380px; }
+}
+
+@media (max-width: 780px) {
+  :root { --r-shell: 28px; --gutter: 10px; --sp-4: 24px; --sp-5: 72px; }
+  body { padding: var(--gutter); }
+  .hero__in { padding: 128px var(--sp-4) var(--sp-4); }
+  .hero__title { font-size: clamp(2rem, 9vw, 2.75rem); }
+  .nav { gap: 12px; padding: 6px 6px 6px 14px; width: calc(100% - 20px); }
+  .nav__links { display: none; }
+  .nav__mark span { display: none; }
+  .matter { max-width: 280px; margin-top: var(--sp-3); }
+  .foot { padding: var(--sp-3) var(--sp-4); }
+  .foot__end { margin-left: 0; width: 100%; }
+}
+
+/* ==================== mouvement réduit : bloquant ===================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  /* Le scrub, l'empilement et la parallaxe sont coupés côté JS ; ici on
+     garantit surtout qu'aucun contenu ne reste masqué. */
+  .hero { position: static; }
+  .hero__in { transform: none !important; filter: none !important; opacity: 1 !important; }
+  .hero__in { min-height: 0; }
+}
+
+
+/* ================= la page Modules, reprise dans l'accueil ============= */
+
+/* Le calque qui passe PAR-DESSUS le héros.
+   Le héros est en `position: sticky` et son bloc conteneur est la coque
+   entière : il reste donc épinglé pendant tout le défilement. Sans ce
+   `z-index` et ce fond opaque, les six modules défileraient DERRIÈRE lui
+   et resteraient invisibles — on ne verrait que le héros, de haut en bas.
+   Le rayon n'est repris qu'en haut : les deux blocs se referment l'un sur
+   l'autre, comme le héros le fait déjà avec le sien. */
+.homemods {
+  position: relative; z-index: 2;
+  background: var(--bg);
+  border-radius: var(--r-shell) var(--r-shell) 0 0;
+}
+
+/* L'en-tête des modules réserve la place de la nav fixe sur sa propre
+   page. Ici la nav est déjà passée depuis longtemps quand on arrive :
+   cette réserve ferait un trou d'une hauteur d'écran. */
+.homemods .mhead { padding-top: var(--sp-4); min-height: 0; }

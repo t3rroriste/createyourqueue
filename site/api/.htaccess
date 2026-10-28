@@ -1,0 +1,30 @@
+# Tout ce qui arrive sous /api/ est traité par index.php.
+#
+# `!-f` laisse passer un fichier qui existe vraiment : sans cette condition,
+# index.php se rappellerait lui-même en boucle.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /api/
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Une réponse d'API dépend de la session : elle ne se met jamais en cache.
+# La règle du .htaccess parent garde le CSS et le JS un an ; sans celle-ci,
+# un cache pourrait resservir la réponse d'une personne à une autre.
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-store, no-cache, must-revalidate"
+</IfModule>
+
+# Le fichier des secrets n'est jamais servi, même si PHP était désactivé —
+# auquel cas son contenu partirait en clair.
+<Files "secrets.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>

@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration — CreateYourQueue</title>
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Geist seule, comme le choix du serveur. Le monospace faisait
+     « panneau d'administration » ; il n'a plus rien à faire ici. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/home.css?v=202610282305">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610282305">
+<script>
+// Même garde que le choix du serveur : le contenu reste masqué le temps que
+// le script pose les états de départ, et se découvre tout seul après 1,8 s
+// si le script n'arrive jamais. La page ne peut donc pas rester blanche.
+(function (h) {
+  h.classList.remove('no-js');
+  h.classList.add('motion-pending');
+  if (/[?&]motion=on(&|$)/.test(location.search)) h.classList.add('motion-force');
+  setTimeout(function () { h.classList.remove('motion-pending'); }, 1800);
+})(document.documentElement);
+</script>
+</head>
+<body>
+
+<!-- Le cadre arrondi, fixe : il garde les coins de la coque visibles
+     quand on descend dans la page. Purement visuel. -->
+<div class="cadre" aria-hidden="true"></div>
+
+<a class="skip" href="#main" data-i18n="c.skip">Aller au contenu</a>
+
+<!-- La pilule flottante du choix du serveur, à l'identique. « Retour »
+     ramène au choix du serveur : c'est l'écran d'où l'on vient. -->
+<nav class="nav" aria-label="Principale" data-nav>
+  <a class="nav__mark" href="index.html" data-site="index.html">
+    <img src="assets/img/logo.png" alt="" width="22" height="22">
+    <span>CreateYourQueue</span>
+  </a>
+  <div class="nav__links">
+    <a href="#" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
+    <a href="modules.html" data-site="modules.html" data-i18n="m.nav">Modules</a>
+    <a href="#" data-cfg-link="SUPPORT_URL" data-i18n="n.support">Support</a>
+  </div>
+  <div class="langmenu">
+    <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
+            aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.lang">
+      <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
+    </div>
+  </div>
+  <a class="pill pill--ghost pill--sm" href="servers.html" data-app="servers.html" data-i18n="c.back">Retour</a>
+</nav>
+
+<div class="shell">
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="db is-loading" data-db>
+
+    <!-- ======================= COLONNE DE GAUCHE =======================
+         Comme sur le choix du serveur : .db__side n'est une boîte que sur
+         grand écran. En dessous de 900 px elle passe en display:contents
+         et ses trois enfants deviennent des cases de la grille — serveur,
+         rangée de sections, contenu, compte. L'ordre du DOM ne bouge
+         jamais, donc l'ordre de tabulation suit l'ordre visuel.        -->
+    <div class="db__side">
+
+      <div class="dbguild" data-guild-card>
+        <span class="dbguild__icon" data-g-icon aria-hidden="true"></span>
+        <span class="dbguild__text">
+          <span class="dbguild__name" data-g-name></span>
+          <span class="dbguild__meta" data-g-members></span>
+        </span>
+        <a class="dbguild__swap underlined" href="servers.html" data-app="servers.html" data-i18n="d.changeServer">Changer de serveur</a>
+      </div>
+
+      <!-- Dix sections, cinq familles : le bot, le serveur, le jeu, la
+           surveillance, les outils. Le regroupement se lit à l'espace
+           entre les familles, pas à une étiquette — il n'y a rien à
+           écrire en gros. -->
+      <nav class="dbnav" data-dbnav data-i18n-attr="aria-label:d.navLabel">
+        <!-- L'indicateur unique. Il n'est jamais recréé : il glisse d'une
+             entrée à l'autre, et reste invisible tant qu'il n'a pas été
+             mesuré une première fois. -->
+        <span class="dbnav__mark" data-mark aria-hidden="true"></span>
+
+        <div class="dbnav__grp">
+          <a class="navlink" href="#configurations" data-goto="configurations"><span class="navlink-label" data-i18n="s.config">Configurations</span></a>
+          <a class="navlink" href="#options" data-goto="options"><span class="navlink-label" data-i18n="s.options">Options</span></a>
+
+          <!-- La configuration de « Match & MMR ». Elle n'apparaît que
+               lorsque l'option est allumée : c'est elle qui ouvre ces trois
+               écrans, et les montrer éteinte promettrait des réglages sans
+               effet. `hidden` est posé ici et piloté par le script. -->
+          <div class="dbnav__sub" data-sub="feature.leaderboard" hidden>
+            <a class="navlink navlink--sub" href="#classement" data-goto="classement"><span class="navlink-label" data-i18n="fn.leaderboard">Classement</span></a>
+          </div>
+          <div class="dbnav__sub" data-sub="feature.match" hidden>
+            <a class="navlink navlink--sub" href="#rangs" data-goto="rangs"><span class="navlink-label" data-i18n="s.ranks">Rangs</span></a>
+            <a class="navlink navlink--sub" href="#mmr" data-goto="mmr"><span class="navlink-label" data-i18n="s.mmr">MMR</span></a>
+            <a class="navlink navlink--sub" href="#presets" data-goto="presets"><span class="navlink-label" data-i18n="s.presets">Presets</span><span class="navlink__n" data-nav-count="presets"></span></a>
+          </div>
+          <div class="dbnav__sub" data-sub="feature.clans" hidden>
+            <a class="navlink navlink--sub" href="#clans" data-goto="clans"><span class="navlink-label" data-i18n="fn.clans">Clans</span></a>
+          </div>
+        </div>
+        <!-- Queue est au-dessus de Salons et non dans les options : c'est
+             le réglage qu'on vient modifier le plus souvent, et il ne
+             dépend d'aucune fonction qu'on pourrait couper. -->
+        <div class="dbnav__grp">
+          <a class="navlink" href="#queue" data-goto="queue"><span class="navlink-label" data-i18n="s.queue">Queue</span></a>
+        </div>
+
+        <div class="dbnav__grp">
+          <a class="navlink" href="#salons" data-goto="salons"><span class="navlink-label" data-i18n="s.channels">Salons</span></a>
+          <a class="navlink" href="#roles" data-goto="roles"><span class="navlink-label" data-i18n="s.roles">Rôles</span></a>
+        </div>
+        <div class="dbnav__grp">
+          <a class="navlink" href="#logs" data-goto="logs"><span class="navlink-label" data-i18n="s.logs">Logs</span><span class="navlink__n" data-nav-count="logs"></span></a>
+          <a class="navlink" href="#securite" data-goto="securite"><span class="navlink-label" data-i18n="s.security">Sécurité</span></a>
+        </div>
+        <div class="dbnav__grp">
+          <a class="navlink" href="#diagnostic" data-goto="diagnostic"><span class="navlink-label" data-i18n="d.diagnostic">Diagnostic</span><span class="navlink__warn" data-nav-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span class="sr-only" data-i18n="d.navWarn">Droits manquants</span></span></a>
+        </div>
+      </nav>
+
+      <!-- Le compte, collé en bas, comme sur le choix du serveur. -->
+      <div class="dbme" data-me>
+        <div class="dbme__in" data-me-known hidden>
+          <span class="dbme__avatar" data-me-avatar aria-hidden="true"></span>
+          <span class="dbme__name" data-me-name></span>
+          <button class="dbme__out" type="button" data-logout
+                  data-i18n-attr="aria-label:sv.logout, title:sv.logout">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 20h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-4M9 17l5-5-5-5M14 12H3"/></svg>
+          </button>
+        </div>
+        <a class="pill pill--ghost pill--sm dbme__login" href="login.html"
+           data-me-guest data-app="login.html" data-i18n="h.loginBtn" hidden>Se connecter avec Discord</a>
+      </div>
+    </div>
+
+    <!-- ============================ CONTENU ============================ -->
+    <main class="db__main" id="main" tabindex="-1">
+
+      <!-- Un seul emplacement pour les avis de page : pas d'API, session
+           expirée, accès perdu, chargement échoué. Vide le reste du temps. -->
+      <div class="dbnote" data-note hidden></div>
+
+      <!-- Une seule région annoncée pour toute la page. Soixante régions
+           aria-live, une par rangée, se marcheraient dessus ; celle-ci dit
+           « Classement — Enregistré » une fois, et se tait. -->
+      <p class="sr-only" data-live aria-live="polite"></p>
+      <span class="sr-only" id="lbl-log-channel" data-i18n="lo.channel">Salon du journal</span>
+
+      <!-- ============================ LANGUE ============================ -->
+      <section class="sec" data-section="configurations" aria-labelledby="h-configurations" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-configurations" data-i18n="s.config">Configurations</h1>
+          <p class="lead sec__lead" data-i18n="s.configD"></p>
+        </header>
+
+        <!-- Le surnom du bot SUR CE SERVEUR. Pas son nom : le nom et la
+             photo appartiennent à l'application Discord et sont les mêmes
+             partout. Les changer ici les changerait sur tous les serveurs
+             où le bot est installé. Le surnom, lui, est propre à chaque
+             serveur — c'est la seule identité qu'un panneau par serveur a
+             le droit de toucher. -->
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="cf.identity">Identité du bot</h2>
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text">
+                <label class="row__label" for="cf-nick" data-i18n="cf.nick">Surnom sur ce serveur</label>
+                <span class="row__desc" id="cf-nick-d" data-i18n="cf.nickD"></span>
+              </p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <input class="text" id="cf-nick" type="text" maxlength="32" autocomplete="off"
+                     data-setting="bot.nick" aria-describedby="cf-nick-d"
+                     data-i18n-attr="placeholder:cf.nickPlaceholder">
+            </div>
+          </div>
+        </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="s.language">Langue</h2>
+          <div class="grp__card">
+            <div class="row row--stack">
+              <div class="langs" role="radiogroup" aria-labelledby="h-langue">
+                <label class="lang"><input type="radio" name="botlang" value="fr" data-setting="language" checked><span class="lang__face"><span class="lang__flag" data-flag="fr"></span>Français</span></label>
+                <label class="lang"><input type="radio" name="botlang" value="en" data-setting="language"><span class="lang__face"><span class="lang__flag" data-flag="en"></span>English</span></label>
+                <label class="lang"><input type="radio" name="botlang" value="es" data-setting="language"><span class="lang__face"><span class="lang__flag" data-flag="es"></span>Español</span></label>
+                <label class="lang"><input type="radio" name="botlang" value="de" data-setting="language"><span class="lang__face"><span class="lang__flag" data-flag="de"></span>Deutsch</span></label>
+                <label class="lang"><input type="radio" name="botlang" value="ko" data-setting="language"><span class="lang__face" lang="ko"><span class="lang__flag" data-flag="ko"></span>한국어</span></label>
+              </div>
+              <span class="row__state" data-state aria-hidden="true"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ OPTIONS ============================ -->
+      <!-- Allumer une option fait apparaître sa configuration en
+           sous-entrée du menu de gauche. L'éteindre la fait disparaître :
+           un réglage qui ne sert à rien n'est pas grisé, il n'est pas là. -->
+      <section class="sec" data-section="options" aria-labelledby="h-options" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-options" data-i18n="s.options">Options</h1>
+          <p class="lead sec__lead" data-i18n="fn.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="fn-leaderboard" data-i18n="fn.leaderboard">Classement</label> <span class="row__desc" id="fn-leaderboard-d" data-i18n="fn.leaderboardD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-leaderboard" aria-describedby="fn-leaderboard-d" data-setting="feature.leaderboard" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="fn-match" data-i18n="fn.match">Match &amp; MMR</label> <span class="row__desc" id="fn-match-d" data-i18n="fn.matchD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-match" aria-describedby="fn-match-d" data-setting="feature.match" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="fn-clans" data-i18n="fn.clans">Clans</label> <span class="row__desc" id="fn-clans-d" data-i18n="fn.clansD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-clans" aria-describedby="fn-clans-d" data-setting="feature.clans"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="fn-join" data-i18n="fn.joinAnnounce">Annonce des adhésions</label> <span class="row__desc" id="fn-join-d" data-i18n="fn.joinAnnounceD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-join" aria-describedby="fn-join-d" data-setting="feature.joinAnnounce"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="fn-status" data-i18n="fn.statusPanel">Panneau d'état</label> <span class="row__desc" id="fn-status-d" data-i18n="fn.statusPanelD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-status" aria-describedby="fn-status-d" data-setting="feature.statusPanel" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="fn-qpass" data-i18n="fn.queuePassword">Mot de passe des queues</label> <span class="row__desc" id="fn-qpass-d" data-i18n="fn.queuePasswordD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-qpass" aria-describedby="fn-qpass-d" data-setting="feature.queuePassword"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================== CLASSEMENT =========================== -->
+      <!-- La configuration de l'option « Classement ». Elle ne contient que
+           ce qui lui appartient vraiment : le salon où le classement est
+           publié, déplacé depuis la section Salons. Rien n'a été inventé —
+           s'il n'y avait eu aucun réglage, il n'y aurait pas de section. -->
+      <section class="sec" data-section="classement" aria-labelledby="h-classement" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-classement" data-i18n="fn.leaderboard">Classement</h1>
+          <p class="lead sec__lead" data-i18n="fn.leaderboardD"></p>
+        </header>
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="ch-board" data-i18n="ch.leaderboard">Classement</label> <span class="row__desc" id="ch-board-d" data-i18n="ch.leaderboardD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="channels"><input type="hidden" data-setting="channel.leaderboard"><button class="combo__button" id="ch-board" type="button" aria-describedby="ch-board-d"></button></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= CLANS ============================= -->
+      <section class="sec" data-section="clans" aria-labelledby="h-clans" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-clans" data-i18n="fn.clans">Clans</h1>
+          <p class="lead sec__lead" data-i18n="fn.clansD"></p>
+        </header>
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="ch-clancat" data-i18n="ch.clanCategory">Catégorie des clans</label> <span class="row__desc" id="ch-clancat-d" data-i18n="ch.clanCategoryD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="categories"><input type="hidden" data-setting="channel.clanCategory"><button class="combo__button" id="ch-clancat" type="button" aria-describedby="ch-clancat-d"></button></div></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="rl-leader" data-i18n="rl.clanLeader">Chef de clan</label> <span class="row__desc" id="rl-leader-d" data-i18n="rl.clanLeaderD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.clanLeader"><button class="combo__button" id="rl-leader" type="button" aria-describedby="rl-leader-d"></button></div></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="rl-transfer" data-i18n="rl.clanTransfer">Transfert de clan</label> <span class="row__desc" id="rl-transfer-d" data-i18n="rl.clanTransferD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.clanTransfer"><button class="combo__button" id="rl-transfer" type="button" aria-describedby="rl-transfer-d"></button></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ SALONS ============================ -->
+      <section class="sec" data-section="salons" aria-labelledby="h-salons" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-salons" data-i18n="s.channels">Salons</h1>
+          <p class="lead sec__lead" data-i18n="s.channelsD"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="ch-commands" data-i18n="ch.commands">Commandes</label> <span class="row__desc" id="ch-commands-d" data-i18n="ch.commandsD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="channels"><input type="hidden" data-setting="channel.commands"><button class="combo__button" id="ch-commands" type="button" aria-describedby="ch-commands-d"></button></div></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="ch-ann" data-i18n="ch.announcements">Annonces</label> <span class="row__desc" id="ch-ann-d" data-i18n="ch.announcementsD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="channels"><input type="hidden" data-setting="channel.announcements"><button class="combo__button" id="ch-ann" type="button" aria-describedby="ch-ann-d"></button></div></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="ch-voice" data-i18n="ch.waitingVoice">Vocal d'attente</label> <span class="row__desc" id="ch-voice-d" data-i18n="ch.waitingVoiceD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="voiceChannels"><input type="hidden" data-setting="channel.waitingVoice"><button class="combo__button" id="ch-voice" type="button" aria-describedby="ch-voice-d"></button></div></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="ch-results" data-i18n="ch.results">Résultats</label> <span class="row__desc" id="ch-results-d" data-i18n="ch.resultsD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="channels"><input type="hidden" data-setting="channel.results"><button class="combo__button" id="ch-results" type="button" aria-describedby="ch-results-d"></button></div></div>
+            </div>
+            </div>
+        </div>
+      </section>
+
+      <!-- ============================= RÔLES ============================= -->
+      <section class="sec" data-section="roles" aria-labelledby="h-roles" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-roles" data-i18n="s.roles">Rôles</h1>
+          <p class="lead sec__lead" data-i18n="rl.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="rl-org" data-i18n="rl.organizer">Organisateur</label> <span class="row__desc" id="rl-org-d" data-i18n="rl.organizerD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.organizer"><button class="combo__button" id="rl-org" type="button" aria-describedby="rl-org-d"></button></div></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="rl-notify" data-i18n="rl.queueNotify">Notification de queue</label> <span class="row__desc" id="rl-notify-d" data-i18n="rl.queueNotifyD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.queueNotify"><button class="combo__button" id="rl-notify" type="button" aria-describedby="rl-notify-d"></button></div></div>
+            </div>
+            </div>
+        </div>
+
+        <!-- La hiérarchie n'apparaît que si elle pose un problème réel : des
+             rôles placés au-dessus de celui du bot, qu'il ne peut donc pas
+             attribuer. Sans relevé de position, rien ne s'affiche. -->
+        <div class="grp" data-hier hidden></div>
+      </section>
+
+      <!-- ============================== MMR ============================== -->
+      <section class="sec" data-section="rangs" aria-labelledby="h-rangs" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-rangs" data-i18n="s.ranks">Rangs</h1>
+          <p class="lead sec__lead" data-i18n="rk.lead"></p>
+        </header>
+
+        <div class="sec__body">
+          <div class="sec__main">
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="rk.grpList">Les rangs</h2>
+              <!-- Les rangées sont fabriquées par page-dashboard.js : douze
+                   au maximum, et on n'écrit pas douze fois le même bloc. -->
+              <div class="grp__card" data-ranks></div>
+            </div>
+            <div class="grp">
+              <div class="grp__card grp__card--pad">
+                <p class="rank__note" data-i18n="rk.note"></p>
+                <button class="pill pill--ghost pill--sm" type="button" data-rank-add>
+                  <span data-i18n="rk.add">Ajouter un rang</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec sec--aside" data-section="mmr" aria-labelledby="h-mmr" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-mmr" data-i18n="s.mmr">MMR</h1>
+          <p class="lead sec__lead" data-i18n="mm.lead"></p>
+        </header>
+
+        <div class="sec__body">
+          <div class="sec__main">
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="mm.grpActivation">Activation</h2>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="mm-enable" data-i18n="mm.enable">Système de MMR</label> <span class="row__desc" id="mm-enable-d" data-i18n="mm.enableD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="mm-enable" aria-describedby="mm-enable-d" data-setting="mmr.enabled" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="mm-mvp" data-i18n="mm.mvp">Bonus MVP</label> <span class="row__desc" id="mm-mvp-d" data-i18n="mm.mvpD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="mm-mvp" aria-describedby="mm-mvp-d" data-setting="mmr.mvpEnabled" data-reveal="#row-mvp-bonus" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="mm-streak" data-i18n="mm.streak">Bonus de série</label> <span class="row__desc" id="mm-streak-d" data-i18n="mm.streakD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="mm-streak" aria-describedby="mm-streak-d" data-setting="mmr.streakEnabled" data-reveal="#row-streak-bonus,#row-streak-req"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="mm.grpPoints">Points</h2>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="f-start" data-i18n="mm.start">MMR de départ</label> <span class="row__desc" id="f-start-d"><span data-i18n="mm.startD"></span><span class="row__bounds">0 – 5000</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-start" type="number" inputmode="numeric" step="1" min="0" max="5000" value="1000" data-min="0" data-max="5000" aria-describedby="f-start-d f-start-e" data-setting="mmr.start"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
+                  <p class="row__err" id="f-start-e" data-error-for="f-start" hidden></p>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="f-win" data-i18n="mm.win">Points par victoire</label> <span class="row__desc" id="f-win-d"><span data-i18n="mm.winD"></span><span class="row__bounds">1 – 100</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-win" type="number" inputmode="numeric" step="1" min="1" max="100" value="25" data-min="1" data-max="100" aria-describedby="f-win-d f-win-e" data-setting="mmr.win"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
+                  <p class="row__err" id="f-win-e" data-error-for="f-win" hidden></p>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="f-loss" data-i18n="mm.loss">Points par défaite</label> <span class="row__desc" id="f-loss-d"><span data-i18n="mm.lossD"></span><span class="row__bounds">-100 – 0</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-loss" type="number" inputmode="numeric" step="1" min="-100" max="0" value="-18" data-min="-100" data-max="0" aria-describedby="f-loss-d f-loss-e" data-setting="mmr.loss"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
+                  <p class="row__err" id="f-loss-e" data-error-for="f-loss" hidden></p>
+                </div>
+                <div class="row row--sub" id="row-mvp-bonus">
+                  <p class="row__text"><label class="row__label" for="f-mvp" data-i18n="mm.mvpBonus">Bonus MVP</label> <span class="row__desc" id="f-mvp-d"><span data-i18n="mm.mvpBonusD"></span><span class="row__bounds">0 – 50</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-mvp" type="number" inputmode="numeric" step="1" min="0" max="50" value="10" data-min="0" data-max="50" aria-describedby="f-mvp-d f-mvp-e" data-setting="mmr.mvpBonus"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
+                  <p class="row__err" id="f-mvp-e" data-error-for="f-mvp" hidden></p>
+                </div>
+                <div class="row row--sub" id="row-streak-bonus" hidden>
+                  <p class="row__text"><label class="row__label" for="f-streak" data-i18n="mm.streakBonus">Bonus de série</label> <span class="row__desc" id="f-streak-d"><span data-i18n="mm.streakBonusD"></span><span class="row__bounds">0 – 50</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-streak" type="number" inputmode="numeric" step="1" min="0" max="50" value="5" data-min="0" data-max="50" aria-describedby="f-streak-d f-streak-e" data-setting="mmr.streakBonus"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
+                  <p class="row__err" id="f-streak-e" data-error-for="f-streak" hidden></p>
+                </div>
+                <div class="row row--sub" id="row-streak-req" hidden>
+                  <p class="row__text"><label class="row__label" for="f-streakn" data-i18n="mm.streakRequired">Série requise</label> <span class="row__desc" id="f-streakn-d"><span data-i18n="mm.streakRequiredD"></span><span class="row__bounds">2 – 20</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-streakn" type="number" inputmode="numeric" step="1" min="2" max="20" value="3" data-min="2" data-max="20" aria-describedby="f-streakn-d f-streakn-e" data-setting="mmr.streakRequired"><span class="num__unit" data-i18n="u.matches">matchs</span></span></div>
+                  <p class="row__err" id="f-streakn-e" data-error-for="f-streakn" hidden></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="mm.grpDurations">Durées de vote</h2>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="f-cvote" data-i18n="mm.captainVote">Vote des capitaines</label> <span class="row__desc" id="f-cvote-d"><span data-i18n="mm.captainVoteD"></span><span class="row__bounds">15 – 300</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-cvote" type="number" inputmode="numeric" step="1" min="15" max="300" value="60" data-min="15" data-max="300" aria-describedby="f-cvote-d f-cvote-e" data-setting="mmr.captainVote"><span class="num__unit" data-i18n="u.s">s</span></span></div>
+                  <p class="row__err" id="f-cvote-e" data-error-for="f-cvote" hidden></p>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="f-rvote" data-i18n="mm.resultVote">Vote de résultat</label> <span class="row__desc" id="f-rvote-d"><span data-i18n="mm.resultVoteD"></span><span class="row__bounds">30 – 600</span></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-rvote" type="number" inputmode="numeric" step="1" min="30" max="600" value="120" data-min="30" data-max="600" aria-describedby="f-rvote-d f-rvote-e" data-setting="mmr.resultVote"><span class="num__unit" data-i18n="u.s">s</span></span></div>
+                  <p class="row__err" id="f-rvote-e" data-error-for="f-rvote" hidden></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Le calcul suit les champs en direct. Il est étiqueté « calculé,
+               pas mesuré » : ce sont les réglages qu'on vient de taper, pas
+               une statistique du serveur. -->
+          <aside class="sec__aside">
+            <div class="grp">
+              <div class="grp__card grp__card--pad">
+                <p class="sim__lead" data-i18n="mm.effectLead"></p>
+                <div class="sim" data-sim></div>
+                <p class="sim__warn" data-sim-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span data-i18n="mm.ratioWarn"></span></p>
+                <p class="sim__note" data-i18n="mm.resetBody"></p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ======================== QUEUE PAR DÉFAUT ======================== -->
+      <section class="sec sec--aside" data-section="queue" aria-labelledby="h-queue" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-queue" data-i18n="s.queue">Queue par défaut</h1>
+          <p class="lead sec__lead" data-i18n="q.lead"></p>
+        </header>
+
+        <div class="sec__body">
+          <div class="sec__main">
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpIdentity">Identité</h2>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-name" data-i18n="q.name">Nom de la queue</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><input class="text" id="q-name" type="text" maxlength="64" autocomplete="off" value="Scrim 5v5" data-setting="queue.name" data-required></div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-type" data-i18n="q.type">Type</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <!-- Champ libre, et non plus quatre types imposés : le mot
+                       qui décrit une partie appartient au serveur, pas au bot.
+                       Il part tel quel dans l'annonce. -->
+                  <div class="row__ctl"><input class="text" id="q-type" type="text" maxlength="32"
+                    autocomplete="off" value="Scrim" data-setting="queue.type"
+                    data-i18n-attr="placeholder:q.typePlaceholder"></div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-session" data-i18n="q.session">Session</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="select"><select id="q-session" data-setting="queue.session">
+                    <option value="ondemand" data-i18n="q.sessionOnDemand">À la demande</option>
+                    <option value="scheduled" data-i18n="q.sessionScheduled">Programmée</option>
+                  </select><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+                </div>
+                <div class="row row--sub" id="q-time-row" hidden>
+                  <p class="row__text"><label class="row__label" for="q-time" data-i18n="q.time">Heure d'ouverture</label> <span class="row__desc" id="q-time-d" data-i18n="q.timeD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><input class="text text--time" id="q-time" type="time" value="21:00" aria-describedby="q-time-d" data-setting="queue.time"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grp">
+              <div class="grp__head">
+                <h2 class="grp__title" data-i18n="q.grpFormat">Format</h2>
+              </div>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><span class="row__label" id="lbl-teams" data-i18n="q.teams">Nombre d'équipes</span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl">
+                    <div class="segmented" role="group" aria-labelledby="lbl-teams" id="seg-teams">
+                      <button type="button" aria-pressed="true">2</button>
+                      <button type="button" aria-pressed="false">3</button>
+                      <button type="button" aria-pressed="false">4</button>
+                      <button type="button" aria-pressed="false">5</button>
+                      <button type="button" aria-pressed="false">6</button>
+                    </div>
+                    <input type="hidden" id="q-teams" value="2" data-type="int" data-setting="queue.teams">
+                  </div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><span class="row__label" id="lbl-players" data-i18n="q.players">Joueurs par équipe</span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl">
+                    <div class="segmented" role="group" aria-labelledby="lbl-players" id="seg-players">
+                      <button type="button" aria-pressed="false">1</button>
+                      <button type="button" aria-pressed="false">2</button>
+                      <button type="button" aria-pressed="false">3</button>
+                      <button type="button" aria-pressed="false">4</button>
+                      <button type="button" aria-pressed="true">5</button>
+                      <button type="button" aria-pressed="false">6</button>
+                    </div>
+                    <input type="hidden" id="q-players" value="5" data-type="int" data-setting="queue.players">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpTeams">Équipes</h2>
+              <!-- Les six rangées d'équipe sont écrites par le script avant
+                   que app.js ne câble la page ; seules les N premières sont
+                   visibles, N étant le nombre d'équipes choisi plus haut. -->
+              <div class="grp__card" data-teams></div>
+            </div>
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpRules">Règles</h2>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-cvote" data-i18n="q.captainVote">Vote des capitaines</label> <span class="row__desc" id="q-cvote-d" data-i18n="q.captainVoteD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="q-cvote" aria-describedby="q-cvote-d" data-setting="queue.captainVote" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-pass" data-i18n="q.password">Mot de passe de la queue</label> <span class="row__desc" id="q-pass-d" data-i18n="q.passwordD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="q-pass" aria-describedby="q-pass-d" data-setting="queue.password" data-reveal="#q-passval-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-embedcolor" data-i18n="q.embedColor">Couleur de l'annonce</label> <span class="row__desc" id="q-embedcolor-d" data-i18n="q.embedColorD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <!-- Une couleur libre, ici : c'est la barre de l'embed,
+                       que Discord rend telle quelle — pas un rond pris
+                       dans une liste de douze. -->
+                  <div class="row__ctl"><input class="couleur" id="q-embedcolor" type="color"
+                    value="#000000" aria-describedby="q-embedcolor-d"
+                    data-setting="queue.embedColor"></div>
+                </div>
+                <div class="row row--sub" id="q-passval-row" hidden>
+                  <p class="row__text"><label class="row__label" for="q-passval" data-i18n="q.passwordValue">Le mot de passe</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <!-- Masqué par défaut : un panneau s'ouvre souvent devant
+                       quelqu'un. L'œil le montre, et ce choix se garde d'une
+                       page à l'autre dans ce navigateur. -->
+                  <div class="row__ctl mdp">
+                    <input class="text mdp__champ" id="q-passval" type="password" maxlength="32"
+                      autocomplete="off" spellcheck="false"
+                      data-setting="queue.passwordValue">
+                    <button class="mdp__oeil" type="button" data-mdp-oeil aria-pressed="false"
+                      data-i18n-attr="aria-label:q.passwordShow"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpNotif">Message privé</h2>
+              <div class="grp__card">
+                <div class="row row--haute">
+                  <p class="row__text"><label class="row__label" for="q-notif" data-i18n="q.notifMessage">Message à envoyer</label> <span class="row__desc" id="q-notif-d" data-i18n="q.notifMessageD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><textarea class="text zone" id="q-notif" rows="3" maxlength="1500"
+                    aria-describedby="q-notif-d" data-setting="queue.notifMessage"></textarea></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="sec__aside">
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.previewTitle">Aperçu de l'annonce</h2>
+              <div class="grp__card grp__card--pad">
+                <!-- Le message tel que le bot le publie : même titre, mêmes
+                     lignes, mêmes champs, même pied. Les textes viennent des
+                     fichiers de langue du bot, recopiés — une maquette qui
+                     dirait autre chose que le vrai message ne servirait à
+                     rien. Décorative : aria-hidden, et les réglages qu'elle
+                     montre sont déjà lisibles dans le formulaire. -->
+                <div class="dprev" data-qprev aria-hidden="true">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time" data-qprev-clock></span>
+                    </div>
+                    <p class="dprev__ping"><span class="dprev__ment">@everyone</span></p>
+                    <div class="dprev__embed">
+                      <p class="dprev__title" data-qprev-title></p>
+                      <p class="dprev__by" data-qprev-by></p>
+                      <div class="dprev__teams" data-qprev-teams></div>
+                      <p class="dprev__line" data-qprev-session></p>
+                      <p class="dprev__line dprev__cta" data-qprev-cta></p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field">
+                          <span class="dprev__fname" data-qprev-ftime></span>
+                          <span class="dprev__fval" data-qprev-vtime></span>
+                        </div>
+                        <div class="dprev__field">
+                          <span class="dprev__fname" data-qprev-ftype></span>
+                          <span class="dprev__fval" data-qprev-vtype></span>
+                        </div>
+                      </div>
+                      <p class="dprev__foot" data-qprev-foot></p>
+                    </div>
+                    <p class="dprev__react"><span>✅</span>1</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ouvrir une queue sans passer par Discord. Le bouton n'ouvre
+                 rien tant que l'API ne répond pas : pas de faux succès, et
+                 la ligne d'état dit toujours ce qui s'est réellement passé. -->
+            <div class="grp">
+              <div class="grp__card grp__card--pad">
+                <button class="pill launch__btn" type="button" data-launch disabled>
+                  <span data-launch-label data-i18n="q.launch">Ouvrir la queue maintenant</span>
+                </button>
+                <!-- Fermer supprime l'annonce et purge le salon de commande :
+                     c'est définitif, d'où le second clic de confirmation. -->
+                <button class="pill pill--ghost launch__stop" type="button" data-stop disabled>
+                  <span data-stop-label data-i18n="q.stop">Fermer la queue en cours</span>
+                </button>
+                <p class="launch__state" data-launch-state role="status" aria-live="polite"></p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============================ PRESETS ============================ -->
+      <section class="sec" data-section="presets" aria-labelledby="h-presets" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-presets" data-i18n="s.presets">Presets</h1>
+          <p class="lead sec__lead" data-i18n="s.presetsD"></p>
+        </header>
+        <div class="grp" data-presets></div>
+      </section>
+
+      <!-- ============================== LOGS ============================== -->
+      <section class="sec" data-section="logs" aria-labelledby="h-logs" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-logs" data-i18n="s.logs">Logs</h1>
+          <p class="lead sec__lead" data-i18n="lo.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__head grp__head--end">
+            <span class="grp__meta" data-logs-count></span>
+          </div>
+          <!-- Dix rangées identiques, écrites par le script. Un journal
+               éteint ne montre que son interrupteur : choisir son salon
+               n'a de sens qu'une fois qu'il écrit quelque part. -->
+          <div class="grp__card" data-logs></div>
+        </div>
+      </section>
+
+      <!-- ============================ SÉCURITÉ ============================ -->
+      <section class="sec" data-section="securite" aria-labelledby="h-securite" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-securite" data-i18n="s.security">Sécurité</h1>
+          <p class="lead sec__lead" data-i18n="se.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="se-link" data-i18n="se.antilink">Anti-lien</label> <span class="row__desc" id="se-link-d" data-i18n="se.antilinkD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-link" aria-describedby="se-link-d" data-setting="security.antilink"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="se-clean" data-i18n="se.autoclean">Nettoyage automatique</label> <span class="row__desc" id="se-clean-d" data-i18n="se.autocleanD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-clean" aria-describedby="se-clean-d" data-setting="security.autoclean" data-reveal="#row-clean-delay"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row row--sub" id="row-clean-delay" hidden>
+              <p class="row__text"><label class="row__label" for="f-clean" data-i18n="se.autocleanDelay">Délai de nettoyage</label> <span class="row__desc" id="f-clean-d"><span data-i18n="se.autocleanDelayD"></span><span class="row__bounds">1 – 1440</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="f-clean" type="number" inputmode="numeric" step="1" min="1" max="1440" value="10" data-min="1" data-max="1440" aria-describedby="f-clean-d f-clean-e" data-setting="security.autocleanDelay"><span class="num__unit" data-i18n="u.min">min</span></span></div>
+              <p class="row__err" id="f-clean-e" data-error-for="f-clean" hidden></p>
+            </div>
+
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="se-raid" data-i18n="se.antiraid">Anti-raid</label> <span class="row__desc" id="se-raid-d" data-i18n="se.antiraidD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-raid" aria-describedby="se-raid-d" data-setting="security.antiraid" data-reveal="#row-raid-n,#row-raid-w,#row-raid-a"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row row--sub" id="row-raid-n" hidden>
+              <p class="row__text"><label class="row__label" for="f-raidn" data-i18n="se.threshold">Seuil d'arrivées</label> <span class="row__desc" id="f-raidn-d"><span data-i18n="se.thresholdD"></span><span class="row__bounds">2 – 100</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="f-raidn" type="number" inputmode="numeric" step="1" min="2" max="100" value="10" data-min="2" data-max="100" aria-describedby="f-raidn-d f-raidn-e" data-setting="security.raidThreshold"><span class="num__unit" aria-hidden="true">×</span></span></div>
+              <p class="row__err" id="f-raidn-e" data-error-for="f-raidn" hidden></p>
+            </div>
+            <div class="row row--sub" id="row-raid-w" hidden>
+              <p class="row__text"><label class="row__label" for="f-raidw" data-i18n="se.window">Fenêtre d'observation</label> <span class="row__desc" id="f-raidw-d"><span data-i18n="se.windowD"></span><span class="row__bounds">5 – 600</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="f-raidw" type="number" inputmode="numeric" step="1" min="5" max="600" value="30" data-min="5" data-max="600" aria-describedby="f-raidw-d f-raidw-e" data-setting="security.raidWindow"><span class="num__unit" data-i18n="u.s">s</span></span></div>
+              <p class="row__err" id="f-raidw-e" data-error-for="f-raidw" hidden></p>
+            </div>
+            <div class="row row--sub" id="row-raid-a" hidden>
+              <p class="row__text"><label class="row__label" for="f-raida" data-i18n="se.action">Action</label> <span class="row__desc" id="f-raida-d" data-i18n="se.actionD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="select"><select id="f-raida" aria-describedby="f-raida-d" data-setting="security.raidAction">
+                <option value="alert" data-i18n="se.actAlert">Alerter seulement</option>
+                <option value="timeout" data-i18n="se.actTimeout">Exclure temporairement</option>
+                <option value="kick" data-i18n="se.actKick">Expulser</option>
+                <option value="ban" data-i18n="se.actBan">Bannir</option>
+              </select><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================== DIAGNOSTIC =========================== -->
+      <section class="sec" data-section="diagnostic" aria-labelledby="h-diagnostic" hidden>
+        <header class="sec__head sec__head--action">
+          <div>
+            <h1 class="sec__title" id="h-diagnostic" data-i18n="d.diagnostic">Diagnostic</h1>
+            <p class="lead sec__lead" data-i18n="d.diagnosticD"></p>
+          </div>
+          <button class="pill pill--ghost pill--sm" type="button" data-recheck data-i18n="rl.recheck">Revérifier</button>
+        </header>
+        <div data-diag></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/vendor/anime.umd.min.js?v=202610282305"></script>
+<script src="assets/js/config.js?v=202610282305"></script>
+<script src="assets/js/lang/fr.js?v=202610282305"></script>
+<script src="assets/js/lang/en.js?v=202610282305"></script>
+<script src="assets/js/lang/es.js?v=202610282305"></script>
+<script src="assets/js/lang/de.js?v=202610282305"></script>
+<script src="assets/js/lang/ko.js?v=202610282305"></script>
+<script src="assets/js/app.js?v=202610282305"></script>
+<script src="assets/js/page-dashboard.js?v=202610282305"></script>
+</body>
+</html>

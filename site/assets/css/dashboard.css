@@ -1,0 +1,1369 @@
+/* =========================================================================
+   CreateYourQueue — le panneau d'un serveur
+   Feuille POSÉE PAR-DESSUS home.css, comme servers.css pour le choix du
+   serveur. Elle n'importe AUCUN jeton de l'ancienne app.css, qui est
+   destinée à disparaître.
+
+   Tous les jetons employés ici (--bg, --panel, --raised*, --ink*, --hair,
+   --film, --accent, --r-*, --sp-*, --e-*, --sans) viennent de home.css.
+   Aucune valeur de couleur nouvelle, aucune seconde couleur.
+
+   Le cuivre a UN seul emploi : l'indicateur de la section active dans le
+   menu. Il n'apparaît nulle part ailleurs, à aucun moment.
+
+   La question de la page tient dans une brique : la rangée de réglage.
+   Elle est répétée une soixantaine de fois, donc chaque pixel de hauteur
+   qu'on lui retire est retiré soixante fois. Voir « la rangée » plus bas.
+   ========================================================================= */
+
+/* ===================== anti-flash de l'ouverture ====================== */
+
+/* Le script pose les états de départ (opacité 0, léger décalage) au tout
+   début. Entre le premier rendu et ce moment-là, on verrait la page
+   complète puis l'ouverture repartir de zéro : on la masque jusqu'au
+   signal. Rien n'est masqué si la personne a demandé moins de mouvement,
+   puisqu'il n'y a alors pas d'ouverture à cacher. */
+@media (prefers-reduced-motion: no-preference) {
+  html.motion-pending [data-nav],
+  html.motion-pending .dbguild,
+  html.motion-pending .dbnav,
+  html.motion-pending .dbme,
+  html.motion-pending .db__main { visibility: hidden; }
+}
+html.motion-force.motion-pending [data-nav],
+html.motion-force.motion-pending .dbguild,
+html.motion-force.motion-pending .dbnav,
+html.motion-force.motion-pending .dbme,
+html.motion-force.motion-pending .db__main { visibility: hidden; }
+
+/* ============================ la grille =============================== */
+
+/* Même squelette que le choix du serveur : une colonne de menu de 236 px,
+   le contenu à droite. 132 px en haut et non 148 : la colonne de gauche
+   porte ici dix entrées et une carte de serveur, chaque pixel de hauteur
+   compte pour qu'elle tienne sur un écran de portable sans défiler. */
+.db {
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: var(--sp-4);
+  min-height: calc(100dvh - var(--gutter) * 2);
+  padding: 132px var(--sp-4) var(--sp-4);
+}
+
+/* Collante, et d'une hauteur fixée : c'est ce qui laisse le compte au bas
+   de la fenêtre au lieu du bas d'une colonne aussi longue que la section.
+   Le menu, lui, défile seul si la fenêtre est vraiment basse. */
+.db__side {
+  position: sticky; top: 132px;
+  align-self: start;
+  height: calc(100dvh - 132px - var(--gutter) * 2 - var(--sp-3));
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+
+.db__main { min-width: 0; }
+.db__main:focus { outline: none; }   /* cible du lien d'évitement, jamais d'un clic */
+
+/* ======================== la carte du serveur ========================= */
+
+.dbguild {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 12px; row-gap: 10px;
+  align-items: center;
+  margin-bottom: var(--sp-3);
+}
+.dbguild__icon {
+  width: 38px; height: 38px; border-radius: 13px;
+  display: grid; place-items: center; overflow: hidden;
+  background: var(--raised);
+  font-size: 12.5px; font-weight: 500; color: var(--ink-60);
+}
+.dbguild__icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dbguild__text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dbguild__name {
+  font-size: 14px; font-weight: 500; letter-spacing: -0.015em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-height: 20px;
+}
+.dbguild__meta {
+  font-size: 12.5px; color: var(--ink-60); font-variant-numeric: tabular-nums;
+  min-height: 18px;
+}
+/* Vide — serveur sans compte de membres, ou API muette — elle ne doit pas
+   garder sa place : la colonne de texte dépassait alors la hauteur de
+   l'icône, et le nom du serveur montait au-dessus de son centre. */
+.dbguild__meta:empty { display: none; }
+.dbguild__swap {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: 12.5px;
+  text-underline-offset: 4px;
+}
+
+/* ============================== le menu ============================== */
+
+/* Dix entrées, cinq familles. La famille se lit à l'ESPACE : 2 px entre
+   deux entrées d'une même famille, 14 px entre deux familles. Un rapport
+   de un à sept suffit à l'œil, sans étiquette ni filet. */
+.dbnav {
+  position: relative;
+  display: flex; flex-direction: column;
+  overflow-y: auto; min-height: 0;
+  margin-left: -10px;          /* le creux de survol déborde vers l'extérieur */
+  scrollbar-width: none;
+}
+.dbnav::-webkit-scrollbar { display: none; }
+.dbnav__grp { display: flex; flex-direction: column; gap: 2px; }
+.dbnav__grp + .dbnav__grp { margin-top: 14px; }
+
+/* L'entrée, à l'identique d'une catégorie du choix du serveur — à ceci
+   près qu'elle mesure 36 px et non 40 : dix entrées, pas cinq. On y vise
+   à la souris ; au doigt, la rangée de petit écran repasse à 44 px. */
+.navlink {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 36px; padding: 0 12px 0 16px;
+  border-radius: var(--r-pill);
+  color: var(--ink-60);
+  font-size: 13.5px; letter-spacing: -0.01em;
+  transition: background 180ms var(--e-soft), color 180ms var(--e-soft);
+}
+.navlink:hover { color: var(--ink); background: var(--film); }
+.navlink[aria-current="page"] { color: var(--ink); font-weight: 500; background: var(--film); }
+
+/* Le repère de survol pousse depuis le bord gauche, comme sur le choix du
+   serveur. Sur l'entrée active il s'efface : c'est l'indicateur cuivre,
+   qui glisse, qui prend sa place exacte. */
+.navlink::before {
+  content: '';
+  position: absolute; left: 0; top: 50%;
+  width: 2px; height: 18px; margin-top: -9px;
+  border-radius: 1px;
+  background: var(--ink-40);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 180ms var(--e-out);
+}
+.navlink:hover::before,
+.navlink:focus-visible::before { transform: scaleX(1); }
+.navlink[aria-current="page"]::before { opacity: 0; }
+
+.navlink-label {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transform: translateX(0);
+  transition: transform 200ms var(--e-out);
+}
+.navlink:hover .navlink-label,
+.navlink:focus-visible .navlink-label { transform: translateX(2px); }
+
+/* Les deux seuls nombres du menu sont des comptes réels : presets
+   enregistrés, journaux actifs. Discrets, et sans changer d'échelle. */
+.navlink__n {
+  flex: 0 0 auto;
+  font-size: 12px; font-variant-numeric: tabular-nums;
+  color: var(--ink-40);
+}
+.navlink[aria-current="page"] .navlink__n { color: var(--ink-60); }
+
+/* Le signal « permissions manquantes ». Il ne crie pas : pas de pastille
+   pleine, pas de couleur. Un glyphe d'alerte dans l'encre du texte, et
+   le mot pour les lecteurs d'écran. */
+.navlink__warn { flex: 0 0 auto; display: inline-flex; color: var(--ink-60); }
+.navlink[aria-current="page"] .navlink__warn { color: var(--ink); }
+
+/* L'indicateur cuivre. Un seul élément, jamais recréé : il GLISSE d'une
+   entrée à l'autre au lieu de s'éteindre ici et de se rallumer là. Sa
+   position est une mesure posée par le script (--y) ; son allure, elle,
+   est entièrement ici. 240 ms : assez pour qu'on voie d'où il vient, pas
+   assez pour qu'on l'attende. */
+.dbnav__mark {
+  position: absolute; left: 0; top: 0; z-index: 1;
+  width: 2px; height: 18px;
+  border-radius: 1px;
+  background: var(--accent);          /* le seul accent de l'écran */
+  opacity: 0;
+  transform: translate3d(0, var(--y, 0px), 0);
+  transition: transform 240ms var(--e-out), opacity 180ms var(--e-soft);
+  pointer-events: none;
+}
+.dbnav__mark.is-on { opacity: 1; }
+/* Première mise en place, et redimensionnement : sans transition, sinon
+   l'indicateur arriverait en glissant depuis le haut du menu. */
+.dbnav__mark.is-instant { transition: none; }
+
+/* ============================ le compte =============================== */
+
+/* À l'identique du choix du serveur : mêmes mesures, même discrétion. */
+.dbme {
+  margin-top: auto;
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--hair);
+}
+.dbme__in { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dbme__avatar {
+  flex: 0 0 auto;
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; overflow: hidden;
+  background: var(--raised);
+  font-size: 11px; font-weight: 500; color: var(--ink-60);
+}
+.dbme__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dbme__name {
+  flex: 1 1 auto; min-width: 0;
+  font-size: 13px; color: var(--ink-60);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dbme__out {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: none; border: none; color: var(--ink-40);
+  cursor: pointer;
+  transition: background 180ms var(--e-soft), color 180ms var(--e-soft);
+}
+/* 34 px de dessin, 44 px de cible : la sortie se touche au pouce sans
+   grossir. */
+.dbme__out::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; }
+.dbme__out:hover { background: var(--film); color: var(--ink); }
+.dbme__login { width: 100%; justify-content: center; }
+
+/* ======================= l'avis de page =============================== */
+
+/* Pas d'API, session expirée, accès perdu, lecture échouée. Un seul
+   emplacement, en tête du contenu, et rien d'autre ne s'y affiche. */
+.dbnote {
+  display: flex; gap: 12px; align-items: flex-start;
+  max-width: 760px;
+  margin-bottom: var(--sp-3);
+  padding: 16px 18px;
+  border-radius: var(--r-media);
+  background: var(--film);
+  border: 1px solid var(--hair);
+}
+.dbnote > svg { flex: 0 0 auto; margin-top: 2px; color: var(--ink-60); }
+.dbnote__body { flex: 1 1 auto; min-width: 0; }
+.dbnote__title { font-size: 14px; font-weight: 500; }
+.dbnote__text { margin-top: 3px; font-size: 13px; line-height: 1.55; color: var(--ink-60); }
+.dbnote__act { margin-top: 12px; }
+
+/* ============================ la section ============================== */
+
+/* Une section seule à l'écran, à largeur de lecture : au-delà de 880 px,
+   le regard part du libellé et doit traverser l'écran pour trouver son
+   contrôle. Les deux sections qui ont un aperçu (MMR, queue) s'élargissent
+   pour le porter à côté, pas en dessous. */
+.sec { max-width: 880px; }
+.sec--aside { max-width: 1120px; }
+
+/* Le passage d'une section à l'autre. C'est le geste le plus répété de la
+   page, donc il est court et presque immobile : un fondu de 220 ms avec
+   6 px de remontée. Jamais un glissement horizontal de toute la colonne —
+   à vingt changements par visite, il deviendrait une attente. La classe
+   est posée par le script ; tout le dessin du mouvement est ici. */
+.sec.is-entering { animation: sec-in 220ms var(--e-out); }
+@keyframes sec-in {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+}
+
+.sec__head { margin-bottom: var(--sp-3); }
+.sec__head--action {
+  display: flex; gap: var(--sp-2); align-items: flex-start; justify-content: space-between;
+}
+.sec__head--action .pill { flex: 0 0 auto; margin-top: 6px; }
+
+/* Même titre et même chapeau que le choix du serveur : le passage d'un
+   écran à l'autre ne doit pas changer de voix. */
+.sec__title {
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  line-height: 1.06; letter-spacing: -0.03em; font-weight: 500;
+  text-wrap: balance;
+  margin-bottom: 10px;
+}
+.sec__title:focus { outline: none; }   /* reçoit le focus au changement de section */
+.sec__lead { max-width: 60ch; text-wrap: pretty; }
+
+.sec__body { display: grid; gap: var(--sp-3); }
+.sec__main { display: grid; gap: var(--sp-3); min-width: 0; }
+
+/* L'aperçu à côté des réglages dès que la place le permet, collé au
+   défilement : on règle à gauche, on voit l'effet à droite sans remonter. */
+@media (min-width: 1240px) {
+  .sec__body { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; }
+  .sec__aside { position: sticky; top: 132px; }
+
+  /* La queue fait exception : son aperçu n'est pas un résumé mais la
+     maquette d'un message Discord, avec sa gouttière d'avatar, son embed
+     et deux champs côte à côte. À 272 px tout se repliait sur deux lignes
+     et la copie ne ressemblait plus à l'original. La colonne de réglages
+     ne perd rien : la section s'élargit d'autant.
+
+     La largeur suit la fenêtre plutôt que d'être imposée : à 416 px fixes,
+     la colonne de réglages tombait à 356 px sur un écran de 1280, et c'est
+     elle qu'on vient régler. Elle ne descend jamais sous les 272 px des
+     autres sections, ne dépasse jamais la largeur utile d'un embed. */
+  [data-section="queue"] { max-width: 1264px; }
+  [data-section="queue"] .sec__body {
+    grid-template-columns: minmax(0, 1fr) clamp(272px, 26vw, 416px);
+  }
+}
+
+/* ============================== le groupe ============================= */
+
+/* Une carte, et une seule épaisseur : le groupe est posé sur la coque,
+   rien n'est posé dans le groupe. Le fond --film détache la carte du
+   --panel sans contour — un filet autour de chaque carte ferait une
+   grille de boîtes. */
+.grp + .grp { margin-top: var(--sp-3); }
+.sec__main > .grp + .grp,
+.sec__aside .grp + .grp { margin-top: 0; }
+
+.grp__head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  margin: 0 4px 10px;
+}
+.grp__head--end { justify-content: flex-end; }
+.grp__head .grp__title { margin: 0; }
+
+/* Le titre de groupe est un intertitre, pas une étiquette : casse
+   normale, taille du texte, simplement plus clair que le texte courant. */
+.grp__title {
+  margin: 0 4px 10px;
+  font-size: 14px; font-weight: 500; letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.grp__meta { font-size: 12.5px; color: var(--ink-60); font-variant-numeric: tabular-nums; }
+
+.grp__card {
+  border-radius: var(--r-card);
+  background: var(--film);
+}
+.grp__card--pad { padding: 20px; }
+
+/* ============================== la rangée ============================= */
+
+/* LA brique de la page, et le parti pris de cette refonte.
+
+   L'ancienne rangée empilait le libellé et son explication sur deux
+   lignes : 76 px de haut, soixante fois. Supprimer l'explication rendait
+   les réglages opaques ; la cacher derrière un « ? » la rendait
+   introuvable au doigt.
+
+   La troisième voie est typographique : une TÊTE COURANTE. Le libellé est
+   en encre pleine et en 500, l'explication le suit SUR LA MÊME LIGNE en
+   encre à 60 % — comme une phrase dont le libellé serait le sujet. Tout
+   reste lisible, rien n'est caché, et la plupart des rangées tiennent sur
+   une seule ligne de 21 px dans une colonne de 760. Quand l'explication
+   est longue, elle passe à la ligne comme un paragraphe : la rangée
+   grandit, mais seulement elle.
+
+   Côté technique : le libellé reste un vrai <label> relié au contrôle,
+   l'explication lui est attachée par aria-describedby. Un lecteur d'écran
+   entend donc d'abord le nom, puis l'explication, jamais les deux mêlés. */
+.row {
+  position: relative;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 10px 16px;
+  min-height: 58px;
+  padding: 12px 20px;
+}
+.row + .row { border-top: 1px solid var(--hair); }
+
+.row__text {
+  flex: 1 1 200px; min-width: 0;
+  margin: 0;
+  font-size: 14px; line-height: 1.5;
+  color: var(--ink-60);
+  text-wrap: pretty;
+}
+.row__label {
+  color: var(--ink); font-weight: 500; letter-spacing: -0.01em;
+  margin-right: .35em;
+  cursor: default;
+}
+label.row__label { cursor: pointer; }
+.row__desc { color: var(--ink-60); }
+
+/* Les bornes d'un champ numérique terminent la phrase, en chiffres
+   tabulaires. C'étaient une colonne en monospace ; ce n'est plus qu'une
+   précision en fin de ligne. */
+.row__bounds {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.row__bounds::before { content: '·'; margin: 0 .5em; color: var(--ink-40); }
+
+.row__ctl {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 10px;
+}
+
+/* Une rangée dépendante n'existe que si son interrupteur est allumé.
+   Elle est décalée sous lui, sans filet ni flèche : le retrait suffit à
+   dire « ceci dépend de ce qui est au-dessus ». */
+/* Les rangées qui dépendent d'un interrupteur ne sont plus mises en
+   retrait : le décalage les faisait lire comme mal alignées, alors que
+   c'était un retrait voulu. Leur dépendance se voit autrement, et mieux —
+   elles n'apparaissent QUE lorsque l'interrupteur les appelle, juste en
+   dessous de lui, et leur libellé est moins gras. */
+.row--sub .row__label { font-weight: 400; }
+
+/* Quand l'interrupteur l'allume, elle descend de 4 px en apparaissant —
+   le sens du mouvement dit d'où elle vient. Pas de déploiement en
+   hauteur : une hauteur animée recalcule la page à chaque image. */
+.row.is-revealed { animation: row-in 200ms var(--e-out); }
+@keyframes row-in {
+  from { opacity: 0; transform: translate3d(0, -4px, 0); }
+}
+
+.row--stack { flex-direction: column; align-items: stretch; gap: 12px; padding: 18px 20px; }
+.row--stack .row__state { position: absolute; top: 18px; right: 20px; width: auto; }
+
+.row__note { font-size: 13px; line-height: 1.55; color: var(--ink-60); max-width: 60ch; }
+
+/* L'erreur de saisie : la seule chose qui passe sous la rangée et la
+   fait grandir. C'est voulu — une erreur doit se voir à l'endroit où elle
+   se corrige, avec sa cause et son remède. */
+.row__err {
+  flex: 1 0 100%;
+  display: flex; align-items: center; gap: 6px;
+  margin: -2px 0 0;
+  font-size: 12.5px; color: var(--ink);
+}
+.row__err svg { flex: 0 0 auto; }
+
+/* ---- l'état d'enregistrement ----------------------------------------
+   Chaque réglage part dès qu'il change. La seule confirmation, c'est cet
+   emplacement, juste à gauche du contrôle qu'on vient de toucher — là où
+   l'œil est déjà.
+
+   Il est RÉSERVÉ : 92 px de large en permanence, vide au repos. Son
+   apparition ne déplace donc rien, ni dans la rangée ni dans la page.
+   Trois états, tous en encre — aucune couleur, l'accent est pris :
+     enregistrement   un point qui respire, sans texte (c'est bref)
+     enregistré       ✓ et le mot, qui s'efface au bout de 1,8 s
+     échec            ⚠ et « Réessayer », qui reste jusqu'au succès */
+.row__state {
+  flex: 0 0 auto;
+  width: 92px;
+  margin-left: auto;
+  /* Un mot plus long que la place (« Erneut versuchen ») déborde vers la
+     gauche, dans l'espace entre la phrase et le contrôle, au lieu de
+     pousser le contrôle. */
+  overflow: visible;
+  display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px;
+  font-size: 12px; color: var(--ink-60);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 400ms var(--e-soft);
+  pointer-events: none;
+}
+.row__state[data-s="saving"],
+.row__state[data-s="saved"],
+.row__state[data-s="error"],
+.row__state[data-s="local"] { opacity: 1; transition-duration: 120ms; }
+.row__state[data-s="error"] { pointer-events: auto; color: var(--ink); }
+.row__state svg { flex: 0 0 auto; }
+
+.row__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink-60);
+  animation: dot-breathe 900ms var(--e-soft) infinite;
+}
+@keyframes dot-breathe { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+.row__retry {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 0; border: none; background: none;
+  color: inherit; font: 500 12px var(--sans);
+  cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair);
+}
+.row__retry:hover { text-decoration-color: var(--ink-60); }
+
+/* ============================ l'interrupteur ========================== */
+
+/* Quatorze occurrences, un seul dessin. L'état se lit à la POSITION du
+   bouton (gauche, droite) et à la luminosité de la piste — jamais à une
+   couleur. Deux couches superposées plutôt qu'une couleur de fond qui
+   change : seules l'opacité et la translation bougent. */
+.switch {
+  position: relative;
+  display: inline-flex; flex: 0 0 auto;
+  width: 42px; height: 24px;
+}
+.switch input {
+  position: absolute; inset: -10px;      /* 44 × 44 de cible pour 42 × 24 de dessin */
+  width: calc(100% + 20px); height: calc(100% + 20px);
+  margin: 0; opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.switch__track {
+  position: relative;
+  width: 100%; height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--raised-2);
+}
+.switch__track::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: var(--ink);
+  opacity: 0;
+  transition: opacity 180ms var(--e-soft);
+}
+.switch__knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ink-60);
+  transform: translate3d(0, 0, 0);
+  transition: transform 200ms var(--e-out);
+}
+.switch__knob::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: var(--panel);
+  opacity: 0;
+  transition: opacity 180ms var(--e-soft);
+}
+.switch input:checked + .switch__track::before { opacity: 1; }
+.switch input:checked + .switch__track .switch__knob { transform: translate3d(18px, 0, 0); }
+.switch input:checked + .switch__track .switch__knob::after { opacity: 1; }
+.switch input:focus-visible + .switch__track { outline: 2px solid var(--ink); outline-offset: 3px; }
+.switch input:disabled { cursor: not-allowed; }
+.switch input:disabled + .switch__track { opacity: .4; }
+@media (hover: hover) and (pointer: fine) {
+  .switch input:not(:checked):not(:disabled):hover + .switch__track .switch__knob { background: var(--ink); }
+}
+
+/* ======================== les champs ================================= */
+
+/* Le champ numérique, le champ texte, la liste native et le bouton de
+   liste déroulante partagent la même enveloppe : une pilule --film au
+   filet, 38 px de haut. Dessinés une fois, déclinés quatre. */
+.num, .text, .select, .combo__button {
+  height: 38px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hair);
+  background: var(--film);
+  color: var(--ink);
+  font: 400 14px var(--sans); letter-spacing: -0.005em;
+  transition: border-color 180ms var(--e-soft), background 180ms var(--e-soft);
+}
+.num:hover, .text:hover, .select:hover, .combo__button:hover { background: var(--hair); }
+.num:focus-within, .text:focus-visible, .select:focus-within, .combo__button:focus-visible {
+  outline: none;
+  border-color: var(--ink-60);
+}
+
+/* ---- numérique : la valeur à droite, l'unité collée derrière ------- */
+.num {
+  display: inline-flex; align-items: center;
+  padding: 0 14px 0 6px;
+}
+.num__input {
+  width: 6.5ch;
+  padding: 0 6px 0 4px;
+  border: none; background: none; color: inherit;
+  font: inherit; font-variant-numeric: tabular-nums;
+  text-align: right;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.num__input:focus { outline: none; }
+.num__input::-webkit-outer-spin-button,
+.num__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.num__unit { font-size: 12.5px; color: var(--ink-60); }
+/* Une valeur refusée éclaircit le contour : la luminosité, pas la teinte.
+   Le message d'erreur sous la rangée dit pourquoi. */
+.num:has(.num__input[aria-invalid="true"]) { border-color: var(--ink); }
+.num__input:disabled { opacity: .5; }
+
+/* ---- texte ---------------------------------------------------------- */
+.text { width: 240px; padding: 0 16px; }
+.text--time { width: 148px; font-variant-numeric: tabular-nums; }
+.text::-webkit-calendar-picker-indicator { filter: invert(1) opacity(.5); cursor: pointer; }
+
+/* ---- liste native : le menu natif sur mobile vaut mieux que tout ce
+   qu'on dessinerait. On n'habille que la pilule fermée. ---------------- */
+.select {
+  position: relative;
+  display: inline-flex; align-items: center;
+  min-width: 180px;
+}
+.select select {
+  appearance: none; -webkit-appearance: none;
+  width: 100%; height: 100%;
+  padding: 0 38px 0 16px;
+  border: none; border-radius: inherit;
+  background: none; color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.select select:focus { outline: none; }
+.select select option { background: var(--raised); color: var(--ink); }
+.select svg { position: absolute; right: 14px; color: var(--ink-60); pointer-events: none; }
+
+/* ======================== la liste déroulante ========================= */
+
+/* Les listes de salons et de rôles sont longues : elles s'ouvrent sur un
+   champ de recherche, se parcourent aux flèches et se choisissent à
+   Entrée. La mécanique vient de app.js ; ce qui suit n'est que l'habit. */
+.combo { position: relative; }
+.combo__button {
+  display: inline-flex; align-items: center; gap: 8px;
+  width: 248px;
+  padding: 0 14px 0 16px;
+  text-align: left; cursor: pointer;
+}
+.combo__button .combo__value {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.combo__button .combo__value.is-empty { color: var(--ink-60); }
+.combo__button .combo__value.is-gone { color: var(--ink); }
+.combo__sigil, .combo .hash { color: var(--ink-40); flex: 0 0 auto; }
+.combo .caret { display: inline-flex; color: var(--ink-60); flex: 0 0 auto; }
+.combo__button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Le dièse est juste pour un salon textuel, faux pour le reste. La liste
+   d'options vient de app.js, qui l'écrit partout : on le remplace par
+   l'arobase sur les rôles, et on le retire sur les vocaux et les
+   catégories, sans toucher au script commun. */
+.combo[data-source="roles"] .hash { font-size: 0; }
+.combo[data-source="roles"] .hash::before { content: '@'; font-size: 14px; }
+.combo[data-source="voiceChannels"] .hash,
+.combo[data-source="categories"] .hash { display: none; }
+
+.combo__panel {
+  display: none;
+  position: absolute; z-index: 60;
+  top: calc(100% + 8px); right: 0;
+  width: 320px; max-width: calc(100vw - 32px);
+  padding: 6px;
+  border-radius: var(--r-media);
+  background: var(--raised);
+  border: 1px solid var(--hair);
+  box-shadow: 0 40px 80px -40px rgba(0,0,0,.9);   /* l'ombre du menu de langue */
+}
+.combo[data-open="true"] .combo__panel { display: block; animation: panel-in 160ms var(--e-out); }
+@keyframes panel-in {
+  from { opacity: 0; transform: translate3d(0, -4px, 0); }
+}
+
+.combo__search {
+  position: relative;
+  display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 12px;
+  border-radius: var(--r-pill);
+  background: var(--film);
+  color: var(--ink-60);
+}
+.combo__search input {
+  flex: 1 1 auto; min-width: 0;
+  border: none; background: none; color: var(--ink);
+  font: 400 14px var(--sans);
+}
+.combo__search input:focus { outline: none; }
+.combo__search input::-webkit-search-cancel-button { filter: invert(1) opacity(.4); }
+.combo__search:focus-within { box-shadow: inset 0 0 0 1px var(--ink-60); }
+.combo__count { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink-60); }
+
+.combo__list {
+  max-height: 280px; overflow-y: auto;
+  margin-top: 6px;
+  overscroll-behavior: contain;
+
+  /* Barre de defilement masquee. La liste defile toujours — a la molette,
+     au clavier, au doigt — seule sa barre disparait : sur un panneau de
+     300 px de large, elle prenait une colonne entiere pour redire ce que
+     le compteur « 7/16 » annonce deja.
+     Les deux syntaxes sont necessaires et ne se remplacent pas : la
+     premiere pour Firefox, la seconde pour les moteurs WebKit et Blink. */
+  scrollbar-width: none;
+}
+.combo__list::-webkit-scrollbar { width: 0; height: 0; }
+.combo__cat {
+  padding: 10px 12px 4px;
+  font-size: 12px; font-weight: 500; color: var(--ink-60);
+}
+.combo__opt {
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  min-height: 38px; padding: 0 12px;
+  border: none; border-radius: 12px;
+  background: none; color: var(--ink);
+  font: 400 14px var(--sans); text-align: left;
+  cursor: pointer;
+}
+.combo__opt .combo__value { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.combo__opt:hover, .combo__opt.is-active { background: var(--film); }
+.combo__opt[aria-selected="true"] { font-weight: 500; }
+.combo__opt:disabled { color: var(--ink-60); cursor: not-allowed; }
+.combo__opt mark { background: none; color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.combo__opt .tick { display: inline-flex; color: var(--ink); }
+.combo__opt .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-60); }
+
+.combo__empty { padding: 14px 12px; }
+.combo__empty-title { font-size: 13.5px; font-weight: 500; margin-bottom: 4px; }
+.combo__empty .hint { font-size: 12.5px; line-height: 1.5; color: var(--ink-60); }
+
+
+/* ============================== le segmenté =========================== */
+
+/* Deux occurrences : le nombre d'équipes, le nombre de joueurs. Tous les
+   choix visibles d'un coup ; celui qui est pris est le seul aplat crème
+   de la rangée. Pas de pastille qui glisse : changer de format arrive
+   une fois par saison, pas de quoi chorégraphier. */
+.segmented {
+  display: inline-flex; gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-pill);
+  background: var(--film);
+  border: 1px solid var(--hair);
+}
+.segmented button {
+  min-width: 36px; height: 30px; padding: 0 10px;
+  border: none; border-radius: var(--r-pill);
+  background: none; color: var(--ink-60);
+  font: 500 13.5px var(--sans); font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.segmented button:hover { color: var(--ink); }
+.segmented button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.segmented button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ============================== la langue ============================= */
+
+.langs { display: flex; flex-wrap: wrap; gap: 8px; }
+.lang { position: relative; cursor: pointer; }
+.lang input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.lang__face {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 44px; padding: 0 18px 0 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hair);
+  background: var(--film);
+  font-size: 14px; color: var(--ink-60);
+  transition: background 180ms var(--e-soft), color 180ms var(--e-soft);
+}
+.lang__flag { display: inline-flex; }
+.lang:hover .lang__face { color: var(--ink); }
+.lang input:checked + .lang__face { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 500; }
+.lang input:focus-visible + .lang__face { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* ============================== les équipes =========================== */
+
+.row--team { min-height: 58px; }
+.row--team .text { flex: 1 1 auto; width: auto; min-width: 0; }
+.row--team .row__ctl { flex: 1 1 260px; }
+
+/* La pastille de couleur est une DONNÉE : c'est la couleur que le bot
+   donnera au rôle de l'équipe. Elle est donc la seule teinte de l'écran
+   qui ne vienne pas des jetons, et elle reste petite. */
+.swatch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid var(--hair);
+  background: var(--film);
+  cursor: pointer;
+}
+.swatch__dot { width: 16px; height: 16px; border-radius: 50%; background: var(--c); }
+.swatch:hover { background: var(--hair); }
+.swatch:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.palette {
+  display: none;
+  position: absolute; z-index: 60;
+  top: calc(100% + 8px); left: 0;
+  padding: 12px;
+  border-radius: var(--r-media);
+  background: var(--raised);
+  border: 1px solid var(--hair);
+  box-shadow: 0 40px 80px -40px rgba(0,0,0,.9);
+}
+.palette.is-open { display: block; animation: panel-in 160ms var(--e-out); }
+.palette__grid { display: grid; grid-template-columns: repeat(4, 32px); gap: 8px; }
+.palette__grid button {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--c);
+  cursor: pointer;
+}
+.palette__grid button[aria-pressed="true"] { border-color: var(--ink); }
+.palette__grid button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.palette__note { margin-top: 10px; max-width: 168px; font-size: 12px; line-height: 1.5; color: var(--ink-60); }
+.swatch-wrap { position: relative; flex: 0 0 auto; }
+
+/* ---- les rangs ------------------------------------------------------- */
+
+/* Une rangée par rang : la pastille de couleur, le nom, le seuil, et de
+   quoi le retirer. Même grammaire que les équipes, en plus large. */
+.rank { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0; }
+.rank__nom { flex: 1 1 auto; min-width: 0; }
+.rank__seuil { flex: 0 0 120px; }
+.rank__suppr {
+  flex: 0 0 auto;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: none; border-radius: 50%;
+  background: none; color: var(--ink-40); cursor: pointer;
+}
+.rank__suppr:hover { background: var(--film); color: var(--ink); }
+.rank__suppr:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.rank__note { font-size: 13px; line-height: 1.55; color: var(--ink-60); margin-bottom: 14px; }
+
+/* ---- la couleur de l'annonce et le message de MP --------------------- */
+
+/* Le sélecteur natif, ramené à une pastille : c'est une couleur, pas un
+   formulaire. Même dessin que celui des équipes, en plus large. */
+.couleur {
+  flex: 0 0 auto;
+  width: 46px; height: 30px; padding: 0;
+  border: 1px solid var(--hair); border-radius: var(--r-pill);
+  background: none; cursor: pointer; overflow: hidden;
+  -webkit-appearance: none; appearance: none;
+}
+.couleur::-webkit-color-swatch-wrapper { padding: 2px; }
+.couleur::-webkit-color-swatch { border: none; border-radius: var(--r-pill); }
+.couleur::-moz-color-swatch { border: none; border-radius: var(--r-pill); }
+.couleur:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Une rangée qui porte un champ de plusieurs lignes : le libellé monte en
+   haut au lieu de rester centré sur un bloc de trois lignes. */
+.row--haute { align-items: flex-start; }
+.row--haute .row__text { padding-top: 6px; }
+.zone {
+  width: 100%; min-height: 76px; padding: 10px 12px;
+  line-height: 1.5; resize: vertical;
+}
+
+/* ---- le mot de passe de la queue ------------------------------------- */
+
+/* L'œil est DANS le champ : la rangée de réglage n'a pas de place pour un
+   second contrôle à côté, et le geste reste au même endroit. */
+.mdp { position: relative; display: flex; flex: 1 1 auto; min-width: 0; }
+.mdp__champ { width: 100%; padding-right: 38px; }
+/* Monospace quand il est masqué : les points ne dansent pas pendant la
+   frappe. Les navigateurs le font déjà, on s'aligne quand il est montré. */
+.mdp__champ[type="password"] { letter-spacing: .12em; }
+.mdp__oeil {
+  position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: none; border-radius: 50%;
+  background: none; color: var(--ink-40);
+  cursor: pointer;
+}
+.mdp__oeil:hover { color: var(--ink); background: var(--film); }
+.mdp__oeil:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.mdp__oeil[aria-pressed="true"] { color: var(--ink); }
+
+/* ===================== ouverture et fermeture ========================= */
+
+/* Deux gestes rares, et qui partent dans Discord : l'écran doit le dire
+   autrement que par une ligne de texte. L'aperçu fait donc ce que fait le
+   message — il s'envole à l'ouverture, il s'efface à la fermeture — puis
+   revient à sa place. Rien d'autre que `transform` et `opacity`. */
+@keyframes dprev-envoi {
+  40%  { transform: translate3d(0, -14px, 0) scale(.985); opacity: .25; }
+  41%  { transform: translate3d(0, 10px, 0) scale(.985); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes dprev-retrait {
+  45%  { transform: scale(.97); opacity: .2; }
+  100% { transform: none; opacity: 1; }
+}
+.dprev.is-envoi   { animation: dprev-envoi 720ms var(--e-out); }
+.dprev.is-retrait { animation: dprev-retrait 520ms var(--e-soft); }
+
+/* La ligne d'état arrive avec sa nouvelle phrase plutôt que de la
+   remplacer sous le nez. */
+@keyframes launch-dit { from { opacity: 0; transform: translate3d(0, 4px, 0); } }
+.launch__state.is-neuf { animation: launch-dit 260ms var(--e-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dprev.is-envoi, .dprev.is-retrait, .launch__state.is-neuf { animation: none; }
+}
+
+/* ========================= ouvrir une queue =========================== */
+
+.launch__lead { font-size: 13px; line-height: 1.55; color: var(--ink-60); margin: 0 0 14px; }
+.launch__btn { width: 100%; justify-content: center; }
+/* Fermé tant qu'ouvrir n'aurait pas de sens : la raison est juste en
+   dessous, donc le bouton n'a pas à l'expliquer en plus. */
+.launch__btn[disabled] {
+  background: var(--film); color: var(--ink-60);
+  cursor: not-allowed; box-shadow: none; transform: none;
+}
+/* Fermer est un geste rare et définitif : second rang, pas second bouton
+   de même poids. Il ne prend la couleur d'alerte qu'une fois armé. */
+.launch__stop { width: 100%; justify-content: center; margin-top: 8px; }
+.launch__stop[disabled] {
+  background: none; color: var(--ink-40);
+  border-color: transparent; cursor: not-allowed;
+}
+.launch__stop.is-armed {
+  background: var(--ink); color: var(--bg); border-color: var(--ink);
+}
+
+.launch__state {
+  margin: 10px 0 0;
+  font-size: 12.5px; line-height: 1.5; color: var(--ink-60);
+}
+.launch__state[hidden] { display: none; }
+
+/* ============================= les aperçus ============================ */
+
+/* ---- MMR : l'effet calculé ------------------------------------------ */
+.sim__lead { font-size: 13px; line-height: 1.55; color: var(--ink-60); margin-bottom: 14px; }
+.sim { display: grid; gap: 0; }
+.sim__row {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 8px 0;
+  font-size: 13.5px;
+}
+.sim__row + .sim__row { border-top: 1px solid var(--hair); }
+.sim__label { flex: 1 1 auto; color: var(--ink-60); }
+.sim__delta { font-variant-numeric: tabular-nums; color: var(--ink-60); }
+.sim__total { font-variant-numeric: tabular-nums; font-weight: 500; min-width: 5ch; text-align: right; }
+.sim__row--sum .sim__label { color: var(--ink); }
+.sim__warn {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin-top: 12px;
+  font-size: 12.5px; line-height: 1.5; color: var(--ink);
+}
+.sim__warn svg { flex: 0 0 auto; margin-top: 2px; }
+.sim__note { margin-top: 14px; font-size: 12.5px; line-height: 1.55; color: var(--ink-60); }
+
+/* ---- Queue : l'annonce, telle que Discord la rend --------------------
+   La grammaire du message (avatar, badge APP, mention, embed à barre,
+   champs côte à côte, pied, réaction) dans les jetons du panneau. Pas de
+   blurple : le badge et les mentions se rendent en surfaces, comme le
+   reste de l'écran. La disposition, elle, est copiée au trait près. */
+.dprev {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  column-gap: 12px;
+  font-size: 13px; line-height: 1.5;
+}
+.dprev * { box-sizing: border-box; }
+.dprev p { margin: 0; }
+.dprev__av {
+  width: 40px; height: 40px; border-radius: 50%;
+  overflow: hidden; background: var(--film);
+}
+.dprev__av img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.dprev__main { min-width: 0; }
+
+.dprev__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 7px; }
+.dprev__name { font-weight: 600; }
+/* Le badge APP de Discord est bleu ; ici une plaque, comme ailleurs. */
+.dprev__app {
+  align-self: center;
+  padding: 0 5px; border-radius: 4px;
+  background: var(--raised-2);
+  font-size: 9.5px; font-weight: 600; letter-spacing: .04em; line-height: 15px;
+}
+.dprev__time { color: var(--ink-60); font-size: 11px; }
+.dprev__ping { margin-top: 2px; }
+/* Mentions et salons cités : la pastille les distingue du texte courant. */
+.dprev__ment {
+  padding: 0 3px; border-radius: 4px;
+  background: var(--raised-2); color: var(--ink); font-weight: 500;
+}
+
+/* L'embed. La barre de 4 px à gauche est sa signature ; le bot la publie
+   en noir (embeds.BLACK), donc elle reste sourde ici aussi. */
+/* La barre prend la couleur choisie dans les reglages ; sans choix, elle
+   reste sourde, comme le noir que le bot pose par defaut. --barre est
+   ecrite par apercuQueue(). */
+.dprev__embed {
+  margin-top: 6px; padding: 12px 14px 13px;
+  border-left: 4px solid var(--barre, var(--ink-40)); border-radius: 6px;
+  background: var(--raised);
+  display: grid; gap: 7px;
+}
+.dprev__title { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+.dprev__by { color: var(--ink-60); }
+.dprev__teams { display: grid; gap: 3px; }
+.dprev__teams p { overflow-wrap: anywhere; }
+/* La pastille de couleur du bot est un emoji rond : on en rend la forme,
+   avec la teinte choisie dans la palette. */
+.dprev__dot {
+  display: inline-block; vertical-align: -1px;
+  width: 11px; height: 11px; margin-left: 2px;
+  border-radius: 50%; background: var(--c, var(--ink-40));
+}
+.dprev__line { overflow-wrap: anywhere; }
+.dprev__cta { color: var(--ink-60); }
+.dprev b { font-weight: 600; color: var(--ink); }
+
+/* Deux champs « inline » : Discord les pose côte à côte, un tiers chacun. */
+.dprev__fields { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 3px; }
+.dprev__field { display: grid; gap: 1px; min-width: 0; }
+.dprev__fname { font-size: 11.5px; font-weight: 600; }
+.dprev__fval { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.dprev__foot {
+  margin-top: 3px; padding-top: 7px; border-top: 1px solid var(--hair);
+  font-size: 11px; color: var(--ink-60);
+}
+
+/* La réaction sous le message : c'est elle qui sert à s'inscrire. */
+.dprev__react {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px; padding: 2px 8px;
+  border: 1px solid var(--hair); border-radius: 8px;
+  background: var(--film);
+  font-size: 12px; color: var(--ink-60);
+}
+.qprev__note { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.5; color: var(--ink-60); }
+
+/* ============================ diagnostic ============================== */
+
+.perm { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.perm__mark {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12.5px; color: var(--ink-60);
+}
+/* Un droit refusé s'éclaircit et change de glyphe. Jamais de rouge. */
+.perm__mark.is-no { color: var(--ink); font-weight: 500; }
+.perm__mark svg { flex: 0 0 auto; }
+.row__label--chan::before { content: '#'; color: var(--ink-40); margin-right: 2px; font-weight: 400; }
+.row__tag { font-size: 12.5px; color: var(--ink); margin-left: 6px; }
+
+.diag-ok { display: flex; gap: 10px; align-items: center; font-size: 13.5px; color: var(--ink-60); }
+.diag-ok svg { flex: 0 0 auto; color: var(--ink); }
+
+/* ============================ états vides ============================= */
+
+.dbempty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  padding: var(--sp-3) 24px;
+}
+.dbempty h2 { font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
+.dbempty p { font-size: 13.5px; line-height: 1.6; color: var(--ink-60); max-width: 52ch; }
+.dbempty .pill { margin-top: 6px; }
+
+/* ============================ chargement ============================== */
+
+/* Le squelette ne masque que les DONNÉES : les libellés et les
+   explications sont du texte fixe, ils restent lisibles pendant la
+   lecture du serveur. Ce qui attend, ce sont les valeurs — chaque
+   contrôle laisse place à une pilule vide de la même taille, donc rien
+   ne saute quand les vraies valeurs arrivent. */
+.db.is-loading .row__ctl > *,
+.db.is-loading .langs > * { visibility: hidden; }
+.db.is-loading .row__ctl,
+.db.is-loading .langs { position: relative; }
+.db.is-loading .row__ctl::after,
+.db.is-loading .langs::after {
+  content: '';
+  position: absolute; right: 0; top: 50%;
+  width: min(100%, 120px); height: 26px; margin-top: -13px;
+  border-radius: var(--r-pill);
+  background: var(--raised);
+  animation: skel 1600ms var(--e-soft) infinite;
+}
+.db.is-loading .langs::after { left: 0; right: auto; width: 100%; height: 44px; margin-top: -22px; }
+.db.is-loading .dbguild__name,
+.db.is-loading .dbguild__meta { position: relative; }
+.db.is-loading .dbguild__name::after,
+.db.is-loading .dbguild__meta::after {
+  content: '';
+  position: absolute; left: 0; top: 50%;
+  height: 10px; margin-top: -5px;
+  border-radius: 6px;
+  background: var(--raised);
+  animation: skel 1600ms var(--e-soft) infinite;
+}
+.db.is-loading .dbguild__name::after { width: 70%; }
+.db.is-loading .dbguild__meta::after { width: 40%; }
+.db.is-loading .dbguild__icon { animation: skel 1600ms var(--e-soft) infinite; }
+@keyframes skel { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+
+/* ============================ petit écran ============================= */
+
+@media (max-width: 900px) {
+  /* .db__side cesse d'être une boîte : ses trois enfants deviennent des
+     cases de la grille. Le serveur en tête, puis la rangée de sections,
+     le contenu, et le compte en pied — sans qu'un nœud du DOM bouge. */
+  .db {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "guild" "nav" "main" "me";
+    gap: var(--sp-3);
+    padding: 112px var(--sp-3) var(--sp-3);
+  }
+  .db__side { display: contents; }
+  .dbguild { grid-area: guild; margin-bottom: 0; }
+  .dbnav { grid-area: nav; }
+  .db__main { grid-area: main; }
+  .dbme { grid-area: me; margin-top: 0; }
+
+  .dbguild { grid-template-columns: 38px minmax(0, 1fr) auto; grid-template-rows: auto; }
+  .dbguild__swap { grid-column: auto; }
+
+  /* Une rangée, pas un tiroir : les sections restent sous les yeux. Elle
+     défile à l'horizontale avec un calage par entrée, et déborde jusqu'aux
+     bords de l'écran pour qu'on voie qu'il y a une suite. */
+  .dbnav {
+    flex-direction: row;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    margin-left: 0;
+    margin-inline: calc(var(--sp-3) * -1);
+    padding: 0 var(--sp-3) 2px;
+  }
+  .dbnav__grp { flex-direction: row; gap: 6px; }
+  .dbnav__grp + .dbnav__grp { margin-top: 0; margin-left: 14px; }
+
+  .navlink {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    min-height: 44px; padding: 0 16px;
+    border: 1px solid var(--hair);
+  }
+  .navlink-label { overflow: visible; }
+  /* En rangée, le repère passe SOUS l'entrée : une barre verticale à
+     gauche d'une pilule horizontale ne se lit pas. */
+  .navlink::before {
+    left: 16px; right: 16px; top: auto; bottom: 6px;
+    width: auto; height: 2px; margin-top: 0;
+  }
+  /* L'indicateur cuivre suit : 100 px de large au repos, étiré à la
+     mesure de l'entrée par --w. scaleX sur un trait de 2 px ne déforme
+     rien de visible, et reste une transformation. */
+  .dbnav__mark {
+    top: auto; bottom: 8px;
+    width: 100px; height: 2px;
+    transform-origin: 0 50%;
+    transform: translate3d(var(--x, 0px), 0, 0) scaleX(var(--w, 0));
+  }
+
+  .sec__head--action { flex-direction: column; }
+
+  /* La pilule de navigation de home.css porte trois liens de plus que la
+     marque : à cette largeur ils débordent et se font rogner. On les
+     retire plutôt que de montrer un mot coupé. */
+  .nav__links { display: none; }
+}
+
+@media (max-width: 560px) {
+  .db { padding: 104px var(--sp-2) var(--sp-3); gap: var(--sp-2); }
+  .dbnav { margin-inline: calc(var(--sp-2) * -1); padding-inline: var(--sp-2); }
+  .nav__mark span { display: none; }
+
+  /* Sur un téléphone, la rangée se plie : la phrase en haut, l'état et le
+     contrôle en dessous, alignés à droite. L'emplacement d'état garde sa
+     largeur réservée, donc rien ne bouge quand il s'allume. */
+  .row { padding: 14px 16px; gap: 10px 12px; }
+  .row__text { flex-basis: 100%; }
+  /* Un interrupteur est étroit : il reste sur la ligne de sa phrase, qui
+     se replie à côté de lui. Seuls les contrôles larges passent dessous. */
+  .row:has(> .row__ctl > .switch) .row__text { flex: 1 1 0; }
+
+  /* À cette largeur, l'emplacement d'état ne garde que son glyphe — le mot
+     est annoncé par la région vocale de la page. « Réessayer » reste écrit :
+     c'est un bouton, il doit dire ce qu'il fait. */
+  .row__state { width: 18px; }
+  .row__state > span:not(.row__dot) { display: none; }
+  .row__state[data-s="error"] { width: auto; }
+
+  /* 16 px dans les champs : en dessous, Safari iOS zoome à la mise au
+     point et la page ne revient jamais tout à fait à sa place. Et 44 px
+     de haut : c'est un doigt qui vise. */
+  .num, .text, .select, .combo__button { height: 44px; font-size: 16px; }
+  .num__input, .combo__search input { font-size: 16px; }
+  .combo__button { width: min(248px, 100%); }
+  .text { width: 100%; }
+  .row:has(> .row__ctl > .text) .row__ctl { flex: 1 1 100%; }
+  .row:has(> .row__ctl > .text) .row__state { width: auto; }
+  .segmented button { height: 36px; min-width: 38px; }
+  .lang__face { padding: 0 14px 0 10px; }
+  .grp__card--pad { padding: 16px; }
+  .dbempty { padding: var(--sp-3) 16px; }
+}
+
+/* ===================== moins de mouvement ============================= */
+
+/* La page reste entièrement utilisable : les états finaux sont posés, les
+   déplacements disparaissent, rien ne clignote. Le point « enregistrement »
+   ne respire plus — il reste allumé. `html:not(.motion-force)` : le drapeau
+   ?motion=on rend le mouvement même ici, pour pouvoir le vérifier. */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .sec.is-entering,
+  html:not(.motion-force) .row.is-revealed,
+  html:not(.motion-force) .combo[data-open="true"] .combo__panel,
+  html:not(.motion-force) .palette.is-open { animation: none; }
+  html:not(.motion-force) .dbnav__mark { transition: opacity 180ms var(--e-soft); }
+  html:not(.motion-force) .navlink::before,
+  html:not(.motion-force) .navlink-label,
+  html:not(.motion-force) .switch__knob { transition: none; }
+  html:not(.motion-force) .navlink:hover .navlink-label,
+  html:not(.motion-force) .navlink:focus-visible .navlink-label { transform: none; }
+  html:not(.motion-force) .row__dot,
+  html:not(.motion-force) .db.is-loading .row__ctl::after,
+  html:not(.motion-force) .db.is-loading .langs::after,
+  html:not(.motion-force) .db.is-loading .dbguild__name::after,
+  html:not(.motion-force) .db.is-loading .dbguild__meta::after,
+  html:not(.motion-force) .db.is-loading .dbguild__icon { animation: none; opacity: .75; }
+}
+
+/* ========================= pointeur grossier ========================== */
+
+/* Au doigt, un « survol » reste collé après le tapotement. Les états de
+   survol sont donc réservés aux vrais pointeurs. */
+@media (hover: none) {
+  .navlink:hover { background: none; color: var(--ink-60); }
+  .navlink[aria-current="page"]:hover { background: var(--film); color: var(--ink); }
+  .navlink:hover::before { transform: scaleX(0); }
+  .navlink:hover .navlink-label { transform: none; }
+  .num:hover, .text:hover, .select:hover, .combo__button:hover, .swatch:hover { background: var(--film); }
+}
+
+/* ============================== les journaux ========================== */
+
+/* Un journal éteint ne montre que son interrupteur : app.js pose
+   .is-locked sur sa liste de salons tant qu'il est coupé, et la liste
+   s'efface. Choisir un salon n'a de sens qu'une fois le journal allumé. */
+.row--log .combo.is-locked { display: none; }
+.row--log .combo__button { width: 220px; }
+/* Sur un téléphone : le nom et l'interrupteur sur la première ligne, la
+   liste de salons dessous, sur toute la largeur. Le conteneur des
+   contrôles s'efface pour que ses deux enfants se rangent dans la rangée. */
+@media (max-width: 560px) {
+  .row--log .row__ctl { display: contents; }
+  .row--log .row__text { order: 1; flex: 1 1 0; }
+  .row--log .row__state { order: 2; }
+  .row--log .switch { order: 3; }
+  .row--log .combo { order: 4; flex: 1 0 100%; }
+  .row--log .combo__button { width: 100%; }
+}
+
+/* ======================= la barre d'enregistrement ===================== */
+
+/* Elle n'apparaît que lorsqu'un réglage attend. Posée en bas à droite,
+   au-dessus de tout, et elle ne pousse rien : `position: fixed` plutôt
+   qu'un bloc dans le flux, sinon chaque changement ferait sauter la page
+   d'une hauteur de barre.
+
+   Pas d'ombre portée : la D.A. n'en a aucune. C'est la surface `--panel`
+   et le filet qui la détachent du fond, comme tous les autres blocs. */
+.savebar {
+  position: fixed;
+  right: var(--gutter); bottom: var(--gutter);
+  z-index: 60;
+  display: flex; align-items: center; gap: var(--sp-2);
+  max-width: calc(100vw - var(--gutter) * 2);
+  padding: 10px 10px 10px var(--sp-2);
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-pill);
+}
+.savebar[hidden] { display: none; }
+
+/* L'entrée vient du bas, de 10 px : assez pour qu'on voie la barre
+   arriver, trop peu pour qu'on l'attende. `transform` et `opacity`
+   seulement — elle est posée par-dessus la page, une animation qui
+   déclencherait une mise en page coûterait un recalcul complet. */
+@keyframes savebar-entre {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.savebar:not([hidden]) { animation: savebar-entre 240ms var(--e-out) both; }
+
+.savebar__msg {
+  font-size: 13px; color: var(--ink-60);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* En erreur, le message cesse d'être du décor : il passe à l'encre pleine,
+   seul changement de l'état — on ne colore pas, la D.A. n'a qu'un accent
+   et il n'est pas pour ça. */
+.savebar[data-s="error"] .savebar__msg { color: var(--ink); }
+
+.savebar__actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+
+.savebar__cancel, .savebar__ok {
+  font: inherit; font-size: 13px;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background-color 160ms var(--e-soft), color 160ms var(--e-soft),
+              opacity 160ms var(--e-soft);
+}
+
+/* Annuler est une action qu'on ne doit pas cliquer par réflexe : elle
+   n'est pas remplie, et elle ne se détache qu'au survol. */
+.savebar__cancel {
+  background: transparent; border: 0; color: var(--ink-60);
+}
+.savebar__cancel:hover { color: var(--ink); }
+
+/* Enregistrer est le seul aplat de l'écran quand la barre est là. C'est ce
+   qui le désigne, pas une couleur. */
+.savebar__ok {
+  background: var(--ink); border: 0; color: var(--bg);
+  font-weight: 500;
+}
+.savebar__ok:hover { background: #fff; }
+.savebar__ok:disabled { opacity: .55; cursor: default; }
+
+.savebar__cancel:focus-visible, .savebar__ok:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+/* ------------------------------- petit écran --------------------------- */
+
+@media (max-width: 560px) {
+  /* Sur un téléphone la barre prend toute la largeur : à 375 px, une
+     pilule flottante à droite laisserait le message illisible pour gagner
+     une marge dont personne n'a besoin. */
+  .savebar {
+    left: var(--gutter); right: var(--gutter);
+    border-radius: var(--r-card);
+    justify-content: space-between;
+  }
+}
+
+/* --------------------------- moins de mouvement ------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .savebar:not([hidden]) { animation: none; }
+}
+
+/* ------------------------- les sous-entrées du menu -------------------- */
+
+/* La configuration d'une option, ouverte sous elle. Le décalage est de
+   12 px et le texte passe au gris : deux signaux faibles plutôt qu'un
+   trait de hiérarchie, parce qu'il n'y a qu'UN niveau de profondeur et
+   qu'un arbre dessiné pour trois entrées est un arbre de trop. */
+.dbnav__sub {
+  display: flex; flex-direction: column;
+}
+.dbnav__sub[hidden] { display: none; }
+
+.navlink--sub {
+  padding-left: 28px;
+  font-size: 13.5px;
+  color: var(--ink-60);
+}
+.navlink--sub:hover { color: var(--ink); }
+.navlink--sub[aria-current="page"] { color: var(--ink); }
+
+/* ------------------------------- petit écran --------------------------- */
+
+@media (max-width: 900px) {
+  /* En rangée horizontale, le décalage à gauche ne veut plus rien dire :
+     il pousserait l'entrée sans rien hiérarchiser. On garde la seule
+     distinction qui survit à l'horizontale, la taille du texte. */
+  .dbnav__sub { flex-direction: row; }
+  .navlink--sub { padding-left: 14px; }
+}

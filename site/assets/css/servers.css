@@ -1,0 +1,503 @@
+/* =========================================================================
+   CreateYourQueue — le choix du serveur
+   Feuille POSÉE PAR-DESSUS home.css, exactement comme auth.css l'est pour
+   la connexion. Elle n'importe AUCUN jeton de app.css : les deux
+   directions artistiques du site ne se mélangent pas, et c'est ce qui
+   garantit que la console ne déteint pas sur l'entrée.
+
+   Tous les jetons employés ici (--bg, --panel, --ink*, --hair, --film,
+   --accent, --r-*, --sp-*, --e-*) viennent de home.css. Aucune valeur
+   nouvelle, aucune seconde couleur.
+
+   Le cuivre a UN seul emploi sur cet écran : l'indicateur de la catégorie
+   active. Nulle part ailleurs.
+   ========================================================================= */
+
+/* ===================== anti-flash de l'ouverture ====================== */
+
+/* Le script pose les états de départ (opacité 0, léger décalage) au tout
+   début. Entre le premier rendu et ce moment-là, on verrait la page
+   complète puis la cascade repartir de zéro. On la masque donc jusqu'au
+   signal — posé par le script du <head>, retiré par le motion ou par son
+   propre minuteur de 1,8 s. Rien n'est masqué si la personne a demandé
+   moins de mouvement : dans ce cas il n'y a pas d'ouverture à cacher. */
+@media (prefers-reduced-motion: no-preference) {
+  html.motion-pending [data-nav],
+  html.motion-pending .svcats,
+  html.motion-pending .svme,
+  html.motion-pending .sv__main { visibility: hidden; }
+}
+/* Même masque quand ?motion=on force l'ouverture : la media query ci-dessus
+   ne s'applique pas sur une machine réglée en mouvement réduit. */
+html.motion-force.motion-pending [data-nav],
+html.motion-force.motion-pending .svcats,
+html.motion-force.motion-pending .svme,
+html.motion-force.motion-pending .sv__main { visibility: hidden; }
+
+/* ============================ la grille =============================== */
+
+/* Deux colonnes, et le menu occupe une colonne entière en hauteur.
+   `minmax(0, 1fr)` sur la droite : sans le 0, un nom de serveur très long
+   pousserait la grille au-delà de l'écran au lieu d'être tronqué. */
+.sv {
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: var(--sp-4);
+  min-height: calc(100dvh - var(--gutter) * 2);
+  /* 148 px en haut : la pilule de navigation est fixe et flotte au-dessus
+     de la coque, il faut lui laisser sa place plus une respiration. */
+  padding: 148px var(--sp-4) var(--sp-4);
+}
+
+/* La colonne de gauche est collante : la liste de droite peut défiler sur
+   trois écrans, les catégories et le compte restent sous la main.
+   `height` et non `min-height` : c'est ce qui permet au compte d'être
+   poussé au bas de la fenêtre par `margin-top: auto`, et pas au bas d'une
+   colonne aussi haute que la liste. */
+.sv__side {
+  position: sticky; top: 148px;
+  align-self: start;
+  height: calc(100dvh - 148px - var(--gutter) * 2 - var(--sp-4));
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+
+/* Une largeur de lecture, pas toute la place disponible. Sans ce plafond,
+   sur un 1440 la ligne fait 960 px et l'œil doit traverser l'écran entier
+   entre le nom du serveur et son action. */
+.sv__main { min-width: 0; max-width: 880px; }
+
+/* ======================= le menu de catégories ======================== */
+
+.svcats {
+  display: flex; flex-direction: column; gap: 2px;
+  /* Si la liste des catégories dépasse (cinq entrées, jamais plus), elle
+     défile sans emporter le compte avec elle. */
+  overflow-y: auto; min-height: 0;
+  margin-left: -10px;   /* le creux de survol déborde vers l'extérieur */
+}
+
+.svcat {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-height: 40px; padding: 0 12px 0 16px;
+  background: none; border: none; border-radius: var(--r-pill);
+  color: var(--ink-60);
+  font: 400 13.5px var(--sans); letter-spacing: -0.01em;
+  text-align: left; cursor: pointer;
+  transition: background 180ms var(--e-soft), color 180ms var(--e-soft);
+}
+.svcat:hover { color: var(--ink); background: var(--film); }
+.svcat[aria-selected="true"] { color: var(--ink); font-weight: 500; background: var(--film); }
+
+/* L'indicateur. Il POUSSE depuis le bord gauche : scaleX avec origine à
+   gauche, donc il sort du bord au lieu de grandir sur place. 2 px de
+   large — c'est un repère, pas un bandeau.
+   La couleur n'est jamais animée, elle est décidée par le sélecteur :
+   filet au survol, cuivre quand la catégorie est active. */
+.svcat::before {
+  content: '';
+  position: absolute; left: 0; top: 50%;
+  width: 2px; height: 18px; margin-top: -9px;
+  border-radius: 1px;
+  background: var(--ink-40);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 180ms var(--e-out);
+}
+.svcat:hover::before,
+.svcat:focus-visible::before { transform: scaleX(1); }
+.svcat[aria-selected="true"]::before {
+  background: var(--accent);        /* le seul accent de l'écran */
+  transform: scaleX(1);
+}
+
+/* Le libellé avance de 2 px au survol. C'est l'autre moitié du geste :
+   l'indicateur pousse, le texte cède. Amplitude minuscule, exprès. */
+.svcat__label {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transform: translateX(0);
+  transition: transform 200ms var(--e-out);
+}
+.svcat:hover .svcat__label,
+.svcat:focus-visible .svcat__label { transform: translateX(2px); }
+
+/* Le nombre se révèle. Il ne change jamais d'échelle : du texte qui grossit
+   au survol est la première chose qui trahit une interface bricolée. */
+.svcat__n {
+  flex: 0 0 auto;
+  font-size: 12px; font-variant-numeric: tabular-nums;
+  color: var(--ink-40);
+  opacity: .55;
+  transition: opacity 200ms var(--e-soft);
+}
+.svcat:hover .svcat__n,
+.svcat:focus-visible .svcat__n { opacity: 1; }
+.svcat[aria-selected="true"] .svcat__n { opacity: 1; color: var(--ink-60); }
+
+/* ============================ le compte =============================== */
+
+.svme {
+  margin-top: auto;      /* collé en bas de la colonne collante */
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--hair);
+}
+.svme__in { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.svme__avatar {
+  flex: 0 0 auto;
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; overflow: hidden;
+  background: var(--raised);
+  font-size: 11px; font-weight: 500; color: var(--ink-60);
+}
+.svme__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.svme__name {
+  flex: 1 1 auto; min-width: 0;
+  font-size: 13px; color: var(--ink-60);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* La sortie de session est accessible sans crier : un disque de 34 px,
+   discret au repos, lisible au survol. 34 px de visuel mais 44 px de zone
+   tactile grâce au pseudo-élément — la cible doit être atteignable au
+   pouce sans grossir le dessin. */
+.svme__out {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: none; border: none; color: var(--ink-40);
+  cursor: pointer;
+  transition: background 180ms var(--e-soft), color 180ms var(--e-soft);
+}
+.svme__out::after {
+  content: ''; position: absolute; inset: -5px; border-radius: 50%;
+}
+.svme__out:hover { background: var(--film); color: var(--ink); }
+
+.svme__login { width: 100%; justify-content: center; }
+
+/* =========================== l'en-tête ================================ */
+
+.sv__head { margin-bottom: var(--sp-3); }
+
+.sv__title {
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  line-height: 1.06; letter-spacing: -0.03em; font-weight: 500;
+  text-wrap: balance;
+  margin-bottom: 10px;
+}
+/* `pretty` évite le mot — ou le guillemet fermant — tout seul sur la
+   dernière ligne. La phrase cite « Gérer le serveur » : sans ça, le
+   chevron fermant se retrouve orphelin une largeur sur trois. */
+.sv__lead { max-width: 60ch; text-wrap: pretty; }
+
+/* Le champ de filtre. Il est en tête de la liste qu'il filtre, pas dans une
+   barre d'outils : c'est la liste qu'on regarde en tapant. */
+.svfind {
+  position: relative;
+  display: flex; align-items: center;
+  margin-top: var(--sp-2);
+  max-width: 420px;
+}
+.svfind svg {
+  position: absolute; left: 16px;
+  color: var(--ink-40); pointer-events: none;
+}
+.svfind input {
+  width: 100%; height: 44px; padding: 0 18px 0 42px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hair);
+  background: var(--film); color: var(--ink);
+  /* 16 px : en dessous, Safari iOS zoome sur le champ à la mise au point
+     et la page ne revient jamais tout à fait à sa place. */
+  font: 400 16px var(--sans); letter-spacing: -0.01em;
+  transition: border-color 180ms var(--e-soft), background 180ms var(--e-soft);
+}
+.svfind input::placeholder { color: var(--ink-40); }
+.svfind input:hover { background: rgba(255,255,255,.07); }
+.svfind input:focus-visible {
+  outline: none;
+  border-color: var(--ink-60);
+  background: rgba(255,255,255,.07);
+}
+.svfind input::-webkit-search-cancel-button { filter: invert(1) opacity(.4); }
+
+.sv__count {
+  font-size: 12.5px; color: var(--ink-60);
+  margin-bottom: var(--sp-2); min-height: 18px;
+}
+
+/* ========================= la liste de serveurs ======================= */
+
+.svlist { display: flex; flex-direction: column; gap: 6px; }
+
+/* Une ligne = UN lien. Pas de bouton imbriqué : un seul arrêt de
+   tabulation par serveur, et toute la surface est cliquable au doigt.
+   72 px de haut, très au-dessus des 44 px exigés. */
+.svrow {
+  position: relative;
+  display: flex; align-items: center; gap: 14px;
+  min-height: 72px; padding: 12px 18px 12px 14px;
+  border-radius: var(--r-media);
+  /* Rien au repos : la coque est déjà en --panel, un bloc --panel posé
+     dessus serait invisible, et un bloc plus clair ferait six cartes
+     empilées. La ligne n'existe donc que par son contenu, et le survol
+     est ce qui la détache. */
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink);
+  transition: background 200ms var(--e-soft), border-color 200ms var(--e-soft);
+}
+a.svrow:hover { background: var(--film); border-color: var(--hair); }
+a.svrow:active { background: var(--raised); }
+a.svrow:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Accès révoqué : la ligne n'est pas un lien, elle reste lisible mais
+   visiblement hors d'atteinte. Pas seulement plus pâle — le libellé
+   d'action dit « accès révoqué », donc l'information n'est jamais portée
+   par la seule opacité. */
+.svrow.is-off { opacity: .5; }
+
+.svrow__icon {
+  flex: 0 0 auto;
+  width: 44px; height: 44px; border-radius: 15px;
+  display: grid; place-items: center; overflow: hidden;
+  background: var(--raised);
+  font-size: 13px; font-weight: 500; color: var(--ink-60);
+  letter-spacing: 0;
+}
+.svrow__icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.svrow__body { flex: 1 1 auto; min-width: 0; }
+
+.svrow__name {
+  display: block;
+  font-size: 15px; font-weight: 500; letter-spacing: -0.015em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* La ligne de contexte : état, puis membres, puis la date. Elle se replie
+   sur deux lignes plutôt que de tronquer — on préfère lire. */
+.svrow__meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px;
+  margin-top: 3px;
+  font-size: 12.5px; color: var(--ink-60);
+}
+.svrow__state { display: inline-flex; align-items: center; gap: 5px; }
+.svrow__state svg { flex: 0 0 auto; color: var(--ink-40); }
+
+/* Un état qui réclame une action se distingue par la LUMINOSITÉ, pas par
+   une couleur : la D.A. n'a qu'un accent et il est déjà pris. Le glyphe
+   change aussi, donc l'information ne tient pas au seul contraste. */
+.svrow__state.is-alert { color: var(--ink); }
+.svrow__state.is-alert svg { color: var(--ink); }
+
+.svrow__num { font-variant-numeric: tabular-nums; }
+.svrow__dot { color: var(--ink-40); }
+
+/* L'action, à droite. C'est du texte, pas un bouton : le bouton, ce serait
+   un second objet cliquable dans un objet déjà cliquable. Il avance de
+   3 px au survol de la ligne — un seul élément bouge vite à la fois. */
+.svrow__go {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--ink-60);
+  transform: translateX(0);
+  transition: transform 220ms var(--e-out), color 200ms var(--e-soft);
+}
+a.svrow:hover .svrow__go,
+a.svrow:focus-visible .svrow__go { color: var(--ink); transform: translateX(3px); }
+.svrow__go svg { flex: 0 0 auto; }
+
+/* Sur petit écran le libellé d'action disparaît : il est redondant avec
+   l'état, déjà écrit juste au-dessus. Le chevron reste. */
+.svrow__goText { white-space: nowrap; }
+
+/* ---- la cascade d'entrée --------------------------------------------
+   En CSS et non via anime.js : une animation CSS tourne hors du thread
+   principal, et la page est justement occupée à attendre le réseau.
+
+   Une ANIMATION et non une transition, contrairement à l'usage, pour une
+   raison précise : la classe qui la déclenche n'est posée qu'au tout
+   premier rendu de la liste. Les rendus suivants (une lettre tapée dans
+   le filtre, un changement de catégorie) recréent les lignes mais sans
+   cette classe, donc sans cascade — sinon la liste clignoterait à chaque
+   touche. Et avec `backwards`, une ligne qui n'a jamais reçu la classe
+   est simplement visible : si le script tombe, rien ne disparaît.
+
+   Le rang vient de --i, plafonné à 10 par le script : sans plafond, la
+   vingtième ligne entrerait une seconde après la première. Amplitude
+   8 px, pas 200. */
+@keyframes svrow-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+}
+.svlist--entre .svrow {
+  animation: svrow-in 420ms var(--e-out) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* ======================== les états vides ============================= */
+
+/* Chaque état occupe la place de la liste. Un seul bouton plein par écran :
+   c'est ici qu'il vit, puisqu'il n'y en a aucun dans les lignes.
+
+   Pas d'encadré : un état vide dans une liste sans cartes n'a pas de
+   raison d'être la seule carte de l'écran. Il s'aligne sur les lignes
+   qu'il remplace, à la même abscisse. */
+.svempty {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 10px;
+  padding: var(--sp-3) 14px;
+}
+.svempty h2 {
+  font-size: 16px; font-weight: 500; letter-spacing: -0.02em;
+}
+.svempty p { font-size: 13.5px; line-height: 1.6; color: var(--ink-60); max-width: 52ch; }
+.svempty .pill, .svempty .pill--ghost { margin-top: 6px; }
+
+/* ---- le squelette de chargement -------------------------------------
+   Des lignes à la bonne hauteur, pas une roue au centre : la page ne
+   bouge pas quand les vraies lignes arrivent. L'ondulation est une
+   animation CSS d'opacité — rien qui touche à la mise en page. */
+.svskel {
+  display: flex; align-items: center; gap: 14px;
+  min-height: 72px; padding: 12px 18px 12px 14px;
+  border-radius: var(--r-media);
+}
+.svskel span { display: block; background: var(--raised); border-radius: 8px; }
+.svskel__icon { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 15px; }
+.svskel__body { flex: 1 1 auto; min-width: 0; }
+.svskel__l1 { height: 12px; width: 42%; margin-bottom: 8px; }
+.svskel__l2 { height: 10px; width: 26%; }
+.svskel__go { flex: 0 0 auto; height: 10px; width: 68px; }
+
+.svskel { animation: svpulse 1600ms var(--e-soft) infinite; }
+.svskel:nth-child(2) { animation-delay: 120ms; }
+.svskel:nth-child(3) { animation-delay: 240ms; }
+.svskel:nth-child(4) { animation-delay: 360ms; }
+@keyframes svpulse {
+  0%, 100% { opacity: .5; }
+  50%      { opacity: 1; }
+}
+
+/* ============================ petit écran ============================= */
+
+@media (max-width: 900px) {
+  /* .sv__side cesse d'être une boîte : ses deux enfants deviennent des
+     cases de la grille. Les catégories passent en tête, le compte en
+     pied, et le DOM n'a pas bougé d'une ligne. */
+  .sv {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "cats" "main" "me";
+    gap: var(--sp-3);
+    padding: 120px var(--sp-3) var(--sp-3);
+  }
+  .sv__side { display: contents; }
+  .svcats { grid-area: cats; }
+  .sv__main { grid-area: main; }
+  .svme { grid-area: me; margin-top: 0; }
+
+  /* Une rangée, pas un tiroir : les catégories restent visibles. Elle
+     défile horizontalement quand les cinq entrées ne tiennent pas, avec
+     un calage par élément pour que l'une d'elles soit toujours entière. */
+  .svcats {
+    flex-direction: row; gap: 6px;
+    margin-left: 0;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    /* La barre de défilement masquée, mais le défilement tactile intact. */
+    scrollbar-width: none;
+    /* Les marges négatives font déborder la rangée jusqu'aux bords de
+       l'écran : on voit qu'il y a quelque chose après, au lieu d'un
+       arrêt net au milieu. */
+    margin-inline: calc(var(--sp-3) * -1);
+    padding-inline: var(--sp-3);
+    padding-bottom: 2px;
+  }
+  .svcats::-webkit-scrollbar { display: none; }
+
+  .svcat {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    /* 44 px : la hauteur plancher d'une cible tactile. En colonne elle
+       peut descendre à 40, parce qu'on y vise à la souris. */
+    min-height: 44px; padding: 0 16px;
+    border: 1px solid var(--hair);
+  }
+  /* En rangée, l'indicateur passe sous l'entrée : une barre verticale au
+     bord gauche d'une pilule horizontale ne se lit pas. Même geste, même
+     durée, même origine — il pousse depuis la gauche. */
+  .svcat::before {
+    left: 16px; right: 16px; top: auto; bottom: 6px;
+    width: auto; height: 2px; margin-top: 0;
+  }
+
+  .svme {
+    padding-top: var(--sp-2);
+    border-top: 1px solid var(--hair);
+  }
+
+  /* La pilule de navigation de home.css tient trois liens en plus de la
+     marque : à cette largeur ils débordent et se font rogner. On les
+     retire plutôt que de montrer un mot coupé — ils sont tous atteignables
+     depuis l'accueil, et cet écran-ci a un travail à faire. */
+  .nav__links { display: none; }
+}
+
+@media (max-width: 560px) {
+  .sv { padding: 112px var(--sp-2) var(--sp-3); }
+  /* Le logo seul suffit à dire où l'on est : le nom complet pousserait la
+     pilule au-delà de l'écran. */
+  .nav__mark span { display: none; }
+  .svcats { margin-inline: calc(var(--sp-2) * -1); padding-inline: var(--sp-2); }
+  .svrow { gap: 12px; padding: 12px 14px; }
+  .svrow__icon { width: 40px; height: 40px; border-radius: 13px; }
+  /* Le libellé d'action sort de l'image : l'état est déjà écrit dans la
+     ligne de contexte, et le chevron suffit à dire que ça ouvre quelque
+     chose. Masqué à l'œil mais PAS au lecteur d'écran — c'est lui qui
+     porte la moitié du nom accessible du lien. */
+  .svrow__goText {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .svempty { padding: var(--sp-3) 0; }
+}
+
+/* ===================== moins de mouvement ============================= */
+
+/* La page reste entièrement lisible et utilisable : les états finaux sont
+   posés, seuls les déplacements disparaissent. Rien ne clignote, et la
+   boucle du squelette s'arrête.
+   `html:not(.motion-force)` : ?motion=on rend l'animation même sur une
+   machine réglée en mouvement réduit, pour pouvoir la vérifier. */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .svlist--entre .svrow { animation: none; }
+  html:not(.motion-force) .svcat::before { transition: none; }
+  html:not(.motion-force) .svcat:hover::before,
+  html:not(.motion-force) .svcat:focus-visible::before { transform: scaleX(1); }
+  html:not(.motion-force) .svcat__label,
+  html:not(.motion-force) a.svrow:hover .svrow__go,
+  html:not(.motion-force) a.svrow:focus-visible .svrow__go { transform: none; }
+  html:not(.motion-force) .svskel { animation: none; opacity: .75; }
+}
+
+/* ========================= pointeur grossier ========================== */
+
+/* Le survol n'existe pas au doigt : sur un écran tactile, un « survol »
+   reste collé après le tapotement et la ligne garde son fond clair. On
+   réserve donc les états de survol aux vrais pointeurs. */
+@media (hover: none) {
+  a.svrow:hover { background: transparent; border-color: transparent; }
+  a.svrow:hover .svrow__go { color: var(--ink-60); transform: none; }
+  .svcat:hover { background: none; color: var(--ink-60); }
+  .svcat:hover::before { transform: scaleX(0); }
+  .svcat[aria-selected="true"]:hover { color: var(--ink); background: var(--film); }
+  .svcat[aria-selected="true"]:hover::before { transform: scaleX(1); }
+  .svcat:hover .svcat__label { transform: none; }
+}

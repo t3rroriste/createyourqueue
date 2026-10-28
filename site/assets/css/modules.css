@@ -1,0 +1,829 @@
+/* =========================================================================
+   modules.html — mise en page.
+   Chargé APRÈS home.css, dont il reprend les tokens, la coque, la
+   navigation, le pied et les utilitaires (.label, .lead, .fine, .pill).
+   Aucun token n'est redéfini ici : une retouche de la D.A. doit continuer
+   de se faire à un seul endroit.
+
+   Règle tenue : aucun état initial d'animation n'est posé dans ce fichier.
+   Pas d'opacity: 0, pas de translate. Si le script échoue, la page reste
+   entièrement lisible — c'est le JS qui masque, et lui seul.
+   ========================================================================= */
+
+/* ============================== l'en-tête ============================== */
+
+.mhead {
+  padding: 156px var(--sp-4) var(--sp-5);   /* même dégagement de nav que le héros */
+  max-width: 1180px; margin: 0 auto;
+}
+.mhead__title {
+  font-size: clamp(2.25rem, 3.8vw, 3.5rem);
+  line-height: 1.04; letter-spacing: -0.03em; font-weight: 500;
+  text-transform: lowercase;
+  margin: var(--sp-3) 0 var(--sp-3); max-width: 20ch;
+}
+.mhead__lead { max-width: 54ch; margin: 0; }
+
+/* ============================== un module ============================== */
+
+/* Pleine hauteur : chaque module occupe l'écran, on n'en lit qu'un à la
+   fois. Le filet du haut donne le rythme sans ajouter de cadre. */
+.mod {
+  min-height: 100dvh;
+  display: flex; align-items: center;
+  padding: var(--sp-5) var(--sp-4);
+  border-top: 1px solid var(--hair);
+  scroll-margin-top: 120px;          /* la pilule de navigation est fixe */
+}
+.mod__in {
+  width: 100%; max-width: 1180px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-5); align-items: center;
+}
+
+/* L'alternance. `order` plutôt que deux jeux de `grid-column` : le DOM
+   garde partout le même ordre texte-puis-visuel, donc la lecture au
+   clavier et au lecteur d'écran ne dépend pas de la colonne affichée. */
+.mod:nth-of-type(even) .mod__text   { order: 2; }
+.mod:nth-of-type(even) .mod__visual { order: 1; }
+
+/* Pas de text-transform ici, contrairement au reste des titres du site :
+   ce sont des noms de fonction (Queue / Scrims, ClanWar), et forcer le bas
+   de casse mangeait leurs majuscules. La casse vient donc de la chaine
+   traduite, pas du CSS. */
+.mod__title {
+  font-size: clamp(1.75rem, 2.8vw, 2.5rem);
+  line-height: 1.08; letter-spacing: -0.02em; font-weight: 500;
+  margin: 0 0 var(--sp-2);
+}
+/* Le paragraphe porte seul tout le module depuis que les puces sont
+   parties : il monte donc a la taille du texte de lecture, pas a celle
+   d'une accroche secondaire. La mesure reste courte pour que l'oeil
+   retrouve le debut de ligne sans effort. */
+.mod__body {
+  font-size: 15.5px; line-height: 1.68; color: var(--ink-60);
+  max-width: 52ch; margin: 0;
+}
+
+/* ============================== maquettes ==============================
+
+   Ni image ni capture, et purement décoratif : aria-hidden côté HTML.
+   Six scènes Discord rendues dans la palette de home.css : on reprend la
+   grammaire de l'application (salons, messages, embeds, boutons, vocal,
+   commande slash) et jamais sa peau — pas de blurple, pas de vert, pas de
+   rouge d'erreur. L'élévation passe par --panel / --raised / --raised-2 et
+   --hair, comme partout ailleurs sur la page.
+   Rappel de la règle de tête : aucun état initial d'animation ici. Le JS
+   (page-modules.js) pose ses états de départ et possède le transform de
+   .mock ; la seule exception est notée sur .mock ci-dessous. */
+.mod__visual { display: flex; justify-content: center; }
+
+/* La fenêtre de Discord : barre de salon, fil de messages, et c'est tout. */
+.mock {
+  /* --flot est posé par page-modules.js sur [data-mod-visual] et hérité
+     ici : c'est le seul transform de la maquette, et sa valeur par défaut
+     est 0, donc sans JS rien ne bouge et rien n'est décalé. */
+  transform: translateY(var(--flot, 0px));
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-media);
+  /* coupe la barre de salon et les volets sur le rayon de la fenêtre */
+  overflow: hidden;
+  box-shadow: 0 60px 120px -60px rgba(0, 0, 0, .9);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  /* places, MMR, horodatages : les chiffres restent alignés d'une ligne à
+     l'autre sans charger de police monospace */
+  font-variant-numeric: tabular-nums;
+}
+.mock,
+.mock * { box-sizing: border-box; }
+.mock p { margin: 0; }
+.mock svg { display: block; flex-shrink: 0; }
+
+/* --- En-tête de salon -------------------------------------------------- */
+/* 44 px : la hauteur de la barre de Discord ramenée à l'échelle de la
+   maquette, qui affiche son texte à 13 px au lieu de 16. */
+.mock__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 44px;
+  min-width: 0;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--hair);
+}
+/* --ink-40 : réservé aux icônes et aux filets, jamais au texte */
+.mock__bar-ico { color: var(--ink-40); }
+.mock__bar-name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* le sujet du salon est ce qui cède en premier quand la largeur manque */
+.mock__bar-topic {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid var(--hair);
+  color: var(--ink-60);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mock__bar-tools {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  color: var(--ink-40);
+}
+
+/* --- Fil de messages --------------------------------------------------- */
+.mock__chat {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px 16px 18px;
+}
+/* gouttière de 36 px : c'est elle qui fait lire « message Discord » au
+   premier regard — avatar à gauche, tout le reste aligné après */
+.mock__msg {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 12px;
+  min-width: 0;
+}
+.mock__msg > .mock__used { grid-column: 1 / -1; }
+.mock__main { min-width: 0; }
+/* message groupé : même auteur, quelques minutes plus tard — Discord ne
+   répète ni l'avatar ni le nom, on garde la gouttière vide */
+.mock__msg--cont { margin-top: -10px; }
+
+.mock__av {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--raised-2);
+  color: var(--ink-60);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+/* l'avatar du bot, c'est le logo du site : fond discret plutôt que la
+   pastille grise des joueurs, le logo étant détouré */
+.mock__av--bot { background: var(--film); }
+.mock__av img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mock__av--sm {
+  width: 20px;
+  height: 20px;
+  font-size: 9.5px;
+}
+.mock__av--xs {
+  width: 16px;
+  height: 16px;
+  font-size: 8.5px;
+}
+/* place libre : la silhouette d'un avatar sans personne dedans */
+.mock__av--ghost {
+  background: none;
+  border: 1px dashed var(--ink-40);
+}
+/* anneau de prise de parole ; Discord le fait vert, ici il reste en --ink.
+   Ombre statique, jamais animée. */
+.mock__av--talk { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--ink); }
+
+.mock__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+  line-height: 20px;
+}
+.mock__name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* le badge « APP » de Discord est bleu ; ici une simple plaque surélevée */
+.mock__app {
+  align-self: center;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--raised-2);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  line-height: 15px;
+}
+.mock__time,
+.mock__edited {
+  color: var(--ink-60);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.mock__edited { font-size: 10px; }
+.mock__text { margin-top: 1px; }
+.mock__text--sub { color: var(--ink-60); }
+
+/* réponse à une commande : le filet coudé part du centre de l'avatar
+   (36 / 2 = 18, moins la moitié du trait) et remonte vers la commande */
+.mock__used {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-bottom: 4px;
+  color: var(--ink-60);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.mock__used::before {
+  content: "";
+  flex-shrink: 0;
+  align-self: flex-end;
+  width: 26px;
+  height: 9px;
+  margin-left: 17px;
+  border: 2px solid var(--ink-40);
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: 6px;
+}
+.mock__used-cmd {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* message éphémère : la ligne « seul toi peux voir ceci » sous la réponse */
+.mock__ephem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: var(--ink-60);
+  font-size: 11px;
+}
+.mock__ephem svg { color: var(--ink-40); }
+
+/* mentions et salons cités : la pastille de fond est ce qui les distingue
+   du texte, comme dans Discord — mais sans la teinte bleue */
+.mock__ment {
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--raised-2);
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* --- Embed ------------------------------------------------------------- */
+/* La barre de 4 px à gauche est la signature de l'embed Discord. Elle reste
+   en --ink-40 partout : dans chaque scène, l'accent unique est porté par
+   autre chose (couleur d'équipe, variation, score, rôle, argument). */
+.mock__embed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin-top: 6px;
+  padding: 12px 14px 14px;
+  border-left: 4px solid var(--ink-40);
+  border-radius: 6px;
+  background: var(--raised);
+}
+.mock__embed-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-60);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.mock__embed-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.mock__embed-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--ink-60);
+  font-size: 11px;
+}
+.mock__embed-foot svg { color: var(--ink-40); }
+
+/* champs « inline » : Discord en met trois par ligne, on laisse le retour
+   à la ligne décider quand la colonne rétrécit */
+.mock__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+.mock__field {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.mock__field-k {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.mock__field-v {
+  color: var(--ink-60);
+  font-size: 12.5px;
+}
+
+/* --- Équipes (queue) --------------------------------------------------- */
+.mock__teams {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.mock__team {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.mock__team-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.mock__swatch {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-40);
+}
+.mock__team-n {
+  margin-left: auto;
+  color: var(--ink-60);
+  font-size: 11px;
+  font-weight: 400;
+}
+/* la couleur d'équipe : c'est elle qui devient le rôle Discord de l'équipe */
+.mock__swatch--acc { background: var(--accent); }
+.mock__slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  min-width: 0;
+  padding: 0 8px 0 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--film);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.mock__slot--free {
+  border-style: dashed;
+  border-color: var(--hair);
+  background: none;
+}
+
+/* --- Boutons (composants de message) ----------------------------------- */
+/* Des <span>, pas des <button> : le bloc est aria-hidden, un élément
+   focalisable dedans serait atteint au clavier sans être annoncé. */
+.mock__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.mock__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background: var(--raised-2);
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+/* le « primaire » de Discord est blurple ; ici il s'inverse en --ink */
+.mock__btn--primary {
+  background: var(--ink);
+  color: var(--bg);
+}
+/* bouton pas encore disponible (queue incomplète) : on baisse la couleur
+   plutôt que l'opacité, que le bloc reduced-motion neutralise sur .mock */
+.mock__btn--off {
+  background: var(--film);
+  color: var(--ink-60);
+}
+.mock__btn-n { color: var(--ink-60); }
+.mock__btn--primary .mock__btn-n { color: var(--raised-2); }
+
+/* --- Bloc de code (classement) ----------------------------------------- */
+/* Seul endroit en monospace : Discord rend ainsi les tableaux que les bots
+   publient. Pile système, rien à charger. */
+.mock__code {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  background: var(--panel);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.mock__code-row {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr) 6ch 4ch;
+  column-gap: 1.5ch;
+  white-space: pre;
+}
+.mock__code-row--head { color: var(--ink-60); }
+.mock__num { text-align: right; }
+.mock__down { color: var(--ink-60); }
+/* la variation positive du MVP : l'unique accent du module */
+.mock__up--acc { color: var(--accent); }
+
+/* --- Face-à-face (duel) ------------------------------------------------ */
+.mock__vs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.mock__side-team {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.mock__side-team--end {
+  align-items: flex-end;
+  text-align: right;
+}
+.mock__side-name { font-weight: 600; }
+.mock__stack { display: flex; }
+/* chevauchement des pastilles, comme une pile d'avatars dans Discord ;
+   le contour --raised les découpe sur le fond de l'embed */
+.mock__stack .mock__av { box-shadow: 0 0 0 2px var(--raised); }
+.mock__stack .mock__av + .mock__av { margin-left: -5px; }
+.mock__side-who {
+  color: var(--ink-60);
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mock__score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.mock__score-v {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.mock__score-sep { color: var(--ink-60); }
+/* le score du vainqueur proposé : l'accent du module */
+.mock__score-acc { color: var(--accent); }
+.mock__score-k {
+  color: var(--ink-60);
+  font-size: 10.5px;
+}
+.mock__rule {
+  height: 1px;
+  background: var(--hair);
+}
+
+/* --- Barre latérale (clan) --------------------------------------------- */
+.mock__split {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+/* sous ~450 px les deux volets passent l'un sous l'autre : la liste des
+   salons d'abord, puisque c'est elle la scène. Les marges négatives font
+   tomber le filet en trop hors de la fenêtre, où overflow le coupe. */
+.mock__side {
+  flex: 1 1 200px;
+  min-width: 0;
+  margin-right: -1px;
+  padding-bottom: 10px;
+  border-right: 1px solid var(--hair);
+  background: var(--bg);
+}
+.mock__pane {
+  display: flex;
+  flex: 999 1 240px;
+  flex-direction: column;
+  min-width: 0;
+  margin-top: -1px;
+  border-top: 1px solid var(--hair);
+}
+.mock__server {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--hair);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.mock__server svg { color: var(--ink-40); }
+/* catégorie : petites capitales et chevron, la marque la plus reconnaissable
+   de la colonne des salons */
+.mock__cat {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 14px 8px 4px 6px;
+  color: var(--ink-60);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.mock__cat svg { color: var(--ink-40); }
+.mock__chan {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  min-width: 0;
+  margin: 1px 8px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--ink-60);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.mock__chan span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mock__chan svg { color: var(--ink-40); }
+.mock__chan--on {
+  background: var(--raised);
+  color: var(--ink);
+}
+/* salon non lu : texte plein et le petit tenon collé au bord gauche
+   (-8 px = la marge du salon, pour toucher le bord de la colonne) */
+.mock__chan--unread { color: var(--ink); }
+.mock__chan--unread::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 11px;
+  width: 4px;
+  height: 8px;
+  border-radius: 0 4px 4px 0;
+  background: var(--ink);
+}
+/* membres connectés : retrait sous l'icône du salon vocal, comme Discord */
+.mock__voice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 8px 4px;
+  padding-left: 30px;
+}
+.mock__vm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  min-width: 0;
+  color: var(--ink-60);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+/* le chef de clan : couleur de rôle et couronne, l'accent du module */
+.mock__chef {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* --- Journal (sécurité) ------------------------------------------------ */
+/* -12 px : les lignes suivantes appartiennent au même groupe que le
+   message d'en-tête, Discord ne laisse pas d'espace entre elles */
+.mock__logs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: -12px;
+}
+/* lignes compactes : l'heure prend la place de l'avatar, comme les
+   messages groupés de Discord dont on afficherait l'horodatage */
+.mock__log {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 3px 0;
+}
+.mock__log-time {
+  padding-top: 2px;
+  color: var(--ink-60);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.mock__log-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.mock__log-line svg {
+  margin-top: 2px;
+  color: var(--ink-40);
+}
+/* l'anti-raid : le seul événement qui mérite l'accent dans ce journal */
+.mock__log-line--acc svg { color: var(--accent); }
+.mock__log-note {
+  display: block;
+  color: var(--ink-60);
+  font-size: 11.5px;
+}
+
+/* --- Commande slash (options) ------------------------------------------ */
+.mock__compose {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 16px 16px;
+}
+/* le menu d'autocomplétion reste dans le flux, juste au-dessus de la
+   saisie : en absolu il déborderait de la fenêtre à 375 px */
+.mock__menu {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0 6px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--raised);
+}
+.mock__menu-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 14px 8px;
+  white-space: nowrap;
+}
+.mock__menu-k {
+  color: var(--ink-60);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.mock__menu-d {
+  min-width: 0;
+  color: var(--ink-60);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mock__opt {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.mock__opt--on { background: var(--raised-2); }
+.mock__opt-name { font-weight: 500; }
+.mock__opt-code {
+  color: var(--ink-60);
+  font-size: 11.5px;
+}
+.mock__input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--raised);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.mock__input > svg {
+  margin-right: 4px;
+  color: var(--ink-40);
+}
+.mock__input-cmd { font-weight: 500; }
+/* l'argument en cours : l'accent du module, là où Discord surligne */
+.mock__input-arg {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--raised-2);
+  color: var(--accent);
+  font-weight: 500;
+}
+/* curseur figé : aucune animation n'est ajoutée aux maquettes */
+.mock__caret {
+  flex-shrink: 0;
+  width: 1.5px;
+  height: 16px;
+  background: var(--ink);
+}
+
+/* ========================= appel à l'action ============================ */
+
+.mcta {
+  border-top: 1px solid var(--hair);
+  padding: var(--sp-5) var(--sp-4);
+}
+.mcta__in {
+  max-width: 1180px; margin: 0 auto;
+  display: grid; gap: var(--sp-3); justify-items: start;
+}
+.mcta__title {
+  font-size: clamp(1.75rem, 2.8vw, 2.5rem);
+  line-height: 1.08; letter-spacing: -0.02em; font-weight: 500;
+  text-transform: lowercase; margin: 0;
+}
+.mcta .lead { max-width: 46ch; margin: 0; }
+
+/* ============================== responsive ============================= */
+
+@media (max-width: 1100px) {
+  .mhead { padding: 144px var(--sp-4) var(--sp-4); }
+  .mod__in { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  /* Une colonne : l'alternance n'a plus de sens, et laisser `order` actif
+     ferait passer le visuel avant son titre une section sur deux. */
+  .mod:nth-of-type(even) .mod__text,
+  .mod:nth-of-type(even) .mod__visual { order: 0; }
+  .mod__visual { justify-content: flex-start; }
+  .mod { min-height: 0; padding: var(--sp-4) var(--sp-4); }
+}
+
+@media (max-width: 780px) {
+  .mhead { padding: 128px var(--sp-4) var(--sp-4); }
+  .mod__body { font-size: 15px; }
+  .mock { max-width: none; }
+  /* Le face-à-face du duel : à cette largeur, le score au centre écrasait
+     les deux camps jusqu'à couper « Nova · Mira ». Il passe donc au-dessus,
+     et les équipes gardent chacune la moitié de la ligne. */
+  .mock__vs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .mock__score { grid-column: 1 / -1; grid-row: 1; }
+  .mock__side-team { grid-row: 2; }
+}
+
+/* ===================== anti-flash de l'en-tête ========================= */
+
+/* Seul l'en-tête est masqué le temps que le script pose ses états. Les
+   modules restent visibles : voir la note en tête de fichier. */
+@media (prefers-reduced-motion: no-preference) {
+  html.motion-pending [data-reveal] { visibility: hidden; }
+}
+html.motion-force.motion-pending [data-reveal] { visibility: hidden; }
+
+/* ==================== mouvement réduit : bloquant ====================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .mhead [data-reveal],
+  .mod, .mod__visual, .mock,
+  .mod__title, .mod__body {
+    transform: none !important; opacity: 1 !important; filter: none !important;
+  }
+}

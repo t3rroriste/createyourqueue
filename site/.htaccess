@@ -1,0 +1,147 @@
+# =========================================================================
+# cyqbot.eu — réglages Apache (hébergement mutualisé LWS)
+#
+# Ce fichier règle UNE chose importante : qui garde quoi en cache.
+#   · les pages .html ne sont jamais gardées — on doit toujours recevoir la
+#     dernière, sinon elle continue de réclamer les anciens assets ;
+#   · le CSS et le JS sont gardés un an — c'est sans danger PARCE QUE leur
+#     adresse contient « ?v=… » : à chaque mise en ligne le numéro change,
+#     l'adresse change, le navigateur retélécharge.
+#
+# D'où la règle absolue : on relance bump-version.ps1 (ou deploy-lws.ps1,
+# qui le fait tout seul) à CHAQUE modification de CSS ou de JS. Sans ça,
+# un visiteur peut garder l'ancienne version pendant un an.
+# =========================================================================
+
+AddDefaultCharset UTF-8
+
+# ------------------------------------------------- page d'accueil --------
+# Quelle page servir quand l'adresse ne nomme aucun fichier.
+#
+# Un seul fichier pour les deux sites : la vitrine a un index.html, le
+# panneau n'en a pas — sa porte d'entrée est login.html. Apache essaie ces
+# noms dans l'ordre et ignore ceux qui n'existent pas. Sans cette ligne,
+# dashboard.cyqbot.eu/ tombait sur le default_index.html de LWS, d'où la
+# page « Félicitations, votre domaine a bien été créé ».
+DirectoryIndex index.html login.html
+
+# ------------------------------------------------------------- durées ----
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # La page elle-même : jamais de cache.
+  ExpiresByType text/html                 "access plus 0 seconds"
+
+  # Les assets versionnés par « ?v=… ».
+  ExpiresByType text/css                  "access plus 1 year"
+  ExpiresByType application/javascript    "access plus 1 year"
+  ExpiresByType text/javascript           "access plus 1 year"
+
+  # Images et polices : pas versionnées, donc une durée raisonnable.
+  ExpiresByType image/png                 "access plus 30 days"
+  ExpiresByType image/jpeg                "access plus 30 days"
+  ExpiresByType image/svg+xml             "access plus 30 days"
+  ExpiresByType image/x-icon              "access plus 30 days"
+  ExpiresByType font/woff2                "access plus 30 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Ceinture et bretelles : même si mod_expires est absent, une page HTML
+  # doit être revalidée à chaque visite.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+  </FilesMatch>
+
+  # Les assets peuvent être gardés sans revalidation : leur URL change.
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# --------------------------------------------------------- compression ---
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain
+  AddOutputFilterByType DEFLATE application/javascript text/javascript
+  AddOutputFilterByType DEFLATE image/svg+xml application/json
+</IfModule>
+
+# ------------------------------------------------- fichiers non publics ---
+# Documentation, scripts et sauvegardes n'ont rien à faire en ligne. S'ils
+# sont montés par erreur, ils ne sont au moins pas lisibles.
+<FilesMatch "\.(md|ps1|zip|log|env)$">
+  # Apache 2.4
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  # Apache 2.2 — sans ce repli, la syntaxe ci-dessus renvoie une erreur 500.
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Une exception : la licence MIT d'anime.js accompagne le code, c'est ce que
+# la licence demande. Elle reste donc lisible.
+<Files "anime.LICENSE.md">
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+  </IfModule>
+</Files>
+
+# ------------------------------------------------------------- HTTPS -----
+# Le panneau manipule un jeton de session : il ne doit jamais transiter
+# en clair. À commenter uniquement si le certificat n'est pas encore posé.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # --------------------------------------------------- anciennes adresses --
+  # Les quatre pages de l'application ont déménagé sur le sous-domaine.
+  # Les liens et favoris qui pointent encore sur cyqbot.eu/dashboard.html
+  # sont renvoyés plutôt que cassés.
+  #
+  # La condition sur l'hôte est INDISPENSABLE : ce même fichier est déployé
+  # sur le sous-domaine, où la règle se redirigerait vers elle-même, en
+  # boucle. Elle ne s'applique donc qu'en dehors de dashboard.*.
+  #
+  # À savoir : cette redirection ne sert à rien pour OAuth. Discord compare
+  # l'adresse de retour AVANT toute redirection : c'est bien
+  # https://dashboard.cyqbot.eu/login.html qui doit être déclarée dans le
+  # portail, OAuth2 → Redirects.
+  RewriteCond %{HTTP_HOST} !^dashboard\. [NC]
+  RewriteRule ^(login|welcome|servers|dashboard)\.html$ https://dashboard.cyqbot.eu/$1.html [R=301,L,QSA]
+
+  # Même déménagement, pour la forme courte.
+  RewriteCond %{HTTP_HOST} !^dashboard\. [NC]
+  RewriteRule ^(login|welcome|servers|dashboard)/?$ https://dashboard.cyqbot.eu/$1 [R=301,L,QSA]
+
+  # -------------------------------------------- adresses sans .html -------
+  # /servers sert servers.html. RÉÉCRITURE INTERNE, pas redirection : la
+  # barre d'adresse ne bouge pas, le navigateur ne refait pas de requête.
+  #
+  # Conséquence voulue : /servers.html continue de répondre. Ce n'est pas
+  # de la politesse envers les anciens favoris, c'est une obligation —
+  # Discord renvoie sur /login.html après l'autorisation, et c'est cette
+  # adresse-là, au caractère près, qui est déclarée dans son portail.
+  # Supprimer la forme longue casserait la connexion.
+  #
+  # Liste explicite plutôt qu'une règle générique : /api est servi par PHP
+  # et ne doit jamais passer par ici. La condition `-f` fait le reste — sur
+  # la vitrine, /servers ne correspond à aucun fichier, donc la règle ne
+  # s'applique pas et c'est la redirection ci-dessus qui opère.
+  # La barre finale est retirée AVANT, et par une vraie redirection. Si on
+  # la tolérait dans la règle ci-dessous, /servers/ servirait bien la page,
+  # mais le navigateur résoudrait « assets/css/… » sous /servers/ — une
+  # page sans style et sans script, pour un slash en trop.
+  RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide)/$ /$1 [R=301,L,QSA]
+
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide)$ $1.html [L,QSA]
+</IfModule>

@@ -1,23 +1,55 @@
-# Secrets
-.env
+# =========================================================================
+# Ce qui ne monte JAMAIS sur GitHub.
+#
+# Le dépôt est public : une ligne oubliée ici, et un jeton Discord ou un
+# mot de passe FTP est lisible par n'importe qui, pour toujours — un
+# secret poussé une fois reste dans l'historique même après suppression.
+#
+# Les chemins qui contiennent une barre oblique sont ancrés à la racine du
+# dépôt. Depuis la réunion des deux dépôts, le bot vit dans `bot/` : écrire
+# `data/*.json` ne protégerait plus rien, il faut `bot/data/*.json`.
+# =========================================================================
 
-# Python
+# --- Secrets -------------------------------------------------------------
+# Sans barre oblique : attrapé à n'importe quelle profondeur.
+.env
+.env.local
+
+# Le CLIENT_SECRET Discord de l'API PHP. Il se dépose à la main sur LWS et
+# n'a aucune raison d'exister ailleurs que sur le serveur et sur ce PC.
+site/api/secrets.php
+
+# Les identifiants FTP de LWS, et le mot de passe retenu par Windows.
+# `lws.config.exemple.ps1` reste versionné : c'est le modèle à remplir.
+outils/reglages/lws.config.ps1
+outils/reglages/*.pass
+
+# --- Données vivantes ----------------------------------------------------
+# bot/data/ contient la configuration de TOUS les serveurs Discord. La
+# pousser, c'est risquer de l'écraser depuis l'autre PC avec une copie
+# vieille de trois jours.
+bot/data/*.json
+bot/data/*.illisible-*
+bot/modmail_sessions.json
+
+# --- Python --------------------------------------------------------------
 __pycache__/
 *.pyc
-.venv/
 venv/
+.venv/
 
-# Données des serveurs et tickets du modmail : jamais dans le dépôt
-data/*.json
-data/*.illisible-*
-modmail_sessions.json
-
-# Journaux
+# --- Journaux et états locaux -------------------------------------------
 *.log
-bot_output.txt
-
-# Fichiers locaux
-.DS_Store
+bot/bot_output.txt
+bot/locales.zip
+bot/graphify-out/cache/
+outils/etat/
 .claude/settings.local.json
-graphify-out/cache/
-locales.zip
+.DS_Store
+
+# --- Copies de secours ---------------------------------------------------
+# Instantanés de production, ancien dépôt Vite, captures, ancien panneau
+# Flask : utiles sur le disque, inutiles dans l'historique. 50 Mo qu'on ne
+# veut pas cloner sur le portable à chaque fois.
+archives/
+site/Claude outputs/

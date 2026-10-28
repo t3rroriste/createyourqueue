@@ -1,29 +1,98 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/upload_sftp.py\"",
-            "timeout": 60,
-            "statusMessage": "Envoi sur AdKyNet…"
-          }
-        ]
-      }
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(//**)",
+      "Edit(./site/**)",
+      "Write(./site/**)",
+      "Edit(./bot/**)",
+      "Write(./bot/**)",
+      "Edit(./api-locale/**)",
+      "Write(./api-locale/**)",
+      "Edit(./outils/**)",
+      "Write(./outils/**)",
+      "Edit(./docs/**)",
+      "Write(./docs/**)",
+      "Edit(./.claude/**)",
+      "Write(./.claude/**)",
+      "Edit(./CLAUDE.md)",
+      "Write(./CLAUDE.md)",
+      "Edit(./README.md)",
+      "Write(./README.md)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git restore:*)",
+      "Bash(git switch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git mv:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(py:*)",
+      "Bash(pip:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)",
+      "Bash(cat:*)",
+      "Bash(type:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(findstr:*)",
+      "Bash(find:*)",
+      "Bash(diff:*)",
+      "Bash(cmp:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(copy:*)",
+      "Bash(mv:*)",
+      "Bash(curl:*)",
+      "Bash(where:*)",
+      "Bash(which:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File outils/numeroter-versions.ps1:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File outils/cyq.ps1 etat:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File outils/cyq.ps1 synchro:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File outils/cyq.ps1 aide:*)"
     ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/sync_git.py\"",
-            "timeout": 120,
-            "statusMessage": "Enregistrement sur GitHub…"
-          }
-        ]
-      }
+    "deny": [
+      "Read(./**/.env)",
+      "Read(./**/secrets.php)",
+      "Read(./outils/reglages/lws.config.ps1)",
+      "Read(./outils/reglages/*.pass)",
+      "Edit(./archives/**)",
+      "Write(./archives/**)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(rmdir /s:*)",
+      "Bash(rd /s:*)",
+      "Bash(del /f:*)",
+      "Bash(del /q:*)",
+      "Bash(Remove-Item:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(ftp:*)",
+      "Bash(winscp:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(gh:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File outils/publier-site.ps1:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File outils/cyq.ps1 publier:*)",
+      "Bash(python outils/publier-bot.py:*)"
     ]
   }
 }

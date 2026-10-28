@@ -1,0 +1,132 @@
+/* =========================================================================
+   Guide — mise en page.
+   Chargé APRÈS home.css, dont il reprend les variables, la coque, la
+   navigation, le pied et les utilitaires (.label, .lead, .fine, .pill).
+   Ici, rien que ce qui est propre au guide.
+   ========================================================================= */
+
+.guide {
+  position: relative;
+  padding: 156px var(--sp-4) var(--sp-5);   /* même dégagement de nav que le héros */
+  max-width: 1120px; margin: 0 auto;
+}
+
+/* ============================== l'en-tête ============================== */
+
+.guide__head { max-width: 62ch; margin-bottom: var(--sp-5); }
+.guide__title {
+  font-size: clamp(2.25rem, 3.6vw, 3.5rem);
+  line-height: 1.04; letter-spacing: -0.03em; font-weight: 500;
+  text-transform: lowercase;
+  margin: 0 0 var(--sp-3);
+}
+.guide__lead { max-width: 52ch; margin: 0; }
+
+/* ============================== le sommaire ============================ */
+
+/* Une colonne collante à gauche sur grand écran, un simple bloc en tête
+   sinon. Le `top` dégage la pilule de navigation, qui est fixe. */
+.guide__grid {
+  display: grid; grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--sp-5); align-items: start;
+}
+.toc { position: sticky; top: 132px; }
+.toc__label { margin-bottom: var(--sp-2); }
+.toc__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.toc__list a {
+  display: flex; gap: 12px; align-items: baseline;
+  padding: 7px 10px; border-radius: 10px;
+  font-size: 13px; color: var(--ink-60);
+  transition: background 160ms var(--e-soft), color 160ms var(--e-soft);
+}
+.toc__list a:hover { background: var(--raised); color: var(--ink); }
+.toc__list a .n { font-size: 11px; letter-spacing: .06em; color: var(--ink-40); }
+/* La partie en cours de lecture, marquée par l'observateur. */
+.toc__list a[aria-current="true"] { background: var(--raised); color: var(--ink); }
+.toc__list a[aria-current="true"] .n { color: var(--accent); }
+
+/* ============================== les parties ============================ */
+
+.part {
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--hair);
+}
+.part + .part { margin-top: var(--sp-5); }
+/* Le point d'ancrage doit s'arrêter SOUS la pilule fixe, sinon le titre
+   de la partie se retrouve caché derrière elle. */
+.part { scroll-margin-top: 120px; }
+
+.part__num { margin-bottom: var(--sp-2); }
+.part__title {
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  line-height: 1.1; letter-spacing: -0.02em; font-weight: 500;
+  text-transform: lowercase;
+  margin: 0 0 var(--sp-2);
+}
+.part__lead { max-width: 56ch; margin: 0 0 var(--sp-3); }
+
+/* Les étapes numérotées : pour la mise en route, où l'ordre compte. */
+.steps { margin: 0; padding: 0; list-style: none; counter-reset: pas; max-width: 64ch; }
+.steps li {
+  counter-increment: pas;
+  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 16px;
+  padding: var(--sp-2) 0; border-bottom: 1px solid var(--hair);
+}
+.steps li:first-child { border-top: 1px solid var(--hair); }
+.steps li::before {
+  content: counter(pas, decimal-leading-zero);
+  font-size: 11px; letter-spacing: .06em; color: var(--ink-40); padding-top: 3px;
+}
+.steps b { color: var(--ink); font-weight: 500; display: block; margin-bottom: 3px; }
+
+/* Les points d'une partie : pas d'ordre imposé, juste une énumération. */
+.notes { margin: 0; padding: 0; list-style: none; max-width: 64ch; }
+.notes li {
+  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 16px;
+  padding: var(--sp-2) 0; border-bottom: 1px solid var(--hair);
+}
+.notes li:first-child { border-top: 1px solid var(--hair); }
+.notes .n { font-size: 11px; letter-spacing: .06em; color: var(--ink-40); padding-top: 3px; }
+.notes b { color: var(--ink); font-weight: 500; }
+
+/* L'encart : une précision qui n'est pas une étape. */
+.tip {
+  margin-top: var(--sp-3); max-width: 64ch;
+  display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px;
+  padding: var(--sp-2); border-radius: var(--r-card);
+  background: var(--raised); border: 1px solid var(--hair);
+}
+.tip svg { margin-top: 2px; color: var(--ink-40); }
+
+.guide__end { margin-top: var(--sp-5); display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: center; }
+
+/* ============================== responsive ============================= */
+
+@media (max-width: 1100px) {
+  .guide { padding: 144px var(--sp-4) var(--sp-4); }
+  .guide__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+  .toc { position: static; }
+  .toc__list { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+}
+@media (max-width: 780px) {
+  .guide { padding: 128px var(--sp-4) var(--sp-4); }
+  .guide__head { margin-bottom: var(--sp-4); }
+  .part + .part { margin-top: var(--sp-4); }
+  .steps li, .notes li { grid-template-columns: 26px minmax(0, 1fr); gap: 12px; }
+}
+
+/* ===================== anti-flash de l'en-tête ======================== */
+
+/* Seul l'en-tête est masqué le temps que le script pose ses états. Les
+   parties, elles, restent visibles : c'est une page de lecture, et cacher
+   son contenu en attendant un script serait un mauvais marché. */
+@media (prefers-reduced-motion: no-preference) {
+  html.motion-pending [data-reveal] { visibility: hidden; }
+}
+html.motion-force.motion-pending [data-reveal] { visibility: hidden; }
+
+/* ==================== mouvement réduit : bloquant ===================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .part, .guide__head > * { transform: none !important; opacity: 1 !important; }
+}

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choisir un serveur — CreateYourQueue</title>
+<meta name="description" content="Les serveurs Discord où tu peux configurer CreateYourQueue.">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Geist seule. Le monospace est ce qui faisait « back-office » sur la
+     version précédente ; il n'a plus rien à faire ici. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/home.css?v=202610282305">
+<link rel="stylesheet" href="assets/css/servers.css?v=202610282305">
+<script>
+// Même garde que la connexion : le contenu reste masqué le temps que le
+// script pose les états de départ, et se découvre tout seul après 1,8 s si
+// le script n'arrive jamais. La page ne peut donc pas rester blanche.
+(function (h) {
+  h.classList.remove('no-js');
+  h.classList.add('motion-pending');
+  if (/[?&]motion=on(&|$)/.test(location.search)) h.classList.add('motion-force');
+  setTimeout(function () { h.classList.remove('motion-pending'); }, 1800);
+})(document.documentElement);
+</script>
+</head>
+<body>
+
+<!-- Le cadre arrondi, fixe : il garde les coins de la coque visibles
+     quand on descend dans la page. Purement visuel. -->
+<div class="cadre" aria-hidden="true"></div>
+
+<a class="skip" href="#main" data-i18n="c.skip">Aller au contenu</a>
+
+<!-- La pilule flottante de l'accueil et de la connexion, à l'identique.
+     Elle est HORS de .shell : la coque reçoit un transform à l'ouverture,
+     et un ancêtre transformé annule position: fixed. -->
+<nav class="nav" aria-label="Principale" data-nav>
+  <a class="nav__mark" href="index.html" data-site="index.html">
+    <img src="assets/img/logo.png" alt="" width="22" height="22">
+    <span>CreateYourQueue</span>
+  </a>
+  <div class="nav__links">
+    <a href="#" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
+    <a href="modules.html" data-site="modules.html" data-i18n="m.nav">Modules</a>
+    <a href="#" data-cfg-link="SUPPORT_URL" data-i18n="n.support">Support</a>
+  </div>
+  <div class="langmenu">
+    <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
+            aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.lang">
+      <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
+    </div>
+  </div>
+  <a class="pill pill--ghost pill--sm" href="index.html" data-site="index.html" data-i18n="c.back">Retour</a>
+</nav>
+
+<main class="shell" id="main">
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="sv">
+
+    <!-- .sv__side n'est une boîte QUE sur grand écran. En dessous de 900 px
+         elle passe en display:contents et ses deux enfants deviennent des
+         cases de la grille : les catégories en tête de page, le compte en
+         pied. L'ordre du DOM ne bouge donc jamais, et l'ordre de tabulation
+         suit l'ordre visuel dans les deux dispositions. -->
+    <div class="sv__side">
+
+      <!-- Un vrai onglet-panneau : les catégories commandent le contenu de
+           droite, donc role=tablist, flèches au clavier, et un seul arrêt de
+           tabulation pour tout le menu. -->
+      <div class="svcats" role="tablist" aria-orientation="vertical"
+           data-cats data-i18n-attr="aria-label:sv.catsLabel"></div>
+
+      <!-- Le compte, collé en bas comme le panneau utilisateur de Discord.
+           Deux visages : connecté, ou pas. Le script n'en montre qu'un. -->
+      <div class="svme" data-me>
+        <div class="svme__in" data-me-known hidden>
+          <span class="svme__avatar" data-me-avatar aria-hidden="true"></span>
+          <span class="svme__name" data-me-name></span>
+          <button class="svme__out" type="button" data-logout
+                  data-i18n-attr="aria-label:sv.logout, title:sv.logout">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 20h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-4M9 17l5-5-5-5M14 12H3"/></svg>
+          </button>
+        </div>
+        <a class="pill pill--ghost pill--sm svme__login" href="login.html"
+           data-me-guest data-app="login.html" data-i18n="h.loginBtn" hidden>Se connecter avec Discord</a>
+      </div>
+
+    </div>
+
+    <section class="sv__main">
+
+      <header class="sv__head">
+        <h1 class="sv__title" data-i18n="sv.title">Choisir un serveur</h1>
+        <p class="lead sv__lead" data-i18n="sv.lead">Les serveurs où tu es propriétaire ou disposes de « Gérer le serveur ».</p>
+
+        <div class="svfind">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="sv-filter" type="search" autocomplete="off"
+                 data-filter data-i18n-attr="placeholder:sv.filter, aria-label:sv.filter">
+        </div>
+      </header>
+
+      <!-- Le décompte porte aria-live, PAS la liste : annoncer quarante
+           lignes à chaque touche frappée dans le filtre serait hostile.
+           Une phrase qui dit combien de serveurs correspondent suffit. -->
+      <p class="sv__count" data-count role="status" aria-live="polite"></p>
+
+      <div class="svlist" id="sv-list" data-list role="tabpanel" tabindex="-1" aria-busy="true"></div>
+
+    </section>
+  </div>
+</main>
+
+<script src="assets/js/vendor/anime.umd.min.js?v=202610282305"></script>
+<script src="assets/js/config.js?v=202610282305"></script>
+<script src="assets/js/lang/fr.js?v=202610282305"></script>
+<script src="assets/js/lang/en.js?v=202610282305"></script>
+<script src="assets/js/lang/es.js?v=202610282305"></script>
+<script src="assets/js/lang/de.js?v=202610282305"></script>
+<script src="assets/js/lang/ko.js?v=202610282305"></script>
+<script src="assets/js/app.js?v=202610282305"></script>
+<script src="assets/js/page-servers.js?v=202610282305"></script>
+</body>
+</html>
