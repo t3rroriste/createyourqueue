@@ -88,19 +88,55 @@ def verifier_outils() -> bool:
 
 # ------------------------------------------------------ 2. dépendances ---
 
+def pip(*arguments: str) -> bool:
+    """pip install, avec un repli sur --user.
+
+    Le Python livré par Apple installe dans un dossier système que l'on
+    n'écrit pas sans sudo. Plutôt que de demander un mot de passe
+    administrateur pour une dépendance d'outillage, on retombe sur
+    l'installation « pour cet utilisateur », qui suffit."""
+    base = [sys.executable, "-m", "pip", "install", "--quiet",
+            "--disable-pip-version-check"]
+    if subprocess.run(base + list(arguments)).returncode == 0:
+        return True
+    return subprocess.run(base + ["--user", *arguments]).returncode == 0
+
+
 def installer_dependances() -> None:
     titre("dépendances")
-    req = os.path.join(RACINE, "bot", "requirements.txt")
-    if os.path.isfile(req):
-        subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
-                        "--disable-pip-version-check", "-r", req])
-        bien("bot/requirements.txt")
+
     # paramiko n'est pas dans requirements.txt : le bot n'en a pas besoin
     # pour tourner, c'est l'outil de publication qui s'en sert. Il n'a donc
     # rien à faire dans les dépendances envoyées sur l'hébergeur.
-    subprocess.run([sys.executable, "-m", "pip", "install", "--quiet",
-                    "--disable-pip-version-check", "paramiko"])
-    bien("paramiko (envoi SFTP vers AdKyNet)")
+    if pip("paramiko"):
+        bien("paramiko (envoi SFTP vers AdKyNet)")
+    else:
+        souci("paramiko n'a pas pu être installé : la publication du bot sera refusée")
+        note("Réessaie à la main :  python3 -m pip install --user paramiko")
+
+    req = os.path.join(RACINE, "bot", "requirements.txt")
+    if not os.path.isfile(req):
+        return
+
+    # Les dépendances du bot sont épinglées sur les versions testées en
+    # Python 3.14. Sur le Python 3.9 livré avec macOS, pip ne trouvera pas
+    # ces versions et s'arrêtera. Ce n'est PAS bloquant : cette machine sert
+    # à écrire du code et à le synchroniser, le bot tourne sur AdKyNet. On
+    # le dit au lieu d'afficher une page d'erreur rouge qui fait croire que
+    # l'installation a raté.
+    if sys.version_info < (3, 10):
+        souci(f"Python {sys.version_info.major}.{sys.version_info.minor} : trop ancien "
+              "pour les dépendances du bot (épinglées sur 3.14).")
+        note("Ce n'est pas grave : synchro et publication n'ont besoin que de paramiko.")
+        note("Pour faire TOURNER le bot sur cette machine, installe un Python récent :")
+        note("  brew install python@3.13     puis relance  cyq amorcer")
+        return
+
+    if pip("-r", req):
+        bien("bot/requirements.txt")
+    else:
+        souci("certaines dépendances du bot n'ont pas pu être installées")
+        note("La synchro et la publication marchent quand même.")
 
 
 # ------------------------------------------------------ 3. identifiants ---

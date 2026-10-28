@@ -17,6 +17,13 @@
 #   bash /tmp/cyq.sh ~/Developer/CYQ
 #
 # Son jumeau Windows est `installer.ps1`.
+#
+# Une règle dans tout ce fichier : les variables s'écrivent ${AINSI}, avec
+# les accolades. Le bash livré avec macOS est la version 3.2, de 2007 ;
+# écrit « $CIBLE… », il avale les trois octets des points de suspension
+# dans le nom de la variable, cherche « CIBLE… », ne la trouve pas, et
+# s'arrête sur « unbound variable » — sur une ligne qui ne fait qu'afficher
+# du texte. Les accolades ferment le nom et le problème.
 # =========================================================================
 
 set -u
@@ -61,40 +68,60 @@ fi
 # n'est pas un clavier (script lancé par un autre script), on prend le
 # dossier par défaut au lieu de rester bloqué sur une question que personne
 # ne lira.
+# Y a-t-il un clavier quelque part ? Trois cas, et on les distingue en
+# ESSAYANT, pas en supposant. `[ -r /dev/tty ]` répond oui sur des systèmes
+# où l'ouvrir échoue quand même (« No such device or address ») : le test
+# qui compte est l'ouverture elle-même.
+CLAVIER="non"
+if [ -t 0 ]; then
+  CLAVIER="entree"
+elif { : < /dev/tty; } 2>/dev/null; then
+  CLAVIER="tty"
+fi
+
+CIBLE=""
 if [ $# -ge 1 ]; then
   CIBLE="$1"
-elif [ -t 0 ]; then
-  printf "Dossier d'installation [%s] : " "$DEFAUT"
-  read -r CIBLE
+elif [ "${CLAVIER}" = "entree" ]; then
+  printf "Dossier d'installation [%s] : " "${DEFAUT}"
+  read -r CIBLE || CIBLE=""
+elif [ "${CLAVIER}" = "tty" ]; then
+  # L'entrée standard n'est pas un clavier, mais le terminal est joignable
+  # directement : avant d'abandonner la question, on frappe à la bonne porte.
+  printf "Dossier d'installation [%s] : " "${DEFAUT}" > /dev/tty
+  read -r CIBLE < /dev/tty || CIBLE=""
 else
-  CIBLE=""
-  echo "  ->    pas de clavier disponible : installation dans $DEFAUT"
+  echo "  ->    pas de clavier disponible : installation dans ${DEFAUT}"
 fi
-CIBLE="${CIBLE:-$DEFAUT}"
-CIBLE="${CIBLE/#\~/$HOME}"
+if [ -z "${CIBLE}" ]; then CIBLE="${DEFAUT}"; fi
+# Le tilde n'est pas développé dans une réponse tapée : ~/Dev reste la
+# chaîne « ~/Dev ». On le remplace à la main.
+case "${CIBLE}" in
+  "~"|"~/"*) CIBLE="${HOME}${CIBLE#\~}" ;;
+esac
 
 # --- récupérer -----------------------------------------------------------
-if [ -d "$CIBLE/.git" ]; then
+if [ -d "${CIBLE}/.git" ]; then
   echo
   echo "Le dépôt est déjà là : on le met simplement à jour."
-  git -C "$CIBLE" pull --rebase --autostash || exit 1
-elif [ -d "$CIBLE" ] && [ -n "$(ls -A "$CIBLE" 2>/dev/null)" ]; then
+  git -C "${CIBLE}" pull --rebase --autostash || exit 1
+elif [ -d "${CIBLE}" ] && [ -n "$(ls -A "${CIBLE}" 2>/dev/null)" ]; then
   # Cloner par-dessus un dossier qui contient déjà quelque chose, c'est le
   # bon moyen de perdre du travail sans s'en apercevoir. On refuse.
   echo >&2
-  echo "$CIBLE existe et n'est pas vide, et ce n'est pas un dépôt git." >&2
+  echo "${CIBLE} existe et n'est pas vide, et ce n'est pas un dépôt git." >&2
   echo "Choisis un autre dossier, ou déplace celui-là, puis recommence." >&2
   exit 1
 else
   echo
-  echo "Récupération du dépôt dans $CIBLE…"
-  git clone "$DEPOT" "$CIBLE" || exit 1
+  echo "Récupération du dépôt dans ${CIBLE}"
+  git clone "${DEPOT}" "${CIBLE}" || exit 1
 fi
 
 # git ne garde que le bit exécutable, et seulement s'il était posé au
 # commit. On le remet ici par sécurité : un `./cyq` qui répond
 # « permission denied » juste après l'installation est un mauvais accueil.
-chmod +x "$CIBLE/cyq" "$CIBLE/outils/cyq.sh" 2>/dev/null
+chmod +x "${CIBLE}/cyq" "${CIBLE}/outils/cyq.sh" 2>/dev/null
 
 # --- la suite est dans le dépôt ------------------------------------------
 #
@@ -103,14 +130,18 @@ chmod +x "$CIBLE/cyq" "$CIBLE/outils/cyq.sh" 2>/dev/null
 # tube. S'il n'y en a pas, on le dit et on s'arrête proprement plutôt que
 # de laisser une installation à moitié faite.
 echo
-if [ -t 0 ]; then
-  "$PY" "$CIBLE/outils/amorcer.py"
-else
-  echo "Le dépôt est récupéré, mais l'amorçage a besoin du clavier."
-  echo "Termine avec :  cd \"$CIBLE\" && ./cyq amorcer"
-  exit 0
-fi
+case "${CLAVIER}" in
+  entree) "${PY}" "${CIBLE}/outils/amorcer.py" ;;
+  tty)    "${PY}" "${CIBLE}/outils/amorcer.py" < /dev/tty ;;
+  *)
+    echo "Le dépôt est récupéré, mais l'amorçage pose des questions et"
+    echo "aucun clavier n'est joignable depuis ici."
+    echo
+    echo "Termine avec :  cd \"${CIBLE}\" && ./cyq amorcer"
+    exit 0
+    ;;
+esac
 
 echo
-echo "Le projet est dans : $CIBLE"
-echo "Ouvre-le avec :  cd \"$CIBLE\"  puis  ./cyq etat"
+echo "Le projet est dans : ${CIBLE}"
+echo "Ouvre-le avec :  cd \"${CIBLE}\"  puis  ./cyq etat"
