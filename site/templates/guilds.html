@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Tes serveurs - CreateYourQueue{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Tes serveurs</h1>
+    <p class="lead">
+      {% if guilds %}
+        {{ guilds|length }} serveur{{ "s" if guilds|length > 1 }} que tu peux regler.
+      {% else %}
+        Aucun serveur a regler pour l'instant.
+      {% endif %}
+    </p>
+  </div>
+  <a class="btn btn-ghost" href="{{ invite_url }}">Inviter sur un autre serveur</a>
+</header>
+
+{% if guilds %}
+  <div class="guild-grid">
+    {% for guild in guilds %}
+      <a class="guild-card" href="/dashboard/{{ guild.id }}">
+        <span class="guild-icon">
+          {% if guild.icon %}
+            <img src="{{ guild.icon }}" alt="" width="48" height="48" loading="lazy">
+          {% else %}
+            <span class="guild-fallback" aria-hidden="true">{{ guild.name[0]|upper }}</span>
+          {% endif %}
+        </span>
+
+        <span class="guild-body">
+          <strong class="guild-name">{{ guild.name }}</strong>
+          <span class="guild-meta">
+            {% if guild.members %}{{ "{:,}".format(guild.members).replace(",", " ") }} membres{% else %}Membres inconnus{% endif %}
+          </span>
+        </span>
+
+        <span class="tag {{ 'tag-ok' if guild.setup_complete else 'tag-todo' }}">
+          {{ "Configure" if guild.setup_complete else "A configurer" }}
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty">
+    <span class="empty-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 11h8M8 15h4"/>
+      </svg>
+    </span>
+    <h2>Rien a regler ici</h2>
+    <p>
+      {% if total %}
+        Le bot est sur {{ total }} serveur{{ "s" if total > 1 }}, mais aucun ou tu as
+        « Gerer le serveur ». Demande le droit a un administrateur, ou invite le bot
+        sur un serveur qui t'appartient.
+      {% else %}
+        Le bot n'est encore sur aucun serveur. Invite-le pour commencer.
+      {% endif %}
+    </p>
+    <a class="btn btn-primary" href="{{ invite_url }}">Inviter le bot</a>
+  </div>
+{% endif %}
+{% endblock %}

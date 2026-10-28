@@ -438,6 +438,35 @@ Ensuite, la règle est simple : **`git pull` avant de commencer**, `git push` en
 
 ⚠️ Ne code pas sur les deux PC en même temps : chacun envoie ses fichiers à AdKyNet, et le dernier enregistrement écrase l'autre.
 
+### 6 ter. La synchro automatique
+
+Deux hooks, dans [`.claude/settings.json`](.claude/settings.json), avec deux rythmes différents :
+
+| Hook | Quand | Quoi |
+|---|---|---|
+| `PostToolUse` sur `Edit\|Write` | à **chaque fichier** modifié | [`.claude/hooks/upload_sftp.py`](.claude/hooks/upload_sftp.py) l'envoie sur AdKyNet — de quoi tester sans attendre |
+| `Stop` | à la **fin de chaque tâche** | [`sync_git.py`](sync_git.py) fait un commit et un push |
+
+Committer à chaque fichier donnerait trois cents commits d'une ligne : le découpage par tâche donne un historique lisible. Quand un commit est écrit à la main avant la fin de la tâche, le hook ne trouve rien à enregistrer et se tait.
+
+Ce qui ne part **jamais** sur l'hébergeur, et n'a qu'un seul endroit où c'est décidé ([`adkynet.py`](.claude/hooks/adkynet.py)) : `.env`, `data/` (la configuration de tous les serveurs Discord vit là-haut — l'écraser depuis une copie locale la détruirait), `venv/`, les caches, les tests et les scripts de synchro eux-mêmes.
+
+**`sync_git.py` ne force jamais rien.** Si le dépôt distant a avancé — quelqu'un a poussé depuis une autre machine — le push est refusé et le hook le dit. Il ne tente pas de rebase automatique : un conflit laisserait le dépôt à moitié fusionné sans que personne le remarque.
+
+Les deux scripts se lancent aussi à la main, notamment pour ce que Claude Code n'a pas touché :
+
+```bash
+python sync_git.py --apercu
+```
+
+```bash
+python sync_adkynet.py --comparer
+```
+
+**Lance `--comparer` avant le premier envoi depuis une machine.** Il liste ce que le serveur possède et que ce PC ignore, sans rien modifier. C'est ce contrôle qui a révélé, le 24/09, que cinq jours de travail (`site/`, `cogs/dashboard_api.py`, `cogs/suggestions.py`) n'existaient que sur AdKyNet : le hook SFTP y déposait le code sans que rien ne passe par git.
+
+> ⚠️ Un hook qui échoue ne bloque jamais Claude Code — c'est voulu, mais c'est aussi ce qui a masqué le problème pendant une semaine (`paramiko` n'était pas installé, le hook sortait en silence). Ils disent désormais tous **pourquoi** ils n'envoient rien. Si tu ne vois plus passer « envoyé sur AdKyNet », c'est un signal.
+
 ### 7. La carte du code
 
 `graphify-out/graph.html` s'ouvre dans le navigateur : chaque fichier, fonction et classe, et leurs liens. Pratique pour savoir ce qu'une modification va toucher. Pour la remettre à jour après avoir changé le code :

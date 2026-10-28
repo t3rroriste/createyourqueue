@@ -12,6 +12,18 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/sync_git.py\"",
+            "timeout": 120,
+            "statusMessage": "Enregistrement sur GitHub…"
+          }
+        ]
+      }
     ]
   }
 }
