@@ -49,8 +49,22 @@ geste : elle ne peut pas diverger d'une machine à l'autre.
 Une seule commande. Sur le **MacBook**, dans le Terminal :
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/t3rroriste/createyourqueue/main/outils/installer.sh | bash
+curl -fsSL https://raw.githubusercontent.com/t3rroriste/createyourqueue/main/outils/installer.sh -o /tmp/cyq.sh && bash /tmp/cyq.sh
 ```
+
+En deux temps, et pas `curl … | bash` : avec un tube, l'entrée standard du
+script est le script lui-même, et la question du dossier y pioche les
+octets suivants — c'est-à-dire la suite du code. Le contournement par
+`/dev/tty` marche tant que /dev/tty existe, ce qui n'est pas garanti. Pas
+de tube, pas de piège. Pour n'avoir aucune question :
+
+```bash
+bash /tmp/cyq.sh ~/Developer/CYQ
+```
+
+Si le Mac est neuf, `git` existe sans marcher : c'est une amorce qui ouvre
+la fenêtre des outils de développement au premier appel. L'installeur le
+détecte et te dit de lancer `xcode-select --install` d'abord.
 
 Sur un **PC Windows**, dans PowerShell :
 
