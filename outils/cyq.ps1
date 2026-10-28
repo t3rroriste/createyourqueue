@@ -107,7 +107,7 @@ switch ($Verbe) {
     if ($p) { Write-Host ("  active (processus " + $p.Id + ")") } else { Write-Host "  arrêtée" }
     if (Test-Path (Join-Path $etat 'conflit')) {
       Write-Host "  CONFLIT non réglé : rien n'est publié." -ForegroundColor Red
-      Get-Content (Join-Path $etat 'conflit') | ForEach-Object { Write-Host ("    " + $_) }
+      Get-Content (Join-Path $etat 'conflit') -Encoding UTF8 | ForEach-Object { Write-Host ("    " + $_) }
     }
     if (Test-Path (Join-Path $etat 'pause')) { Write-Host "  publication en pause" -ForegroundColor Yellow }
     $dp = Join-Path $etat 'dernier-publie.txt'
@@ -124,7 +124,9 @@ switch ($Verbe) {
     Write-Host ""
     Write-Host "--- dix dernières lignes du journal ---"
     $j = Join-Path $etat 'journal.log'
-    if (Test-Path $j) { Get-Content $j -Tail 10 } else { Write-Host "  (vide)" }
+    # -Encoding UTF8 : sans lui, PowerShell 5.1 lit le journal en ANSI et
+    # tous les accents ressortent en charabia.
+    if (Test-Path $j) { Get-Content $j -Tail 10 -Encoding UTF8 } else { Write-Host "  (vide)" }
   }
 
   'pause' {
