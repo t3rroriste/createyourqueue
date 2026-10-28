@@ -289,7 +289,7 @@ if ($ListRemote) {
 # La liste vit dans son propre fichier : `verser-au-depot.ps1` la lit aussi,
 # et deux copies d'une même liste finissent toujours par diverger — c'est
 # comme ça que `servers.css` est parti sans son CSS.
-. (Join-Path $racine 'fichiers-du-site.ps1')
+. (Join-Path $ici 'fichiers-du-site.ps1')
 
 $cibles = @()
 if ($Cible -eq 'tout' -or $Cible -eq 'site') {

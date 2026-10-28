@@ -160,7 +160,22 @@ def passage(exe: str) -> Rapport:
             r.dire(f"{len(fichiers)} fichier(s) enregistré(s).")
 
     # --- 2. récupérer ce que l'autre PC a poussé -------------------------
-    pull = git(exe, "pull", "--rebase", "--autostash", "--quiet")
+    #
+    # On ne rebase QUE si le distant a vraiment avancé. Un `pull --rebase`
+    # lancé alors qu'on est seulement en avance n'est pas l'opération vide
+    # qu'on imagine : git rejoue nos commits sur le distant et APLATIT les
+    # fusions au passage. L'historique contient une fusion (la réunion des
+    # deux dépôts) ; la rejouer ressortait le conflit déjà réglé, toutes les
+    # trente secondes.
+    #
+    # Et quand il faut rebaser, `--rebase=merges` garde les fusions telles
+    # quelles au lieu de les défaire.
+    retard = git(exe, "rev-list", "--count", "HEAD..@{upstream}")
+    en_retard = retard.returncode == 0 and (retard.stdout.strip() or "0") != "0"
+
+    pull = (git(exe, "pull", "--rebase=merges", "--autostash", "--quiet")
+            if en_retard else
+            subprocess.CompletedProcess([], 0, "", ""))
     if pull.returncode != 0:
         sortie = (pull.stdout + pull.stderr).strip()
         # Un rebase interrompu laisse le dépôt dans un état intermédiaire.
