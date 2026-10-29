@@ -416,7 +416,6 @@ window.CYQ_I18N.fr = {
   "sp.docs": "Documentation",
   "sp.docsD": "Toutes les commandes et tous les réglages du bot, avec des exemples.",
   "sp.docsBtn": "Lire la documentation",
-  "sp.delay": "Les réponses ne sont pas automatiques : elles peuvent prendre quelques jours.",
 
   /* --- connexion Discord et ecran d'accueil (login.html, welcome.html) --- */
   "au.step1": "Étape 1 sur 2",

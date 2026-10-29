@@ -106,7 +106,7 @@ window.CYQ_CONFIG = {
   /* Invitation vers ton serveur Discord d'entraide. Alimente le lien
      « Support » de la navigation et celui du pied de page.
      Exemple : 'https://discord.gg/xxxxxxx'                                */
-  SUPPORT_URL: '#',
+  SUPPORT_URL: 'https://discord.gg/e9E8Fc4Bqb',
   STATUS_URL: '#',
   PRIVACY_URL: '#',
 

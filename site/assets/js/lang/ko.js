@@ -416,7 +416,6 @@ window.CYQ_I18N.ko = {
   "sp.docs": "문서",
   "sp.docsD": "봇의 모든 명령어와 설정을 예시와 함께 설명합니다.",
   "sp.docsBtn": "문서 읽기",
-  "sp.delay": "답장은 자동이 아닙니다. 며칠 걸릴 수 있습니다.",
 
   /* --- connexion Discord et ecran d'accueil (login.html, welcome.html) --- */
   "au.step1": "1단계 / 2단계",
