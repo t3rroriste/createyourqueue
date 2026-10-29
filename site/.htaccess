@@ -114,7 +114,8 @@ DirectoryIndex index.html login.html
   # À savoir : cette redirection ne sert à rien pour OAuth. Discord compare
   # l'adresse de retour AVANT toute redirection : c'est bien
   # https://dashboard.cyqbot.eu/login.html qui doit être déclarée dans le
-  # portail, OAuth2 → Redirects.
+  # portail, OAuth2 → Redirects. C'est aussi pour cela que login est absent
+  # de la redirection vers la forme courte, plus bas.
   RewriteCond %{HTTP_HOST} !^dashboard\. [NC]
   RewriteRule ^(login|welcome|servers|dashboard)\.html$ https://dashboard.cyqbot.eu/$1.html [R=301,L,QSA]
 
@@ -126,12 +127,6 @@ DirectoryIndex index.html login.html
   # /servers sert servers.html. RÉÉCRITURE INTERNE, pas redirection : la
   # barre d'adresse ne bouge pas, le navigateur ne refait pas de requête.
   #
-  # Conséquence voulue : /servers.html continue de répondre. Ce n'est pas
-  # de la politesse envers les anciens favoris, c'est une obligation —
-  # Discord renvoie sur /login.html après l'autorisation, et c'est cette
-  # adresse-là, au caractère près, qui est déclarée dans son portail.
-  # Supprimer la forme longue casserait la connexion.
-  #
   # Liste explicite plutôt qu'une règle générique : /api est servi par PHP
   # et ne doit jamais passer par ici. La condition `-f` fait le reste — sur
   # la vitrine, /servers ne correspond à aucun fichier, donc la règle ne
@@ -140,8 +135,38 @@ DirectoryIndex index.html login.html
   # la tolérait dans la règle ci-dessous, /servers/ servirait bien la page,
   # mais le navigateur résoudrait « assets/css/… » sous /servers/ — une
   # page sans style et sans script, pour un slash en trop.
-  RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide)/$ /$1 [R=301,L,QSA]
+  #
+  # `support` fait partie des deux listes depuis le 29 octobre : la page
+  # existait depuis le 16, et /support ne répondait pas.
+  RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide|support)/$ /$1 [R=301,L,QSA]
+
+  # ---- la forme longue renvoie vers la forme courte ----------------------
+  # Sans cette règle, /guide.html restait /guide.html dans la barre
+  # d'adresse : deux adresses pour une page, et c'est la plus laide des
+  # deux qui circulait dans les liens et les favoris.
+  #
+  # La condition porte sur %{THE_REQUEST} — la ligne de requête BRUTE,
+  # « GET /guide.html HTTP/1.1 » — et surtout pas sur %{REQUEST_URI}, que la
+  # réécriture interne juste en dessous vient de changer en « /guide.html ».
+  # Sur REQUEST_URI, chaque /guide se ferait réécrire en /guide.html puis
+  # rediriger vers /guide, indéfiniment.
+  #
+  # LOGIN N'Y EST PAS, ET IL NE DOIT JAMAIS Y ÊTRE.
+  # Discord compare l'adresse de retour OAuth au caractère près, AVANT
+  # toute redirection : c'est « https://dashboard.cyqbot.eu/login.html »
+  # qui est déclarée dans le portail développeur, OAuth2 → Redirects. Une
+  # 301 n'est pas un détour poli, c'est un refus : Discord verrait une
+  # redirect_uri qu'il ne connaît pas et renverrait invalid_request. /login
+  # sert bien la page, mais /login.html doit répondre 200, lui-même.
+  #
+  # index.html part vers « / » et non vers « /index » : la racine est déjà
+  # servie par DirectoryIndex, et en faire une troisième adresse pour la
+  # même page irait contre ce que cette règle cherche à faire.
+  RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.html[\s?]
+  RewriteRule ^index\.html$ / [R=301,L,QSA]
+  RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.html[\s?]
+  RewriteRule ^(welcome|servers|dashboard|modules|guide|support)\.html$ /$1 [R=301,L,QSA]
 
   RewriteCond %{REQUEST_FILENAME}.html -f
-  RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide)$ $1.html [L,QSA]
+  RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide|support)$ $1.html [L,QSA]
 </IfModule>

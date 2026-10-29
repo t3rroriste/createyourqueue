@@ -5,11 +5,7 @@
       "name": "cyq-site",
       "runtimeExecutable": "python",
       "runtimeArgs": [
-        "-m",
-        "http.server",
-        "8765",
-        "--directory",
-        "site"
+        "outils/serveur_local.py"
       ],
       "port": 8765
     },

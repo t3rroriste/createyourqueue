@@ -12,8 +12,8 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610291741">
-<link rel="stylesheet" href="assets/css/modules.css?v=202610291741">
+<link rel="stylesheet" href="assets/css/home.css?v=202610291750">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610291750">
 <script>
 // Même garde que l'accueil : on masque l'en-tête le temps que le script pose
 // ses états de départ, avec un retrait automatique qui ne dépend pas
@@ -40,14 +40,14 @@
 
 <!-- ===================== navigation ===================== -->
 <nav class="nav" aria-label="Principale" data-nav>
-  <a class="nav__mark" href="index.html">
+  <a class="nav__mark" href="index">
     <img src="assets/img/logo.png" alt="" width="22" height="22">
     <span>CreateYourQueue</span>
   </a>
   <div class="nav__links">
-    <a href="guide.html" data-i18n="n.docs">Documentation</a>
-    <a href="modules.html" aria-current="page" data-i18n="m.nav">Modules</a>
-    <a href="support.html" data-i18n="n.support">Support</a>
+    <a href="guide" data-i18n="n.docs">Documentation</a>
+    <a href="modules" aria-current="page" data-i18n="m.nav">Modules</a>
+    <a href="support" data-i18n="n.support">Support</a>
   </div>
   <div class="langmenu">
     <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
@@ -62,7 +62,7 @@
         <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
     </div>
   </div>
-  <a class="pill" href="servers.html" data-login>
+  <a class="pill" href="servers" data-login>
     <span data-i18n="n.login">Se connecter</span>
     <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
   </a>
@@ -500,7 +500,7 @@
     <div class="mcta__in">
       <h2 class="mcta__title" data-i18n="m.ctaT"></h2>
       <p class="lead" data-i18n="m.ctaL"></p>
-      <a class="pill" href="servers.html" data-app="servers.html">
+      <a class="pill" href="servers" data-app="servers">
         <span data-i18n="m.cta">Ouvrir le panneau</span>
         <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
       </a>
@@ -511,22 +511,22 @@
   <footer class="foot">
     <span class="foot__end">
       <a href="#" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
-      <a href="modules.html" data-i18n="m.nav">Modules</a>
+      <a href="modules" data-i18n="m.nav">Modules</a>
       <a href="#" data-cfg-link="STATUS_URL" data-i18n="n.status">État du service</a>
-      <a href="support.html" data-i18n="n.support">Support</a>
+      <a href="support" data-i18n="n.support">Support</a>
       <a href="#" data-cfg-link="PRIVACY_URL" data-i18n="n.privacy">Confidentialité</a>
     </span>
   </footer>
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610291741"></script>
-<script src="assets/js/config.js?v=202610291741"></script>
-<script src="assets/js/lang/fr.js?v=202610291741"></script>
-<script src="assets/js/lang/en.js?v=202610291741"></script>
-<script src="assets/js/lang/es.js?v=202610291741"></script>
-<script src="assets/js/lang/de.js?v=202610291741"></script>
-<script src="assets/js/lang/ko.js?v=202610291741"></script>
-<script src="assets/js/app.js?v=202610291741"></script>
-<script src="assets/js/page-modules.js?v=202610291741"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610291750"></script>
+<script src="assets/js/config.js?v=202610291750"></script>
+<script src="assets/js/lang/fr.js?v=202610291750"></script>
+<script src="assets/js/lang/en.js?v=202610291750"></script>
+<script src="assets/js/lang/es.js?v=202610291750"></script>
+<script src="assets/js/lang/de.js?v=202610291750"></script>
+<script src="assets/js/lang/ko.js?v=202610291750"></script>
+<script src="assets/js/app.js?v=202610291750"></script>
+<script src="assets/js/page-modules.js?v=202610291750"></script>
 </body>
 </html>

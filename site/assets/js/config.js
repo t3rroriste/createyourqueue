@@ -101,7 +101,7 @@ window.CYQ_CONFIG = {
 
   /* --- Divers ---------------------------------------------------------- */
   SITE_NAME: 'CreateYourQueue',
-  DOCS_URL: 'guide.html',
+  DOCS_URL: 'guide',
   COMMANDS_URL: '#',
   /* Invitation vers ton serveur Discord d'entraide. Alimente le lien
      « Support » de la navigation et celui du pied de page.

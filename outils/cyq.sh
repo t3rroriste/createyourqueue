@@ -141,8 +141,10 @@ case "$verbe" in
     ;;
 
   local)
-    echo "http://localhost:8765/  —  Ctrl+C pour arrêter."
-    "$PY" -m http.server 8765 --directory "$RACINE/site"
+    # Pas `http.server` : les pages se lient par leur forme courte (/guide),
+    # qu'un serveur de fichiers nu renvoie en 404. serveur_local.py rejoue
+    # les règles du .htaccess, donc on essaie en local ce qui part en ligne.
+    "$PY" "$OUTILS/serveur_local.py"
     ;;
 
   *)

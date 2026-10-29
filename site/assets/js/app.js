@@ -1027,8 +1027,14 @@
     /* Les liens qui traversent d'un domaine à l'autre. Le HTML garde
        l'adresse relative — elle reste juste quand tout est sur un seul
        domaine — et c'est ici qu'elle devient absolue si besoin.
-         data-site : vers la vitrine   (index, modules, guide)
-         data-app  : vers le panneau   (login, welcome, servers, dashboard) */
+         data-site : vers la vitrine   (index, modules, guide, support)
+         data-app  : vers le panneau   (login.html, welcome, servers, dashboard)
+
+       La valeur est la FORME COURTE, sans .html, depuis le 29 octobre.
+       `versOrigine` ne suppose rien de l'extension : il nettoie les barres
+       obliques de tête et préfixe, c'est tout. Seul login garde sa forme
+       longue, parce que Discord compare l'adresse de retour OAuth au
+       caractère près et que c'est login.html qui est déclarée là-bas. */
     $$('[data-site]').forEach(function (a) {
       a.setAttribute('href', CYQ.siteUrl(a.getAttribute('data-site')));
     });
@@ -1039,7 +1045,7 @@
     $$('[data-cfg-link]').forEach(function (a) {
       var k = a.getAttribute('data-cfg-link');
       if (!CFG[k] || CFG[k] === '#') return;
-      /* DOCS_URL vaut « guide.html » : une page de la vitrine. Depuis le
+      /* DOCS_URL vaut « guide » : une page de la vitrine. Depuis le
          panneau, elle doit donc partir sur l'autre domaine. Une adresse
          déjà absolue (http…, //…, mailto:) n'est jamais touchée. */
       a.setAttribute('href', /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(CFG[k])
