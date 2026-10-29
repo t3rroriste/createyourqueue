@@ -57,13 +57,15 @@ html { -webkit-text-size-adjust: 100%; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 
 /* Anti-flash de l'ouverture.
-   Le titre est découpé en lignes par anime.js, et ce découpage ne peut se
-   faire qu'une fois les polices chargées, sinon les lignes sont mesurées sur
-   la police de repli. Entre le premier rendu et ce moment-là, on verrait le
-   titre en un bloc, puis se recomposer. On le masque donc jusqu'au signal,
-   posé par le script du <head> et retiré soit par le motion, soit par son
-   propre minuteur. Rien n'est masqué si la personne a demandé moins de
-   mouvement : dans ce cas il n'y a pas d'ouverture à cacher. */
+   Le héros attend les polices. Le titre n'est plus découpé en mots, mais la
+   raison d'attendre n'a pas changé : sa hauteur est MESURÉE avant la boucle
+   de frappe, et une mesure prise sur la police de repli donnerait une
+   réserve fausse, qu'on verrait sauter au premier échange de police. Entre
+   le premier rendu et ce moment-là, on verrait le titre entier, puis se
+   vider d'un coup pour se retaper. On le masque donc jusqu'au signal, posé
+   par le script du <head> et retiré soit par le motion, soit par son propre
+   minuteur. Rien n'est masqué si la personne a demandé moins de mouvement :
+   dans ce cas il n'y a pas d'ouverture à cacher. */
 @media (prefers-reduced-motion: no-preference) {
   html.motion-pending [data-nav],
   html.motion-pending .hero__copy > *,
@@ -324,6 +326,44 @@ html::-webkit-scrollbar { display: none; }
   text-transform: lowercase;
   margin-bottom: var(--sp-3);
 }
+
+/* ---- le titre qui se tape --------------------------------------------
+   La hauteur du h1 est figée EN LIGNE par page-home.js, après mesure du
+   texte complet : elle dépend de la langue, de la largeur et de la police
+   réellement chargée, et aucune de ces trois choses ne se devine ici.
+   Une valeur écrite ici serait fausse dès le premier changement de langue.
+
+   `pre-wrap` sur la partie animée : la phrase se coupe souvent sur une
+   espace au milieu de la frappe, et une espace finale repliée décalerait
+   le curseur d'un caractère à chaque mot.                               */
+.hero__type { white-space: pre-wrap; }
+
+/* Le curseur. Un pseudo-élément, et jamais un « | » posé dans le DOM : un
+   lecteur d'écran lirait la barre verticale au milieu du titre. Un
+   `content` vide avec un fond n'ajoute, lui, aucun texte au nom
+   accessible. Seule l'opacité est animée.
+
+   C'est l'unique emploi du cuivre dans le héros : la flèche du bouton
+   d'invitation est la même teinte, mais elle est dans la coque, pas dans
+   le titre — un seul accent par regard. */
+.hero__title.is-typing::after {
+  content: ""; display: inline-block;
+  width: .055em; height: .78em; margin-left: .07em;
+  vertical-align: -.04em;
+  background: var(--accent);
+  animation: curseur 1.05s steps(1, end) infinite;
+}
+/* L'image à 100 % revient à une opacité de 1, et ce n'est pas décoratif :
+   sous `prefers-reduced-motion`, le bloc de fin de feuille ramène toute
+   animation à une seule itération de .001 ms. Si la dernière image était
+   transparente, le curseur de ?motion=on resterait invisible sur ces
+   machines — un titre qui se tape sans rien devant. */
+@keyframes curseur {
+  0%, 45%  { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100%     { opacity: 1; }
+}
+
 .hero__lead { max-width: 42ch; margin-bottom: var(--sp-3); }
 
 .hero__note {

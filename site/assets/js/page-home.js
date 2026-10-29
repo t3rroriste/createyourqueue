@@ -3,8 +3,11 @@
    anime.js v4, chargé en UMD (le site n'a pas d'étape de build) : les
    exports nommés sont donc lus sur le global `anime`.
 
-   Une seule séquence depuis que la pile de sections a été retirée :
-     entree()   — la chorégraphie d'ouverture, en UNE timeline
+   Deux séquences, et elles ne se mélangent pas :
+     entree()           — la chorégraphie d'ouverture, en UNE timeline
+     titreQuiSeTape()   — la boucle du titre, dans sa PROPRE IIFE, hors de
+                          la portée d'anime.js : elle ne lui doit rien et
+                          doit jouer même quand la bibliothèque manque.
 
    Règles tenues : on n'anime que transform, opacity et filter ; les états
    initiaux sont posés en JS, jamais en CSS, pour que la page reste lisible
@@ -47,11 +50,11 @@
 
   /* ===================================================== 1. l'entrée ==== */
 
-  function entree(splitter) {
+  function entree() {
     var shell  = $('.shell');
     var nav    = $('[data-nav]');
     var matter = $('[data-hero="matter"]');
-    var mots   = splitter && splitter.words ? splitter.words : [];
+    var titre  = $('[data-hero="title"]');
 
     /* L'ordre de la cascade est celui-ci, et il est tenu par les temps de
        départ plus bas : titre, accroche, bouton, mention. */
@@ -63,8 +66,8 @@
 
     utils.set(nav,    { opacity: 0, y: -24 });
     utils.set(around, { opacity: 0, y: 14 });
+    utils.set(titre,  { opacity: 0, y: 14 });
     utils.set(matter, { opacity: 0, scale: 1.12, y: 40, filter: 'blur(12px)' });
-    if (mots.length) utils.set(mots, { y: '110%' });
 
     // Les états de départ sont posés : plus rien ne peut sauter, on affiche.
     decouvrir();
@@ -76,11 +79,12 @@
          reste du héros 14 px trop bas, en permanence. */
       utils.set(nav,    { y: 0 });
       utils.set(around, { y: 0 });
-      if (mots.length) utils.set(mots, { y: '0%' });
+      utils.set(titre,  { y: 0 });
       utils.set($('[data-hero-in]'), { scale: 1, y: 0, opacity: 1, filter: 'none' });
-      var all = [nav, matter].concat(around).concat(mots).filter(Boolean);
+      var all = [nav, matter, titre].concat(around).filter(Boolean);
       utils.set(all, { opacity: 1 });
       rendreLaMainAuCss();
+      titreLibre();
       return null;
     }
 
@@ -91,31 +95,44 @@
        L'opacité, elle, peut rester — rien ne la dispute. */
     function rendreLaMainAuCss() {
       around.forEach(function (el) { el.style.transform = ''; });
+      if (titre) titre.style.transform = '';
     }
 
-    var tl = createTimeline({ defaults: { ease: OUT }, onComplete: rendreLaMainAuCss });
+    /* La boucle de frappe attend ce signal, et rien d'autre. Elle ne peut
+       pas démarrer pendant la cascade : on verrait le titre se taper
+       pendant qu'il monte et change d'opacité, deux mouvements sur le même
+       élément. Elle a son propre filet si ce signal n'arrive jamais. */
+    function titreLibre() {
+      document.dispatchEvent(new CustomEvent('cyq:titre-libre'));
+    }
+
+    var tl = createTimeline({ defaults: { ease: OUT }, onComplete: function () {
+      rendreLaMainAuCss();
+      titreLibre();
+    } });
 
     // t=0 — la coque s'installe dans l'écran
     tl.add(shell, { scale: [.96, 1], borderRadius: ['64px', '36px'], duration: 900 }, 0)
       // t=120 — la pilule de navigation descend
       .add(nav,   { opacity: 1, y: 0, duration: 700 }, 120);
 
-    /* t=380 — le titre monte, mot par mot, chacun derrière son cache.
-       Le pas descend de 80 à 45 ms : il y a onze mots là où il y avait
-       quatre lignes, et garder 80 ms étalait la montée sur près d'une
-       seconde de plus que le reste de la cascade. */
-    if (mots.length) {
-      tl.add(mots, { y: ['110%', '0%'], duration: 750, delay: stagger(45) }, 380);
-    }
+    /* t=380 — le titre arrive d'un bloc, et c'est un changement assumé.
+       Il montait mot par mot derrière des caches, découpé par splitText :
+       ce découpage n'est plus possible, puisque le texte du titre change
+       maintenant à chaque caractère. Deux mécanismes se disputeraient le
+       même DOM, et le second effacerait les wrappers du premier.
+       La frappe EST devenue l'entrée du titre ; il ne reste ici qu'à le
+       découvrir, à sa place dans la cascade. */
+    if (titre) tl.add(titre, { opacity: 1, y: 0, duration: 650 }, 380);
 
     // t=300 — le halo, sous le texte
     tl.add(matter, { opacity: 1, scale: 1, y: 0,
                      filter: ['blur(12px)', 'blur(6px)'], duration: 1300 }, 300);
 
     /* La suite de la cascade. Des départs séparés plutôt qu'un stagger :
-       le titre prend environ 500 ms de plus que les autres à cause du décalage
-       entre ses mots, donc l'accroche doit l'attendre, ce qu'un stagger
-       régulier ne sait pas faire. */
+       chaque élément a sa propre durée, et l'accroche doit attendre que le
+       titre soit posé avant de paraître — ce qu'un stagger régulier, qui
+       ne connaît qu'un pas constant, ne sait pas faire. */
     if (lead) tl.add(lead, { opacity: 1, y: 0, duration: 550 }, 620);
     tl.add(cta, { opacity: 1, y: 0, duration: 550 }, 740);
     if (note) tl.add(note, { opacity: 1, y: 0, duration: 500 }, 840);
@@ -132,50 +149,24 @@
   /* ============================================== orchestration ========= */
 
   var scope = createScope({ root: document.body }).add(function () {
-    var splitter = null;
     var started = false;
 
     function start() {
       if (started) return;
       started = true;
-
-      // Le découpage doit se faire APRÈS les polices : sinon les mots sont
-      // mesurés sur la police de repli, puis se recomposent.
-      var title = $('[data-hero="title"]');
-      if (title && A.splitText) {
-        /* Mot par mot. `lines: false` n'est pas décoratif : un découpage en
-           lignes fige ses frontières dans des wrappers et les recalcule à
-           chaque redimensionnement, ce qui remplace les éléments de mots
-           sous l'animation en cours. Sans lui, les mots restent des
-           inline-block que le navigateur recompose tout seul. */
-        try { splitter = A.splitText(title, { lines: false, words: { wrap: 'clip' } }); }
-        catch (e) { splitter = null; }
-      }
-
-      /* splitText découpe le DOM à la frame suivante, pas dans l'appel :
-         juste après, splitter.words est encore vide. Lu trop tôt, le titre
-         n'entre jamais dans la timeline et il apparaît d'un bloc avec le
-         reste. On laisse donc passer quelques frames, et on démarre sans lui
-         si le découpage n'aboutit pas. */
-      var essais = 0;
-      (function attendreLignes() {
-        var pret = splitter && splitter.words && splitter.words.length;
-        if (!pret && splitter && ++essais < 12) {
-          requestAnimationFrame(attendreLignes);
-          return;
-        }
-        entree(splitter);
-      })();
+      entree();
     }
 
+    /* On attend toujours les polices, même sans découpage à faire : le
+       titre est mesuré par la boucle de frappe pour réserver sa hauteur, et
+       une mesure prise sur la police de repli donnerait une réserve
+       fausse, qu'on verrait sauter au premier échange de police. */
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () { requestAnimationFrame(start); });
       setTimeout(start, 1500);            // filet si fonts.ready ne se résout pas
     } else {
       requestAnimationFrame(start);
     }
-
-    return function () { if (splitter && splitter.revert) splitter.revert(); };
   });
 
   /* ================= les modules, révélés au défilement ================= */
@@ -275,4 +266,220 @@
   })();
 
   window.CYQ_HOME = scope;
+})();
+
+
+/* =========================================================================
+   LE TITRE QUI SE TAPE, S'EFFACE, ET RECOMMENCE
+   =========================================================================
+   Dans sa PROPRE IIFE, et c'est la seule chose qui ne se négocie pas ici :
+   celle du dessus sort à sa deuxième ligne quand `window.anime` est absent
+   (`if (!A) { decouvrir(); return; }`). Une boucle écrite à l'intérieur ne
+   jouerait donc jamais sur un navigateur où la bibliothèque n'a pas chargé
+   — exactement le cas où l'on tient le plus à ce que la page vive.
+
+   Elle ne doit rien à anime.js : un setTimeout récursif, et rien d'autre.
+   ========================================================================= */
+(function titreQuiSeTape() {
+  'use strict';
+
+  var h1 = document.querySelector('[data-hero="title"]');
+  if (!h1) return;
+
+  /* ----------------------------------------------------- les cadences ----
+     Les délais sont ici, en haut, parce que ce sont eux qui donnent le ton.
+
+     FRAPPE est une moyenne, pas une cadence : chaque caractère tire son
+     propre délai entre FRAPPE et FRAPPE+ALEA. Un rythme parfaitement
+     régulier fait « terminal de film », et c'est précisément ce qu'on ne
+     veut pas d'un titre d'accueil. Quarante-six millisecondes donnent
+     environ vingt caractères par seconde : assez vif pour qu'une phrase de
+     soixante signes s'écrive en trois secondes, assez lent pour qu'on la
+     lise en même temps qu'elle s'écrit.
+
+     EFFACE est deux fois plus rapide : on ne relit pas une phrase qui
+     disparaît, et l'y faire traîner double l'attente avant le tour suivant.
+
+     TENUE est le temps où la phrase reste entière. Deux secondes et demie,
+     c'est le temps de la lire sans la relire. VIDE est la respiration à
+     zéro caractère : sans elle, la frappe repart dans le même mouvement
+     que l'effacement et on ne voit pas la boucle recommencer.             */
+  var FRAPPE = 46;
+  var ALEA   = 38;
+  var EFFACE = 24;
+  var TENUE  = 2500;
+  var VIDE   = 540;
+
+  /* Même lecture que page-home.js, et non une valeur partagée : les deux
+     IIFE sont étanches, et ?motion=on doit forcer la boucle ici aussi. */
+  var force = document.documentElement.classList.contains('motion-force');
+  var calme = !force && window.matchMedia &&
+              window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var vu = null;           // la partie animée, la seule qui change
+  var sr = null;           // le texte réel, figé, pour les lecteurs d'écran
+  var texte = '';
+  var minuteur = null;
+  var demarre = false;
+
+  function texteCourant() {
+    /* La clé plutôt que le DOM : applyI18n vient peut-être d'écrire dedans,
+       mais c'est le dictionnaire qui fait foi, et lui seul sait la langue
+       choisie. Le contenu de la balise sert de repli quand app.js n'a pas
+       (encore) tourné. */
+    if (window.CYQ && window.CYQ.t) {
+      var v = window.CYQ.t('h.title');
+      if (v && v !== 'h.title') return v;
+    }
+    return (h1.textContent || '').trim();
+  }
+
+  /* Le balisage de la frappe. Deux enfants, et le partage est net :
+
+       <span class="sr-only">        le texte réel, entier, UNE fois. C'est
+                                     lui que lit un lecteur d'écran.
+       <span class="hero__type">     la partie qui change, aria-hidden.
+
+     Pas d'aria-live, jamais : la frappe serait annoncée lettre par lettre,
+     indéfiniment, et le titre deviendrait inécoutable. Et pas de caractère
+     « | » injecté dans le DOM pour le curseur — il serait lu lui aussi.
+     Le curseur est un pseudo-élément, animé en opacité seule.             */
+  function batir() {
+    h1.textContent = '';
+    sr = document.createElement('span');
+    sr.className = 'sr-only';
+    sr.textContent = texte;
+    vu = document.createElement('span');
+    vu.className = 'hero__type';
+    vu.setAttribute('aria-hidden', 'true');
+    h1.appendChild(sr);
+    h1.appendChild(vu);
+  }
+
+  /* La hauteur réservée, MESURÉE et non devinée. Sans elle, une phrase qui
+     passe de trois lignes à une repousse le bouton d'invitation à chaque
+     caractère — la page tremble pendant toute la boucle. On mesure le
+     texte complet, on fige cette hauteur sur le h1, et le texte varie
+     dedans.
+
+     Une valeur en CSS ne pourrait pas faire ce travail : la hauteur dépend
+     de la langue, de la largeur de l'écran et de la police effectivement
+     chargée. Elle est donc reprise à chaque changement de langue et à
+     chaque redimensionnement. */
+  function mesurer() {
+    var garde = vu.textContent;
+    vu.textContent = texte;
+    h1.style.minHeight = '';
+    var haut = h1.offsetHeight;
+    vu.textContent = garde;
+    if (haut) h1.style.minHeight = haut + 'px';
+  }
+
+  function stopper() {
+    if (minuteur) { clearTimeout(minuteur); minuteur = null; }
+  }
+
+  /* L'état final, figé : le titre entier, sans curseur, sans boucle. C'est
+     ce que voit quelqu'un qui a demandé moins de mouvement, et c'est aussi
+     le repli de tout ce qui pourrait mal tourner. */
+  function poserEntier() {
+    stopper();
+    h1.classList.remove('is-typing');
+    vu.textContent = texte;
+  }
+
+  function boucle() {
+    var i = 0;
+    var sens = 1;            // 1 : on écrit ; -1 : on efface
+
+    function pas() {
+      vu.textContent = texte.slice(0, i);
+
+      if (sens === 1) {
+        if (i >= texte.length) {
+          sens = -1;
+          minuteur = setTimeout(pas, TENUE);
+          return;
+        }
+        i += 1;
+        minuteur = setTimeout(pas, FRAPPE + Math.random() * ALEA);
+        return;
+      }
+
+      /* On efface jusqu'à la CHAÎNE VIDE, pas jusqu'au premier mot : un
+         titre réduit à « configure, » avec un curseur qui clignote
+         derrière ressemble à un champ de saisie abandonné, pas à un
+         titre. */
+      if (i <= 0) {
+        sens = 1;
+        minuteur = setTimeout(pas, VIDE);
+        return;
+      }
+      i -= 1;
+      minuteur = setTimeout(pas, EFFACE);
+    }
+
+    stopper();
+    h1.classList.add('is-typing');
+    pas();
+  }
+
+  /* Un onglet caché n'affiche rien : une boucle qui continue d'y tourner
+     réveille le processeur toutes les quarante millisecondes pour
+     personne. On la coupe, et on la reprend du début au retour — reprendre
+     au caractère exact où l'on s'était arrêté n'apporte rien que personne
+     n'a vu partir. */
+  document.addEventListener('visibilitychange', function () {
+    if (!demarre || calme) return;
+    if (document.hidden) stopper();
+    else if (!minuteur) boucle();
+  });
+
+  function partir() {
+    if (demarre) return;
+    demarre = true;
+    texte = texteCourant();
+    if (!texte) return;
+    batir();
+    mesurer();
+    if (calme) { poserEntier(); return; }
+    boucle();
+  }
+
+  /* app.js émet `cyq:lang` APRÈS avoir réécrit le texte des [data-i18n] —
+     donc après avoir effacé les deux enfants posés plus haut. On rebâtit
+     tout : nouvelle phrase, nouvelle mesure, boucle repartie de zéro. Sans
+     ça, le titre continuerait de taper l'ancienne langue dans un DOM qui
+     n'existe plus. */
+  document.addEventListener('cyq:lang', function () {
+    if (!demarre) return;
+    stopper();
+    texte = texteCourant();
+    if (!texte) return;
+    batir();
+    mesurer();
+    if (calme) poserEntier();
+    else boucle();
+  });
+
+  /* La hauteur réservée dépend de la largeur : à 375 px la même phrase
+     prend cinq lignes au lieu de deux. On remesure, sans refaire la
+     boucle — elle garde son avancement. */
+  var redim = null;
+  window.addEventListener('resize', function () {
+    if (!demarre || !vu) return;
+    clearTimeout(redim);
+    redim = setTimeout(mesurer, 150);
+  });
+
+  /* Deux départs possibles, et le premier qui arrive gagne :
+
+       cyq:titre-libre   la cascade d'ouverture a fini de poser le titre ;
+       le filet          1 900 ms, juste après que le <head> ait découvert
+                         le héros de lui-même (1 800 ms). C'est le chemin
+                         pris quand anime.js manque, quand la timeline ne
+                         se termine pas, ou quand on a demandé moins de
+                         mouvement sans passer par page-home.js.           */
+  document.addEventListener('cyq:titre-libre', partir);
+  setTimeout(partir, 1900);
 })();
