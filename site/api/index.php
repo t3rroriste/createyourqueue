@@ -514,6 +514,11 @@ const PONT_RESSOURCES = [
     'channel.waitingVoice'  => 'voice_queue_waiting',
     'role.organizer'        => 'role_staff',
     'role.queueNotify'      => 'role_queue_notif',
+    /* Ces deux-là, le bot les lisait depuis toujours (le vocal d'attente
+       verrouillé, le rôle du MVP hebdomadaire) et ne se réglaient que par
+       /config : le panneau n'avait pas de champ pour eux. */
+    'role.connexion'        => 'role_connexion',
+    'role.mvpWeek'          => 'role_mvp_week',
     /* Les clans. Le bot tenait déjà ces trois ressources — l'assistant les
        pose, cogs/clan.py les lit — mais elles manquaient de cette table :
        le panneau avait trois champs qui n'arrivaient jamais jusqu'à lui. */
@@ -567,6 +572,16 @@ const PONT_SECURITE = [
     'security.raidWindow'     => 'join_interval',
     'security.raidAccountAge' => 'min_account_age_hours',
     'security.raidKick'       => 'auto_kick',
+];
+
+/* Les dix journaux, dans l'ordre de KINDS (bot/cogs/logs.py). Le panneau les
+   nomme `log.<type>.enabled` et `log.<type>.channel` ; le bot les range dans
+   un bloc `logs`. Rien ne les pontait : la section Logs du panneau écrivait
+   dans le fichier du site et le bot n'en voyait jamais rien — on allumait
+   « Modération », il disait « Enregistré », et aucun log n'arrivait. */
+const PONT_JOURNAUX = [
+    'vocal', 'message', 'queue', 'match', 'duel',
+    'clan', 'commande', 'join', 'moderation', 'serveur',
 ];
 
 /* La queue par défaut. Le bot range tout dans un seul objet `queue`, d'où
@@ -648,6 +663,15 @@ function reglages_du_bot(string $gid): array
         $sortie['language'] = (string)$rep['language'];
     }
 
+    /* Le surnom, dans l'autre sens. Il partait bien sur Discord, mais le
+       panneau le relisait depuis notre fichier : renommé à la main sur
+       Discord, il affichait l'ancien. Le bot, lui, le lit sur `guild.me`,
+       donc à la source. `array_key_exists` et non `!empty` : une chaîne
+       vide est une réponse — « aucun surnom » — et doit effacer la copie. */
+    if (array_key_exists('nick', $rep)) {
+        $sortie['bot.nick'] = (string)$rep['nick'];
+    }
+
     /* La queue : les clés simples, puis les équipes, que le bot garde en
        deux listes parallèles (noms, et couleurs indexées par nom). */
     $q = is_array($rep['queue'] ?? null) ? $rep['queue'] : [];
@@ -675,6 +699,39 @@ function reglages_du_bot(string $gid): array
             : $hexs[$i % count($hexs)];
     }
     $sortie['queue.passwordValue'] = (string)($rep['queue_password'] ?? '');
+
+    /* Les journaux. `channel` vaut null quand aucun salon n'est désigné :
+       le panneau attend une chaîne vide, pas la chaîne « null ». */
+    $journaux = is_array($rep['logs'] ?? null) ? $rep['logs'] : [];
+    foreach (PONT_JOURNAUX as $type) {
+        if (!isset($journaux[$type]) || !is_array($journaux[$type])) {
+            continue;
+        }
+        $j = $journaux[$type];
+        $sortie["log.$type.enabled"] = !empty($j['on']) ? '1' : '0';
+        $sortie["log.$type.channel"] = (string)($j['channel'] ?? '');
+    }
+
+    /* Le nettoyage automatique. Sa configuration ne survivait pas à un
+       redémarrage du bot : il n'y avait rien à lire. Elle est maintenant
+       sur le disque, et c'est le bot qui en a la vérité — /autoclean on
+       l'écrit aussi. */
+    $net = is_array($rep['autoclean'] ?? null) ? $rep['autoclean'] : [];
+    if ($net !== []) {
+        $sortie['security.autoclean'] = !empty($net['enabled']) ? '1' : '0';
+        $sortie['security.autocleanChannel'] = (string)($net['channel_id'] ?? '');
+        $sortie['security.autocleanDelay'] = (string)(int)($net['interval_minutes'] ?? 20);
+    }
+
+    /* L'anti-lien, salon par salon. Une clé par salon surveillé —
+       `antilink.<id>` — plutôt qu'une liste dans une seule valeur : le
+       panneau enregistre champ par champ, et une liste obligerait à
+       renvoyer tous les salons à chaque case cochée. */
+    $anti = is_array($rep['antilink']['channels'] ?? null) ? $rep['antilink']['channels'] : [];
+    $sortie['security.antilinkList'] = implode(',', array_map('strval', $anti));
+    foreach ($anti as $cid) {
+        $sortie['antilink.' . $cid] = '1';
+    }
 
     /* L'anti-raid, dans l'autre sens : réglé par /antiraid config sur
        Discord, il doit se voir dans le panneau sans rien avoir à faire. */
@@ -724,6 +781,9 @@ function trier_pour_le_bot(array $propre, array $reglagesActuels = []): array
     $equipes = [];
     $rangs = [];
     $nbRangs = null;
+    $journaux = [];
+    $nettoyage = [];
+    $antilien = [];
     foreach ($propre as $k => $v) {
         if (array_key_exists($k, PONT_RESSOURCES)) {
             // Vide = on retire la désignation : le bot attend null.
@@ -755,6 +815,20 @@ function trier_pour_le_bot(array $propre, array $reglagesActuels = []): array
                 : (int)$v;
         } elseif ($k === 'queue.passwordValue') {
             $pourLeBot['queue_password'] = (string)$v;
+        } elseif (preg_match('#^log\.([a-z]+)\.(enabled|channel)$#', $k, $mj)
+                  && in_array($mj[1], PONT_JOURNAUX, true)) {
+            /* Un journal se tient d'un bloc chez le bot — il éteint tout
+               seul un type allumé sans salon. On lui envoie donc les deux
+               champs ensemble, celui qui n'a pas changé compris. */
+            $journaux[$mj[1]][$mj[2]] = $v;
+        } elseif ($k === 'security.autoclean' || $k === 'security.autocleanChannel'
+                  || $k === 'security.autocleanDelay') {
+            $nettoyage[$k] = $v;
+        } elseif (preg_match('#^antilink\.(\d{5,25})$#', $k, $ma)) {
+            /* Le bot veut la liste COMPLÈTE : un lot qui ne porte qu'une
+               case cochée ne dit pas lesquels retirer. On part donc de ce
+               qui est déjà enregistré et on applique la case par-dessus. */
+            $antilien[$ma[1]] = ($v === '1' || $v === 1 || $v === true);
         } elseif (preg_match('#^mmr\.rank(\d{1,2})\.(name|min|color)$#', $k, $mr)) {
             // Même principe que les équipes : un rang se tient d'un bloc,
             // on ne peut pas en envoyer la moitié.
@@ -822,6 +896,62 @@ function trier_pour_le_bot(array $propre, array $reglagesActuels = []): array
         if ($liste) {
             $pourLeBot['mmr']['tiers'] = $liste;
         }
+    }
+
+    /* Les journaux, chacun complété par ce qui est déjà enregistré : le
+       bot éteint un type allumé sans salon, donc lui envoyer l'interrupteur
+       sans le salon l'éteindrait aussitôt. */
+    foreach ($journaux as $type => $champs) {
+        $actif = array_key_exists('enabled', $champs)
+            ? ($champs['enabled'] === '1' || $champs['enabled'] === 1 || $champs['enabled'] === true)
+            : (($reglagesActuels["log.$type.enabled"] ?? '0') === '1');
+        $salon = array_key_exists('channel', $champs)
+            ? (string)$champs['channel']
+            : (string)($reglagesActuels["log.$type.channel"] ?? '');
+        $pourLeBot['logs'][$type] = [
+            'on'      => $actif,
+            'channel' => $salon === '' ? null : $salon,
+        ];
+    }
+
+    /* Le nettoyage automatique : le bot veut les trois champs ensemble,
+       parce qu'« actif » sans salon n'est pas un réglage applicable. */
+    if ($nettoyage) {
+        $actif = array_key_exists('security.autoclean', $nettoyage)
+            ? ($nettoyage['security.autoclean'] === '1' || $nettoyage['security.autoclean'] === 1
+               || $nettoyage['security.autoclean'] === true)
+            : (($reglagesActuels['security.autoclean'] ?? '0') === '1');
+        $salon = array_key_exists('security.autocleanChannel', $nettoyage)
+            ? (string)$nettoyage['security.autocleanChannel']
+            : (string)($reglagesActuels['security.autocleanChannel'] ?? '');
+        $minutes = array_key_exists('security.autocleanDelay', $nettoyage)
+            ? (int)$nettoyage['security.autocleanDelay']
+            : (int)($reglagesActuels['security.autocleanDelay'] ?? 20);
+        $pourLeBot['autoclean'] = [
+            'enabled'          => $actif,
+            'channel_id'       => $salon === '' ? null : $salon,
+            'interval_minutes' => max(1, min(10080, $minutes)),
+        ];
+    }
+
+    /* L'anti-lien, reconstruit entier depuis l'existant plus les cases du
+       lot. `security.antilinkList` tient la liste d'avant — c'est la
+       lecture qui l'a posée, et elle est la seule forme compacte dont on
+       dispose quand le lot ne porte qu'un salon. */
+    if ($antilien) {
+        $connus = array_filter(explode(',', (string)($reglagesActuels['security.antilinkList'] ?? '')));
+        $liste = [];
+        foreach ($connus as $cid) {
+            $liste[(string)$cid] = true;
+        }
+        foreach ($antilien as $cid => $actif) {
+            if ($actif) {
+                $liste[(string)$cid] = true;
+            } else {
+                unset($liste[(string)$cid]);
+            }
+        }
+        $pourLeBot['antilink'] = ['channels' => array_keys($liste)];
     }
 
     return [$pourLeBot, $ici];

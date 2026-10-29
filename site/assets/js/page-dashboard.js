@@ -1281,6 +1281,52 @@
     $$('[data-log-toggle]').forEach(function (c) { c.addEventListener('change', compterJournaux); });
 
     /* ==================================================================
+       ANTI-LIEN
+       Une rangée par salon textuel, et une seule construction : les
+       rangées portent l'état coché, et les refabriquer après `remplir`
+       l'effacerait. D'où l'appel au chargement, avant le remplissage.
+       ================================================================== */
+
+    function rendreAntilien() {
+      var hote = $('[data-antilink]');
+      if (!hote) return;
+      var liste = (CYQ.data && CYQ.data.channels) || [];
+      /* Pas de salons lus : laisser la carte vide plutôt que d'afficher une
+         liste de rien qui ressemblerait à « aucun salon surveillé ». */
+      if (!liste.length) { hote.innerHTML = ''; return; }
+      hote.innerHTML = liste.map(function (c) {
+        var id = String(c.id);
+        return '<div class="row" data-antilink-row data-nom="' +
+            CYQ.esc(String(c.name || '').toLowerCase()) + '">' +
+          '<p class="row__text"><label class="row__label" for="al-' + id + '">#' +
+            CYQ.esc(c.name || id) + '</label></p>' +
+          '<span class="row__state" data-state aria-hidden="true"></span>' +
+          '<div class="row__ctl"><span class="switch">' +
+            '<input type="checkbox" role="switch" id="al-' + id + '" ' +
+              'data-setting="antilink.' + id + '">' +
+            SWITCH_TRACK + '</span></div>' +
+        '</div>';
+      }).join('');
+      /* Les interrupteurs neufs ne sont pas câblés : wireSwitches ne passe
+         qu'une fois, au chargement de app.js. L'enregistrement, lui, est
+         délégué sur `document` et marche sans rien. */
+      if (CYQ.wireSwitches) CYQ.wireSwitches(hote);
+    }
+
+    /* Le filtre ne cherche que dans le nom du salon : c'est tout ce que la
+       rangée montre, et filtrer sur un identifiant que personne ne lit
+       donnerait des disparitions inexplicables. */
+    var filtreAnti = $('[data-antilink-filtre]');
+    if (filtreAnti) {
+      filtreAnti.addEventListener('input', function () {
+        var q = filtreAnti.value.trim().toLowerCase();
+        $$('[data-antilink-row]').forEach(function (r) {
+          r.hidden = q !== '' && r.getAttribute('data-nom').indexOf(q) === -1;
+        });
+      });
+    }
+
+    /* ==================================================================
        PRESETS
        L'API les lit, elle ne sait pas en écrire : ni index.php ni
        server.py n'ont de route pour enregistrer un preset. La section
@@ -1645,6 +1691,9 @@
         CYQ.data.roles         = donnees.roles || [];
         listesLues = true;
         CYQ.refreshCombos();
+        /* AVANT `remplir` : c'est lui qui coche les cases, et il ne peut
+           cocher que des cases qui existent déjà. */
+        rendreAntilien();
         remplir(donnees.settings);
         rendreTout();
         finChargement(false);

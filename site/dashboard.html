@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610290404">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610290404">
+<link rel="stylesheet" href="assets/css/home.css?v=202610290516">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610290516">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -353,6 +353,20 @@
               <p class="row__text"><label class="row__label" for="rl-notify" data-i18n="rl.queueNotify">Notification de queue</label> <span class="row__desc" id="rl-notify-d" data-i18n="rl.queueNotifyD"></span></p>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.queueNotify"><button class="combo__button" id="rl-notify" type="button" aria-describedby="rl-notify-d"></button></div></div>
+            </div>
+            <!-- Ces deux rôles ne se réglaient que sur Discord : le bot les
+                 lisait depuis `role_connexion` et `role_mvp_week` sans que le
+                 panneau ait de champ pour eux. Ils sont DÉSIGNÉS, jamais
+                 créés — d'où « Aucun » qui reste un choix valide. -->
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="rl-connexion" data-i18n="rl.connexion">Connexion</label> <span class="row__desc" id="rl-connexion-d" data-i18n="rl.connexionD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.connexion"><button class="combo__button" id="rl-connexion" type="button" aria-describedby="rl-connexion-d"></button></div></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="rl-mvpweek" data-i18n="rl.mvpWeek">MVP de la semaine</label> <span class="row__desc" id="rl-mvpweek-d" data-i18n="rl.mvpWeekD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.mvpWeek"><button class="combo__button" id="rl-mvpweek" type="button" aria-describedby="rl-mvpweek-d"></button></div></div>
             </div>
             </div>
         </div>
@@ -768,25 +782,54 @@
           </div>
         </div>
 
-        <!-- Ces deux-là ne sont PAS réglables ici, et le dire vaut mieux
-             que de remettre les interrupteurs qui ne faisaient rien.
-             L'anti-lien se règle par SALON, pas par serveur ; le nettoyage
-             automatique n'est pas encore enregistré sur le disque, il se
-             perd à chaque redémarrage du bot. Les montrer avec leur
-             commande, c'est tenir la promesse du panneau : ce qu'il affiche
-             est ce qui est. -->
+        <!-- Le nettoyage automatique. Il se règle VRAIMENT ici depuis que
+             sa configuration est écrite sur le disque (data/autoclean.json) :
+             avant, elle se perdait à chaque redémarrage du bot, et il n'y
+             avait donc rien à afficher qui tienne. /autoclean on écrit au
+             même endroit, les deux chemins ne peuvent pas se contredire.
+
+             Le salon et le délai se verrouillent quand l'interrupteur est
+             éteint : un délai réglé sur un nettoyage éteint n'est pas un
+             réglage, c'est une intention. Les bornes sont celles du cog. -->
         <div class="grp">
-          <h2 class="grp__title" data-i18n="se.grpDiscord">À régler sur Discord</h2>
+          <h2 class="grp__title" data-i18n="se.grpClean">Nettoyage automatique</h2>
           <div class="grp__card">
             <div class="row">
-              <p class="row__text"><span class="row__label" data-i18n="se.antilink">Anti-lien</span> <span class="row__desc" data-i18n="se.antilinkD"></span></p>
-              <div class="row__ctl"><code class="row__cmd">/antilink</code></div>
+              <p class="row__text"><label class="row__label" for="se-clean" data-i18n="se.autoclean">Nettoyage automatique</label> <span class="row__desc" id="se-clean-d" data-i18n="se.autocleanD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-clean" aria-describedby="se-clean-d" data-setting="security.autoclean" data-controls="#se-clean-row,#se-clean-delay-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
-            <div class="row">
-              <p class="row__text"><span class="row__label" data-i18n="se.autoclean">Nettoyage automatique</span> <span class="row__desc" data-i18n="se.autocleanD"></span></p>
-              <div class="row__ctl"><code class="row__cmd">/autoclean on</code></div>
+            <div class="row" id="se-clean-row">
+              <p class="row__text"><label class="row__label" for="se-cleanchan" data-i18n="se.autocleanChannel">Salon nettoyé</label> <span class="row__desc" id="se-cleanchan-d" data-i18n="se.autocleanChannelD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><div class="combo" data-combo data-source="channels"><input type="hidden" data-setting="security.autocleanChannel"><button class="combo__button" id="se-cleanchan" type="button" aria-describedby="se-cleanchan-d"></button></div></div>
+            </div>
+            <div class="row" id="se-clean-delay-row">
+              <p class="row__text"><label class="row__label" for="se-cleandelay" data-i18n="se.autocleanDelay">Intervalle</label> <span class="row__desc" id="se-cleandelay-d"><span data-i18n="se.autocleanDelayD"></span><span class="row__bounds">1 – 10080</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="se-cleandelay" type="number" inputmode="numeric" step="1" min="1" max="10080" value="20" data-min="1" data-max="10080" aria-describedby="se-cleandelay-d se-cleandelay-e" data-setting="security.autocleanDelay"><span class="num__unit" data-i18n="u.min">min</span></span></div>
+              <p class="row__err" id="se-cleandelay-e" data-error-for="se-cleandelay" hidden></p>
             </div>
           </div>
+        </div>
+
+        <!-- L'anti-lien se règle par SALON, pas par serveur : c'est ce que
+             fait /antilink, et l'interrupteur unique que le panneau
+             affichait autrefois ne pouvait pas le représenter — il
+             n'arrivait d'ailleurs jamais jusqu'au bot.
+
+             Une rangée par salon textuel, fabriquées par
+             page-dashboard.js : on ne connaît les salons qu'après le
+             chargement. Le filtre est là parce qu'un serveur à quatre-
+             vingts salons donne quatre-vingts rangées. -->
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.grpAntilink">Anti-lien</h2>
+          <div class="grp__card grp__card--pad">
+            <p class="rank__note" data-i18n="se.antilinkNote"></p>
+            <input class="text" type="search" autocomplete="off" data-antilink-filtre
+                   data-i18n-attr="aria-label:se.antilinkFilter,placeholder:se.antilinkFilter">
+          </div>
+          <div class="grp__card" data-antilink></div>
         </div>
 
       </section>
@@ -807,14 +850,14 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610290404"></script>
-<script src="assets/js/config.js?v=202610290404"></script>
-<script src="assets/js/lang/fr.js?v=202610290404"></script>
-<script src="assets/js/lang/en.js?v=202610290404"></script>
-<script src="assets/js/lang/es.js?v=202610290404"></script>
-<script src="assets/js/lang/de.js?v=202610290404"></script>
-<script src="assets/js/lang/ko.js?v=202610290404"></script>
-<script src="assets/js/app.js?v=202610290404"></script>
-<script src="assets/js/page-dashboard.js?v=202610290404"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610290516"></script>
+<script src="assets/js/config.js?v=202610290516"></script>
+<script src="assets/js/lang/fr.js?v=202610290516"></script>
+<script src="assets/js/lang/en.js?v=202610290516"></script>
+<script src="assets/js/lang/es.js?v=202610290516"></script>
+<script src="assets/js/lang/de.js?v=202610290516"></script>
+<script src="assets/js/lang/ko.js?v=202610290516"></script>
+<script src="assets/js/app.js?v=202610290516"></script>
+<script src="assets/js/page-dashboard.js?v=202610290516"></script>
 </body>
 </html>

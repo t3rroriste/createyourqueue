@@ -185,21 +185,37 @@ que le panneau sait afficher.
    ici. Ils apparaissent avec leur commande — `/antilink`, `/autoclean on` —
    dans un groupe « À régler sur Discord ».
 
+**Corrigé le 29/10/2026, deuxième passe.**
+
+6. **Les journaux ne traversaient pas non plus**, et personne ne l'avait
+   relevé : le bot avait son bloc `logs` et son `dashboard_update` depuis
+   le début, mais aucune table de `site/api/index.php` ne connaissait
+   `log.<type>.enabled` ni `log.<type>.channel`. On allumait « Modération »,
+   le panneau disait « Enregistré », et aucun log n'arrivait. `PONT_JOURNAUX`
+   les ponte dans les deux sens, chaque type envoyé d'un bloc — le bot
+   éteint un journal allumé sans salon, donc l'interrupteur seul
+   l'éteindrait aussitôt.
+7. **Le nettoyage automatique est enregistré sur le disque**
+   (`data/autoclean.json`) et les boucles repartent au démarrage. Il se
+   règle maintenant depuis le panneau : salon, intervalle, interrupteur.
+   `/autoclean on` et le panneau écrivent par le même chemin
+   (`start_clean` / `stop_clean`), donc ils ne peuvent pas se contredire.
+   Un salon supprimé efface sa propre entrée.
+8. **L'anti-lien se règle depuis le panneau, salon par salon**, c'est-à-dire
+   comme le bot le tient vraiment. Le panneau envoie la liste COMPLÈTE :
+   un lot partiel ne dirait pas lesquels retirer.
+9. **`role_connexion` et `role_mvp_week` ont leurs champs** dans la section
+   Rôles, et leurs entrées dans `PONT_RESSOURCES`.
+10. **`bot.nick` se relit depuis Discord** : le bot le rend dans sa charge
+    utile (`guild.me.nick`), et la fusion de lecture le fait gagner sur la
+    copie du site. Renommé à la main sur Discord, le panneau le montre.
+
 **Ce qui reste.**
 
-- **`bot.nick` ne se relit pas depuis Discord.** Il y part bien, mais le
-  panneau le réaffiche depuis sa copie locale : renommé à la main sur
-  Discord, il montre l'ancien.
 - **`queue.session`** (à la demande / programmée) reste un réglage
   d'affichage du site : il décide si le champ « heure » se montre. Le bot
   n'a que `heure`. Lui donner un sens côté bot demande de savoir ce qu'il
   fait d'une heure vide, ce qui n'a pas été vérifié.
-- **`role_connexion` et `role_mvp_week`** se règlent toujours sur Discord
-  seulement : le panneau n'a pas de champ pour eux. Ce n'est pas un défaut
-  de synchro, c'est un manque.
-- **Le nettoyage automatique n'est pas enregistré sur le disque**
-  (`bot/cogs/auto_clean.py`) : sa configuration se perd à chaque
-  redémarrage. Tant que c'est vrai, il n'y a rien à ponter.
 - **Les presets de queue** restent dans le fichier du site, faute de route
   côté bot.
 

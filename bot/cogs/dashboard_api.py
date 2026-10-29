@@ -53,6 +53,7 @@ from guild_settings import (
     set_resource_id,
 )
 from cogs.logs import KINDS as LOG_KINDS
+from cogs.auto_clean import INTERVAL_MAX as AUTOCLEAN_MAX, INTERVAL_MIN as AUTOCLEAN_MIN
 import mmr
 from cogs.queue_config import COLOR_PALETTE
 from i18n import LANGUAGES, get_lang, set_lang
@@ -410,14 +411,37 @@ class DashboardAPI(commands.Cog):
         """Le cog des logs, qui garde sa configuration à lui (data/logs.json)."""
         return self.bot.get_cog("Logs")
 
+    def _autoclean_cog(self):
+        """Le cog du nettoyage, qui garde sa configuration à lui (data/autoclean.json)."""
+        return self.bot.get_cog("AutoClean")
+
+    def _antilink_cog(self):
+        """Le cog de l'anti-lien, qui garde sa configuration à lui (data/antilink.json)."""
+        return self.bot.get_cog("AntiLink")
+
     def _guild_payload(self, guild: discord.Guild) -> dict[str, Any]:
         logs = self._logs_cog()
+        nettoyage = self._autoclean_cog()
+        antilien = self._antilink_cog()
         return {
             "logs": logs.dashboard_state(guild) if logs is not None else {},
+            # Le nettoyage automatique. Il ne se réglait que par /autoclean,
+            # et sa configuration ne survivait pas à un redémarrage : elle le
+            # fait depuis qu'elle est écrite sur le disque, et le panneau peut
+            # donc l'afficher sans mentir.
+            "autoclean": nettoyage.dashboard_state(guild) if nettoyage is not None else {},
+            # L'anti-lien, salon par salon. Le panneau n'avait qu'un
+            # interrupteur de serveur, qui ne pouvait pas représenter ça.
+            "antilink": antilien.dashboard_state(guild) if antilien is not None else {},
             "id": str(guild.id),
             "name": guild.name,
             "icon": _icon(guild),
             "members": guild.member_count,
+            # Le surnom du bot SUR CE SERVEUR. Le panneau l'écrivait déjà
+            # (PATCH /members/@me côté PHP) mais le relisait depuis sa propre
+            # copie : renommé à la main sur Discord, il montrait l'ancien.
+            # Vide = aucun surnom, le bot porte son nom d'application.
+            "nick": (guild.me.nick or "") if guild.me is not None else "",
             "setup_complete": is_setup_complete(guild.id),
             "language": get_lang(guild.id),
             "languages": {code: info["name"] for code, info in LANGUAGES.items()},
@@ -611,6 +635,73 @@ class DashboardAPI(commands.Cog):
                         return _error(400, "invalid_security")
                 securite_propre[cle] = valeur
 
+        # Le nettoyage automatique. Il n'est pas rangé avec l'anti-raid
+        # parce qu'il ne vit pas au même endroit : l'anti-raid est dans
+        # guild_settings, celui-ci dans son cog. Le panneau, lui, les montre
+        # côte à côte sous « Sécurité ».
+        nettoyage = data.get("autoclean")
+        nettoyage_propre = None
+        if nettoyage is not None:
+            if not isinstance(nettoyage, dict):
+                return _error(400, "invalid_autoclean")
+            cog_nettoyage = self._autoclean_cog()
+            if cog_nettoyage is None:
+                return _error(400, "autoclean_unavailable")
+            actif = nettoyage.get("enabled", False)
+            if not isinstance(actif, bool):
+                return _error(400, "invalid_autoclean")
+            salon_brut = nettoyage.get("channel_id")
+            salon_id: int | None = None
+            if salon_brut not in (None, ""):
+                try:
+                    salon_id = int(salon_brut)
+                except (TypeError, ValueError):
+                    return _error(400, "invalid_autoclean")
+            minutes = nettoyage.get("interval_minutes", 20)
+            # bool avant int : en Python, True est un entier.
+            if isinstance(minutes, bool) or not isinstance(minutes, int):
+                return _error(400, "invalid_autoclean")
+            # Les bornes sont celles du cog : deux chemins vers le même
+            # réglage qui n'accepteraient pas les mêmes valeurs, c'est la
+            # promesse d'un panneau qui refuse ce que Discord vient
+            # d'enregistrer.
+            if not (AUTOCLEAN_MIN <= minutes <= AUTOCLEAN_MAX):
+                return _error(400, "invalid_autoclean")
+            # Le salon est vérifié ICI, avant la moindre écriture : laissé au
+            # cog, son refus arriverait après que la langue, les fonctions et
+            # les ressources ont déjà été enregistrées — une configuration à
+            # moitié modifiée, et un panneau qui dit « échec ».
+            if actif:
+                if salon_id is None:
+                    return _error(400, "autoclean_salon_manquant")
+                if not isinstance(guild.get_channel(salon_id), discord.TextChannel):
+                    return _error(400, "wrong_resource_type")
+            nettoyage_propre = (actif, salon_id, minutes)
+
+        # L'anti-lien : la liste COMPLÈTE des salons surveillés, pas un
+        # ajout. Un lot partiel ne dirait pas lesquels retirer, et il n'y a
+        # aucun ordre dans lequel « ajouter » et « retirer » séparément
+        # donneraient un résultat prévisible si deux onglets enregistrent.
+        antilien = data.get("antilink")
+        antilien_propre = None
+        if antilien is not None:
+            if not isinstance(antilien, dict):
+                return _error(400, "invalid_antilink")
+            if self._antilink_cog() is None:
+                return _error(400, "antilink_unavailable")
+            brut = antilien.get("channels")
+            if not isinstance(brut, list):
+                return _error(400, "invalid_antilink")
+            antilien_propre = []
+            for valeur in brut:
+                try:
+                    salon_id = int(valeur)
+                except (TypeError, ValueError):
+                    return _error(400, "invalid_antilink")
+                if not isinstance(guild.get_channel(salon_id), discord.TextChannel):
+                    return _error(400, "wrong_resource_type")
+                antilien_propre.append(salon_id)
+
         language = data.get("language")
         if language is not None:
             if language not in LANGUAGES:
@@ -700,6 +791,16 @@ class DashboardAPI(commands.Cog):
             set_queue_password(guild.id, mot_de_passe or None)
         if securite_propre:
             set_antiraid_config(guild.id, **securite_propre)
+        if nettoyage_propre is not None:
+            actif, salon_id, minutes = nettoyage_propre
+            souci = self._autoclean_cog().dashboard_apply(guild, actif, salon_id, minutes)
+            if souci is not None:
+                # Le cog refait la vérification du salon : lui seul sait si
+                # l'identifiant désigne encore un salon textuel de ce serveur.
+                return _error(400, souci.lower())
+
+        if antilien_propre is not None:
+            await self._antilink_cog().dashboard_apply(guild, antilien_propre)
 
         log.info(f"Tableau de bord : {guild.name} ({guild.id}) modifié")
 

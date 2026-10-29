@@ -70,6 +70,45 @@ class AntiLink(commands.Cog):
         except Exception as e:
             log.error(f"Erreur lors de la sauvegarde de la configuration antilink : {e}")
 
+    # ------------------------------------------------------------------
+    # Ce que le panneau lit et écrit (cogs/dashboard_api.py)
+    #
+    # L'anti-lien se règle par SALON, pas par serveur : l'interrupteur
+    # unique que le panneau affichait autrefois ne pouvait pas représenter
+    # ça, et n'arrivait d'ailleurs jamais jusqu'ici. Le panneau en tient
+    # maintenant la liste, salon par salon, comme /antilink.
+    # ------------------------------------------------------------------
+    def dashboard_state(self, guild: discord.Guild) -> dict:
+        """Les salons surveillés sur ce serveur, en identifiants texte.
+
+        Un salon surveillé puis supprimé n'est pas renvoyé : le panneau
+        afficherait une ligne qui ne désigne rien. L'entrée reste dans le
+        fichier — /antilink la réécrira si le salon revient.
+        """
+        salons = self.antilink_channels.get(guild.id, {})
+        return {
+            "channels": [
+                str(cid) for cid, actif in salons.items()
+                if actif and isinstance(guild.get_channel(cid), discord.TextChannel)
+            ],
+        }
+
+    async def dashboard_apply(self, guild: discord.Guild, channel_ids: list[int]) -> None:
+        """Remplace la liste des salons surveillés par celle du panneau.
+
+        Les salons ABSENTS de la liste sont mis à False et non supprimés :
+        c'est ce que fait `/antilink disable`, et garder la trace évite
+        qu'un salon retiré ici réapparaisse surveillé si une ancienne copie
+        du fichier revient.
+        """
+        voulus = set(channel_ids)
+        salons = self.antilink_channels.setdefault(guild.id, {})
+        for cid in list(salons):
+            salons[cid] = cid in voulus
+        for cid in voulus:
+            salons[cid] = True
+        await self.save_antilink_config()
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         """Vérifie chaque message pour les liens"""

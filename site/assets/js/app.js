@@ -704,6 +704,12 @@
     paint();
   }
 
+  /* Les rangées fabriquées APRÈS le chargement — la liste de l'anti-lien,
+     un salon par rangée — ont besoin du même câblage que les autres : sans
+     lui, l'interrupteur bascule mais n'écrit pas son état à côté, et ses
+     dépendances ne se verrouillent pas. */
+  CYQ.wireSwitches = wireSwitches;
+
   CYQ.initSections = function (root) {
     $$('[data-section]', root).forEach(initSection);
   };
