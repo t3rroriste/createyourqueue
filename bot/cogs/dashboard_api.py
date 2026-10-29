@@ -19,6 +19,7 @@ serveur qu'elle modifie (voir site/main.py) : l'API ne connaît pas les
 utilisateurs, elle ne connaît que la clé.
 """
 
+import asyncio
 import json
 import logging
 import re
@@ -168,6 +169,11 @@ class DashboardAPI(commands.Cog):
         # Et, par serveur, l'heure de chaque commande : de quoi compter
         # celles des 24 dernières heures sans garder tout le journal.
         self.command_times: dict[int, list[float]] = {}
+        # Les retraductions en cours. asyncio ne garde qu'une référence
+        # FAIBLE sur une tâche lancée par create_task : sans ce jeu, le
+        # ramasse-miettes peut l'emporter en plein milieu, et le renommage
+        # s'arrête sans la moindre trace.
+        self._retraductions: set[asyncio.Task] = set()
 
     # ------------------------------------------------------------------
     # Démarrage et arrêt
@@ -556,6 +562,11 @@ class DashboardAPI(commands.Cog):
         if language is not None:
             if language not in LANGUAGES:
                 return _error(400, "unknown_language")
+        # Capturée AVANT l'écriture : la retraduction a besoin de savoir d'où
+        # l'on vient pour reconnaître les noms qu'elle a le droit de changer.
+        # Lue après set_lang, elle vaudrait déjà la nouvelle langue et le
+        # renommage ne trouverait plus rien à faire.
+        langue_avant = get_lang(guild.id) if language is not None else None
 
         features = data.get("features") or {}
         if not isinstance(features, dict):
@@ -636,7 +647,52 @@ class DashboardAPI(commands.Cog):
             set_queue_password(guild.id, mot_de_passe or None)
 
         log.info(f"Tableau de bord : {guild.name} ({guild.id}) modifié")
+
+        if language is not None and langue_avant != language:
+            self._retraduire(guild, langue_avant, language)
+
         return web.json_response(self._guild_payload(guild))
+
+    def _retraduire(self, guild: discord.Guild, ancienne: str, nouvelle: str) -> None:
+        """Rebascule le serveur dans la nouvelle langue, en arrière-plan.
+
+        POURQUOI CECI EXISTE. `set_lang` ne change que les messages À VENIR.
+        Les salons et les rôles, eux, ont été CRÉÉS avec un nom traduit au
+        moment du /setup, et ce nom reste figé : un serveur passé du français
+        à l'anglais gardait `🔱・queue-annonce` et le rôle `Organisateur`.
+        Les panneaux déjà publiés restaient eux aussi dans l'ancienne langue.
+        C'est tout ce qu'on VOIT d'un bot, et ça ne bougeait pas — d'où
+        « je change la langue et il ne se passe rien ».
+
+        `retranslate.py` fait ce travail depuis toujours. Il était appelé par
+        /language, qui est partie sur le site le 11/10/2026 : le tableau de
+        bord a repris la commande, mais pas ses conséquences. Plus personne
+        n'appelait `retranslate_guild`, et seul un redémarrage du bot
+        réalignait les noms, par le `repair_guild` de guard.py.
+
+        EN ARRIÈRE-PLAN, et c'est important. Onze ressources renommées à
+        0,4 s d'intervalle, plus les panneaux, dépassent les 12 secondes que
+        le PHP accorde à son appel (CURLOPT_TIMEOUT dans site/api/index.php).
+        Attendre ici ferait répondre « bot injoignable » au panneau pendant
+        que le bot, lui, travaille : le pire des deux mondes. On rend donc la
+        main tout de suite, et le renommage se poursuit.
+        """
+        async def courir() -> None:
+            try:
+                from retranslate import retranslate_guild
+                await retranslate_guild(self.bot, guild, ancienne, nouvelle)
+            except Exception as e:
+                # Un échec ne doit jamais remonter jusqu'à faire tomber la
+                # boucle : la langue EST changée, seuls les noms traînent.
+                # guard.py les réalignera au prochain démarrage.
+                log.error(
+                    f"Retraduction {ancienne}→{nouvelle} impossible sur "
+                    f"{guild.name} ({guild.id}) : {e}"
+                )
+
+        tache = asyncio.create_task(courir())
+        self._retraductions.add(tache)
+        tache.add_done_callback(self._retraductions.discard)
 
     # ------------------------------------------------------------------
     # Ouvrir une queue depuis le site

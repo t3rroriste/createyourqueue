@@ -73,11 +73,27 @@ def set_lang(guild_id: int, lang: str) -> None:
 
 
 def get_lang(guild_id: int | None) -> str:
+    """La langue d'un serveur : son choix s'il en a fait un, sinon le défaut.
+
+    Le serveur officiel était VERROUILLÉ en français ici, avant tout examen
+    de ce qui avait été choisi. `set_lang` écrivait donc dans le vide : le
+    tableau de bord affichait « Enregistré », le fichier gardait la nouvelle
+    langue, et le bot continuait de répondre en français. Un réglage qu'on
+    accepte et qu'on ignore ensuite, c'est exactement ce que le projet
+    s'interdit — un écran qui ment.
+
+    Le français reste le DÉFAUT du serveur officiel, ce qui était l'intention
+    (voir config.py), mais un choix explicite l'emporte. Rien n'est perdu :
+    sans intervention, ce serveur est toujours en français.
+    """
     if guild_id is None:
         return "en"
+    choisie = _guild_langs.get(guild_id)
+    if choisie is not None:
+        return choisie
     if _official_guild and guild_id == _official_guild:
         return "fr"
-    return _guild_langs.get(guild_id, "en")
+    return "en"
 
 
 def _get_locale(lang: str) -> dict:

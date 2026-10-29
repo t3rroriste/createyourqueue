@@ -1,6 +1,7 @@
 """L'API lue par le site : la clé protège tout, et une demande refusée
 n'écrit rien du tout."""
 
+import asyncio
 import os
 import tempfile
 import unittest
@@ -12,6 +13,7 @@ from aiohttp.test_utils import TestClient, TestServer
 
 import guild_settings
 import i18n
+import retranslate
 from cogs import dashboard_api
 
 KEY = "cle-de-test"
@@ -78,6 +80,25 @@ class FakeLogs:
         self.updates.append(changes)
 
 
+class RetraductionEspionne:
+    """Remplace `retranslate_guild` pendant les tests.
+
+    Ce qu'on veut vérifier ici, c'est QUE la retraduction est demandée, avec
+    les bonnes langues — pas renommer les salons d'un serveur simulé. La
+    vraie fonction irait chercher des catégories sur un MagicMock et
+    échouerait pour une raison qui n'apprend rien."""
+
+    def __init__(self):
+        self.appels: list[tuple[int, str, str]] = []
+        self.erreur: Exception | None = None
+
+    async def __call__(self, bot, guild, ancienne, nouvelle):
+        self.appels.append((guild.id, ancienne, nouvelle))
+        if self.erreur is not None:
+            raise self.erreur
+        return {"renamed": 0, "failed": 0, "panels": 0}
+
+
 class DashboardApiTest(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         # Les réglages s'écrivent dans un dossier jetable, jamais dans data/.
@@ -102,6 +123,22 @@ class DashboardApiTest(unittest.IsolatedAsyncioTestCase):
         self.client = TestClient(TestServer(self.cog.build_app()))
         await self.client.start_server()
 
+        # `_retraduire` importe la fonction au moment de l'appel : on peut
+        # donc la remplacer ici, sur le module.
+        self.retraduction = RetraductionEspionne()
+        self._vrai_retranslate = retranslate.retranslate_guild
+        retranslate.retranslate_guild = self.retraduction
+
+    async def attendre_retraductions(self):
+        """Laisse finir les retraductions lancées en arrière-plan.
+
+        Elles ne sont pas attendues par la requête — c'est tout l'intérêt,
+        le PHP n'accorde que 12 secondes — donc un test qui regarde leur
+        résultat juste après le PATCH ne verrait rien."""
+        taches = list(self.cog._retraductions)
+        if taches:
+            await asyncio.gather(*taches, return_exceptions=True)
+
     def run_command(self, name: str = "queue", status: str = "OK", guild_id: int = GUILD_ID):
         """Fait comme si quelqu'un venait de lancer une commande."""
         interaction = MagicMock(spec=discord.Interaction)
@@ -111,11 +148,14 @@ class DashboardApiTest(unittest.IsolatedAsyncioTestCase):
         self.cog._record(interaction, MagicMock(qualified_name=name), status)
 
     async def asyncTearDown(self):
+        await self.attendre_retraductions()
+        retranslate.retranslate_guild = self._vrai_retranslate
         await self.client.close()
         os.chdir(self._previous_cwd)
         self._temp.cleanup()
         guild_settings._settings.clear()
         i18n._guild_langs.clear()
+        i18n._official_guild = 0
 
     def headers(self, key: str = KEY) -> dict[str, str]:
         return {"X-API-Key": key}
@@ -258,6 +298,71 @@ class DashboardApiTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(guild_settings.get_features(GUILD_ID)["leaderboard"])
         self.assertEqual(guild_settings.get_resource_id(GUILD_ID, "channel_queue_command"), 10)
         self.assertEqual(guild_settings.get_resource_id(GUILD_ID, "role_staff"), 30)
+
+    # ------------------------------------------------------------------
+    # La langue
+    #
+    # Le symptôme rapporté : « je change la langue dans le panneau et le bot
+    # continue en français sur Discord ». Il y avait deux causes distinctes,
+    # une par classe de serveur, et chacune a son test ici.
+    # ------------------------------------------------------------------
+    async def test_changer_la_langue_retraduit_le_serveur(self):
+        """La cause n°1 : les salons et les rôles restaient dans l'ancienne
+        langue. `retranslate.py` sait les renommer, mais plus personne ne
+        l'appelait depuis que /language est partie sur le site."""
+        response = await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(), json={"language": "es"}
+        )
+        self.assertEqual(response.status, 200)
+        await self.attendre_retraductions()
+        self.assertEqual(self.retraduction.appels, [(GUILD_ID, "en", "es")])
+
+    async def test_la_meme_langue_ne_retraduit_rien(self):
+        """Réenregistrer sans rien changer ne doit pas renommer onze salons
+        pour le plaisir : c'est onze appels à l'API de Discord."""
+        await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(), json={"language": "de"}
+        )
+        await self.attendre_retraductions()
+        self.retraduction.appels.clear()
+
+        await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(), json={"language": "de"}
+        )
+        await self.attendre_retraductions()
+        self.assertEqual(self.retraduction.appels, [])
+
+    async def test_une_retraduction_qui_echoue_n_annule_pas_la_langue(self):
+        """La retraduction est un EFFET du changement de langue, pas une
+        condition. Si Discord refuse un renommage, la langue reste changée et
+        la requête reste un succès — sinon le panneau annoncerait un échec
+        alors que le bot a bien compris."""
+        self.retraduction.erreur = RuntimeError("Discord a refusé")
+        response = await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(), json={"language": "ko"}
+        )
+        self.assertEqual(response.status, 200)
+        await self.attendre_retraductions()
+        self.assertEqual(i18n.get_lang(GUILD_ID), "ko")
+
+    async def test_le_serveur_officiel_suit_le_choix_du_panneau(self):
+        """La cause n°2 : `get_lang` renvoyait « fr » pour le serveur
+        officiel avant même de regarder ce qui avait été choisi. Le panneau
+        affichait « Enregistré », le fichier gardait la nouvelle langue, et
+        le bot répondait en français."""
+        i18n._official_guild = GUILD_ID
+        self.assertEqual(i18n.get_lang(GUILD_ID), "fr")   # le défaut, lui, reste
+
+        response = await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(), json={"language": "en"}
+        )
+        self.assertEqual(response.status, 200)
+        self.assertEqual(i18n.get_lang(GUILD_ID), "en")
+
+        # Et le panneau doit lire la même chose que le bot, sinon il
+        # réafficherait « Français » au rechargement.
+        lu = await self.client.get(f"/api/guilds/{GUILD_ID}", headers=self.headers())
+        self.assertEqual((await lu.json())["language"], "en")
 
     async def test_les_quatre_roles_du_bot_sont_reglables(self):
         # /config ne propose plus les rôles : si l'un d'eux manquait ici,
