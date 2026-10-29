@@ -391,7 +391,12 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
   min-height: 58px;
   padding: 12px 20px;
 }
-.row + .row { border-top: 1px solid var(--hair); }
+/* La maquette d'une option se glisse ENTRE deux rangées : sans ce second
+   sélecteur, celle qui la suit perdrait son filet, son voisin immédiat
+   n'étant plus une rangée. Un voisin `hidden` compte quand même, donc le
+   filet ne clignote pas à l'ouverture. */
+.row + .row,
+.optprev + .row { border-top: 1px solid var(--hair); }
 
 .row__text {
   flex: 1 1 200px; min-width: 0;
@@ -1060,6 +1065,55 @@ label.row__label { cursor: pointer; }
   background: var(--film);
   font-size: 12px; color: var(--ink-60);
 }
+/* ---- la maquette d'une option ----------------------------------------
+   Même carte que l'aperçu de la queue, posée sous la rangée. Son
+   rembourrage reprend celui de la rangée (20 px de côté) pour que l'avatar
+   s'aligne sur le libellé au-dessus ; en bas, de quoi la détacher de la
+   rangée suivante. Pas de hauteur animée : l'ouverture se joue dans la
+   carte, par `.dprev.is-envoi`, qui ne touche que transform et opacity. */
+.optprev { padding: 2px 20px 18px; }
+/* Le révélateur est un enfant direct de la rangée, et non de sa commande :
+   dans la commande, il aurait partagé la largeur de l'interrupteur et, sur
+   téléphone, réduit la phrase à un mot par ligne. Ici il se replie seul. */
+.optprev__btn { flex: 0 0 auto; }
+
+/* Un titre `## ` hors du cadre : Discord le rend plus gros que le texte du
+   message, et c'est ce que le panneau d'état publie au-dessus du sien. */
+.dprev__h2 { margin-top: 4px; font-size: 16px; font-weight: 600; line-height: 1.3; }
+
+/* Une colonne de lignes, comme une description d'embed : même gouttière
+   que les équipes de l'aperçu de queue, qui est déjà ce rendu-là. */
+.dprev__lines { display: grid; gap: 3px; }
+.dprev__lines p { overflow-wrap: anywhere; }
+/* La ligne vide d'une description. Discord la rend comme un interligne,
+   pas comme un paragraphe : une demi-hauteur suffit. */
+.dprev__vide { height: .55em; }
+
+/* Un champ posé par `embeds.section()` : inline=False, donc pleine
+   largeur, avec sa valeur sur plusieurs lignes sous son nom. */
+.dprev__field--large { flex: 1 1 100%; gap: 3px; }
+
+/* Les accents graves de Discord : une plaque, dans la même famille que la
+   mention. La pile du système suffit — cette page ne charge que Geist. */
+.dprev code {
+  padding: 1px 5px; border-radius: 4px;
+  background: var(--raised-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+.dprev i { font-style: italic; }
+
+/* Les boutons d'un message, sous le cadre. Décoratifs : des `span`, rien
+   de focusable, et le vert de Discord se rend en plaque claire, comme
+   toutes les actions principales de ce panneau. */
+.dprev__btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.dprev__btn {
+  padding: 5px 13px; border-radius: 6px;
+  background: var(--raised-2); color: var(--ink);
+  font-size: 12.5px; font-weight: 500;
+}
+.dprev__btn--ok { background: var(--ink); color: var(--bg); }
+
 .qprev__note { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.5; color: var(--ink-60); }
 
 /* ============================ diagnostic ============================== */
@@ -1210,6 +1264,13 @@ label.row__label { cursor: pointer; }
   /* Un interrupteur est étroit : il reste sur la ligne de sa phrase, qui
      se replie à côté de lui. Seuls les contrôles larges passent dessous. */
   .row:has(> .row__ctl > .switch) .row__text { flex: 1 1 0; }
+
+  /* Le révélateur, lui, est trop large pour tenir à côté de la phrase et
+     de l'interrupteur : 150 px de plus et le libellé tombe à un mot par
+     ligne. Il passe donc sur sa propre ligne, sous la rangée — juste
+     au-dessus de la maquette qu'il ouvre. `order` seulement ici : au-delà
+     de 560 px il reste à gauche de l'interrupteur, qui garde sa colonne. */
+  .optprev__btn { order: 1; flex: 1 0 100%; justify-content: center; }
 
   /* À cette largeur, l'emplacement d'état ne garde que son glyphe — le mot
      est annoncé par la région vocale de la page. « Réessayer » reste écrit :

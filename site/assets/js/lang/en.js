@@ -111,6 +111,7 @@ window.CYQ_I18N.en = {
   "fn.joinAnnounce": "Join announcements", "fn.joinAnnounceD": "A message when a player joins the server",
   "fn.statusPanel": "Status panel", "fn.statusPanelD": "A permanent message showing queue status",
   "fn.queuePassword": "Queue password", "fn.queuePasswordD": "A code players must enter to join a queue",
+  "fn.seeInDiscord": "See it in Discord",
 
   "ch.lead": "Where the bot writes and where players act. The bot must be able to View and Send messages in every channel you pick — the right column checks that.",
   "ch.commands": "Commands", "ch.commandsD": "Where players type the bot's commands",

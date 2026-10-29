@@ -824,7 +824,7 @@
          couleur n'est choisie, et le noir sur fond sombre ne se voit pas :
          l'apercu laisse alors sa teinte sourde plutot que de montrer une
          barre invisible qui ferait croire a un bug. */
-      var embed = $('.dprev__embed');
+      var embed = $('[data-qprev] .dprev__embed');
       if (embed) {
         var teinte = ($('[data-setting="queue.embedColor"]') || {}).value || '';
         var choisie = /^#[0-9a-f]{6}$/i.test(teinte) && teinte.toLowerCase() !== '#000000';
@@ -1887,6 +1887,49 @@
         .add(blocs, { opacity: 1, y: 0, duration: 480, delay: A.stagger(60) }, 160);
     }
 
+    /* ---- les maquettes Discord des options ---------------------------
+       Six interrupteurs secs ne disent pas ce qu'ils font. Sous chacun, le
+       message que le bot publie quand l'option est allumée — replié, parce
+       que six cartes ouvertes feraient un mur, et une seule à la fois,
+       parce que deux ouvertes font perdre le fil.
+
+       La maquette ne regarde PAS l'état de l'interrupteur : on l'ouvre
+       justement pour voir ce que l'option ferait avant de la cocher. */
+    function maquettesOptions() {
+      var boutons = $$('[data-optprev]');
+      if (!boutons.length) return;
+
+      function cible(b) { return document.getElementById(b.getAttribute('data-optprev')); }
+
+      function fermer(b) {
+        var c = cible(b);
+        b.setAttribute('aria-expanded', 'false');
+        if (c) c.hidden = true;
+      }
+
+      boutons.forEach(function (b) {
+        b.addEventListener('click', function () {
+          var ouvert = b.getAttribute('aria-expanded') === 'true';
+          boutons.forEach(fermer);
+          if (ouvert) return;          // le second clic referme, et c'est tout
+          var c = cible(b);
+          if (!c) return;
+          b.setAttribute('aria-expanded', 'true');
+          c.hidden = false;
+          /* Elle arrive comme le message arrive dans Discord. La classe
+             existe déjà pour l'aperçu de la queue, elle ne touche que
+             transform et opacity, et elle est muette sous
+             `prefers-reduced-motion`. */
+          var carte = $('.dprev', c);
+          if (!carte) return;
+          carte.classList.remove('is-envoi');
+          void carte.offsetWidth;      // sans relecture, pas de redémarrage
+          carte.classList.add('is-envoi');
+          setTimeout(function () { carte.classList.remove('is-envoi'); }, 900);
+        });
+      });
+    }
+
     /* ------------------------------------------------------------ départ */
 
     nommerEquipes();
@@ -1895,6 +1938,7 @@
     simuler();
     compterJournaux();
     apercuQueue();
+    maquettesOptions();
     placerMarque(false);
     ouverture();
     chargerCompte();

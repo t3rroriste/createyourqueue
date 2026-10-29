@@ -111,6 +111,7 @@ window.CYQ_I18N.ko = {
   "fn.joinAnnounce": "입장 알림", "fn.joinAnnounceD": "플레이어가 서버에 들어올 때 보내는 메시지",
   "fn.statusPanel": "상태 패널", "fn.statusPanelD": "대기열 상태를 보여 주는 고정 메시지",
   "fn.queuePassword": "대기열 비밀번호", "fn.queuePasswordD": "대기열에 참가할 때 입력해야 하는 코드",
+  "fn.seeInDiscord": "디스코드에서 보기",
 
   "ch.lead": "봇이 쓰는 곳과 플레이어가 움직이는 곳입니다. 선택한 채널마다 봇에게 「채널 보기」와 「메시지 보내기」가 있어야 하며, 오른쪽 열이 이를 확인합니다.",
   "ch.commands": "명령어", "ch.commandsD": "플레이어가 봇 명령어를 입력하는 곳",

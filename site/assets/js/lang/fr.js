@@ -111,6 +111,7 @@ window.CYQ_I18N.fr = {
   "fn.joinAnnounce": "Annonce des adhésions", "fn.joinAnnounceD": "Message quand un joueur rejoint le serveur",
   "fn.statusPanel": "Panneau d'état", "fn.statusPanelD": "Message permanent qui affiche l'état des queues",
   "fn.queuePassword": "Mot de passe des queues", "fn.queuePasswordD": "Un code à saisir pour rejoindre une queue",
+  "fn.seeInDiscord": "Voir dans Discord",
 
   "ch.lead": "Où le bot écrit et où les joueurs agissent. Le bot doit pouvoir Voir et Envoyer des messages dans chaque salon choisi — la colonne de droite le vérifie.",
   "ch.commands": "Commandes", "ch.commandsD": "Où les joueurs tapent les commandes du bot",

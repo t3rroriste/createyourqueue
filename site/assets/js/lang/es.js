@@ -111,6 +111,7 @@ window.CYQ_I18N.es = {
   "fn.joinAnnounce": "Aviso de entradas", "fn.joinAnnounceD": "Un mensaje cuando un jugador entra en el servidor",
   "fn.statusPanel": "Panel de estado", "fn.statusPanelD": "Un mensaje fijo que muestra el estado de las colas",
   "fn.queuePassword": "Contraseña de colas", "fn.queuePasswordD": "Un código que hay que escribir para entrar en una cola",
+  "fn.seeInDiscord": "Ver en Discord",
 
   "ch.lead": "Dónde escribe el bot y dónde actúan los jugadores. El bot debe poder Ver y Enviar mensajes en cada canal elegido — la columna de la derecha lo comprueba.",
   "ch.commands": "Comandos", "ch.commandsD": "Donde los jugadores escriben los comandos del bot",
