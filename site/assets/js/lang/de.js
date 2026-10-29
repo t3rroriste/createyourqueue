@@ -96,6 +96,8 @@ window.CYQ_I18N.de = {
   "d.unsaved": "Nicht gespeicherte Änderungen",
   "d.navWarn": "Fehlende Berechtigungen",
   "d.noApi": "Keine API verbunden",
+  "d.botOff": "Der Bot antwortet nicht",
+  "d.botOffBody": "Was dieser Bildschirm zeigt, stammt aus der letzten gespeicherten Kopie und kann veraltet sein. Solange der Bot nicht antwortet, lässt sich nichts speichern.",
   "d.noApiBody": "Die Seite ist online, aber es ist kein Back-end konfiguriert: trage API_BASE in assets/js/config.js ein, um Einstellungen zu laden und zu speichern. Die Ansichten unten bleiben bedienbar und zeigen ihre Leerzustände.",
 
   "lg.desc": "Die Sprache des Bots auf diesem Server. Sie benennt auch die Kanäle und Rollen um, die der Bot selbst anlegt.",
@@ -142,14 +144,11 @@ window.CYQ_I18N.de = {
   "mm.lead": "Punkte nach jedem bestätigten Match. Die Werte gelten ab dem nächsten Spiel; bereits erfasste Punktzahlen werden nicht neu berechnet.",
   "mm.grpActivation": "Aktivierung", "mm.grpPoints": "Punkte", "mm.grpDurations": "Abstimmungsdauern",
   "mm.enable": "MMR-System", "mm.enableD": "Ohne es werden Matches gespielt, aber keine Punkte vergeben",
-  "mm.mvp": "MVP-Bonus", "mm.mvpD": "Zusatzpunkte für den am Matchende gewählten Spieler",
-  "mm.streak": "Serien-Bonus", "mm.streakD": "Zusatzpunkte ab N Siegen in Folge",
   "mm.start": "Start-MMR", "mm.startD": "Punktzahl eines Spielers beim ersten Match",
   "mm.win": "Punkte pro Sieg", "mm.winD": "Über 100 genügt ein einziges Match, um die Rangliste zu kippen",
   "mm.loss": "Punkte pro Niederlage", "mm.lossD": "Negativer Wert. Bei 0 verliert niemand jemals Punkte",
   "mm.mvpBonus": "MVP-Bonus", "mm.mvpBonusD": "Kommt zum Ergebnis hinzu, bei Sieg wie bei Niederlage",
   "mm.streakBonus": "Serien-Bonus", "mm.streakBonusD": "Punkte, sobald die Serie erreicht ist",
-  "mm.streakRequired": "Nötige Serie", "mm.streakRequiredD": "Siege in Folge, bevor der Bonus greift",
   "mm.captainVote": "Kapitänswahl", "mm.captainVoteD": "Zeit für die Spieler, die Kapitäne zu wählen",
   "mm.resultVote": "Ergebnisabstimmung", "mm.resultVoteD": "Zeit, den Stand am Matchende zu bestätigen",
   "mm.lockedBy": "Inaktiv: der Schalter „{name}“ ist oben ausgeschaltet",
@@ -174,8 +173,6 @@ window.CYQ_I18N.de = {
   "q.teamName": "Name von Team {n}", "q.color": "Farbe von Team {n}",
   "q.captainVote": "Kapitänswahl",
   "q.captainVoteD": "Die Spieler wählen zwei Kapitäne, die dann die Teams zusammenstellen",
-  "q.password": "Passwort der Warteschlange",
-  "q.passwordD": "Ein Code zum Beitreten — ausgeschaltet ist die Warteschlange für alle offen",
   "q.typePlaceholder": "Scrim, Turnier, interne Liga…",
   "q.sessionOnDemand": "Auf Abruf", "q.sessionScheduled": "Geplant",
   "q.previewTitle": "Vorschau der Ankündigung",
@@ -243,16 +240,14 @@ window.CYQ_I18N.de = {
   "lo.moderation": "Moderation", "lo.server": "Server",
   "lo.channel": "Protokoll-Kanal", "lo.enabledCount": "{n} von 10 Protokollen aktiv",
 
-  "se.lead": "Die automatischen Schutzfunktionen. Die Anti-Raid-Schwellen erscheinen nur, wenn Anti-Raid aktiv ist.",
-  "se.antilink": "Anti-Link", "se.antilinkD": "Löscht Links außerhalb der erlaubten Kanäle",
-  "se.autoclean": "Automatisches Aufräumen", "se.autocleanD": "Löscht die Nachrichten des Bots nach einer Frist",
-  "se.autocleanDelay": "Aufräum-Frist", "se.autocleanDelayD": "Zeit, bis die Nachrichten des Bots gelöscht werden",
-  "se.antiraid": "Anti-Raid", "se.antiraidD": "Reagiert auf eine ungewöhnliche Beitrittswelle",
+  "se.lead": "Die automatischen Schutzfunktionen. Anti-Raid wird hier eingestellt; die beiden anderen auf Discord, Kanal für Kanal.",
+  "se.antilink": "Anti-Link", "se.antilinkD": "Löscht Links außerhalb der erlaubten Kanäle. Wird kanalweise eingestellt.",
+  "se.autoclean": "Automatisches Aufräumen", "se.autocleanD": "Löscht die Nachrichten des Bots nach einer Frist. Wird kanalweise eingestellt.",
   "se.threshold": "Beitritts-Schwelle", "se.thresholdD": "Zahl der Beitritte, die den Alarm auslöst",
   "se.window": "Beobachtungsfenster", "se.windowD": "Zeitraum, über den Beitritte gezählt werden",
-  "se.action": "Aktion", "se.actionD": "Was der Bot tut, wenn die Schwelle überschritten wird",
-  "se.actAlert": "Nur warnen", "se.actTimeout": "Auszeit geben",
-  "se.actKick": "Kicken", "se.actBan": "Bannen",
+  "se.accountAge": "Mindestalter des Kontos", "se.accountAgeD": "Darunter gilt ein Beitritt als verdächtig",
+  "se.raidKick": "Automatisches Kicken", "se.raidKickD": "Kickt Mitglieder, die während einer Anti-Raid-Sperre beitreten",
+  "se.grpRaid": "Anti-Raid", "se.grpDiscord": "Auf Discord einstellen",
 
   "st.loadingChannels": "Kanäle des Servers werden gelesen…",
   "st.savedAt": "Gespeichert um {time}",
@@ -283,7 +278,7 @@ window.CYQ_I18N.de = {
 
   /* --- chiffres marquants de l'accueil --- */
       
-    "u.pts": "Pkt.", "u.s": "s", "u.matches": "Matches", "u.min": "Min.",
+    "u.pts": "Pkt.", "u.s": "s", "u.h": "Std.", "u.min": "Min.",
 
   /* --- modules.html --- */
   /* en-tete de la page */

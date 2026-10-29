@@ -402,6 +402,22 @@ label.row__label { cursor: pointer; }
   display: flex; align-items: center; gap: 10px;
 }
 
+/* La commande à taper, quand un réglage ne se fait PAS ici. Le monospace
+   dit « ceci se recopie tel quel » ; c'est la seule chose à retenir de la
+   rangée. Pas de bouton : il n'y a rien à cliquer sur cette page. */
+.row__cmd {
+  /* Pas de var(--mono) : cette page ne charge que Geist, et ce jeton vit
+     dans app.css, que plus aucune page n'inclut. La pile du système fait
+     très bien l'affaire pour trois mots. */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--ink-60);
+  padding: 4px 9px;
+  border: 1px solid var(--hair);
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
 /* Une rangée dépendante n'existe que si son interrupteur est allumé.
    Elle est décalée sous lui, sans filet ni flèche : le retrait suffit à
    dire « ceci dépend de ce qui est au-dessus ». */

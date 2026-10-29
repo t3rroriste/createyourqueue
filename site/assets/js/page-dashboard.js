@@ -740,7 +740,7 @@
       var type = String((($('#q-type') || {}).value || '')).trim();
       var sess = $('#q-session');
       var heure = String((($('#q-time') || {}).value || '')).trim();
-      var motDePasse = !!($('#q-pass') || {}).checked;
+      var motDePasse = !!($('#fn-qpass') || {}).checked;
 
       function poser(sel, html) {
         var el = $(sel);
@@ -811,7 +811,7 @@
       }
     }
 
-    ['#q-name', '#q-type', '#q-session', '#q-time', '#q-cvote', '#q-pass', '#q-embedcolor'].forEach(function (s) {
+    ['#q-name', '#q-type', '#q-session', '#q-time', '#q-cvote', '#fn-qpass', '#q-embedcolor'].forEach(function (s) {
       var el = $(s);
       if (!el) return;
       el.addEventListener('input', apercuQueue);
@@ -1210,8 +1210,8 @@
       var depart = lireNombre('#f-start', 1000);
       var victoire = lireNombre('#f-win', 25);
       var defaite = lireNombre('#f-loss', -18);
-      var mvpOn = ($('#mm-mvp') || {}).checked;
-      var mvp = mvpOn ? lireNombre('#f-mvp', 0) : 0;
+      var mvp = lireNombre('#f-mvp', 0);
+      var mvpOn = mvp > 0;
 
       var a = depart, b = a + victoire, c = b + victoire + mvp, d = c + defaite;
       var rapport = defaite === 0 ? null : Math.abs(victoire / defaite);
@@ -1237,8 +1237,6 @@
       var el = $(s);
       if (el) el.addEventListener('input', simuler);
     });
-    var mvpSw = $('#mm-mvp');
-    if (mvpSw) mvpSw.addEventListener('change', simuler);
 
     /* ==================================================================
        LOGS : le compte des journaux actifs
@@ -1409,6 +1407,14 @@
       } else if (genre === 'session') {
         titre = t('st.sessionTitle'); texte = t('st.sessionBody');
         action = '<a class="pill pill--sm" href="' + esc(CYQ.loginUrl() || 'login.html') + '">' + esc(t('st.sessionCta')) + '</a>';
+      } else if (genre === 'botoff') {
+        /* L'API a répondu, mais le bot, lui, n'a pas répondu à l'API : ce
+           qu'on affiche vient de la copie du site et peut dater. Jusqu'ici
+           cette copie s'affichait sans un mot, avec la même assurance qu'une
+           lecture fraîche — et c'est le refus d'enregistrement qui
+           l'apprenait, une fois le formulaire rempli. */
+        titre = t('d.botOff'); texte = t('d.botOffBody');
+        action = '<button class="pill pill--sm" type="button" data-reload>' + esc(t('c.retry')) + '</button>';
       } else if (genre === 'forbidden') {
         titre = t('sv.stRevoked'); texte = t('sv.revokedHelp');
         action = '<a class="pill pill--ghost pill--sm" href="' + esc(CYQ.appUrl ? CYQ.appUrl('servers.html') : 'servers.html') + '">' + esc(t('d.changeServer')) + '</a>';
@@ -1614,6 +1620,9 @@
         rendreTout();
         finChargement(false);
         placerMarque(false);
+        /* `=== false` et pas `!` : une API plus ancienne ne renvoie pas du
+           tout ce champ, et son silence ne veut pas dire « bot éteint ». */
+        if (donnees.botJoignable === false) avis('botoff');
       }).catch(function (err) {
         donnees = null;
         /* Sur un échec, les sections restent visibles mais INERTES : elles

@@ -43,7 +43,9 @@ def fake_guild():
     text = fake_channel(discord.TextChannel, 10, "commandes")
     text2 = fake_channel(discord.TextChannel, 11, "annonces")
     voice = fake_channel(discord.VoiceChannel, 20, "attente")
+    categorie = fake_channel(discord.CategoryChannel, 40, "Clans")
     staff = fake_role(30, "Staff")
+    chef = fake_role(31, "Chef de clan")
 
     guild = MagicMock(spec=discord.Guild)
     guild.id = GUILD_ID
@@ -52,13 +54,14 @@ def fake_guild():
     guild.member_count = 12
     guild.text_channels = [text, text2]
     guild.voice_channels = [voice]
-    guild.roles = [staff]
+    guild.categories = [categorie]
+    guild.roles = [staff, chef]
     guild.unavailable = False
     guild.me = MagicMock(spec=discord.Member)
     guild.me.joined_at = datetime(2025, 6, 14, 12, 0, tzinfo=timezone.utc)
 
-    channels = {c.id: c for c in (text, text2, voice)}
-    roles = {staff.id: staff}
+    channels = {c.id: c for c in (text, text2, voice, categorie)}
+    roles = {r.id: r for r in (staff, chef)}
     guild.get_channel.side_effect = channels.get
     guild.get_role.side_effect = roles.get
     return guild
@@ -282,7 +285,9 @@ class DashboardApiTest(unittest.IsolatedAsyncioTestCase):
         )
         options = await response.json()
         self.assertEqual([c["name"] for c in options["text"]], ["commandes", "annonces"])
-        self.assertEqual([r["name"] for r in options["role"]], ["Staff"])
+        self.assertEqual([r["name"] for r in options["role"]], ["Staff", "Chef de clan"])
+        # La catégorie des clans se règle depuis le panneau : il lui faut la liste.
+        self.assertEqual([c["name"] for c in options["category"]], ["Clans"])
 
     # ------------------------------------------------------------------
     # Écriture
@@ -447,6 +452,88 @@ class DashboardApiTest(unittest.IsolatedAsyncioTestCase):
             f"/api/guilds/{GUILD_ID}", headers=self.headers(), data="pas du json",
         )
         self.assertEqual(response.status, 400)
+
+    # ------------------------------------------------------------------
+    # Les clans et l'anti-raid : ce qui ne traversait pas
+    # ------------------------------------------------------------------
+    async def test_les_ressources_de_clan_se_reglent(self):
+        """Le bot les tenait déjà, mais elles manquaient de EDITABLE_RESOURCES :
+        le panneau avait trois champs qui n'arrivaient jamais jusqu'ici."""
+        response = await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(),
+            json={"resources": {"category_clan": "40", "role_clan_leader": "31"}},
+        )
+        self.assertEqual(response.status, 200)
+        self.assertEqual(guild_settings.get_resource_id(GUILD_ID, "category_clan"), 40)
+        self.assertEqual(guild_settings.get_resource_id(GUILD_ID, "role_clan_leader"), 31)
+
+    async def test_une_categorie_n_est_pas_un_role(self):
+        """Le repli de `_matches_kind` renvoyait « est-ce un salon vocal ? »
+        pour tout type inconnu. Chaque type se vérifie maintenant pour
+        lui-même, et ce qui n'est pas prévu se refuse."""
+        response = await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(),
+            json={"resources": {"role_clan_leader": "40"}},
+        )
+        self.assertEqual(response.status, 400)
+        self.assertIsNone(guild_settings.get_resource_id(GUILD_ID, "role_clan_leader"))
+
+    async def test_l_anti_raid_s_enregistre(self):
+        """Les sept réglages de sécurité du panneau n'allaient nulle part :
+        il disait « Enregistré » et le bot gardait ses anciens seuils."""
+        response = await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(),
+            json={"security": {"join_threshold": 7, "join_interval": 45,
+                               "min_account_age_hours": 48, "auto_kick": True}},
+        )
+        self.assertEqual(response.status, 200)
+        cfg = guild_settings.get_antiraid_config(GUILD_ID)
+        self.assertEqual(cfg["join_threshold"], 7)
+        self.assertEqual(cfg["join_interval"], 45)
+        self.assertEqual(cfg["min_account_age_hours"], 48)
+        self.assertIs(cfg["auto_kick"], True)
+
+    async def test_l_anti_raid_se_lit(self):
+        """L'autre sens : réglé par /antiraid config sur Discord, il doit se
+        voir dans le panneau sans rien avoir à faire."""
+        guild_settings.set_antiraid_config(GUILD_ID, join_threshold=3, auto_kick=True)
+        response = await self.client.get(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers())
+        charge = await response.json()
+        self.assertEqual(charge["security"]["join_threshold"], 3)
+        self.assertIs(charge["security"]["auto_kick"], True)
+        # Et rien d'autre : les clés que le panneau ne règle pas n'ont pas à
+        # sortir d'ici.
+        self.assertEqual(set(charge["security"]), set(dashboard_api.SECURITY_FIELDS))
+
+    async def test_un_seuil_hors_bornes_n_ecrit_rien(self):
+        """Les bornes sont celles de /antiraid config. Deux chemins vers le
+        même réglage qui n'accepteraient pas les mêmes valeurs, c'est la
+        promesse d'un panneau qui refuse ce que Discord vient d'accepter."""
+        defaut = guild_settings.get_antiraid_config(GUILD_ID)
+        for mauvais in ({"join_threshold": 1}, {"join_threshold": 101},
+                        {"join_interval": 301}, {"min_account_age_hours": 721},
+                        {"auto_kick": "oui"}, {"inconnu": 1}):
+            with self.subTest(envoi=mauvais):
+                response = await self.client.patch(
+                    f"/api/guilds/{GUILD_ID}", headers=self.headers(),
+                    json={"security": mauvais},
+                )
+                self.assertEqual(response.status, 400)
+                self.assertEqual(guild_settings.get_antiraid_config(GUILD_ID), defaut)
+        self.assertNotIn("antiraid_config", guild_settings._settings.get(GUILD_ID, {}))
+
+    async def test_un_lot_refuse_n_ecrit_rien_du_tout(self):
+        """La langue est valide, la sécurité ne l'est pas : rien ne passe.
+        Enregistrer la moitié d'un formulaire en disant « c'est fait » serait
+        pire que de tout refuser."""
+        response = await self.client.patch(
+            f"/api/guilds/{GUILD_ID}", headers=self.headers(),
+            json={"language": "en", "security": {"join_threshold": 999}},
+        )
+        self.assertEqual(response.status, 400)
+        self.assertNotIn(GUILD_ID, i18n._guild_langs)
+        self.assertNotIn("antiraid_config", guild_settings._settings.get(GUILD_ID, {}))
 
 
 if __name__ == "__main__":

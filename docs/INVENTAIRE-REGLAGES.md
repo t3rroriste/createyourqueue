@@ -4,6 +4,10 @@
 seule question, réglage par réglage : **qui en est le propriétaire, et le
 changement traverse-t-il ?**
 
+> **Le même jour, la plupart des trous ont été comblés.** Le relevé qui suit
+> décrit l'état D'AVANT, parce qu'il explique pourquoi chaque chose était
+> là ; la dernière section dit ce qui a changé et ce qui reste.
+
 Un réglage « ne se synchronise pas » quand il existe des deux côtés sans
 pont entre les deux. Chacun écrit alors dans son coin et le dernier écran
 ouvert a l'air d'avoir raison.
@@ -149,23 +153,55 @@ juste, on modifie un champ, et c'est le refus qui apprend que le bot dort.
 Il faut que la réponse de lecture porte de quoi le dire — un `botJoignable`
 que le panneau sait afficher.
 
-## Ce qu'il reste à faire
+## Ce qui a été corrigé, et ce qui reste
 
-Par ordre de dette, du plus faux au moins grave :
+**Corrigé le 29/10/2026.**
 
-1. **Sécurité** : ponter l'anti-raid (seuil, fenêtre, âge minimum,
-   auto-kick), et **retirer ou désactiver** ce qui ne correspond à rien —
-   l'interrupteur anti-raid, les deux actions que le bot ne sait pas faire.
-   Un champ qui ne fait rien est pire qu'un champ absent.
-2. **Clans** : ajouter les trois clés aux deux listes. Mécanique.
-3. **MMR inventé** : retirer les trois champs, ou leur donner un sens côté
-   bot. Aujourd'hui ils mentent.
-4. **`queue.password`** : enlever le doublon.
-5. **Silence du bot** : le dire dans la lecture, et l'afficher.
-6. **`bot.nick`** : le relire depuis Discord.
-7. **Anti-lien / nettoyage auto** : chantier à part. Le modèle du bot (par
-   salon, et non persisté) ne ressemble pas à celui du panneau ; il faut
-   choisir lequel a raison avant de ponter quoi que ce soit.
+1. **L'anti-raid traverse** dans les deux sens : `PONT_SECURITE` côté PHP,
+   `SECURITY_FIELDS` et un bloc `security` côté bot. Les bornes du panneau
+   sont maintenant celles de `/antiraid config`, au nombre près — deux
+   chemins vers le même réglage qui n'accepteraient pas les mêmes valeurs,
+   c'est la promesse d'un panneau qui refuse ce que Discord vient
+   d'enregistrer. `min_account_age_hours` a gagné son champ au passage.
+2. **Les trois clés de clan traversent** : ajoutées à `EDITABLE_RESOURCES`
+   et à `PONT_RESSOURCES`. `_matches_kind` sait maintenant reconnaître une
+   catégorie, et refuse tout type qu'il ne connaît pas — son repli muet sur
+   « est-ce un salon vocal ? » acceptait la première valeur venue.
+3. **Ce qui ne correspondait à rien a disparu du panneau** plutôt que d'être
+   ponté de force :
+   - l'interrupteur anti-raid (la détection est toujours active) ;
+   - deux de ses quatre actions, que le bot ne sait pas faire — il n'a
+     qu'une expulsion pendant un lockdown, devenue un interrupteur ;
+   - `mmr.mvpEnabled` et `mmr.streakEnabled` : le bot n'a que `mvp_bonus` et
+     `streak_bonus`, où zéro vaut éteint. Leurs champs sont désormais
+     toujours visibles ;
+   - `mmr.streakRequired`, qui n'existe nulle part dans le bot ;
+   - `queue.password`, doublon de `feature.queuePassword`. C'est ce dernier,
+     le vrai, qui découvre maintenant le champ du mot de passe.
+4. **Le silence du bot se dit** : la lecture renvoie `botJoignable`, et le
+   panneau en fait un bandeau. L'écriture était honnête depuis toujours
+   (`BOT_INJOIGNABLE`), la lecture non.
+5. **L'anti-lien et le nettoyage automatique** ne prétendent plus se régler
+   ici. Ils apparaissent avec leur commande — `/antilink`, `/autoclean on` —
+   dans un groupe « À régler sur Discord ».
+
+**Ce qui reste.**
+
+- **`bot.nick` ne se relit pas depuis Discord.** Il y part bien, mais le
+  panneau le réaffiche depuis sa copie locale : renommé à la main sur
+  Discord, il montre l'ancien.
+- **`queue.session`** (à la demande / programmée) reste un réglage
+  d'affichage du site : il décide si le champ « heure » se montre. Le bot
+  n'a que `heure`. Lui donner un sens côté bot demande de savoir ce qu'il
+  fait d'une heure vide, ce qui n'a pas été vérifié.
+- **`role_connexion` et `role_mvp_week`** se règlent toujours sur Discord
+  seulement : le panneau n'a pas de champ pour eux. Ce n'est pas un défaut
+  de synchro, c'est un manque.
+- **Le nettoyage automatique n'est pas enregistré sur le disque**
+  (`bot/cogs/auto_clean.py`) : sa configuration se perd à chaque
+  redémarrage. Tant que c'est vrai, il n'y a rien à ponter.
+- **Les presets de queue** restent dans le fichier du site, faute de route
+  côté bot.
 
 Et, à chaque fois : `api-locale/server.py` doit suivre `site/api/index.php`,
 et `docs/site-README.md` doit décrire le contrat réel.

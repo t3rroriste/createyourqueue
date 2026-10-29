@@ -96,6 +96,8 @@ window.CYQ_I18N.ko = {
   "d.unsaved": "저장되지 않은 변경 사항",
   "d.navWarn": "권한 부족",
   "d.noApi": "연결된 API 없음",
+  "d.botOff": "봇이 응답하지 않습니다",
+  "d.botOffBody": "이 화면의 내용은 마지막으로 저장된 사본이며 오래된 정보일 수 있습니다. 봇이 응답할 때까지 아무것도 저장할 수 없습니다.",
   "d.noApiBody": "사이트는 게시되었지만 백엔드가 설정되지 않았습니다. 설정을 불러오고 저장하려면 assets/js/config.js의 API_BASE를 입력하세요. 아래 화면은 그대로 둘러볼 수 있고 빈 상태를 보여 줍니다.",
 
   "lg.desc": "이 서버에서 봇이 사용할 언어입니다. 봇이 직접 만든 채널과 역할의 이름도 함께 바뀝니다.",
@@ -142,14 +144,11 @@ window.CYQ_I18N.ko = {
   "mm.lead": "확정된 매치마다 부여되는 점수입니다. 값은 다음 경기부터 적용되며, 이미 기록된 점수는 다시 계산하지 않습니다.",
   "mm.grpActivation": "활성화", "mm.grpPoints": "점수", "mm.grpDurations": "투표 시간",
   "mm.enable": "MMR 시스템", "mm.enableD": "끄면 매치는 진행되지만 점수는 부여되지 않습니다",
-  "mm.mvp": "MVP 보너스", "mm.mvpD": "매치 종료 투표로 선정된 플레이어에게 주는 추가 점수",
-  "mm.streak": "연승 보너스", "mm.streakD": "N연승부터 주는 추가 점수",
   "mm.start": "시작 MMR", "mm.startD": "첫 매치에서 플레이어가 받는 점수",
   "mm.win": "승리 점수", "mm.winD": "100을 넘으면 한 경기로 순위가 뒤집힙니다",
   "mm.loss": "패배 점수", "mm.lossD": "음수 값입니다. 0이면 아무도 점수를 잃지 않습니다",
   "mm.mvpBonus": "MVP 보너스", "mm.mvpBonusD": "승패와 무관하게 결과에 더해집니다",
   "mm.streakBonus": "연승 보너스", "mm.streakBonusD": "연승 조건을 채우면 더해지는 점수",
-  "mm.streakRequired": "필요 연승", "mm.streakRequiredD": "보너스가 적용되기까지 필요한 연속 승리 수",
   "mm.captainVote": "주장 투표", "mm.captainVoteD": "플레이어가 주장을 뽑는 데 주어지는 시간",
   "mm.resultVote": "결과 투표", "mm.resultVoteD": "매치 종료 후 점수를 확정하는 시간",
   "mm.lockedBy": "비활성: 위의 「{name}」 스위치가 꺼져 있습니다",
@@ -174,8 +173,6 @@ window.CYQ_I18N.ko = {
   "q.teamName": "{n}팀 이름", "q.color": "{n}팀 색",
   "q.captainVote": "주장 투표",
   "q.captainVoteD": "플레이어가 주장 두 명을 뽑고, 주장이 팀을 구성합니다",
-  "q.password": "대기열 비밀번호",
-  "q.passwordD": "참가할 때 입력하는 코드입니다. 꺼 두면 누구나 참가할 수 있습니다",
   "q.typePlaceholder": "스크림, 토너먼트, 내부 리그…",
   "q.sessionOnDemand": "수동 개시", "q.sessionScheduled": "예약",
   "q.previewTitle": "공지 미리보기",
@@ -243,16 +240,14 @@ window.CYQ_I18N.ko = {
   "lo.moderation": "관리", "lo.server": "서버",
   "lo.channel": "로그 채널", "lo.enabledCount": "10개 중 {n}개 로그 활성",
 
-  "se.lead": "자동 보호 기능입니다. 안티레이드 임계값은 안티레이드가 켜져 있을 때만 표시됩니다.",
-  "se.antilink": "링크 차단", "se.antilinkD": "허용된 채널 밖에 올린 링크를 삭제합니다",
-  "se.autoclean": "자동 정리", "se.autocleanD": "일정 시간이 지나면 봇의 메시지를 지웁니다",
-  "se.autocleanDelay": "정리 대기 시간", "se.autocleanDelayD": "봇 메시지를 지우기까지 기다리는 시간",
-  "se.antiraid": "안티레이드", "se.antiraidD": "평소와 다른 대량 입장에 대응합니다",
+  "se.lead": "자동 보호 기능입니다. 안티레이드는 여기서, 나머지 둘은 디스코드에서 채널별로 설정합니다.",
+  "se.antilink": "링크 차단", "se.antilinkD": "허용된 채널 밖에 올린 링크를 삭제합니다. 채널별로 설정합니다.",
+  "se.autoclean": "자동 정리", "se.autocleanD": "일정 시간이 지나면 봇의 메시지를 지웁니다. 채널별로 설정합니다.",
   "se.threshold": "입장 임계값", "se.thresholdD": "경보가 울리는 입장 수",
   "se.window": "관찰 구간", "se.windowD": "입장을 세는 시간 범위",
-  "se.action": "조치", "se.actionD": "임계값을 넘었을 때 봇이 하는 일",
-  "se.actAlert": "경고만", "se.actTimeout": "타임아웃",
-  "se.actKick": "추방", "se.actBan": "차단",
+  "se.accountAge": "계정 최소 생성 기간", "se.accountAgeD": "이보다 짧으면 입장을 의심스러운 것으로 표시합니다",
+  "se.raidKick": "자동 추방", "se.raidKickD": "안티레이드 잠금 중 입장한 멤버를 추방합니다",
+  "se.grpRaid": "안티레이드", "se.grpDiscord": "디스코드에서 설정",
 
   "st.loadingChannels": "서버 채널을 읽는 중…",
   "st.savedAt": "{time}에 저장",
@@ -283,7 +278,7 @@ window.CYQ_I18N.ko = {
 
   /* --- chiffres marquants de l'accueil --- */
       
-    "u.pts": "점", "u.s": "초", "u.matches": "경기", "u.min": "분",
+    "u.pts": "점", "u.s": "초", "u.h": "시간", "u.min": "분",
 
   /* --- modules.html --- */
   /* en-tete de la page */

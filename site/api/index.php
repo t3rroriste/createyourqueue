@@ -499,9 +499,10 @@ function guildes_du_bot(string $botToken): ?array
  * sienne qui compte, puisque c'est lui qui publie les annonces et crée les
  * salons. Les réglages qu'il sait tenir passent donc chez lui.
  *
- * Il n'en tient pas encore la totalité : la queue par défaut, le MMR, la
- * sécurité et les presets restent dans le fichier du site, faute de route
- * côté bot. Les trois tables ci-dessous disent exactement ce qui traverse.
+ * Il n'en tient toujours pas la totalité : les presets de queue restent
+ * dans le fichier du site, faute de route côté bot. Les tables ci-dessous
+ * disent exactement ce qui traverse — et `docs/INVENTAIRE-REGLAGES.md`
+ * pourquoi le reste ne traverse pas.
  * ------------------------------------------------------------------------- */
 
 /* Salons et rôles. À gauche la clé du panneau, à droite celle du bot. */
@@ -513,6 +514,12 @@ const PONT_RESSOURCES = [
     'channel.waitingVoice'  => 'voice_queue_waiting',
     'role.organizer'        => 'role_staff',
     'role.queueNotify'      => 'role_queue_notif',
+    /* Les clans. Le bot tenait déjà ces trois ressources — l'assistant les
+       pose, cogs/clan.py les lit — mais elles manquaient de cette table :
+       le panneau avait trois champs qui n'arrivaient jamais jusqu'à lui. */
+    'channel.clanCategory'  => 'category_clan',
+    'role.clanLeader'       => 'role_clan_leader',
+    'role.clanTransfer'     => 'role_clan_transfer',
 ];
 
 /* Fonctions activées. Le bot les nomme autrement : `mvp` couvre tout le
@@ -542,6 +549,24 @@ const PONT_MMR = [
     'mmr.streakBonus' => 'streak_bonus',
     'mmr.captainVote' => 'captain_vote_seconds',
     'mmr.resultVote'  => 'mvp_vote_seconds',
+];
+
+/* L'anti-raid. Le bot le réglait déjà par /antiraid config, et le panneau
+   avait ses propres champs qui n'allaient nulle part : on cochait, il
+   disait « Enregistré », et le bot continuait avec ses anciens seuils.
+
+   Deux choses du panneau ont disparu plutôt que d'être pontées, parce
+   qu'elles ne correspondaient à rien :
+   - son interrupteur anti-raid, alors que la détection est TOUJOURS active
+     côté bot ;
+   - deux de ses quatre actions (exclure temporairement, bannir), que le bot
+     ne sait pas faire. Il ne connaît qu'une expulsion automatique pendant
+     un lockdown, qui est maintenant un simple interrupteur. */
+const PONT_SECURITE = [
+    'security.raidThreshold'  => 'join_threshold',
+    'security.raidWindow'     => 'join_interval',
+    'security.raidAccountAge' => 'min_account_age_hours',
+    'security.raidKick'       => 'auto_kick',
 ];
 
 /* La queue par défaut. Le bot range tout dans un seul objet `queue`, d'où
@@ -651,6 +676,18 @@ function reglages_du_bot(string $gid): array
     }
     $sortie['queue.passwordValue'] = (string)($rep['queue_password'] ?? '');
 
+    /* L'anti-raid, dans l'autre sens : réglé par /antiraid config sur
+       Discord, il doit se voir dans le panneau sans rien avoir à faire. */
+    $sec = is_array($rep['security'] ?? null) ? $rep['security'] : [];
+    foreach (PONT_SECURITE as $cleSite => $cleBot) {
+        if (!array_key_exists($cleBot, $sec)) {
+            continue;
+        }
+        $sortie[$cleSite] = $cleBot === 'auto_kick'
+            ? ($sec[$cleBot] ? '1' : '0')
+            : (string)(int)$sec[$cleBot];
+    }
+
     /* Les rangs : la liste du bot devient des champs numérotés, que le
        panneau sait afficher et enregistrer un par un. */
     $rangs = is_array($rep['mmr']['tiers'] ?? null) ? $rep['mmr']['tiers'] : [];
@@ -711,6 +748,11 @@ function trier_pour_le_bot(array $propre, array $reglagesActuels = []): array
                 // valeur absolue de ce que le panneau affiche en négatif.
                 $pourLeBot['mmr'][$cleBot] = abs((int)$v);
             }
+        } elseif (array_key_exists($k, PONT_SECURITE)) {
+            $cleBot = PONT_SECURITE[$k];
+            $pourLeBot['security'][$cleBot] = $cleBot === 'auto_kick'
+                ? ($v === '1' || $v === 1 || $v === true)
+                : (int)$v;
         } elseif ($k === 'queue.passwordValue') {
             $pourLeBot['queue_password'] = (string)$v;
         } elseif (preg_match('#^mmr\.rank(\d{1,2})\.(name|min|color)$#', $k, $mr)) {
@@ -996,6 +1038,14 @@ if (preg_match('#^/guilds/(\d{5,25})(/settings)?$#', $chemin, $m)) {
     // ---- lecture ----
     if (!$estReglages && $methode === 'GET') {
         $enr = lire_reglages()[$gid] ?? [];
+
+        /* Le bot répond, ou pas. La différence SE DIT : jusqu'ici, un bot
+           éteint faisait servir la copie locale avec exactement la même
+           assurance qu'une lecture fraîche. On lisait un écran qui avait
+           l'air juste, on modifiait un champ, et c'est le refus
+           d'enregistrement (BOT_INJOIGNABLE) qui apprenait que le bot
+           dormait. L'écriture était honnête, la lecture non. */
+        $duBot = reglages_du_bot($gid);
         $rep = [
             'id'                 => $laGuilde['id'],
             'name'               => $laGuilde['name'],
@@ -1004,15 +1054,12 @@ if (preg_match('#^/guilds/(\d{5,25})(/settings)?$#', $chemin, $m)) {
             'me'                 => ['name' => $session['user_name']],
             /* Le bot a le dernier mot sur ce qu'il tient : c'est lui qui
                publiera et créera, pas nous. Injoignable, on sert la copie
-               locale plutôt qu'un écran vide. */
-            'settings'           => (function () use ($gid, $enr) {
-                $local = $enr['settings'] ?? null;
-                $duBot = reglages_du_bot($gid);
-                if (!$duBot) {
-                    return $local;
-                }
-                return array_merge($local ?? [], $duBot);
-            })(),
+               locale plutôt qu'un écran vide — mais `botJoignable` dit
+               alors au panneau que ce qu'il montre peut dater. */
+            'botJoignable'       => $duBot !== [],
+            'settings'           => $duBot
+                ? array_merge($enr['settings'] ?? [], $duBot)
+                : ($enr['settings'] ?? null),
             'presets'            => $enr['presets'] ?? [],
             'permissions'        => $enr['permissions'] ?? null,
             'missingPermissions' => $enr['missingPermissions'] ?? [],

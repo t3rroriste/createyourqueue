@@ -36,6 +36,11 @@ RACINE = Path(__file__).resolve().parent
 DOSSIER_DATA = RACINE / "data"
 FICHIER_REGLAGES = DOSSIER_DATA / "guilds.json"
 
+# Pour essayer le bandeau « Le bot ne répond pas » sans éteindre quoi que ce
+# soit : CYQ_BOT_OFF=1 avant de lancer le serveur. Le réglage n'existe QUE
+# dans cette API de développement ; le PHP, lui, constate.
+BOT_ETEINT = os.environ.get("CYQ_BOT_OFF") == "1"
+
 API = "https://discord.com/api/v10"
 MANAGE_GUILD = 1 << 5
 DUREE_SESSION = 7 * 24 * 3600
@@ -689,6 +694,12 @@ class Handler(BaseHTTPRequestHandler):
             "iconUrl": icon_url(g["id"], g.get("icon"), 128),
             "memberCount": g.get("approximate_member_count"),
             "me": {"name": s["user_name"]},
+            # En production, ce champ dit si le bot a répondu : sans lui, le
+            # panneau servait la copie du site comme une lecture fraîche.
+            # Ici il n'y a pas de bot derrière les réglages — ce serveur EST
+            # la vérité — donc vrai, sauf quand on veut justement voir ce que
+            # le panneau affiche quand le bot dort : CYQ_BOT_OFF=1.
+            "botJoignable": not BOT_ETEINT,
             "settings": enr.get("settings"),
             "presets": enr.get("presets", []),
             "permissions": enr.get("permissions"),

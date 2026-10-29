@@ -96,6 +96,8 @@ window.CYQ_I18N.en = {
   "d.unsaved": "Unsaved changes",
   "d.navWarn": "Missing permissions",
   "d.noApi": "No API connected",
+  "d.botOff": "The bot is not responding",
+  "d.botOffBody": "What this screen shows comes from the last saved copy and may be out of date. Nothing can be saved until the bot answers.",
   "d.noApiBody": "The site is live but no back-end is configured: set API_BASE in assets/js/config.js to load and save settings. The screens below stay navigable and show their empty states.",
 
   "lg.desc": "The bot's language on this server. It also renames the channels and roles the bot creates itself.",
@@ -142,14 +144,11 @@ window.CYQ_I18N.en = {
   "mm.lead": "Points awarded after each confirmed match. Values apply to the next game; scores already recorded are not recalculated.",
   "mm.grpActivation": "Activation", "mm.grpPoints": "Points", "mm.grpDurations": "Vote durations",
   "mm.enable": "MMR system", "mm.enableD": "Without it, matches are played but no points are awarded",
-  "mm.mvp": "MVP bonus", "mm.mvpD": "Extra points for the player voted MVP at the end of a match",
-  "mm.streak": "Streak bonus", "mm.streakD": "Extra points from N consecutive wins",
   "mm.start": "Starting MMR", "mm.startD": "Score a player gets on their first match",
   "mm.win": "Points per win", "mm.winD": "Above 100, a single match is enough to upend the leaderboard",
   "mm.loss": "Points per loss", "mm.lossD": "A negative value. At 0, nobody ever loses points",
   "mm.mvpBonus": "MVP bonus", "mm.mvpBonusD": "Added to the result, on a win as on a loss",
   "mm.streakBonus": "Streak bonus", "mm.streakBonusD": "Points added once the streak is reached",
-  "mm.streakRequired": "Streak required", "mm.streakRequiredD": "Consecutive wins before the bonus applies",
   "mm.captainVote": "Captain vote", "mm.captainVoteD": "Time players get to elect the captains",
   "mm.resultVote": "Result vote", "mm.resultVoteD": "Time to confirm the score at the end of a match",
   "mm.lockedBy": "Inactive: the “{name}” switch is off above",
@@ -174,8 +173,6 @@ window.CYQ_I18N.en = {
   "q.teamName": "Name of team {n}", "q.color": "Colour of team {n}",
   "q.captainVote": "Captain vote",
   "q.captainVoteD": "Players elect two captains who then pick the teams",
-  "q.password": "Queue password",
-  "q.passwordD": "A code to enter before joining — off, the queue is open to everyone",
   "q.typePlaceholder": "Scrim, tournament, internal league…",
   "q.sessionOnDemand": "On demand", "q.sessionScheduled": "Scheduled",
   "q.previewTitle": "Announcement preview",
@@ -243,16 +240,14 @@ window.CYQ_I18N.en = {
   "lo.moderation": "Moderation", "lo.server": "Server",
   "lo.channel": "Log channel", "lo.enabledCount": "{n} of 10 logs active",
 
-  "se.lead": "Automatic protections. Anti-raid thresholds only appear when anti-raid is on.",
-  "se.antilink": "Anti-link", "se.antilinkD": "Deletes links posted outside the allowed channels",
-  "se.autoclean": "Auto-clean", "se.autocleanD": "Deletes the bot's messages after a delay",
-  "se.autocleanDelay": "Clean-up delay", "se.autocleanDelayD": "Time before the bot's messages are deleted",
-  "se.antiraid": "Anti-raid", "se.antiraidD": "Reacts to an unusual wave of joins",
+  "se.lead": "Automatic protections. Anti-raid is set here; the other two are set on Discord, channel by channel.",
+  "se.antilink": "Anti-link", "se.antilinkD": "Deletes links posted outside the allowed channels. Set channel by channel.",
+  "se.autoclean": "Auto-clean", "se.autocleanD": "Deletes the bot's messages after a delay. Set channel by channel.",
   "se.threshold": "Join threshold", "se.thresholdD": "Number of joins that triggers the alert",
   "se.window": "Observation window", "se.windowD": "Period over which joins are counted",
-  "se.action": "Action", "se.actionD": "What the bot does when the threshold is crossed",
-  "se.actAlert": "Alert only", "se.actTimeout": "Time out",
-  "se.actKick": "Kick", "se.actBan": "Ban",
+  "se.accountAge": "Minimum account age", "se.accountAgeD": "Below this, a join is flagged as suspicious",
+  "se.raidKick": "Automatic kick", "se.raidKickD": "Kicks members who join during an anti-raid lockdown",
+  "se.grpRaid": "Anti-raid", "se.grpDiscord": "Set on Discord",
 
   "st.loadingChannels": "Reading the server's channels…",
   "st.savedAt": "Saved at {time}",
@@ -283,7 +278,7 @@ window.CYQ_I18N.en = {
 
   /* --- chiffres marquants de l'accueil --- */
       
-    "u.pts": "pts", "u.s": "s", "u.matches": "matches", "u.min": "min",
+    "u.pts": "pts", "u.s": "s", "u.h": "h", "u.min": "min",
 
   /* --- modules.html --- */
   /* en-tete de la page */

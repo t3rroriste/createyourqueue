@@ -117,6 +117,7 @@ configuré.
   "iconUrl": "…",
   "memberCount": 1284,
   "me": { "name": "nova_admin" },
+  "botJoignable": true,
   "channels":      [{ "id": "1", "name": "commandes-queue", "category": "COMPÉTITION", "disabled": false }],
   "voiceChannels": [{ "id": "2", "name": "Salle d'attente", "type": "voice" }],
   "categories":    [{ "id": "3", "name": "CLANS", "type": "category" }],
@@ -138,10 +139,23 @@ configuré.
     "queue.name": "Scrim 5v5", "queue.teams": 2, "queue.players": 5,
     "queue.team0.name": "Équipe Rouge", "queue.team0.color": "#E05A4E",
     "log.match.enabled": true, "log.match.channel": "1",
-    "security.antiraid": false
+    "security.raidThreshold": "10", "security.raidWindow": "30",
+    "security.raidAccountAge": "24", "security.raidKick": "0"
   }
 }
 ```
+
+`botJoignable` dit si le bot a répondu. À `false`, `settings` vient de la
+copie que le site garde de son côté : elle peut dater de plusieurs jours, et
+rien ne pourra être enregistré tant que le bot ne répond pas. Le panneau
+l'affiche alors en bandeau.
+
+Ce champ existe parce que l'inverse était pire : la copie locale se servait
+sans un mot, avec la même assurance qu'une lecture fraîche, et c'est le refus
+d'enregistrement (`BOT_INJOIGNABLE`) qui l'apprenait, une fois le formulaire
+rempli. L'écriture était honnête, la lecture non. Une API plus ancienne
+n'envoie pas ce champ du tout : son absence ne veut pas dire « bot éteint »,
+et le panneau ne montre alors rien.
 
 `disabled: true` sur un salon le laisse visible dans la liste, grisé, avec la
 mention « écriture refusée » : on n'escamote jamais une destination, on dit
@@ -151,6 +165,15 @@ Les clés de `settings` sont exactement les attributs `data-setting` du HTML.
 Pour en ajouter une, il suffit d'ajouter la ligne de réglage correspondante
 dans `dashboard.html` — le suivi des modifications et l'enregistrement la
 prennent en charge sans toucher au JavaScript.
+
+**Mais ajouter la ligne ne suffit pas à ce qu'elle serve.** Une clé que les
+tables `PONT_*` de `api/index.php` ne connaissent pas ne quitte jamais le
+fichier du site : le panneau l'affiche, l'enregistre, dit « Enregistré », et
+le bot n'en sait rien. C'est exactement ce qui est arrivé aux sept réglages
+de sécurité et aux trois clés de clan. `docs/INVENTAIRE-REGLAGES.md` dresse
+la liste de ce qui traverse, réglage par réglage ; une clé neuve qui désigne
+quelque chose du bot s'y ajoute, et dans `EDITABLE_RESOURCES` ou la table de
+pont correspondante.
 
 ### `PATCH /guilds/{id}/settings`
 

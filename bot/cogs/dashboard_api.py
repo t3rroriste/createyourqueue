@@ -35,6 +35,8 @@ from discord.ext import commands
 from config import DASHBOARD_API_HOST, DASHBOARD_API_KEY, DASHBOARD_API_PORT, OWNER_ID
 from guild_settings import (
     FEATURE_DEFAULTS,
+    get_antiraid_config,
+    set_antiraid_config,
     MMR_DEFAULTS,
     clear_resource_id,
     get_features,
@@ -69,6 +71,26 @@ EDITABLE_RESOURCES = {
     "role_queue_notif": "role",
     "role_connexion": "role",
     "role_mvp_week": "role",
+    # Les clans. Le bot les tenait déjà — l'assistant les pose, cogs/clan.py
+    # les lit — mais ils manquaient de cette liste ET de PONT_RESSOURCES :
+    # le panneau avait trois champs qui n'arrivaient jamais jusqu'ici.
+    "category_clan": "category",
+    "role_clan_leader": "role",
+    "role_clan_transfer": "role",
+}
+
+# L'anti-raid, tel que /antiraid config le règle déjà. Les bornes sont
+# EXACTEMENT celles de la commande Discord (cogs/antiraid.py) : deux chemins
+# vers le même réglage qui n'accepteraient pas les mêmes valeurs, c'est la
+# promesse d'un panneau qui refuse ce que Discord vient d'enregistrer.
+#
+# Il n'y a pas d'interrupteur : l'anti-raid est toujours actif. Le panneau
+# en affichait un, qui ne commandait rien.
+SECURITY_FIELDS = {
+    "join_threshold": (2, 100),
+    "join_interval": (2, 300),
+    "min_account_age_hours": (0, 720),
+    "auto_kick": bool,
 }
 
 # Les réglages de queue modifiables depuis le site, avec le type attendu.
@@ -419,6 +441,10 @@ class DashboardAPI(commands.Cog):
                     "tiers": mmr.sorted_tiers(get_mmr_config(guild.id))
                              or mmr.default_tiers(guild.id)},
             "queue_password": get_queue_password(guild.id) or "",
+            # L'anti-raid. Le lire importe autant que l'écrire : réglé par
+            # /antiraid config sur Discord, il doit se voir dans le panneau.
+            "security": {cle: get_antiraid_config(guild.id)[cle]
+                         for cle in SECURITY_FIELDS},
         }
 
     async def guild_options(self, request: web.Request) -> web.Response:
@@ -435,6 +461,11 @@ class DashboardAPI(commands.Cog):
             ],
             "voice": [
                 {"id": str(c.id), "name": c.name} for c in guild.voice_channels
+            ],
+            # Les catégories : la catégorie des clans se règle depuis le
+            # panneau, il lui faut donc la liste.
+            "category": [
+                {"id": str(c.id), "name": c.name} for c in guild.categories
             ],
             "role": [
                 {"id": str(r.id), "name": r.name}
@@ -558,6 +589,28 @@ class DashboardAPI(commands.Cog):
             if not isinstance(mot_de_passe, str) or len(mot_de_passe) > 64:
                 return _error(400, "invalid_password")
 
+        securite = data.get("security")
+        securite_propre = None
+        if securite is not None:
+            if not isinstance(securite, dict):
+                return _error(400, "invalid_security")
+            securite_propre = {}
+            for cle, valeur in securite.items():
+                borne = SECURITY_FIELDS.get(cle)
+                if borne is None:
+                    return _error(400, "invalid_security")
+                if borne is bool:
+                    if not isinstance(valeur, bool):
+                        return _error(400, "invalid_security")
+                else:
+                    mini, maxi = borne
+                    # bool avant int : en Python, True est un entier.
+                    if isinstance(valeur, bool) or not isinstance(valeur, int):
+                        return _error(400, "invalid_security")
+                    if not (mini <= valeur <= maxi):
+                        return _error(400, "invalid_security")
+                securite_propre[cle] = valeur
+
         language = data.get("language")
         if language is not None:
             if language not in LANGUAGES:
@@ -645,6 +698,8 @@ class DashboardAPI(commands.Cog):
             set_mmr_config(guild.id, **mmr_propre)
         if mot_de_passe is not None:
             set_queue_password(guild.id, mot_de_passe or None)
+        if securite_propre:
+            set_antiraid_config(guild.id, **securite_propre)
 
         log.info(f"Tableau de bord : {guild.name} ({guild.id}) modifié")
 
@@ -839,7 +894,14 @@ class DashboardAPI(commands.Cog):
         channel = guild.get_channel(resource_id)
         if kind == "text":
             return isinstance(channel, discord.TextChannel)
-        return isinstance(channel, discord.VoiceChannel)
+        if kind == "category":
+            return isinstance(channel, discord.CategoryChannel)
+        if kind == "voice":
+            return isinstance(channel, discord.VoiceChannel)
+        # Un type qu'on ne connaît pas se refuse. Le repli muet sur « vocal »
+        # revenait à accepter la première valeur venue pour une clé mal
+        # déclarée.
+        return False
 
 
 async def setup(bot: commands.Bot):

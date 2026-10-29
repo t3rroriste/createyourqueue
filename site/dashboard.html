@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610290105">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610290105">
+<link rel="stylesheet" href="assets/css/home.css?v=202610290347">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610290347">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -248,7 +248,7 @@
             <div class="row">
               <p class="row__text"><label class="row__label" for="fn-qpass" data-i18n="fn.queuePassword">Mot de passe des queues</label> <span class="row__desc" id="fn-qpass-d" data-i18n="fn.queuePasswordD"></span></p>
               <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-qpass" aria-describedby="fn-qpass-d" data-setting="feature.queuePassword"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-qpass" aria-describedby="fn-qpass-d" data-setting="feature.queuePassword" data-reveal="#q-passval-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
           </div>
         </div>
@@ -407,16 +407,12 @@
                   <span class="row__state" data-state aria-hidden="true"></span>
                   <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="mm-enable" aria-describedby="mm-enable-d" data-setting="mmr.enabled" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
                 </div>
-                <div class="row">
-                  <p class="row__text"><label class="row__label" for="mm-mvp" data-i18n="mm.mvp">Bonus MVP</label> <span class="row__desc" id="mm-mvp-d" data-i18n="mm.mvpD"></span></p>
-                  <span class="row__state" data-state aria-hidden="true"></span>
-                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="mm-mvp" aria-describedby="mm-mvp-d" data-setting="mmr.mvpEnabled" data-reveal="#row-mvp-bonus" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-                </div>
-                <div class="row">
-                  <p class="row__text"><label class="row__label" for="mm-streak" data-i18n="mm.streak">Bonus de série</label> <span class="row__desc" id="mm-streak-d" data-i18n="mm.streakD"></span></p>
-                  <span class="row__state" data-state aria-hidden="true"></span>
-                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="mm-streak" aria-describedby="mm-streak-d" data-setting="mmr.streakEnabled" data-reveal="#row-streak-bonus,#row-streak-req"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-                </div>
+                <!-- Il y avait ici deux interrupteurs, « Bonus MVP » et
+                     « Bonus de série ». Le bot n'a jamais eu ni l'un ni
+                     l'autre : il a mvp_bonus et streak_bonus, et zéro point
+                     vaut éteint. Ces deux cases ne commandaient donc rien,
+                     et leurs champs sont maintenant toujours visibles.
+                     Voir docs/INVENTAIRE-REGLAGES.md. -->
               </div>
             </div>
 
@@ -441,23 +437,17 @@
                   <div class="row__ctl"><span class="num"><input class="num__input" id="f-loss" type="number" inputmode="numeric" step="1" min="-100" max="0" value="-18" data-min="-100" data-max="0" aria-describedby="f-loss-d f-loss-e" data-setting="mmr.loss"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
                   <p class="row__err" id="f-loss-e" data-error-for="f-loss" hidden></p>
                 </div>
-                <div class="row row--sub" id="row-mvp-bonus">
+                <div class="row" id="row-mvp-bonus">
                   <p class="row__text"><label class="row__label" for="f-mvp" data-i18n="mm.mvpBonus">Bonus MVP</label> <span class="row__desc" id="f-mvp-d"><span data-i18n="mm.mvpBonusD"></span><span class="row__bounds">0 – 50</span></span></p>
                   <span class="row__state" data-state aria-hidden="true"></span>
                   <div class="row__ctl"><span class="num"><input class="num__input" id="f-mvp" type="number" inputmode="numeric" step="1" min="0" max="50" value="10" data-min="0" data-max="50" aria-describedby="f-mvp-d f-mvp-e" data-setting="mmr.mvpBonus"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
                   <p class="row__err" id="f-mvp-e" data-error-for="f-mvp" hidden></p>
                 </div>
-                <div class="row row--sub" id="row-streak-bonus" hidden>
+                <div class="row" id="row-streak-bonus">
                   <p class="row__text"><label class="row__label" for="f-streak" data-i18n="mm.streakBonus">Bonus de série</label> <span class="row__desc" id="f-streak-d"><span data-i18n="mm.streakBonusD"></span><span class="row__bounds">0 – 50</span></span></p>
                   <span class="row__state" data-state aria-hidden="true"></span>
                   <div class="row__ctl"><span class="num"><input class="num__input" id="f-streak" type="number" inputmode="numeric" step="1" min="0" max="50" value="5" data-min="0" data-max="50" aria-describedby="f-streak-d f-streak-e" data-setting="mmr.streakBonus"><span class="num__unit" data-i18n="u.pts">pts</span></span></div>
                   <p class="row__err" id="f-streak-e" data-error-for="f-streak" hidden></p>
-                </div>
-                <div class="row row--sub" id="row-streak-req" hidden>
-                  <p class="row__text"><label class="row__label" for="f-streakn" data-i18n="mm.streakRequired">Série requise</label> <span class="row__desc" id="f-streakn-d"><span data-i18n="mm.streakRequiredD"></span><span class="row__bounds">2 – 20</span></span></p>
-                  <span class="row__state" data-state aria-hidden="true"></span>
-                  <div class="row__ctl"><span class="num"><input class="num__input" id="f-streakn" type="number" inputmode="numeric" step="1" min="2" max="20" value="3" data-min="2" data-max="20" aria-describedby="f-streakn-d f-streakn-e" data-setting="mmr.streakRequired"><span class="num__unit" data-i18n="u.matches">matchs</span></span></div>
-                  <p class="row__err" id="f-streakn-e" data-error-for="f-streakn" hidden></p>
                 </div>
               </div>
             </div>
@@ -594,11 +584,11 @@
                   <span class="row__state" data-state aria-hidden="true"></span>
                   <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="q-cvote" aria-describedby="q-cvote-d" data-setting="queue.captainVote" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
                 </div>
-                <div class="row">
-                  <p class="row__text"><label class="row__label" for="q-pass" data-i18n="q.password">Mot de passe de la queue</label> <span class="row__desc" id="q-pass-d" data-i18n="q.passwordD"></span></p>
-                  <span class="row__state" data-state aria-hidden="true"></span>
-                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="q-pass" aria-describedby="q-pass-d" data-setting="queue.password" data-reveal="#q-passval-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-                </div>
+                <!-- L'interrupteur du mot de passe était ici EN DOUBLE :
+                     il existait aussi dans Fonctions, sous le nom que le bot
+                     connaît (`password`). Celui-ci écrivait `queue.password`,
+                     que rien ne lisait. C'est l'autre qui découvre maintenant
+                     le champ ci-dessous. -->
                 <div class="row">
                   <p class="row__text"><label class="row__label" for="q-embedcolor" data-i18n="q.embedColor">Couleur de l'annonce</label> <span class="row__desc" id="q-embedcolor-d" data-i18n="q.embedColorD"></span></p>
                   <span class="row__state" data-state aria-hidden="true"></span>
@@ -736,55 +726,69 @@
           <p class="lead sec__lead" data-i18n="se.lead"></p>
         </header>
 
+        <!-- L'anti-raid, et lui seul, est tenu par le bot : c'est
+             get_antiraid_config, que /antiraid config règle aussi. Les
+             bornes ci-dessous sont EXACTEMENT celles de cette commande.
+             Deux chemins vers le même réglage qui n'accepteraient pas les
+             mêmes valeurs, c'est la promesse d'un panneau qui refuse ce
+             que Discord vient d'enregistrer.
+
+             Il n'y a plus d'interrupteur : la détection est toujours
+             active côté bot, et la case d'avant ne l'éteignait pas. Plus
+             de menu d'action non plus — il proposait « exclure
+             temporairement » et « bannir », que le bot ne sait pas faire.
+             Il ne connaît qu'une expulsion pendant un lockdown.
+             Voir docs/INVENTAIRE-REGLAGES.md. -->
         <div class="grp">
+          <h2 class="grp__title" data-i18n="se.grpRaid">Anti-raid</h2>
           <div class="grp__card">
             <div class="row">
-              <p class="row__text"><label class="row__label" for="se-link" data-i18n="se.antilink">Anti-lien</label> <span class="row__desc" id="se-link-d" data-i18n="se.antilinkD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-link" aria-describedby="se-link-d" data-setting="security.antilink"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-            </div>
-
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="se-clean" data-i18n="se.autoclean">Nettoyage automatique</label> <span class="row__desc" id="se-clean-d" data-i18n="se.autocleanD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-clean" aria-describedby="se-clean-d" data-setting="security.autoclean" data-reveal="#row-clean-delay"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-            </div>
-            <div class="row row--sub" id="row-clean-delay" hidden>
-              <p class="row__text"><label class="row__label" for="f-clean" data-i18n="se.autocleanDelay">Délai de nettoyage</label> <span class="row__desc" id="f-clean-d"><span data-i18n="se.autocleanDelayD"></span><span class="row__bounds">1 – 1440</span></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="num"><input class="num__input" id="f-clean" type="number" inputmode="numeric" step="1" min="1" max="1440" value="10" data-min="1" data-max="1440" aria-describedby="f-clean-d f-clean-e" data-setting="security.autocleanDelay"><span class="num__unit" data-i18n="u.min">min</span></span></div>
-              <p class="row__err" id="f-clean-e" data-error-for="f-clean" hidden></p>
-            </div>
-
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="se-raid" data-i18n="se.antiraid">Anti-raid</label> <span class="row__desc" id="se-raid-d" data-i18n="se.antiraidD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-raid" aria-describedby="se-raid-d" data-setting="security.antiraid" data-reveal="#row-raid-n,#row-raid-w,#row-raid-a"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-            </div>
-            <div class="row row--sub" id="row-raid-n" hidden>
               <p class="row__text"><label class="row__label" for="f-raidn" data-i18n="se.threshold">Seuil d'arrivées</label> <span class="row__desc" id="f-raidn-d"><span data-i18n="se.thresholdD"></span><span class="row__bounds">2 – 100</span></span></p>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="num"><input class="num__input" id="f-raidn" type="number" inputmode="numeric" step="1" min="2" max="100" value="10" data-min="2" data-max="100" aria-describedby="f-raidn-d f-raidn-e" data-setting="security.raidThreshold"><span class="num__unit" aria-hidden="true">×</span></span></div>
               <p class="row__err" id="f-raidn-e" data-error-for="f-raidn" hidden></p>
             </div>
-            <div class="row row--sub" id="row-raid-w" hidden>
-              <p class="row__text"><label class="row__label" for="f-raidw" data-i18n="se.window">Fenêtre d'observation</label> <span class="row__desc" id="f-raidw-d"><span data-i18n="se.windowD"></span><span class="row__bounds">5 – 600</span></span></p>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="f-raidw" data-i18n="se.window">Fenêtre d'observation</label> <span class="row__desc" id="f-raidw-d"><span data-i18n="se.windowD"></span><span class="row__bounds">2 – 300</span></span></p>
               <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="num"><input class="num__input" id="f-raidw" type="number" inputmode="numeric" step="1" min="5" max="600" value="30" data-min="5" data-max="600" aria-describedby="f-raidw-d f-raidw-e" data-setting="security.raidWindow"><span class="num__unit" data-i18n="u.s">s</span></span></div>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="f-raidw" type="number" inputmode="numeric" step="1" min="2" max="300" value="30" data-min="2" data-max="300" aria-describedby="f-raidw-d f-raidw-e" data-setting="security.raidWindow"><span class="num__unit" data-i18n="u.s">s</span></span></div>
               <p class="row__err" id="f-raidw-e" data-error-for="f-raidw" hidden></p>
             </div>
-            <div class="row row--sub" id="row-raid-a" hidden>
-              <p class="row__text"><label class="row__label" for="f-raida" data-i18n="se.action">Action</label> <span class="row__desc" id="f-raida-d" data-i18n="se.actionD"></span></p>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="f-raidage" data-i18n="se.accountAge">Âge minimum du compte</label> <span class="row__desc" id="f-raidage-d"><span data-i18n="se.accountAgeD"></span><span class="row__bounds">0 – 720</span></span></p>
               <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="select"><select id="f-raida" aria-describedby="f-raida-d" data-setting="security.raidAction">
-                <option value="alert" data-i18n="se.actAlert">Alerter seulement</option>
-                <option value="timeout" data-i18n="se.actTimeout">Exclure temporairement</option>
-                <option value="kick" data-i18n="se.actKick">Expulser</option>
-                <option value="ban" data-i18n="se.actBan">Bannir</option>
-              </select><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="f-raidage" type="number" inputmode="numeric" step="1" min="0" max="720" value="24" data-min="0" data-max="720" aria-describedby="f-raidage-d f-raidage-e" data-setting="security.raidAccountAge"><span class="num__unit" data-i18n="u.h">h</span></span></div>
+              <p class="row__err" id="f-raidage-e" data-error-for="f-raidage" hidden></p>
+            </div>
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="se-raidkick" data-i18n="se.raidKick">Expulsion automatique</label> <span class="row__desc" id="se-raidkick-d" data-i18n="se.raidKickD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="se-raidkick" aria-describedby="se-raidkick-d" data-setting="security.raidKick"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
           </div>
         </div>
+
+        <!-- Ces deux-là ne sont PAS réglables ici, et le dire vaut mieux
+             que de remettre les interrupteurs qui ne faisaient rien.
+             L'anti-lien se règle par SALON, pas par serveur ; le nettoyage
+             automatique n'est pas encore enregistré sur le disque, il se
+             perd à chaque redémarrage du bot. Les montrer avec leur
+             commande, c'est tenir la promesse du panneau : ce qu'il affiche
+             est ce qui est. -->
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.grpDiscord">À régler sur Discord</h2>
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><span class="row__label" data-i18n="se.antilink">Anti-lien</span> <span class="row__desc" data-i18n="se.antilinkD"></span></p>
+              <div class="row__ctl"><code class="row__cmd">/antilink</code></div>
+            </div>
+            <div class="row">
+              <p class="row__text"><span class="row__label" data-i18n="se.autoclean">Nettoyage automatique</span> <span class="row__desc" data-i18n="se.autocleanD"></span></p>
+              <div class="row__ctl"><code class="row__cmd">/autoclean on</code></div>
+            </div>
+          </div>
+        </div>
+
       </section>
 
       <!-- =========================== DIAGNOSTIC =========================== -->
@@ -803,14 +807,14 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610290105"></script>
-<script src="assets/js/config.js?v=202610290105"></script>
-<script src="assets/js/lang/fr.js?v=202610290105"></script>
-<script src="assets/js/lang/en.js?v=202610290105"></script>
-<script src="assets/js/lang/es.js?v=202610290105"></script>
-<script src="assets/js/lang/de.js?v=202610290105"></script>
-<script src="assets/js/lang/ko.js?v=202610290105"></script>
-<script src="assets/js/app.js?v=202610290105"></script>
-<script src="assets/js/page-dashboard.js?v=202610290105"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610290347"></script>
+<script src="assets/js/config.js?v=202610290347"></script>
+<script src="assets/js/lang/fr.js?v=202610290347"></script>
+<script src="assets/js/lang/en.js?v=202610290347"></script>
+<script src="assets/js/lang/es.js?v=202610290347"></script>
+<script src="assets/js/lang/de.js?v=202610290347"></script>
+<script src="assets/js/lang/ko.js?v=202610290347"></script>
+<script src="assets/js/app.js?v=202610290347"></script>
+<script src="assets/js/page-dashboard.js?v=202610290347"></script>
 </body>
 </html>

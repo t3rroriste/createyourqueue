@@ -96,6 +96,8 @@ window.CYQ_I18N.es = {
   "d.unsaved": "Cambios sin guardar",
   "d.navWarn": "Permisos ausentes",
   "d.noApi": "Ninguna API conectada",
+  "d.botOff": "El bot no responde",
+  "d.botOffBody": "Lo que muestra esta pantalla viene de la última copia guardada y puede estar desactualizado. No se podrá guardar nada hasta que el bot responda.",
   "d.noApiBody": "El sitio está publicado pero no hay back-end configurado: indica API_BASE en assets/js/config.js para cargar y guardar los ajustes. Las pantallas siguen navegables y muestran sus estados vacíos.",
 
   "lg.desc": "El idioma del bot en este servidor. También renombra los canales y roles que el bot crea él mismo.",
@@ -142,14 +144,11 @@ window.CYQ_I18N.es = {
   "mm.lead": "Puntos otorgados tras cada partida validada. Los valores se aplican a la siguiente partida; los marcadores ya registrados no se recalculan.",
   "mm.grpActivation": "Activación", "mm.grpPoints": "Puntos", "mm.grpDurations": "Duración de los votos",
   "mm.enable": "Sistema de MMR", "mm.enableD": "Sin él se juegan las partidas pero no se otorga ningún punto",
-  "mm.mvp": "Bonus MVP", "mm.mvpD": "Puntos extra para el jugador elegido por voto al final de la partida",
-  "mm.streak": "Bonus de racha", "mm.streakD": "Puntos extra a partir de N victorias consecutivas",
   "mm.start": "MMR inicial", "mm.startD": "Puntuación de un jugador en su primera partida",
   "mm.win": "Puntos por victoria", "mm.winD": "Por encima de 100, una sola partida basta para trastocar la clasificación",
   "mm.loss": "Puntos por derrota", "mm.lossD": "Valor negativo. A 0, nadie pierde nunca puntos",
   "mm.mvpBonus": "Bonus MVP", "mm.mvpBonusD": "Se suma al resultado, tanto en victoria como en derrota",
   "mm.streakBonus": "Bonus de racha", "mm.streakBonusD": "Puntos añadidos una vez alcanzada la racha",
-  "mm.streakRequired": "Racha necesaria", "mm.streakRequiredD": "Victorias consecutivas antes del bonus",
   "mm.captainVote": "Voto de capitanes", "mm.captainVoteD": "Tiempo que tienen los jugadores para elegir capitanes",
   "mm.resultVote": "Voto de resultado", "mm.resultVoteD": "Tiempo para confirmar el marcador al final de la partida",
   "mm.lockedBy": "Inactivo: el interruptor «{name}» está desactivado más arriba",
@@ -174,8 +173,6 @@ window.CYQ_I18N.es = {
   "q.teamName": "Nombre del equipo {n}", "q.color": "Color del equipo {n}",
   "q.captainVote": "Voto de capitanes",
   "q.captainVoteD": "Los jugadores eligen dos capitanes que luego forman los equipos",
-  "q.password": "Contraseña de la cola",
-  "q.passwordD": "Un código para entrar — desactivado, la cola está abierta a todos",
   "q.typePlaceholder": "Scrim, torneo, liga interna…",
   "q.sessionOnDemand": "A demanda", "q.sessionScheduled": "Programada",
   "q.previewTitle": "Vista previa del anuncio",
@@ -243,16 +240,14 @@ window.CYQ_I18N.es = {
   "lo.moderation": "Moderación", "lo.server": "Servidor",
   "lo.channel": "Canal del registro", "lo.enabledCount": "{n} de 10 registros activos",
 
-  "se.lead": "Las protecciones automáticas. Los umbrales del anti-raid solo aparecen si el anti-raid está activo.",
-  "se.antilink": "Anti-enlace", "se.antilinkD": "Elimina los enlaces publicados fuera de los canales permitidos",
-  "se.autoclean": "Limpieza automática", "se.autocleanD": "Borra los mensajes del bot tras un tiempo",
-  "se.autocleanDelay": "Tiempo de limpieza", "se.autocleanDelayD": "Tiempo antes de borrar los mensajes del bot",
-  "se.antiraid": "Anti-raid", "se.antiraidD": "Reacciona a una oleada de entradas inusual",
+  "se.lead": "Las protecciones automáticas. El anti-raid se ajusta aquí; las otras dos se ajustan en Discord, canal por canal.",
+  "se.antilink": "Anti-enlace", "se.antilinkD": "Elimina los enlaces publicados fuera de los canales permitidos. Se ajusta canal por canal.",
+  "se.autoclean": "Limpieza automática", "se.autocleanD": "Borra los mensajes del bot tras un tiempo. Se ajusta canal por canal.",
   "se.threshold": "Umbral de entradas", "se.thresholdD": "Número de entradas que activa la alerta",
   "se.window": "Ventana de observación", "se.windowD": "Periodo en el que se cuentan las entradas",
-  "se.action": "Acción", "se.actionD": "Lo que hace el bot cuando se supera el umbral",
-  "se.actAlert": "Solo avisar", "se.actTimeout": "Aislar temporalmente",
-  "se.actKick": "Expulsar", "se.actBan": "Banear",
+  "se.accountAge": "Edad mínima de la cuenta", "se.accountAgeD": "Por debajo, una entrada se marca como sospechosa",
+  "se.raidKick": "Expulsión automática", "se.raidKickD": "Expulsa a quienes entran durante un bloqueo anti-raid",
+  "se.grpRaid": "Anti-raid", "se.grpDiscord": "Se ajusta en Discord",
 
   "st.loadingChannels": "Leyendo los canales del servidor…",
   "st.savedAt": "Guardado a las {time}",
@@ -283,7 +278,7 @@ window.CYQ_I18N.es = {
 
   /* --- chiffres marquants de l'accueil --- */
       
-    "u.pts": "pts", "u.s": "s", "u.matches": "partidas", "u.min": "min",
+    "u.pts": "pts", "u.s": "s", "u.h": "h", "u.min": "min",
 
   /* --- modules.html --- */
   /* en-tete de la page */
