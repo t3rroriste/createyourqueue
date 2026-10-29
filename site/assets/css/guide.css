@@ -33,17 +33,25 @@
 .toc { position: sticky; top: 132px; }
 .toc__label { margin-bottom: var(--sp-2); }
 .toc__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+/* Plus de « 01 » devant chaque entrée : un sommaire de cinq lignes se lit
+   sans qu'on les compte, et ces numéros étaient la marque d'une page
+   fabriquée par une machine. La gouttière de gauche qu'ils occupaient
+   reste, vide, pour le repère de lecture. */
 .toc__list a {
-  display: flex; gap: 12px; align-items: baseline;
-  padding: 7px 10px; border-radius: 10px;
+  position: relative; display: block;
+  padding: 7px 10px 7px 16px; border-radius: 10px;
   font-size: 13px; color: var(--ink-60);
   transition: background 160ms var(--e-soft), color 160ms var(--e-soft);
 }
 .toc__list a:hover { background: var(--raised); color: var(--ink); }
-.toc__list a .n { font-size: 11px; letter-spacing: .06em; color: var(--ink-40); }
-/* La partie en cours de lecture, marquée par l'observateur. */
+/* La partie en cours de lecture, marquée par l'observateur. Le cuivre
+   était sur le numéro ; il passe sur ce trait, et reste LE seul emploi de
+   l'accent sur cette page. */
 .toc__list a[aria-current="true"] { background: var(--raised); color: var(--ink); }
-.toc__list a[aria-current="true"] .n { color: var(--accent); }
+.toc__list a[aria-current="true"]::before {
+  content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px;
+  width: 2px; border-radius: 1px; background: var(--accent);
+}
 
 /* ============================== les parties ============================ */
 
@@ -56,7 +64,6 @@
    de la partie se retrouve caché derrière elle. */
 .part { scroll-margin-top: 120px; }
 
-.part__num { margin-bottom: var(--sp-2); }
 .part__title {
   font-size: clamp(1.6rem, 2.4vw, 2.1rem);
   line-height: 1.1; letter-spacing: -0.02em; font-weight: 500;
@@ -73,20 +80,26 @@
   padding: var(--sp-2) 0; border-bottom: 1px solid var(--hair);
 }
 .steps li:first-child { border-top: 1px solid var(--hair); }
+/* `decimal` et non `decimal-leading-zero` : « 01 » est le tic d'une page
+   générée, « 1 » est un numéro d'étape. On garde le numéro parce que la
+   mise en route est une procédure ordonnée, et qu'un ordre qui ne se voit
+   pas n'est pas un ordre. */
 .steps li::before {
-  content: counter(pas, decimal-leading-zero);
-  font-size: 11px; letter-spacing: .06em; color: var(--ink-40); padding-top: 3px;
+  content: counter(pas);
+  font-size: 12px; color: var(--ink-40); padding-top: 2px;
 }
 .steps b { color: var(--ink); font-weight: 500; display: block; margin-bottom: 3px; }
 
 /* Les points d'une partie : pas d'ordre imposé, juste une énumération. */
+/* Une énumération, pas une procédure : rien n'y vient avant rien. Les
+   « 01 02 03 » qui la précédaient affirmaient un ordre qui n'existe pas,
+   et la colonne de 30 px qui les portait part avec eux. C'est l'amorce en
+   gras qui ouvre chaque point — elle le faisait déjà. */
 .notes { margin: 0; padding: 0; list-style: none; max-width: 64ch; }
 .notes li {
-  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 16px;
   padding: var(--sp-2) 0; border-bottom: 1px solid var(--hair);
 }
 .notes li:first-child { border-top: 1px solid var(--hair); }
-.notes .n { font-size: 11px; letter-spacing: .06em; color: var(--ink-40); padding-top: 3px; }
 .notes b { color: var(--ink); font-weight: 500; }
 
 /* L'encart : une précision qui n'est pas une étape. */
@@ -112,7 +125,7 @@
   .guide { padding: 128px var(--sp-4) var(--sp-4); }
   .guide__head { margin-bottom: var(--sp-4); }
   .part + .part { margin-top: var(--sp-4); }
-  .steps li, .notes li { grid-template-columns: 26px minmax(0, 1fr); gap: 12px; }
+  .steps li { grid-template-columns: 24px minmax(0, 1fr); gap: 12px; }
 }
 
 /* ===================== anti-flash de l'en-tête ======================== */
