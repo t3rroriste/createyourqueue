@@ -48,7 +48,11 @@
     return;
   }
   document.body.setAttribute('data-guild', guildId);
-  CYQ.data = { channels: [], voiceChannels: [], categories: [], roles: [] };
+  /* `presets` est une source comme les autres pour la combobox, à ceci
+     près que son identifiant EST son nom : le bot range ses presets par
+     nom (`get_queue_preset(guild_id, name)`) et `schedule.preset` garde
+     un nom, pas un numéro. */
+  CYQ.data = { channels: [], voiceChannels: [], categories: [], roles: [], presets: [] };
 
   var DISCORD   = 'https://discord.com/api/v10';
   var KEY_TOKEN = 'cyq.dtoken';
@@ -93,6 +97,7 @@
   function placeholderDe(src) {
     return src === 'roles' ? 'rl.pickRole'
          : src === 'categories' ? 'ch.pickCategory'
+         : src === 'presets' ? 'sc.pickPreset'
          : 'ch.pickChannel';
   }
   function sigilDe(src) {
@@ -107,6 +112,7 @@
     return src === 'roles' ? 'd.noRole'
          : src === 'categories' ? 'd.noCategory'
          : src === 'voiceChannels' ? 'd.noVoice'
+         : src === 'presets' ? 'p.noPreset'
          : 'd.noChannel';
   }
 
@@ -616,6 +622,7 @@
         peindreCombo(cible);
         envoyer($('input[type="hidden"][data-setting]', cible));
         if (cible.getAttribute('data-source') === 'roles') rendreHierarchie();
+        if (cible.getAttribute('data-source') === 'presets') verrouProgrammation();
         return;
       }
       if (cible.classList.contains('segmented')) {
@@ -771,9 +778,11 @@
       var heure = String((($('#q-time') || {}).value || '')).trim();
       var motDePasse = !!($('#fn-qpass') || {}).checked;
 
+      /* Deux aperçus depuis le chantier du Lanceur : celui qu'on regarde
+         avant d'ouvrir, et celui de la Programmation. Le premier venu ne
+         suffit plus — on écrit dans tous. */
       function poser(sel, html) {
-        var el = $(sel);
-        if (el) el.innerHTML = html;
+        $$(sel).forEach(function (el) { el.innerHTML = html; });
       }
 
       /* « Nouveau {name} » : le bot met le nom DANS son titre, il ne le
@@ -800,11 +809,10 @@
       /* Le bot n'écrit la ligne Session que si elle est renseignée. */
       var libSession = sess && sess.selectedOptions && sess.selectedOptions[0]
         ? sess.selectedOptions[0].textContent.trim() : '';
-      var ls = $('[data-qprev-session]');
-      if (ls) {
+      $$('[data-qprev-session]').forEach(function (ls) {
         ls.innerHTML = libSession ? gras(t('qa.session', { value: libSession })) : '';
         ls.hidden = !libSession;
-      }
+      });
 
       poser('[data-qprev-cta]', gras(t(motDePasse ? 'qa.ctaPassword' : 'qa.cta',
                                        { channel: nomVocalAttente() })));
@@ -824,20 +832,17 @@
          couleur n'est choisie, et le noir sur fond sombre ne se voit pas :
          l'apercu laisse alors sa teinte sourde plutot que de montrer une
          barre invisible qui ferait croire a un bug. */
-      var embed = $('[data-qprev] .dprev__embed');
-      if (embed) {
-        var teinte = ($('[data-setting="queue.embedColor"]') || {}).value || '';
-        var choisie = /^#[0-9a-f]{6}$/i.test(teinte) && teinte.toLowerCase() !== '#000000';
+      var teinte = ($('[data-setting="queue.embedColor"]') || {}).value || '';
+      var choisie = /^#[0-9a-f]{6}$/i.test(teinte) && teinte.toLowerCase() !== '#000000';
+      $$('[data-qprev] .dprev__embed').forEach(function (embed) {
         if (choisie) { embed.style.setProperty('--barre', teinte); }
         else { embed.style.removeProperty('--barre'); }
-      }
+      });
 
-      var h = $('[data-qprev-clock]');
-      if (h) {
-        var d = new Date();
-        h.textContent = (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' +
-                        (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
-      }
+      var d = new Date();
+      var heureDite = (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' +
+                      (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+      $$('[data-qprev-clock]').forEach(function (h) { h.textContent = heureDite; });
     }
 
     ['#q-name', '#q-type', '#q-session', '#q-time', '#q-cvote', '#fn-qpass', '#q-embedcolor'].forEach(function (s) {
@@ -1125,7 +1130,7 @@
           .then(function (rep) {
             // L'aperçu part vers Discord : c'est le message qu'on vient
             // d'envoyer, et il revient vide pour la prochaine queue.
-            anime($('[data-qprev]'), 'is-envoi');
+            anime($('[data-section="lanceur"] [data-qprev]'), 'is-envoi');
             issue('q.launchOk', { channel: nomSalon((rep && rep.channelId) || salon) });
           })
           .catch(function (e) {
@@ -1199,7 +1204,7 @@
 
           CYQ.api.post('/guilds/' + encodeURIComponent(guildId) + '/queue/close', {})
             .then(function (rep) {
-              anime($('[data-qprev]'), 'is-retrait');
+              anime($('[data-section="lanceur"] [data-qprev]'), 'is-retrait');
               issue('q.stopOk', { n: (rep && rep.players) || 0 });
             })
             .catch(function (e) {
@@ -1707,6 +1712,7 @@
          renseigné depuis, et le bouton d'ouverture s'en déduit. */
       if (majLancement) majLancement();
       rendrePresets(donnees && donnees.presets);
+      verrouProgrammation();
       rendreHierarchie();
       rendreDiagnostic();
       $$('[data-combo]').forEach(peindreCombo);
@@ -1743,6 +1749,12 @@
         CYQ.data.voiceChannels = donnees.voiceChannels || [];
         CYQ.data.categories    = donnees.categories || [];
         CYQ.data.roles         = donnees.roles || [];
+        /* Le nom tient lieu d'identifiant : c'est lui que `schedule.preset`
+           enregistre, et c'est lui que le bot cherche. */
+        CYQ.data.presets = (donnees.presets || []).map(function (pr) {
+          var nom = (pr && pr.name) || '';
+          return { id: nom, name: nom };
+        }).filter(function (pr) { return pr.id; });
         listesLues = true;
         CYQ.refreshCombos();
         /* AVANT `remplir` : c'est lui qui coche les cases, et il ne peut
@@ -1930,6 +1942,38 @@
       });
     }
 
+    /* ---- la programmation ne part pas sans preset ---------------------
+       Une ouverture programmée applique une configuration : sans preset,
+       elle n'en a aucune à appliquer. L'interrupteur reste donc verrouillé
+       tant que rien n'est choisi, et la note dit pourquoi — un contrôle
+       grisé sans raison est une impasse.
+
+       `data-controls` fait déjà ce geste, mais il ne part que d'une case à
+       cocher (app.js l. 553) ; on en reproduit ici l'effet exact — la même
+       classe `is-locked`, les mêmes champs désactivés — depuis une liste.
+       Et c'est un verrou de PANNEAU, pas un réglage : le bot n'a pas de
+       clé « preset obligatoire », on n'en invente pas. */
+    function verrouProgrammation() {
+      var champ = $('[data-setting="schedule.preset"]');
+      var rangee = $('#sc-on-row');
+      if (!champ || !rangee) return;
+      var choisi = !!String(champ.value || '').trim();
+      rangee.classList.toggle('is-locked', !choisi);
+      $$('input,select,button', rangee).forEach(function (f) { f.disabled = !choisi; });
+      var note = $('[data-preset-note]', rangee);
+      if (note) note.hidden = choisi;
+
+      /* Le verrou retombe en cascade : l'heure, les jours et le rappel ne
+         se règlent que si l'ouverture automatique est allumée, et elle ne
+         peut plus l'être. Repasser par `change` laisse app.js refaire son
+         propre travail plutôt que de le doubler ici. */
+      var inter = $('#sc-on');
+      if (inter && !choisi && inter.checked) {
+        inter.checked = false;
+        inter.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+
     /* ---- les boucles des maquettes de Sécurité ------------------------
        Quatre maquettes, quatre boucles, et une seule règle : une boucle ne
        tourne que lorsque sa section est à l'écran. app.js émet
@@ -1978,6 +2022,7 @@
     apercuQueue();
     maquettesOptions();
     maquettesSecurite();
+    verrouProgrammation();
     placerMarque(false);
     ouverture();
     chargerCompte();

@@ -210,6 +210,24 @@ que le panneau sait afficher.
     utile (`guild.me.nick`), et la fusion de lecture le fait gagner sur la
     copie du site. Renommé à la main sur Discord, le panneau le montre.
 
+**Une contrainte de panneau, pas un réglage — 29/10/2026.**
+
+- **Le preset est obligatoire dans la Programmation**, et ce « obligatoire »
+  n'existe QUE dans le panneau. La clé, elle, est bien réelle :
+  `schedule.preset` est dans `SCHEDULE_DEFAULTS` (`bot/guild_settings.py`),
+  `resolve_scheduled_config()` la lit (`bot/cogs/automation.py`), et
+  `site/api/index.php` la ponte déjà (`'schedule.preset' => 'preset'`).
+
+  Ce que le bot ne connaît pas, c'est l'idée qu'une programmation SANS
+  preset serait interdite : côté bot, `preset: None` veut dire « publie la
+  dernière queue configurée », et c'est un comportement valable. Le panneau
+  verrouille quand même « Ouvrir automatiquement » tant qu'aucun preset
+  n'est choisi, parce qu'une ouverture programmée dont personne ne sait
+  dire ce qu'elle publiera n'est pas une promesse tenable depuis un écran.
+
+  **Aucune clé n'est inventée pour ça** : le verrou est une classe et un
+  `disabled`, il ne part nulle part.
+
 **Retiré de l'écran le 29/10/2026 — pas du bot.**
 
 - **Le comptage des absences** (`noshow.enabled`, `noshow.threshold`,

@@ -339,6 +339,14 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
    --panel sans contour — un filet autour de chaque carte ferait une
    grille de boîtes. */
 .grp + .grp { margin-top: var(--sp-3); }
+
+/* Un cran de plus entre l'aperçu et les deux boutons du Lanceur. Les
+   64 px habituels séparent deux groupes de réglages, qu'on parcourt ;
+   ici le groupe du dessous OUVRE et FERME une queue pour de vrai — fermer
+   supprime l'annonce et purge le salon. Ce n'est pas une distance
+   décorative : c'est ce qui met le geste hors de portée d'un clic distrait
+   parti de l'aperçu. --sp-4, pas une valeur en dur. */
+.grp + .grp.grp--ecart { margin-top: var(--sp-4); }
 .sec__main > .grp + .grp,
 .sec__aside .grp + .grp { margin-top: 0; }
 
@@ -465,6 +473,10 @@ label.row__label { cursor: pointer; }
 .row--stack .row__state { position: absolute; top: 18px; right: 20px; width: auto; }
 
 .row__note { font-size: 13px; line-height: 1.55; color: var(--ink-60); max-width: 60ch; }
+/* La raison d'un verrou passe SOUS la rangée qu'elle explique, comme une
+   erreur de saisie : à côté du contrôle, elle le pousserait hors de sa
+   colonne, et toutes les rangées de la carte se décaleraient. */
+[data-preset-note] { flex: 1 0 100%; margin: -2px 0 0; }
 
 /* L'erreur de saisie : la seule chose qui passe sous la rangée et la
    fait grandir. C'est voulu — une erreur doit se voir à l'endroit où elle
