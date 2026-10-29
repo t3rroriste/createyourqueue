@@ -223,6 +223,109 @@ qui dit ce qui empêche d'ouvrir, et son motif remonte tel quel dans le `409` :
 La route côté bot est `cogs/dashboard_api.py`, méthode `open_queue` ; elle
 appelle `QueueConfig.open_queue()`, le même point d'entrée que Discord.
 
+### Ce dont le bot se souvient
+
+Quatre lectures, et un geste. Toutes relaient au bot et **ne gardent
+aucune copie** : deux versions de la même histoire est exactement ce
+qu'un journal doit empêcher. L'API recopie les paramètres **un par un**
+(`limit`, `offset`, `days`, `player`, `season`) plutôt que de relayer la
+chaîne de requête : la passer telle quelle laisserait n'importe qui
+ajouter ce qu'il veut à l'URL appelée chez le bot.
+
+#### `GET /guilds/{id}/matches`
+
+Les matchs joués, du plus récent au plus ancien. `?limit=` (1–100),
+`?offset=`, `?player=`, `?season=`.
+
+```json
+{ "matches": [ { "id": 41, "at": "2026-10-29T04:53:16+00:00", "season": 1,
+                 "teams": { "1": ["913…"], "2": ["914…"] },
+                 "winner": "1", "mvp": "913…",
+                 "players": { "913…": { "mmr": 1042, "change": 18,
+                                         "mvp": true, "won": true } } } ],
+  "total": 41, "kept": 500, "season": 1,
+  "names": { "913…": "Alex" } }
+```
+
+`total` dit combien sont **conservés**, pas combien ont été joués :
+au-delà de `kept`, les plus vieux sont tombés, et le panneau doit pouvoir
+le dire plutôt que d'afficher un total faux. `names` évite au site de
+demander les pseudos à Discord, ce qu'il n'a pas de jeton pour faire.
+
+#### `GET /guilds/{id}/players/{userId}`
+
+La fiche d'un joueur : bilan, série, courbe de MMR, partenaires.
+
+```json
+{ "id": "913…", "name": "Alex", "avatar": "https://…", "mmr": 1042,
+  "matches": 41, "wins": 18, "losses": 23, "mvp": 3, "streak": -2,
+  "curve": [ { "at": "…", "mmr": 1024 } ],
+  "mates": [ { "id": "914…", "name": "Sam", "count": 23 } ],
+  "partial": false }
+```
+
+`mmr` vient des **réglages**, pas de l'historique : c'est lui qui fait
+foi. `partial` à `true` dit que les plus vieux matchs sont tombés et que
+les totaux ne couvrent que ce qui reste.
+
+#### `GET /guilds/{id}/activity`
+
+Le relevé d'activité. `?days=` (1–90, 30 par défaut).
+
+```json
+{ "days": 30, "opened": 41, "launched": 40, "cancelled": 6,
+  "abandonRate": 15, "avgWait": 397, "matches": 41,
+  "byHour": [0, 0, 2, …], "byDay": [ { "day": "2026-10-01", "n": 3 } ] }
+```
+
+`abandonRate` vaut `null` et non `0` quand aucune file n'a été ouverte :
+aucune file et aucun abandon ne sont pas la même chose. Les heures sont
+celles du bot, en UTC.
+
+#### `GET /guilds/{id}/audit`
+
+Qui a changé quoi, depuis le panneau comme depuis Discord. `?limit=`.
+
+```json
+{ "entries": [ { "at": "…", "source": "panel", "action": "settings",
+                 "who": { "id": "913…", "name": "Alex" },
+                 "details": ["queue.size", "mmr.win"] } ] }
+```
+
+`details` ne porte que **les noms** des réglages touchés, jamais leurs
+valeurs : un journal lisible par tout le staff n'est pas un endroit pour
+un mot de passe de queue.
+
+#### `POST /guilds/{id}/bans`
+
+Le seul geste de cet ensemble : ajouter ou retirer quelqu'un de la liste
+noire, ou lever une exclusion automatique.
+
+```json
+{ "add": ["913…"], "remove": [], "lift": [], "reason": "insultes" }
+```
+
+Trois listes, dont au moins une non vide ; `reason` est tronqué à 200
+caractères. `add` et `remove` touchent la liste noire posée à la main,
+`lift` lève une exclusion automatique — celles que le bot pose après
+trop d'absences, et qui tombent d'elles-mêmes. La réponse est le même
+objet que `GET /guilds/{id}` pour ces deux listes, ce qui évite une
+seconde lecture.
+
+Le panneau envoie **un geste**, et non la liste entière : deux onglets
+ouverts en même temps ne doivent pas pouvoir se réécrire l'un l'autre.
+C'est aussi la seule route de cet ensemble à être relayée en `PATCH`
+vers le bot, sous la clé `bans`, avec l'`actor` qui la signe au journal.
+
+Les cinq routes répondent `401` si la session a expiré, `404` si la
+guilde n'est pas gérée, `502` si le bot n'a pas répondu
+(`BOT_INJOIGNABLE`) et `503` si `BOT_API_BASE` n'est pas renseignée. Le
+panneau en fait une phrase plutôt qu'un écran vide : une page muette
+laisserait croire qu'il n'y a rien à voir, ce qui n'est pas pareil.
+
+Côté bot, tout cela vit dans `bot/history.py` (les matchs et les files) et
+`bot/audit.py` (le journal), un fichier JSON par serveur.
+
 ## Mise en ligne
 
 Hébergement de fichiers : aucun build, aucun `node_modules`, on envoie des

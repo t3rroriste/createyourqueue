@@ -244,7 +244,9 @@
         "pw_not_in": "You're not in this queue.",
         "pw_closed": "❌ Sign-ups for this queue are closed.",
         "pw_full": "❌ The queue is full.",
-        "thread_name": "Organiser — {queue}"
+        "thread_name": "Organiser — {queue}",
+        "noshow_blocked_dm": "⏳ You are set aside for now: you signed up for queues without showing up. The ban lifts on its own.",
+        "noshow_banned_dm": "⏳ You signed up without showing up once too often: you cannot join a queue for {hours} h."
     },
     "classement": {
         "title": "🏆 **Player leaderboard**",
@@ -474,7 +476,8 @@
         "clan_request": "Join request",
         "clan_request_accepted": "Join request accepted",
         "clan_request_refused": "Join request refused",
-        "clan_transfer": "Clan transferred"
+        "clan_transfer": "Clan transferred",
+        "queue_noshow_banned": "Automatic ban: repeated no-shows"
     },
     "help": {
         "overview_title": "📚 CreateYourQueue · Help",

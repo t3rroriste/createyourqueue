@@ -65,6 +65,10 @@ APPLICATION = COMMUN + [
     "assets/css/dashboard.css",
     "assets/js/page-login.js", "assets/js/page-welcome.js",
     "assets/js/page-servers.js", "assets/js/page-dashboard.js",
+    # La mémoire du bot : historique, statistiques, accès, journal,
+    # palmarès. À part de page-dashboard.js, qui ne partage ni son
+    # état ni son mécanisme d'enregistrement.
+    "assets/js/page-dashboard-memoire.js",
     # L'API elle-même. secrets.php n'y figure pas : il se dépose à la main
     # sur le serveur et ne doit jamais partir d'ici.
     "api/index.php", "api/.htaccess", "api/secrets.exemple.php",

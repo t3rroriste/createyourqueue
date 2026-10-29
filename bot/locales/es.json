@@ -244,7 +244,9 @@
         "pw_not_in": "No estás inscrito en esta queue.",
         "pw_closed": "❌ Las inscripciones de esta queue están cerradas.",
         "pw_full": "❌ La queue está completa.",
-        "thread_name": "Organización — {queue}"
+        "thread_name": "Organización — {queue}",
+        "noshow_blocked_dm": "⏳ Estás apartado por ahora: te apuntaste a colas sin presentarte. La exclusión se levanta sola.",
+        "noshow_banned_dm": "⏳ Te apuntaste sin presentarte una vez de más: no puedes unirte a una cola durante {hours} h."
     },
     "classement": {
         "title": "🏆 **Clasificación de jugadores**",
@@ -474,7 +476,8 @@
         "clan_request": "Solicitud de ingreso",
         "clan_request_accepted": "Solicitud aceptada",
         "clan_request_refused": "Solicitud rechazada",
-        "clan_transfer": "Clan transferido"
+        "clan_transfer": "Clan transferido",
+        "queue_noshow_banned": "Exclusión automática: ausencias repetidas"
     },
     "help": {
         "overview_title": "📚 Ayuda · CreateYourQueue",

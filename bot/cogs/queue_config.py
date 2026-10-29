@@ -38,12 +38,18 @@ from guild_settings import (
     get_queue_history,
     add_queue_history_entry,
     get_queue_blacklist,
+    is_queue_banned,
+    get_noshow_config,
+    bump_noshow,
+    reset_noshow,
+    set_queue_ban,
     get_queue_blacklist_entries,
     add_to_queue_blacklist,
     remove_from_queue_blacklist,
     active_queue_password,
     is_status_panel_message,
 )
+import history
 from i18n import t, t_in, get_lang
 from rate_limit import throttled_each
 from text_safety import NO_PINGS, USERS_ONLY, sanitize
@@ -170,6 +176,12 @@ class QueueSession:
         self.started = False
         self.ended = False
         self.winner = None
+        # L'heure d'ouverture, en secondes. Elle sert à mesurer l'attente
+        # jusqu'au lancement, ce qui est la seule façon de répondre à
+        # « quand faut-il ouvrir une file ? » autrement qu'au doigt mouillé.
+        # Enregistrée avec la session : un redémarrage en pleine inscription
+        # ne doit pas remettre le chronomètre à zéro.
+        self.opened_at = time.time()
         self.win_log = []  # [(team_name, datetime), ...] chronologique
         self.full_alert_sent = False  # évite de re-notifier l'organisateur à chaque réaction une fois plein
         # Mot de passe demandé pour s'inscrire (/option → Mot de passe), figé à
@@ -300,6 +312,7 @@ class QueueSession:
             "winner": self.winner,
             "win_log": [(team, ts.isoformat()) for team, ts in self.win_log],
             "password": self.password,
+            "opened_at": self.opened_at,
         }
 
     @classmethod
@@ -351,6 +364,11 @@ class QueueSession:
         session.ended = data.get("ended", False)
         session.winner = data.get("winner")
         session.password = data.get("password") or None
+        # Une session d'avant cette version n'a pas d'heure d'ouverture :
+        # on garde celle que __init__ vient de poser plutôt que d'inventer
+        # une attente de zéro seconde.
+        if isinstance(data.get("opened_at"), (int, float)):
+            session.opened_at = float(data["opened_at"])
         session.win_log = [
             (team, datetime.fromisoformat(ts)) for team, ts in data.get("win_log", [])
         ]
@@ -1237,6 +1255,12 @@ class LaunchView(View):
         # donc on accuse réception tout de suite pour éviter "Unknown interaction".
         await interaction.response.defer()
 
+        # ICI et pas plus tard : c'est le seul instant où « inscrit » et
+        # « présent dans le vocal » se comparent encore. Une fois les
+        # équipes formées et les joueurs déplacés, le vocal d'attente est
+        # vide et plus personne n'est absent.
+        await self.cog.compter_les_absents(interaction.guild, self.session)
+
         # Salon de match privé + capitaines : quand le mode est actif, les
         # équipes ne sont pas encore formées ici — c'est le draft qui les
         # composera, puis le cog Match rappellera la suite du lancement.
@@ -1376,6 +1400,7 @@ class QueuePasswordModal(discord.ui.Modal):
             "already": "queue.pw_already",
             "full": "queue.pw_full",
             "blacklisted": "queue.blacklist_blocked_dm",
+            "noshow_banned": "queue.noshow_blocked_dm",
         }
         await interaction.followup.send(
             t(gid, keys[result], channel=resources.resource_name(gid, "voice_queue_waiting")),
@@ -1441,6 +1466,10 @@ class QueueConfig(commands.Cog):
             **extra,
         )
         session.message = message
+        # Le relevé d'activité : trois événements, ouverture, lancement,
+        # annulation. C'est tout ce qu'il faut pour dire à quelle heure les
+        # files se remplissent et combien n'aboutissent jamais.
+        history.record_queue(guild.id, "opened")
         # Sous mot de passe, on s'inscrit par le bouton : une réaction ✅
         # laisserait croire qu'elle suffit.
         if not session.password:
@@ -1594,6 +1623,13 @@ class QueueConfig(commands.Cog):
             except discord.HTTPException:
                 pass
         self.save_sessions()
+        # Au même endroit que le journal, et pour la même raison : le mode
+        # capitaines passe par le draft et revient ici, équipes formées.
+        history.record_queue(
+            guild.id, "launched",
+            players=sum(len(m) for m in session.teams.values()),
+            waited=int(time.time() - session.opened_at),
+        )
         # Ici plutôt qu'au clic : le mode capitaines passe par le draft et
         # arrive aussi dans cette fonction, avec des équipes enfin formées.
         send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_launched"), user=session.author,
@@ -1697,6 +1733,12 @@ class QueueConfig(commands.Cog):
 
         nom = str(session.queue_config.get("queue_name", "Queue"))
         joueurs = len(session.waiting_players)
+
+        # Fermée sans avoir démarré : c'est un abandon, et c'est lui que le
+        # taux d'abandon compte. Une file déjà lancée se ferme aussi par
+        # ici, mais elle a déjà sa ligne « launched ».
+        if not session.started:
+            history.record_queue(guild.id, "cancelled", players=joueurs)
 
         send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_cancelled"), user=author,
                  color=embeds.ERROR,
@@ -2068,14 +2110,16 @@ class QueueConfig(commands.Cog):
             return
 
         result = await self.add_player(session, member)
-        if result in ("blacklisted", "full"):
+        if result in ("blacklisted", "noshow_banned", "full"):
             try:
                 await session.message.remove_reaction("✅", member)
             except discord.HTTPException:
                 pass
-        if result == "blacklisted":
+        if result in ("blacklisted", "noshow_banned"):
+            cle = ("queue.blacklist_blocked_dm" if result == "blacklisted"
+                   else "queue.noshow_blocked_dm")
             try:
-                await member.send(t(guild.id, "queue.blacklist_blocked_dm"))
+                await member.send(t(guild.id, cle))
             except discord.HTTPException:
                 pass  # MP fermés : rien à faire, le retrait de la réaction suffit
 
@@ -2086,6 +2130,13 @@ class QueueConfig(commands.Cog):
             send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_blocked"),
                      user=member, color=embeds.WARNING)
             return "blacklisted"
+        # L'autre liste : celle que le bot pose lui-même après trop
+        # d'absences. Même refus, message différent — « tu es exclu jusqu'à
+        # demain » et « le staff t'a exclu » ne se répondent pas pareil.
+        if is_queue_banned(guild.id, member.id, time.time()):
+            send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_blocked"),
+                     user=member, color=embeds.WARNING)
+            return "noshow_banned"
         if any(m.id == member.id for m in session.waiting_players):
             return "already"
         if not session.add_waiting(member):
@@ -2118,6 +2169,59 @@ class QueueConfig(commands.Cog):
                 except discord.HTTPException:
                     pass
         return "joined"
+
+    async def compter_les_absents(self, guild: discord.Guild,
+                                 session: "QueueSession") -> list[discord.Member]:
+        """Les inscrits qui ne sont pas dans le vocal d'attente au lancement.
+
+        POURQUOI CECI EXISTE. Un joueur qui s'inscrit puis ne vient pas
+        laisse l'équipe à quatre : la partie est gâchée pour neuf
+        personnes, et rien ne le retenait de recommencer la semaine
+        suivante. Le bot compte maintenant ces absences, et met de côté
+        celui qui en accumule.
+
+        Éteint par défaut. Allumé, il ne punit JAMAIS du premier coup :
+        le seuil est au minimum à deux, parce qu'une déconnexion arrive.
+        Le staff, lui, n'est pas compté — il mène la queue depuis ailleurs.
+        """
+        config = get_noshow_config(guild.id)
+        if not config.get("enabled"):
+            return []
+
+        vocal = session.waiting_channel
+        if vocal is None:
+            # Sans vocal d'attente, « présent » ne veut rien dire : on ne
+            # peut pas distinguer un absent d'un serveur qui joue autrement.
+            return []
+
+        presents = {m.id for m in vocal.members}
+        absents = [m for m in session.waiting_players
+                   if m.id not in presents and not self._is_staff(m)]
+        if not absents:
+            return []
+
+        seuil = max(2, int(config.get("threshold", 3)))
+        heures = max(1, int(config.get("ban_hours", 24)))
+        fin = time.time() + heures * 3600
+
+        for membre in absents:
+            total = bump_noshow(guild.id, membre.id)
+            if total < seuil:
+                continue
+            set_queue_ban(guild.id, membre.id, fin)
+            # Le compteur repart de zéro : sans cela, le joueur exclu une
+            # fois le resterait à chaque absence suivante, puisqu'il reste
+            # au-dessus du seuil pour toujours.
+            reset_noshow(guild.id, membre.id)
+            send_log(self.bot, guild.id, "queue", t(guild.id, "logs.queue_noshow_banned"),
+                     user=membre, color=embeds.ERROR,
+                     fields=[(t(guild.id, "logs.f_players"), f"{total}/{seuil}")])
+            try:
+                await membre.send(t(guild.id, "queue.noshow_banned_dm", hours=heures))
+            except discord.HTTPException:
+                pass  # MP fermés : l'exclusion tient quand même
+
+        return absents
 
     async def remove_player(self, session: "QueueSession", member: discord.Member) -> bool:
         """Désinscrit un joueur. False s'il n'était pas inscrit."""

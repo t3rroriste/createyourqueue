@@ -219,7 +219,7 @@ def appel_discord(chemin: str, jeton: str, type_jeton: str = "Bearer"):
         return json.loads(r.read().decode("utf-8"))
 
 
-def appel_bot(chemin: str, corps: dict):
+def appel_bot(chemin: str, corps: dict, methode: str = "POST"):
     """Relaie une action au bot. Rend (code HTTP, données).
 
     Le contrat est celui du bot (cogs/dashboard_api.py), pas celui-ci : c'est
@@ -231,13 +231,17 @@ def appel_bot(chemin: str, corps: dict):
     if not BOT_API_BASE:
         return 503, {"error": "BOT_API_ABSENTE"}
 
-    donnees = json.dumps(corps).encode("utf-8")
-    entetes = {"Content-Type": "application/json", "Accept": "application/json"}
+    # Une lecture n'a pas de corps : en envoyer un vide ferait refuser la
+    # requete par certains serveurs, et n'a de toute facon aucun sens.
+    donnees = None if corps is None else json.dumps(corps).encode("utf-8")
+    entetes = {"Accept": "application/json"}
+    if donnees is not None:
+        entetes["Content-Type"] = "application/json"
     if BOT_API_KEY:
         entetes["X-API-Key"] = BOT_API_KEY
 
     req = urllib.request.Request(BOT_API_BASE + chemin, data=donnees,
-                                 headers=entetes, method="POST")
+                                 headers=entetes, method=methode)
     try:
         with urllib.request.urlopen(req, timeout=BOT_API_TIMEOUT) as r:
             brut = r.read().decode("utf-8") or "{}"
@@ -478,6 +482,13 @@ class Handler(BaseHTTPRequestHandler):
             reste = chemin[len("/api/guilds/"):]
             if reste and "/" not in reste:
                 return self.guild(reste)
+            # Ce dont le bot se souvient : historique, fiche de joueur,
+            # releve d'activite, journal. Des LECTURES, donc ici et non
+            # dans do_POST — c'est l'oubli qui les faisait toutes repondre
+            # 404 au panneau.
+            memoire = self.route_memoire(chemin)
+            if memoire is not None:
+                return memoire
             return self.json_out(404, {"error": "NOT_FOUND"})
         if chemin.startswith("/api/"):
             return self.json_out(404, {"error": "NOT_FOUND"})
@@ -512,6 +523,10 @@ class Handler(BaseHTTPRequestHandler):
                 gid = chemin[len("/api/guilds/"):-len(fin)]
                 if gid and "/" not in gid:
                     return self.queue_geste(gid, geste)
+        if chemin.startswith("/api/guilds/") and chemin.endswith("/bans"):
+            gid = chemin[len("/api/guilds/"):-len("/bans")]
+            if gid and "/" not in gid:
+                return self.bans_geste(gid)
         if chemin == "/contact.php":
             return self.contact()
         return self.json_out(404, {"error": "NOT_FOUND"})
@@ -751,6 +766,85 @@ class Handler(BaseHTTPRequestHandler):
             }
             ecrire_reglages(tout)
         self.repondre(204)
+
+    MEMOIRE = ("matches", "activity", "audit")
+
+    def route_memoire(self, chemin: str):
+        """Relaie une lecture au bot. Rend None si ce n'en est pas une.
+
+        Les parametres sont RECOPIES un par un, jamais relayes en bloc :
+        passer la chaine de requete telle quelle laisserait n'importe qui
+        ajouter ce qu'il veut a l'URL appelee chez le bot.
+        """
+        if not chemin.startswith("/api/guilds/"):
+            return None
+        reste = chemin[len("/api/guilds/"):].split("/")
+        if len(reste) < 2 or not reste[0].isdigit():
+            return None
+        gid = reste[0]
+
+        if len(reste) == 2 and reste[1] in self.MEMOIRE:
+            cible = "/api/guilds/%s/%s" % (gid, reste[1])
+        elif len(reste) == 3 and reste[1] == "players" and reste[2].isdigit():
+            cible = "/api/guilds/%s/players/%s" % (gid, reste[2])
+        else:
+            return None
+
+        s, g = self.guilde_geree(gid)
+        if not g:
+            return True   # guilde_geree a deja repondu
+
+        permis = []
+        requete = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        for nom in ("limit", "offset", "days", "player", "season"):
+            valeurs = requete.get(nom) or []
+            if valeurs and str(valeurs[0]).isdigit():
+                permis.append((nom, valeurs[0]))
+        if permis:
+            cible += "?" + urllib.parse.urlencode(permis)
+
+        code, rep = appel_bot(cible, None, methode="GET")
+        if code == 503:
+            self.json_out(503, {"error": rep.get("error", "BOT_API_ABSENTE")})
+            return True
+        if code == 0 or code == 502:
+            self.json_out(502, {"error": "BOT_INJOIGNABLE"})
+            return True
+        self.json_out(code, rep)
+        return True
+
+    def bans_geste(self, gid: str):
+        """Exclut ou reintegre un joueur. Un GESTE, pas un reglage : envoyer
+        la liste entiere effacerait ce qu'un autre onglet vient d'ajouter."""
+        s, g = self.guilde_geree(gid)
+        if not g:
+            return
+        corps = self.corps_json()
+        if not isinstance(corps, dict):
+            return self.json_out(400, {"error": "BAD_BODY"})
+        gestes = {}
+        for geste in ("add", "remove", "lift"):
+            liste = corps.get(geste) or []
+            if not isinstance(liste, list):
+                return self.json_out(400, {"error": "BAD_BODY"})
+            propre = [str(u) for u in liste if str(u).isdigit()]
+            if len(propre) != len(liste):
+                return self.json_out(400, {"error": "BAD_BODY"})
+            if propre:
+                gestes[geste] = propre
+        if not gestes:
+            return self.json_out(400, {"error": "BAD_BODY"})
+        gestes["reason"] = str(corps.get("reason") or "")[:200]
+
+        code, rep = appel_bot("/api/guilds/" + gid, {
+            "bans": gestes,
+            "actor": {"id": s["user_id"], "name": s["user_name"]},
+        }, methode="PATCH")
+        if code == 503:
+            return self.json_out(503, {"error": rep.get("error", "BOT_API_ABSENTE")})
+        if code in (0, 502):
+            return self.json_out(502, {"error": "BOT_INJOIGNABLE"})
+        self.json_out(code, rep)
 
     def queue_geste(self, gid: str, geste: str):
         """Ouvre ou ferme la queue de ce serveur, selon `geste`.

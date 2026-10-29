@@ -908,6 +908,12 @@
         if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
       }
       window.scrollTo(0, 0);
+      /* Qui entre où. Les écrans de lecture — historique, statistiques,
+         journal — se chargent à leur PREMIÈRE visite : tout charger au
+         démarrage ferait payer cinq cents matchs à quelqu'un venu changer
+         un salon. Surveiller le hash ne suffirait pas, il ne dit rien des
+         retours arrière. */
+      document.dispatchEvent(new CustomEvent('cyq:section', { detail: id }));
     }
 
     links.forEach(function (l) {

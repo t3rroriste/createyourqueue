@@ -42,6 +42,22 @@ from guild_settings import (
     get_features,
     get_queue_config,
     get_mmr_config,
+    get_player_mmr,
+    get_schedule,
+    set_schedule,
+    get_season,
+    set_season,
+    get_noshow_config,
+    set_noshow_config,
+    get_noshow_counts,
+    reset_noshow,
+    get_queue_blacklist_entries,
+    add_to_queue_blacklist,
+    remove_from_queue_blacklist,
+    get_queue_ban_list,
+    clear_queue_ban,
+    get_webhook_url,
+    set_webhook_url,
     get_queue_password,
     get_resource_id,
     is_setup_complete,
@@ -52,6 +68,9 @@ from guild_settings import (
     set_queue_password,
     set_resource_id,
 )
+import audit
+import history
+from webhook import url_acceptable
 from cogs.logs import KINDS as LOG_KINDS
 from cogs.auto_clean import INTERVAL_MAX as AUTOCLEAN_MAX, INTERVAL_MIN as AUTOCLEAN_MIN
 import mmr
@@ -145,12 +164,37 @@ MMR_FIELDS = {
 # l'écraser ferait perdre les emojis posés depuis Discord.
 RANG_MAX = 12
 
+# Les commandes qui changent la configuration d'un serveur. Elles seules
+# vont dans le journal durable (audit.py) : le reste est de la
+# consultation, et un journal où /elo côtoie /reset ne répond plus à la
+# question qu'on lui pose.
+COMMANDES_ECRIVANTES = {
+    "config", "option", "queue", "antiraid", "antilink", "autoclean",
+    "schedule", "season", "reset", "logs", "roles", "setup", "clan",
+}
+
 # Journal des commandes, gardé en mémoire : il sert à afficher les dernières
 # lignes sur le site, pas à archiver. Un redémarrage le remet à zéro, et
 # c'est très bien : ces données ne valent pas un fichier sur le disque.
 JOURNAL_SIZE = 200
 DAY_SECONDS = 24 * 3600
 MAX_TIMES_PER_GUILD = 5000
+
+
+def _minutes_du_jour(heure: str) -> int | None:
+    """« 21:00 » -> 1260. None si la chaîne ne dit pas une heure du jour.
+
+    Le format est celui que /schedule enregistre : le panneau et la
+    commande doivent écrire la même chose, sinon l'un rend l'autre
+    illisible.
+    """
+    morceaux = str(heure).split(":")
+    if len(morceaux) != 2 or not all(m.isdigit() for m in morceaux):
+        return None
+    h, m = int(morceaux[0]), int(morceaux[1])
+    if not (0 <= h <= 23 and 0 <= m <= 59):
+        return None
+    return h * 60 + m
 
 
 def _error(status: int, code: str) -> web.Response:
@@ -216,6 +260,15 @@ class DashboardAPI(commands.Cog):
             web.patch("/api/guilds/{guild_id}", self.patch_guild),
             web.post("/api/guilds/{guild_id}/queue/open", self.open_queue),
             web.post("/api/guilds/{guild_id}/queue/close", self.close_queue),
+            # Les routes de LECTURE seule : l'historique, les fiches de
+            # joueur, le relevé d'activité et le journal. Hors de
+            # `/guilds/{id}` parce qu'elles sont volumineuses et paginées —
+            # les coller dans la charge utile des réglages ferait payer
+            # cinq cents matchs à chaque ouverture du panneau.
+            web.get("/api/guilds/{guild_id}/matches", self.list_matches),
+            web.get("/api/guilds/{guild_id}/players/{user_id}", self.player_card),
+            web.get("/api/guilds/{guild_id}/activity", self.activity),
+            web.get("/api/guilds/{guild_id}/audit", self.audit_log),
         ])
         return app
 
@@ -274,6 +327,17 @@ class DashboardAPI(commands.Cog):
             "command": f"/{command.qualified_name}" if command is not None else "/?",
             "status": status,
         })
+        # Le journal durable ne retient que les commandes qui MODIFIENT
+        # quelque chose. Y mettre /elo ou /help le noierait sous des
+        # consultations, et ce qu'on y cherche est « qui a changé ça ».
+        nom = command.qualified_name if command is not None else ""
+        if status != "ERR" and nom.split(" ")[0] in COMMANDES_ECRIVANTES:
+            audit.record(
+                interaction.guild_id, action=f"/{nom}", source="discord",
+                who_id=interaction.user.id,
+                who_name=getattr(interaction.user, "display_name", None),
+            )
+
         times = self.command_times.setdefault(interaction.guild_id, [])
         times.append(now)
         if len(times) > MAX_TIMES_PER_GUILD:
@@ -469,7 +533,51 @@ class DashboardAPI(commands.Cog):
             # /antiraid config sur Discord, il doit se voir dans le panneau.
             "security": {cle: get_antiraid_config(guild.id)[cle]
                          for cle in SECURITY_FIELDS},
+            # La file programmée (/schedule) et les saisons (/season). Les
+            # deux existaient depuis toujours côté bot et ne se réglaient
+            # que sur Discord ; `season.archive` est le palmarès.
+            "schedule": get_schedule(guild.id),
+            "season": get_season(guild.id),
+            # Les absences : le réglage, et les compteurs en cours.
+            "noshow": {**get_noshow_config(guild.id),
+                       "counts": get_noshow_counts(guild.id)},
+            # Les deux listes d'exclusion, avec les pseudos : le site n'a
+            # pas de jeton pour traduire un identifiant Discord lui-même.
+            "blacklist": self._liste_exclus(guild),
+            "queueBans": self._liste_bans(guild),
+            # Le webhook sortant. L'URL n'est pas un secret — elle est
+            # choisie par l'organisateur — mais c'est à lui de la relire.
+            "webhook": get_webhook_url(guild.id),
         }
+
+    def _liste_exclus(self, guild: discord.Guild) -> list[dict[str, Any]]:
+        """La liste noire posée à la main : qui, par qui, quand, pourquoi."""
+        sortie = []
+        for entree in get_queue_blacklist_entries(guild.id):
+            membre = guild.get_member(int(entree.get("user_id") or 0))
+            sortie.append({
+                "id": str(entree.get("user_id")),
+                "name": membre.display_name if membre else None,
+                "reason": entree.get("reason"),
+                "by": str(entree["by"]) if entree.get("by") else None,
+                "at": entree.get("at"),
+            })
+        return sortie
+
+    def _liste_bans(self, guild: discord.Guild) -> list[dict[str, Any]]:
+        """Les exclusions automatiques en cours, avec leur échéance."""
+        maintenant = time.time()
+        sortie = []
+        for uid, fin in get_queue_ban_list(guild.id).items():
+            if fin and fin <= maintenant:
+                continue   # arrivée à terme : elle n'existe plus vraiment
+            membre = guild.get_member(int(uid))
+            sortie.append({
+                "id": uid,
+                "name": membre.display_name if membre else None,
+                "until": fin or None,
+            })
+        return sortie
 
     async def guild_options(self, request: web.Request) -> web.Response:
         """De quoi remplir les listes déroulantes du site."""
@@ -519,6 +627,18 @@ class DashboardAPI(commands.Cog):
             return _error(400, "invalid_json")
         if not isinstance(data, dict):
             return _error(400, "invalid_json")
+
+        # Qui agit, tel que le site le connaît. L'API ne sait pas vérifier
+        # cette identité — elle ne connaît que la clé — mais le PHP, lui, a
+        # déjà vérifié que la personne est admin du serveur. Le journal le
+        # note donc tel quel, et c'est la seule façon de répondre à « qui a
+        # changé ça ? » pour un geste venu du panneau.
+        acteur = data.get("actor") if isinstance(data.get("actor"), dict) else {}
+        try:
+            auteur_id = int(acteur["id"]) if acteur.get("id") else None
+        except (TypeError, ValueError):
+            auteur_id = None
+        auteur_nom = str(acteur.get("name") or "")[:80] or None
 
         """Les réglages de queue, validés clé par clé. Un lot refusé ne
            modifie RIEN : enregistrer la moitié d'un formulaire serait pire
@@ -702,6 +822,130 @@ class DashboardAPI(commands.Cog):
                     return _error(400, "wrong_resource_type")
                 antilien_propre.append(salon_id)
 
+        # La file programmée. Les bornes sont celles de /schedule : deux
+        # chemins vers le même réglage qui n'accepteraient pas les mêmes
+        # valeurs, c'est un panneau qui refuse ce que Discord vient
+        # d'enregistrer.
+        programme = data.get("schedule")
+        programme_propre = None
+        if programme is not None:
+            if not isinstance(programme, dict):
+                return _error(400, "invalid_schedule")
+            programme_propre = {}
+            for cle, valeur in programme.items():
+                if cle in ("enabled", "reminder"):
+                    if not isinstance(valeur, bool):
+                        return _error(400, "invalid_schedule")
+                elif cle == "time":
+                    if not isinstance(valeur, str) or _minutes_du_jour(valeur) is None:
+                        return _error(400, "invalid_schedule")
+                elif cle == "days":
+                    if (not isinstance(valeur, list)
+                            or not all(isinstance(j, int) and not isinstance(j, bool)
+                                       and 0 <= j <= 6 for j in valeur)):
+                        return _error(400, "invalid_schedule")
+                    # Dédoublonnés et triés : la liste sert telle quelle à
+                    # calculer la prochaine occurrence.
+                    valeur = sorted(set(valeur))
+                elif cle == "reminder_minutes":
+                    if isinstance(valeur, bool) or not isinstance(valeur, int):
+                        return _error(400, "invalid_schedule")
+                    if not (1 <= valeur <= 1440):
+                        return _error(400, "invalid_schedule")
+                elif cle == "preset":
+                    if valeur is not None and not isinstance(valeur, str):
+                        return _error(400, "invalid_schedule")
+                else:
+                    # `last_run` et `last_reminder` appartiennent au bot : le
+                    # panneau n'a pas à raconter ce qui a déjà eu lieu.
+                    return _error(400, "invalid_schedule")
+                programme_propre[cle] = valeur
+
+        # Les saisons. Même principe : /season les règle déjà.
+        saison = data.get("season")
+        saison_propre = None
+        if saison is not None:
+            if not isinstance(saison, dict):
+                return _error(400, "invalid_season")
+            saison_propre = {}
+            for cle, valeur in saison.items():
+                if cle in ("enabled", "announce", "keep_history"):
+                    if not isinstance(valeur, bool):
+                        return _error(400, "invalid_season")
+                elif cle == "reset_day":
+                    if isinstance(valeur, bool) or not isinstance(valeur, int):
+                        return _error(400, "invalid_season")
+                    # 28 et pas 31 : un reset au 31 ne tomberait jamais en
+                    # février, et la saison ne se fermerait pas ce mois-là.
+                    if not (1 <= valeur <= 28):
+                        return _error(400, "invalid_season")
+                else:
+                    # `archive` et `last_reset` sont l'histoire : elle se lit,
+                    # elle ne se réécrit pas depuis un formulaire.
+                    return _error(400, "invalid_season")
+                saison_propre[cle] = valeur
+
+        # Les absences.
+        absences = data.get("noshow")
+        absences_propre = None
+        if absences is not None:
+            if not isinstance(absences, dict):
+                return _error(400, "invalid_noshow")
+            absences_propre = {}
+            for cle, valeur in absences.items():
+                if cle == "enabled":
+                    if not isinstance(valeur, bool):
+                        return _error(400, "invalid_noshow")
+                elif cle == "threshold":
+                    if isinstance(valeur, bool) or not isinstance(valeur, int):
+                        return _error(400, "invalid_noshow")
+                    # Jamais 1 : une seule déconnexion ne fait pas un joueur
+                    # qui se moque du monde, et le bot ne doit pas pouvoir
+                    # exclure sur un incident.
+                    if not (2 <= valeur <= 20):
+                        return _error(400, "invalid_noshow")
+                elif cle == "ban_hours":
+                    if isinstance(valeur, bool) or not isinstance(valeur, int):
+                        return _error(400, "invalid_noshow")
+                    if not (1 <= valeur <= 720):
+                        return _error(400, "invalid_noshow")
+                else:
+                    return _error(400, "invalid_noshow")
+                absences_propre[cle] = valeur
+
+        # Le webhook sortant. L'adresse est vérifiée ICI, à l'enregistrement :
+        # refusée seulement à l'envoi, elle resterait dans la configuration et
+        # le panneau l'afficherait comme un réglage valide.
+        adresse = data.get("webhook")
+        adresse_propre = None
+        if adresse is not None:
+            if not isinstance(adresse, str):
+                return _error(400, "invalid_webhook")
+            adresse = adresse.strip()
+            if adresse and not url_acceptable(adresse):
+                return _error(400, "invalid_webhook")
+            adresse_propre = adresse
+
+        # Les exclusions : des GESTES, pas un état. Le panneau envoie
+        # « ajoute celui-ci », « retire celui-là ». Remplacer la liste entière
+        # effacerait ce qu'un autre onglet vient d'ajouter.
+        exclusions = data.get("bans")
+        exclusions_propre = None
+        if exclusions is not None:
+            if not isinstance(exclusions, dict):
+                return _error(400, "invalid_bans")
+            exclusions_propre = {"add": [], "remove": [], "lift": []}
+            for geste in ("add", "remove", "lift"):
+                for valeur in (exclusions.get(geste) or []):
+                    try:
+                        exclusions_propre[geste].append(int(valeur))
+                    except (TypeError, ValueError):
+                        return _error(400, "invalid_bans")
+            motif = exclusions.get("reason")
+            if motif is not None and not isinstance(motif, str):
+                return _error(400, "invalid_bans")
+            exclusions_propre["reason"] = (motif or "")[:200]
+
         language = data.get("language")
         if language is not None:
             if language not in LANGUAGES:
@@ -801,6 +1045,35 @@ class DashboardAPI(commands.Cog):
 
         if antilien_propre is not None:
             await self._antilink_cog().dashboard_apply(guild, antilien_propre)
+        if programme_propre:
+            set_schedule(guild.id, **programme_propre)
+        if saison_propre:
+            set_season(guild.id, **saison_propre)
+        if absences_propre:
+            set_noshow_config(guild.id, **absences_propre)
+        if adresse_propre is not None:
+            set_webhook_url(guild.id, adresse_propre or None)
+        if exclusions_propre:
+            for uid in exclusions_propre["add"]:
+                add_to_queue_blacklist(guild.id, uid,
+                                       exclusions_propre["reason"] or None,
+                                       by=auteur_id)
+            for uid in exclusions_propre["remove"]:
+                remove_from_queue_blacklist(guild.id, uid)
+            for uid in exclusions_propre["lift"]:
+                # Lever une exclusion automatique, c'est aussi remettre le
+                # compteur à zéro : sans cela, la prochaine absence la
+                # reposerait immédiatement.
+                clear_queue_ban(guild.id, uid)
+                reset_noshow(guild.id, uid)
+
+        # Le journal durable. Les NOMS des blocs touchés, jamais leurs
+        # valeurs : un journal qui note « mot de passe de queue : hiver2026 »
+        # devient lui-même un secret, lisible par tous les administrateurs.
+        touches = [cle for cle in data if cle != "actor"]
+        if touches:
+            audit.record(guild.id, action="settings", source="panel",
+                         who_id=auteur_id, who_name=auteur_nom, details=touches)
 
         log.info(f"Tableau de bord : {guild.name} ({guild.id}) modifié")
 
@@ -849,6 +1122,107 @@ class DashboardAPI(commands.Cog):
         tache = asyncio.create_task(courir())
         self._retraductions.add(tache)
         tache.add_done_callback(self._retraductions.discard)
+
+    # ------------------------------------------------------------------
+    # Ce que le bot se souvient : matchs, joueurs, activité, journal
+    # ------------------------------------------------------------------
+    def _entier(self, request: web.Request, nom: str, defaut: int,
+                mini: int, maxi: int) -> int:
+        """Un paramètre de requête, borné. Une valeur illisible vaut le
+        défaut : refuser la page entière pour un `?limit=abc` serait
+        disproportionné."""
+        try:
+            valeur = int(request.query.get(nom, defaut))
+        except (TypeError, ValueError):
+            return defaut
+        return max(mini, min(maxi, valeur))
+
+    async def list_matches(self, request: web.Request) -> web.Response:
+        """Les matchs joués, du plus récent au plus ancien.
+
+        `?player=` filtre sur un joueur, `?season=` sur une saison.
+        `total` dit combien sont CONSERVÉS, pas combien ont été joués : au
+        delà de history.MAX_MATCHES, les plus vieux sont tombés, et le
+        panneau doit pouvoir le dire plutôt que d'afficher un total faux.
+        """
+        guild = self._guild_or_none(request)
+        if guild is None:
+            return _error(404, "guild_not_found")
+
+        joueur = request.query.get("player")
+        saison = request.query.get("season")
+        try:
+            joueur_id = int(joueur) if joueur else None
+            saison_n = int(saison) if saison else None
+        except (TypeError, ValueError):
+            return _error(400, "invalid_filter")
+
+        limite = self._entier(request, "limit", 25, 1, 100)
+        depuis = self._entier(request, "offset", 0, 0, history.MAX_MATCHES)
+        lignes = history.matches(guild.id, limit=limite, offset=depuis,
+                                 player_id=joueur_id, season=saison_n)
+        return web.json_response({
+            "matches": lignes,
+            "total": history.match_count(guild.id),
+            "kept": history.MAX_MATCHES,
+            "season": history.current_season(guild.id),
+            # Les pseudos des joueurs cités : le site n'a pas de jeton pour
+            # les demander à Discord, et une liste d'identifiants nus n'est
+            # lisible par personne.
+            "names": self._pseudos(guild, lignes),
+        })
+
+    def _pseudos(self, guild: discord.Guild, lignes: list[dict]) -> dict[str, str]:
+        noms: dict[str, str] = {}
+        for ligne in lignes:
+            for uid in (ligne.get("players") or {}):
+                if uid not in noms:
+                    membre = guild.get_member(int(uid))
+                    noms[uid] = membre.display_name if membre else ""
+        return noms
+
+    async def player_card(self, request: web.Request) -> web.Response:
+        """La fiche d'un joueur : bilan, série, courbe de MMR, partenaires."""
+        guild = self._guild_or_none(request)
+        if guild is None:
+            return _error(404, "guild_not_found")
+        try:
+            user_id = int(request.match_info["user_id"])
+        except (KeyError, TypeError, ValueError):
+            return _error(400, "invalid_user")
+
+        fiche = history.player_card(guild.id, user_id)
+        membre = guild.get_member(user_id)
+        fiche["name"] = membre.display_name if membre else None
+        fiche["avatar"] = membre.display_avatar.url if membre else None
+        # Le MMR COURANT vient des réglages, pas de l'historique : c'est lui
+        # qui fait foi, et un joueur dont les vieux matchs sont tombés en
+        # aurait sinon un qui ne correspond à rien.
+        config = get_mmr_config(guild.id)
+        fiche["mmr"] = get_player_mmr(guild.id, user_id, config["start"])
+        fiche["mates"] = [
+            {**duo, "name": (guild.get_member(int(duo["id"])).display_name
+                             if guild.get_member(int(duo["id"])) else None)}
+            for duo in fiche["mates"]
+        ]
+        return web.json_response(fiche)
+
+    async def activity(self, request: web.Request) -> web.Response:
+        """Le relevé d'activité : files ouvertes, lancées, abandonnées,
+        attente moyenne, et la répartition par jour et par heure."""
+        guild = self._guild_or_none(request)
+        if guild is None:
+            return _error(404, "guild_not_found")
+        jours = self._entier(request, "days", 30, 1, 90)
+        return web.json_response(history.stats(guild.id, days=jours))
+
+    async def audit_log(self, request: web.Request) -> web.Response:
+        """Qui a changé quoi, depuis le panneau comme depuis Discord."""
+        guild = self._guild_or_none(request)
+        if guild is None:
+            return _error(404, "guild_not_found")
+        limite = self._entier(request, "limit", 50, 1, 200)
+        return web.json_response({"entries": audit.entries(guild.id, limit=limite)})
 
     # ------------------------------------------------------------------
     # Ouvrir une queue depuis le site

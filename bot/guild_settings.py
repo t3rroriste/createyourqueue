@@ -1367,3 +1367,123 @@ def cancel_duel_trash(guild_id: int, thread_id: int | None) -> None:
         info["duel_trash"] = kept
         save_settings()
 
+
+
+# ======================================================================
+# L'accès à la file : blacklist, no-show, webhook, files programmées
+#
+# Quatre réglages neufs, rangés ici parce qu'ils suivent la vie d'un
+# serveur et non celle d'un match : ils doivent survivre à tout, y compris
+# à une queue qui se termine mal.
+# ======================================================================
+
+# IL Y A DEUX LISTES, et c'est voulu.
+#
+# `queue_blacklist`, plus haut, est la liste POSÉE À LA MAIN par le staff :
+# elle n'a pas de fin, elle porte une raison et un auteur, et seul un
+# humain l'ouvre ou la referme. Elle existait déjà ; elle manquait
+# seulement au panneau.
+#
+# `queue_bans`, ci-dessous, est ce que le bot pose TOUT SEUL quand un
+# joueur accumule les absences. Elle a une fin, elle n'a pas de raison à
+# écrire, et elle s'efface d'elle-même. Les mélanger ferait disparaître
+# une sanction du staff au bout de vingt-quatre heures, ou ferait d'une
+# absence une exclusion définitive.
+#
+# Éteint au départ : un serveur qui n'a rien demandé ne doit pas se mettre
+# à exclure du monde tout seul.
+NOSHOW_DEFAULTS = {
+    "enabled": False,
+    "threshold": 3,       # absences avant exclusion
+    "ban_hours": 24,      # durée de la mise à l'écart
+}
+
+
+def get_queue_ban_list(guild_id: int) -> dict[str, float]:
+    """Les joueurs écartés de la file : identifiant -> fin de l'exclusion.
+
+    Une fin à 0 vaut « pour toujours » : c'est une exclusion posée à la
+    main par le staff, qui ne doit pas s'évaporer d'elle-même.
+    """
+    return dict(_settings.get(guild_id, {}).get("queue_bans", {}))
+
+
+def set_queue_ban(guild_id: int, user_id: int, until: float) -> None:
+    info = _ensure(guild_id)
+    info.setdefault("queue_bans", {})[str(user_id)] = float(until)
+    save_settings()
+
+
+def clear_queue_ban(guild_id: int, user_id: int) -> None:
+    info = _settings.get(guild_id, {})
+    if info.get("queue_bans", {}).pop(str(user_id), None) is not None:
+        save_settings()
+
+
+def is_queue_banned(guild_id: int, user_id: int, now: float) -> bool:
+    """Ce joueur est-il écarté à cet instant ?
+
+    Une exclusion arrivée à terme est EFFACÉE au passage plutôt que
+    seulement ignorée : sans cela, la liste du panneau se remplirait
+    d'exclusions mortes que personne ne comprendrait.
+    """
+    bans = _settings.get(guild_id, {}).get("queue_bans", {})
+    fin = bans.get(str(user_id))
+    if fin is None:
+        return False
+    if fin and fin <= now:
+        del bans[str(user_id)]
+        save_settings()
+        return False
+    return True
+
+
+def get_noshow_config(guild_id: int) -> dict[str, Any]:
+    return {**NOSHOW_DEFAULTS, **_settings.get(guild_id, {}).get("noshow", {})}
+
+
+def set_noshow_config(guild_id: int, **changes: Any) -> None:
+    info = _ensure(guild_id)
+    info.setdefault("noshow", {}).update(changes)
+    save_settings()
+
+
+def get_noshow_counts(guild_id: int) -> dict[str, int]:
+    return dict(_settings.get(guild_id, {}).get("noshow_counts", {}))
+
+
+def bump_noshow(guild_id: int, user_id: int) -> int:
+    """Compte une absence de plus. Rend le nouveau total."""
+    info = _ensure(guild_id)
+    compteurs = info.setdefault("noshow_counts", {})
+    total = int(compteurs.get(str(user_id), 0)) + 1
+    compteurs[str(user_id)] = total
+    save_settings()
+    return total
+
+
+def reset_noshow(guild_id: int, user_id: int | None = None) -> None:
+    """Remet le compteur à zéro, pour un joueur ou pour tout le serveur."""
+    info = _settings.get(guild_id, {})
+    compteurs = info.get("noshow_counts")
+    if compteurs is None:
+        return
+    if user_id is None:
+        info["noshow_counts"] = {}
+    else:
+        compteurs.pop(str(user_id), None)
+    save_settings()
+
+
+def get_webhook_url(guild_id: int) -> str:
+    """L'adresse où envoyer le résultat des matchs. Vide = aucun envoi."""
+    return str(_settings.get(guild_id, {}).get("webhook_url") or "")
+
+
+def set_webhook_url(guild_id: int, url: str | None) -> None:
+    info = _ensure(guild_id)
+    if url:
+        info["webhook_url"] = str(url)
+    else:
+        info.pop("webhook_url", None)
+    save_settings()

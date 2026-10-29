@@ -26,6 +26,7 @@ from guild_settings import (
     get_queue_config, get_queue_presets, get_queue_preset,
     save_queue_preset, delete_queue_preset,
 )
+import history
 from i18n import t
 # Un preset est une configuration de queue : c'est le panneau /queue qui sait
 # la décrire et qui fixe les bornes, les deux endroits doivent s'accorder.
@@ -766,6 +767,10 @@ class Automation(commands.Cog):
         set_season(guild.id, last_reset=period)
         if cfg["keep_history"] and podium:
             add_season_archive(guild.id, {"period": period, "podium": podium})
+        # Les matchs à venir portent le numéro de la saison suivante : sans
+        # ce passage, l'historique ne saurait pas où une saison finit, et
+        # « les matchs de la saison 3 » ne voudrait rien dire.
+        history.bump_season(guild.id)
 
         for stats in players.values():
             stats["wins"] = 0

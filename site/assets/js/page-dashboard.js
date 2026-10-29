@@ -1281,6 +1281,60 @@
     $$('[data-log-toggle]').forEach(function (c) { c.addEventListener('change', compterJournaux); });
 
     /* ==================================================================
+       LES JOURS DE LA SEMAINE (file programmée)
+       Sept cases, et non sept boutons : les noms changent avec la langue,
+       et sept vraies checkbox donnent au clavier la navigation par groupe
+       qu'un aria-pressed lui retire. La valeur enregistrée est « 0,5,6 »,
+       parce qu'un réglage du panneau est une chaîne.
+       ================================================================== */
+
+    function rendreJours() {
+      var hoteJours = $('[data-days]');
+      if (!hoteJours || hoteJours.children.length) return;
+      var noms = (t('sc.dayNames') || 'L,M,M,J,V,S,D').split(',');
+      hoteJours.innerHTML = noms.map(function (nom, i) {
+        return '<span class="jour">' +
+          '<input class="jour__box" type="checkbox" id="jour-' + i + '" data-day="' + i + '">' +
+          '<label class="jour__lab" for="jour-' + i + '">' + CYQ.esc(nom.trim()) + '</label>' +
+        '</span>';
+      }).join('');
+    }
+
+    /* Les cases vers le champ caché, et l'inverse. Le champ est la seule
+       valeur que l'enregistrement connaît : les cases ne sont qu'un
+       affichage, et elles doivent le suivre après un « Annuler ». */
+    function joursVersChamp() {
+      var champ = $('[data-setting="schedule.days"]');
+      if (!champ) return;
+      var coches = $$('[data-day]').filter(function (c) { return c.checked; })
+        .map(function (c) { return c.getAttribute('data-day'); });
+      champ.value = coches.join(',');
+      champ.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function champVersJours() {
+      var champ = $('[data-setting="schedule.days"]');
+      if (!champ) return;
+      var voulus = String(champ.value || '').split(',');
+      $$('[data-day]').forEach(function (c) {
+        c.checked = voulus.indexOf(c.getAttribute('data-day')) !== -1;
+      });
+    }
+
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-day')) {
+        /* Pendant le remplissage, c'est le champ qui commande : réagir
+           ici renverrait sa propre valeur et marquerait la section comme
+           modifiée alors que personne n'a rien touché. */
+        if (!remplissage) joursVersChamp();
+      }
+      if (e.target && e.target.getAttribute &&
+          e.target.getAttribute('data-setting') === 'schedule.days') {
+        champVersJours();
+      }
+    });
+
+    /* ==================================================================
        ANTI-LIEN
        Une rangée par salon textuel, et une seule construction : les
        rangées portent l'état coché, et les refabriquer après `remplir`
@@ -1694,7 +1748,13 @@
         /* AVANT `remplir` : c'est lui qui coche les cases, et il ne peut
            cocher que des cases qui existent déjà. */
         rendreAntilien();
+        rendreJours();
         remplir(donnees.settings);
+        /* Les listes d'accès et le palmarès voyagent avec les réglages —
+           elles sont courtes — mais c'est page-dashboard-memoire.js qui
+           les dessine. On les lui repasse plutôt que de le faire
+           redemander ce qu'on vient de recevoir. */
+        document.dispatchEvent(new CustomEvent('cyq:guild', { detail: donnees }));
         rendreTout();
         finChargement(false);
         placerMarque(false);

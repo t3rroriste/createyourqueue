@@ -42,7 +42,9 @@ from guild_settings import (
     deferred_save,
     get_match_state, set_match_state,
 )
+import history
 from i18n import get_lang, t
+from webhook import envoyer_webhook
 from rate_limit import throttled_each
 from text_safety import NO_PINGS, USERS_ONLY, sanitize
 from cogs.logs import send_log
@@ -619,6 +621,16 @@ class Match(commands.Cog):
                                                   is_mvp=(uid == mvp_id), streak=streak)
                     set_player_mmr(gid, uid, new_value)
                     changes.append((uid, new_value, change, uid == mvp_id))
+
+        # Le match est rangé AVANT le reste : si l'annonce ou les rôles de
+        # rang échouent, la partie doit rester dans l'historique. C'est la
+        # seule trace durable de ce qui vient de se jouer — jusqu'ici, seul
+        # le MMR courant survivait, et on ne pouvait rien revoir.
+        fiche = history.record_match(gid, teams=state.get("teams", {}), winner=winner,
+                                     mvp_id=mvp_id, changes=changes)
+        # Et le webhook sortant, s'il y en a un : il part de la fiche
+        # enregistrée, pour que les deux ne décrivent pas le match autrement.
+        envoyer_webhook(self.bot, guild, fiche)
 
         state["phase"] = PHASE_CLOSING
         state["deadline"] = now() + int(config["cleanup_seconds"])

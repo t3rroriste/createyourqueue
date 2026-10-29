@@ -596,6 +596,41 @@ const PONT_QUEUE = [
     'queue.notifMessage' => 'notif_message',
 ];
 
+/* La file programmée (/schedule côté Discord). `days` traverse en texte —
+   « 0,5,6 » — parce que les réglages du panneau sont des chaînes : une
+   liste y entrerait comme « Array ». Elle est refaite en tableau à
+   l'écriture. */
+const PONT_PROGRAMME = [
+    'schedule.enabled'         => 'enabled',
+    'schedule.time'            => 'time',
+    'schedule.reminder'        => 'reminder',
+    'schedule.reminderMinutes' => 'reminder_minutes',
+    'schedule.preset'          => 'preset',
+];
+
+/* Les saisons (/season). `archive` n'y est pas : c'est le palmarès, il se
+   lit et ne se réécrit pas depuis un formulaire. */
+const PONT_SAISON = [
+    'season.enabled'     => 'enabled',
+    'season.resetDay'    => 'reset_day',
+    'season.announce'    => 'announce',
+    'season.keepHistory' => 'keep_history',
+];
+
+/* Les absences répétées. */
+const PONT_ABSENCES = [
+    'noshow.enabled'   => 'enabled',
+    'noshow.threshold' => 'threshold',
+    'noshow.banHours'  => 'ban_hours',
+];
+
+/* Les clés BOOLÉENNES de ces trois blocs. Sans cette liste, « 0 » partirait
+   en `true` chez le bot : une chaîne non vide est vraie en PHP, et
+   « anti-raid éteint » deviendrait « anti-raid allumé ». */
+const PONT_BOOLEENS = [
+    'enabled', 'reminder', 'announce', 'keep_history',
+];
+
 /* Les douze couleurs du panneau et le rond que le bot écrit pour chacune.
    C'est la même liste que COLOR_PALETTE côté bot, dans le même ordre : une
    équipe affichée en rouge dans le panneau doit sortir rouge dans
@@ -723,6 +758,31 @@ function reglages_du_bot(string $gid): array
         $sortie['security.autocleanDelay'] = (string)(int)($net['interval_minutes'] ?? 20);
     }
 
+    /* La file programmée, les saisons, les absences. Les trois se
+       réglaient sur Discord seulement ; le panneau n'en savait rien. */
+    foreach ([['schedule', PONT_PROGRAMME], ['season', PONT_SAISON],
+              ['noshow', PONT_ABSENCES]] as [$bloc, $table]) {
+        $source = is_array($rep[$bloc] ?? null) ? $rep[$bloc] : [];
+        foreach ($table as $cleSite => $cleBot) {
+            if (!array_key_exists($cleBot, $source)) {
+                continue;
+            }
+            $v = $source[$cleBot];
+            $sortie[$cleSite] = is_bool($v) ? ($v ? '1' : '0') : (string)$v;
+        }
+    }
+    /* Les jours cochés, en texte. Une liste vide donne une chaîne vide, ce
+       que le panneau sait lire comme « aucun jour ». */
+    $jours = is_array($rep['schedule']['days'] ?? null) ? $rep['schedule']['days'] : null;
+    if ($jours !== null) {
+        $sortie['schedule.days'] = implode(',', array_map('strval', $jours));
+    }
+
+    /* Le webhook sortant. */
+    if (array_key_exists('webhook', $rep)) {
+        $sortie['webhook.url'] = (string)$rep['webhook'];
+    }
+
     /* L'anti-lien, salon par salon. Une clé par salon surveillé —
        `antilink.<id>` — plutôt qu'une liste dans une seule valeur : le
        panneau enregistre champ par champ, et une liste obligerait à
@@ -771,6 +831,44 @@ function reglages_du_bot(string $gid): array
     }
 
     return $sortie;
+}
+
+/* La personne connectée peut-elle agir sur ce serveur ?
+
+   Elle doit en être administratrice, vu de Discord. Écrit une fois plutôt
+   qu'à chaque route : c'est le genre de vérification qu'on finit par
+   oublier dans la cinquième. Refuse et s'arrête — elle ne rend jamais
+   « non ». */
+function garde_de_guilde(array $session, string $gid): void
+{
+    foreach (mes_guildes($session) as $g) {
+        if ((string)$g['id'] === $gid && peut_gerer($g)) {
+            return;
+        }
+    }
+    repondre(403, ['error' => 'FORBIDDEN']);
+}
+
+/* Un réglage du panneau, dans le type que le bot attend.
+
+   Le panneau n'envoie QUE des chaînes : « 0 », « 1 », « 21:00 », « 3 ».
+   Les passer telles quelles ferait de « 0 » un vrai booléen — une chaîne
+   non vide est vraie en PHP — et le bot refuserait les entiers reçus en
+   texte. D'où cette table unique, plutôt qu'un test par clé. */
+function valeur_pour_le_bot(string $cleBot, $v)
+{
+    if (in_array($cleBot, PONT_BOOLEENS, true)) {
+        return ($v === '1' || $v === 1 || $v === true);
+    }
+    if (in_array($cleBot, ['reminder_minutes', 'reset_day', 'threshold', 'ban_hours'], true)) {
+        return (int)$v;
+    }
+    if ($cleBot === 'preset') {
+        /* Vide = « la dernière configuration utilisée », que le bot note
+           null. La chaîne vide serait un nom de preset introuvable. */
+        return ($v === '' || $v === null) ? null : (string)$v;
+    }
+    return (string)$v;
 }
 
 /* Sépare un lot de réglages : ce qui part au bot, ce qui reste ici. */
@@ -824,6 +922,27 @@ function trier_pour_le_bot(array $propre, array $reglagesActuels = []): array
         } elseif ($k === 'security.autoclean' || $k === 'security.autocleanChannel'
                   || $k === 'security.autocleanDelay') {
             $nettoyage[$k] = $v;
+        } elseif (array_key_exists($k, PONT_PROGRAMME)) {
+            $cleBot = PONT_PROGRAMME[$k];
+            $pourLeBot['schedule'][$cleBot] = valeur_pour_le_bot($cleBot, $v);
+        } elseif ($k === 'schedule.days') {
+            /* « 0,5,6 » -> [0, 5, 6]. Les valeurs hors 0–6 tombent ici
+               plutôt que chez le bot, qui refuserait le lot entier. */
+            $jours = [];
+            foreach (explode(',', (string)$v) as $j) {
+                if ($j !== '' && ctype_digit(trim($j)) && (int)$j >= 0 && (int)$j <= 6) {
+                    $jours[] = (int)$j;
+                }
+            }
+            $pourLeBot['schedule']['days'] = array_values(array_unique($jours));
+        } elseif (array_key_exists($k, PONT_SAISON)) {
+            $cleBot = PONT_SAISON[$k];
+            $pourLeBot['season'][$cleBot] = valeur_pour_le_bot($cleBot, $v);
+        } elseif (array_key_exists($k, PONT_ABSENCES)) {
+            $cleBot = PONT_ABSENCES[$k];
+            $pourLeBot['noshow'][$cleBot] = valeur_pour_le_bot($cleBot, $v);
+        } elseif ($k === 'webhook.url') {
+            $pourLeBot['webhook'] = trim((string)$v);
         } elseif (preg_match('#^antilink\.(\d{5,25})$#', $k, $ma)) {
             /* Le bot veut la liste COMPLÈTE : un lot qui ne porte qu'une
                case cochée ne dit pas lesquels retirer. On part donc de ce
@@ -955,6 +1074,114 @@ function trier_pour_le_bot(array $propre, array $reglagesActuels = []): array
     }
 
     return [$pourLeBot, $ici];
+}
+
+/* --------------- ce dont le bot se souvient : lecture seule ---------------
+ * Quatre relais, tous en GET, tous sans effet : l'historique des matchs, la
+ * fiche d'un joueur, le relevé d'activité et le journal des modifications.
+ *
+ * Ils RELAIENT au lieu de servir une copie, parce que le site n'a rien à
+ * copier : ces données ne sont écrites que par le bot, à chaque match et à
+ * chaque réglage. Les dupliquer ici garantirait deux versions de la même
+ * histoire, et c'est précisément ce que le journal est censé empêcher.
+ *
+ * Bot éteint : 502, et le panneau affiche son bandeau. Pas de repli sur
+ * une copie périmée — un historique d'il y a trois jours présenté comme
+ * l'historique est pire qu'un écran vide. */
+if (preg_match('#^/guilds/(\d{5,25})/(matches|activity|audit)$#', $chemin, $m)
+    && $methode === 'GET') {
+    $gid = $m[1];
+    $quoi = $m[2];
+    garde_de_guilde($session, $gid);
+
+    if ($BOT_API_BASE === '') {
+        repondre(503, ['error' => 'BOT_API_ABSENTE']);
+    }
+    /* Les paramètres sont RECOPIÉS un par un, jamais relayés en bloc :
+       passer $_GET tel quel laisserait n'importe qui ajouter ce qu'il veut
+       à l'URL appelée chez le bot. */
+    $permis = [];
+    foreach (['limit', 'offset', 'days', 'player', 'season'] as $nom) {
+        if (isset($_GET[$nom]) && preg_match('#^\d{1,10}$#', (string)$_GET[$nom])) {
+            $permis[$nom] = (string)$_GET[$nom];
+        }
+    }
+    $suite = $permis ? ('?' . http_build_query($permis)) : '';
+
+    [$code, $rep] = appel_bot('GET', '/api/guilds/' . $gid . '/' . $quoi . $suite);
+    if ($code === 0) {
+        repondre(502, ['error' => 'BOT_INJOIGNABLE']);
+    }
+    if ($code !== 200) {
+        repondre($code, is_array($rep) && $rep ? $rep : ['error' => 'BOT_REFUS']);
+    }
+    repondre(200, $rep);
+}
+
+if (preg_match('#^/guilds/(\d{5,25})/players/(\d{5,25})$#', $chemin, $m)
+    && $methode === 'GET') {
+    garde_de_guilde($session, $m[1]);
+    if ($BOT_API_BASE === '') {
+        repondre(503, ['error' => 'BOT_API_ABSENTE']);
+    }
+    [$code, $rep] = appel_bot('GET', '/api/guilds/' . $m[1] . '/players/' . $m[2]);
+    if ($code === 0) {
+        repondre(502, ['error' => 'BOT_INJOIGNABLE']);
+    }
+    if ($code !== 200) {
+        repondre($code, is_array($rep) && $rep ? $rep : ['error' => 'BOT_REFUS']);
+    }
+    repondre(200, $rep);
+}
+
+/* ------------------- exclure ou réintégrer un joueur ----------------------
+ * Un GESTE, et pas un réglage : « ajoute celui-ci », « retire celui-là ».
+ * Envoyer la liste entière effacerait ce qu'un autre onglet — ou /blacklist
+ * sur Discord — vient d'ajouter.
+ *
+ * Trois gestes : `add` et `remove` pour la liste noire posée à la main,
+ * `lift` pour lever une exclusion automatique après trop d'absences. Le bot
+ * tient les deux listes séparément et a de bonnes raisons pour ça. */
+if (preg_match('#^/guilds/(\d{5,25})/bans$#', $chemin, $m) && $methode === 'POST') {
+    $gid = $m[1];
+    garde_de_guilde($session, $gid);
+
+    if ($BOT_API_BASE === '') {
+        repondre(503, ['error' => 'BOT_API_ABSENTE']);
+    }
+    $corps = json_decode((string)file_get_contents('php://input'), true);
+    if (!is_array($corps)) {
+        repondre(400, ['error' => 'BAD_REQUEST']);
+    }
+    $gestes = [];
+    foreach (['add', 'remove', 'lift'] as $geste) {
+        $liste = $corps[$geste] ?? [];
+        if (!is_array($liste)) {
+            repondre(400, ['error' => 'BAD_REQUEST']);
+        }
+        foreach ($liste as $uid) {
+            if (!preg_match('#^\d{5,25}$#', (string)$uid)) {
+                repondre(400, ['error' => 'BAD_REQUEST']);
+            }
+            $gestes[$geste][] = (string)$uid;
+        }
+    }
+    if (!$gestes) {
+        repondre(400, ['error' => 'BAD_REQUEST']);
+    }
+    $gestes['reason'] = mb_substr((string)($corps['reason'] ?? ''), 0, 200);
+
+    [$code, $rep] = appel_bot('PATCH', '/api/guilds/' . $gid, [
+        'bans'  => $gestes,
+        'actor' => ['id' => $session['user_id'], 'name' => $session['user_name']],
+    ]);
+    if ($code === 0) {
+        repondre(502, ['error' => 'BOT_INJOIGNABLE']);
+    }
+    if ($code !== 200) {
+        repondre($code, is_array($rep) && $rep ? $rep : ['error' => 'BOT_REFUS']);
+    }
+    repondre(200, $rep);
 }
 
 /* ------------------- ouvrir ou fermer une queue depuis le site ------------
@@ -1135,6 +1362,14 @@ if (preg_match('#^/guilds/(\d{5,25})(/settings)?$#', $chemin, $m)) {
             if ($BOT_API_BASE === '') {
                 repondre(503, ['error' => 'BOT_API_ABSENTE']);
             }
+            /* Qui enregistre. Le bot ne sait pas vérifier cette identité —
+               il ne connaît que la clé — mais nous venons de vérifier que
+               la personne est admin de ce serveur. C'est la seule façon
+               pour son journal de répondre à « qui a changé ça ? ». */
+            $pourLeBot['actor'] = [
+                'id'   => $session['user_id'],
+                'name' => $session['user_name'],
+            ];
             [$code, $rep] = appel_bot('PATCH', '/api/guilds/' . $gid, $pourLeBot);
             if ($code === 0) {
                 repondre(502, ['error' => 'BOT_INJOIGNABLE']);

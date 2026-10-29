@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610290516">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610290516">
+<link rel="stylesheet" href="assets/css/home.css?v=202610290603">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610290603">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -109,6 +109,8 @@
             <a class="navlink navlink--sub" href="#rangs" data-goto="rangs"><span class="navlink-label" data-i18n="s.ranks">Rangs</span></a>
             <a class="navlink navlink--sub" href="#mmr" data-goto="mmr"><span class="navlink-label" data-i18n="s.mmr">MMR</span></a>
             <a class="navlink navlink--sub" href="#presets" data-goto="presets"><span class="navlink-label" data-i18n="s.presets">Presets</span><span class="navlink__n" data-nav-count="presets"></span></a>
+            <a class="navlink navlink--sub" href="#historique" data-goto="historique"><span class="navlink-label" data-i18n="s.history">Historique</span></a>
+            <a class="navlink navlink--sub" href="#saisons" data-goto="saisons"><span class="navlink-label" data-i18n="s.seasons">Saisons</span></a>
           </div>
           <div class="dbnav__sub" data-sub="feature.clans" hidden>
             <a class="navlink navlink--sub" href="#clans" data-goto="clans"><span class="navlink-label" data-i18n="fn.clans">Clans</span></a>
@@ -119,6 +121,8 @@
              dépend d'aucune fonction qu'on pourrait couper. -->
         <div class="dbnav__grp">
           <a class="navlink" href="#queue" data-goto="queue"><span class="navlink-label" data-i18n="s.queue">Queue</span></a>
+          <a class="navlink" href="#programmation" data-goto="programmation"><span class="navlink-label" data-i18n="s.schedule">Programmation</span></a>
+          <a class="navlink" href="#acces" data-goto="acces"><span class="navlink-label" data-i18n="s.access">Accès</span><span class="navlink__n" data-nav-count="acces"></span></a>
         </div>
 
         <div class="dbnav__grp">
@@ -128,6 +132,8 @@
         <div class="dbnav__grp">
           <a class="navlink" href="#logs" data-goto="logs"><span class="navlink-label" data-i18n="s.logs">Logs</span><span class="navlink__n" data-nav-count="logs"></span></a>
           <a class="navlink" href="#securite" data-goto="securite"><span class="navlink-label" data-i18n="s.security">Sécurité</span></a>
+          <a class="navlink" href="#stats" data-goto="stats"><span class="navlink-label" data-i18n="s.stats">Statistiques</span></a>
+          <a class="navlink" href="#journal" data-goto="journal"><span class="navlink-label" data-i18n="s.journal">Journal</span></a>
         </div>
         <div class="dbnav__grp">
           <a class="navlink" href="#diagnostic" data-goto="diagnostic"><span class="navlink-label" data-i18n="d.diagnostic">Diagnostic</span><span class="navlink__warn" data-nav-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span class="sr-only" data-i18n="d.navWarn">Droits manquants</span></span></a>
@@ -206,7 +212,28 @@
             </div>
           </div>
         </div>
-      </section>
+      
+        <!-- Le webhook sortant. Le bot sait tout d'un match et ne le disait
+             qu'à Discord : un serveur qui tient son propre site devait
+             recopier les scores à la main.
+
+             https SEULEMENT, et jamais une adresse interne : le bot
+             refuse. Sans cela, une URL comme http://127.0.0.1:3000/ ferait
+             de lui un relais vers le réseau de l'hébergeur, pour quiconque
+             peut configurer un serveur. -->
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="wh.grp">Webhook</h2>
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="wh-url" data-i18n="wh.url">Adresse</label> <span class="row__desc" id="wh-url-d" data-i18n="wh.urlD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><input class="text" id="wh-url" type="url" maxlength="500" autocomplete="off" inputmode="url" placeholder="https://" aria-describedby="wh-url-d wh-url-e" data-setting="webhook.url"></div>
+              <p class="row__err" id="wh-url-e" data-error-for="wh-url" hidden></p>
+            </div>
+          </div>
+        </div>
+
+</section>
 
       <!-- ============================ OPTIONS ============================ -->
       <!-- Allumer une option fait apparaître sa configuration en
@@ -713,6 +740,33 @@
           <p class="lead sec__lead" data-i18n="s.presetsD"></p>
         </header>
         <div class="grp" data-presets></div>
+
+        <!-- Emporter la configuration ailleurs. Tout se passe DANS le
+             navigateur : l'export fabrique un fichier depuis ce que le
+             panneau a déjà en main, l'import le relit et remplit les
+             champs. Rien n'est envoyé nulle part tant qu'on n'a pas
+             enregistré, ce qui laisse le temps de regarder ce qui arrive.
+
+             Les réglages propres à CE serveur — salons, rôles, mot de
+             passe — ne sont PAS exportés : un identifiant de salon ne veut
+             rien dire sur un autre serveur, et l'y poser désignerait le
+             vide. -->
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="px.grp">Emporter la configuration</h2>
+          <div class="grp__card grp__card--pad">
+            <p class="rank__note" data-i18n="px.note"></p>
+            <div class="rank__add">
+              <button class="pill pill--ghost pill--sm" type="button" data-export>
+                <span data-i18n="px.export">Exporter</span>
+              </button>
+              <button class="pill pill--ghost pill--sm" type="button" data-import>
+                <span data-i18n="px.import">Importer</span>
+              </button>
+              <input type="file" accept="application/json,.json" data-import-file hidden>
+            </div>
+            <p class="row__err" data-import-err hidden></p>
+          </div>
+        </div>
       </section>
 
       <!-- ============================== LOGS ============================== -->
@@ -834,6 +888,243 @@
 
       </section>
 
+      <!-- ========================== PROGRAMMATION ========================== -->
+      <!-- La file programmée et les saisons existent dans le bot depuis
+           toujours — /schedule et /season — et ne se réglaient que sur
+           Discord. Le panneau avait bien un champ « à la demande /
+           programmée », mais il ne commandait que l'affichage d'un autre
+           champ : rien n'arrivait jusqu'au bot.
+
+           L'HEURE EST CELLE DU BOT, en UTC. Ce n'est pas un détail qu'on
+           peut taire : un organisateur à Paris qui lit « 21:00 » et voit
+           la file s'ouvrir à 23 h croirait à une panne. -->
+      <section class="sec" data-section="programmation" aria-labelledby="h-programmation" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-programmation" data-i18n="s.schedule">Programmation</h1>
+          <p class="lead sec__lead" data-i18n="sc.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="sc-on" data-i18n="sc.enabled">Ouvrir automatiquement</label> <span class="row__desc" id="sc-on-d" data-i18n="sc.enabledD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="sc-on" aria-describedby="sc-on-d" data-setting="schedule.enabled" data-controls="#sc-time-row,#sc-days-row,#sc-rem-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row" id="sc-time-row">
+              <p class="row__text"><label class="row__label" for="sc-time" data-i18n="sc.time">Heure</label> <span class="row__desc" id="sc-time-d" data-i18n="sc.timeD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><input class="text text--sm" id="sc-time" type="time" aria-describedby="sc-time-d" data-setting="schedule.time" value="21:00"></div>
+            </div>
+            <div class="row row--stack" id="sc-days-row">
+              <p class="row__text"><span class="row__label" data-i18n="sc.days">Jours</span> <span class="row__desc" data-i18n="sc.daysD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <!-- Sept cases, fabriquées par le script : les noms des jours
+                   changent avec la langue, et les écrire ici obligerait à
+                   les traduire deux fois. La valeur part en « 0,5,6 ». -->
+              <div class="row__ctl row__ctl--wide" data-days></div>
+              <input type="hidden" data-setting="schedule.days" value="">
+            </div>
+          </div>
+        </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="sc.grpReminder">Rappel</h2>
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="sc-rem" data-i18n="sc.reminder">Prévenir avant</label> <span class="row__desc" id="sc-rem-d" data-i18n="sc.reminderD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="sc-rem" aria-describedby="sc-rem-d" data-setting="schedule.reminder" data-controls="#sc-remmin-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row" id="sc-remmin-row">
+              <p class="row__text"><label class="row__label" for="sc-remmin" data-i18n="sc.reminderMinutes">Combien de temps avant</label> <span class="row__desc" id="sc-remmin-d"><span data-i18n="sc.reminderMinutesD"></span><span class="row__bounds">1 – 1440</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="sc-remmin" type="number" inputmode="numeric" step="1" min="1" max="1440" value="15" data-min="1" data-max="1440" aria-describedby="sc-remmin-d sc-remmin-e" data-setting="schedule.reminderMinutes"><span class="num__unit" data-i18n="u.min">min</span></span></div>
+              <p class="row__err" id="sc-remmin-e" data-error-for="sc-remmin" hidden></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= SAISONS ============================= -->
+      <section class="sec" data-section="saisons" aria-labelledby="h-saisons" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-saisons" data-i18n="s.seasons">Saisons</h1>
+          <p class="lead sec__lead" data-i18n="se2.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="sn-on" data-i18n="se2.enabled">Clôture automatique</label> <span class="row__desc" id="sn-on-d" data-i18n="se2.enabledD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="sn-on" aria-describedby="sn-on-d" data-setting="season.enabled" data-controls="#sn-day-row,#sn-ann-row,#sn-keep-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row" id="sn-day-row">
+              <p class="row__text"><label class="row__label" for="sn-day" data-i18n="se2.resetDay">Jour du mois</label> <span class="row__desc" id="sn-day-d"><span data-i18n="se2.resetDayD"></span><span class="row__bounds">1 – 28</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="sn-day" type="number" inputmode="numeric" step="1" min="1" max="28" value="1" data-min="1" data-max="28" aria-describedby="sn-day-d sn-day-e" data-setting="season.resetDay"></span></div>
+              <p class="row__err" id="sn-day-e" data-error-for="sn-day" hidden></p>
+            </div>
+            <div class="row" id="sn-ann-row">
+              <p class="row__text"><label class="row__label" for="sn-ann" data-i18n="se2.announce">Annoncer le podium</label> <span class="row__desc" id="sn-ann-d" data-i18n="se2.announceD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="sn-ann" aria-describedby="sn-ann-d" data-setting="season.announce"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row" id="sn-keep-row">
+              <p class="row__text"><label class="row__label" for="sn-keep" data-i18n="se2.keepHistory">Garder le palmarès</label> <span class="row__desc" id="sn-keep-d" data-i18n="se2.keepHistoryD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="sn-keep" aria-describedby="sn-keep-d" data-setting="season.keepHistory"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Le palmarès. Il se LIT : il vient de season.archive, que le bot
+             écrit à chaque clôture. Le modifier depuis un formulaire ferait
+             d'un palmarès autre chose qu'un palmarès. -->
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se2.grpArchive">Palmarès</h2>
+          <div class="grp__card" data-seasons></div>
+        </div>
+      </section>
+
+      <!-- ============================ HISTORIQUE ============================ -->
+      <!-- Les matchs joués, et la fiche d'un joueur quand on clique sur son
+           nom. Les deux viennent de routes à part (/matches, /players/{id})
+           et pas de la charge utile des réglages : cinq cents matchs à
+           chaque ouverture du panneau se paieraient sur toutes les pages. -->
+      <section class="sec" data-section="historique" aria-labelledby="h-historique" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-historique" data-i18n="s.history">Historique</h1>
+          <p class="lead sec__lead" data-i18n="hi.lead"></p>
+        </header>
+
+        <!-- La fiche d'un joueur. Cachée tant que personne n'est choisi :
+             une fiche vide ne dit rien de plus qu'une absence de fiche.
+
+             AVANT la liste, et non après : vingt-cinq matchs font quatre
+             mille pixels, et une fiche posée dessous obligerait le
+             téléphone à descendre tout ça pour montrer ce qu'on vient de
+             demander. -->
+        <div class="grp" data-player-card hidden></div>
+
+        <div class="grp">
+          <div class="grp__head grp__head--end">
+            <span class="grp__meta" data-history-count></span>
+          </div>
+          <div class="grp__card" data-history></div>
+          <div class="grp__card grp__card--pad" data-history-more hidden>
+            <button class="pill pill--ghost pill--sm" type="button" data-history-next>
+              <span data-i18n="hi.more">Voir plus</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =========================== STATISTIQUES =========================== -->
+      <section class="sec" data-section="stats" aria-labelledby="h-stats" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-stats" data-i18n="s.stats">Statistiques</h1>
+          <p class="lead sec__lead" data-i18n="st2.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card" data-stats-nums></div>
+        </div>
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="st2.grpHours">Heures d'activité</h2>
+          <div class="grp__card grp__card--pad" data-stats-hours></div>
+        </div>
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="st2.grpDays">Jour par jour</h2>
+          <div class="grp__card grp__card--pad" data-stats-days></div>
+        </div>
+      </section>
+
+      <!-- =============================== ACCÈS =============================== -->
+      <!-- Qui a le droit d'entrer dans une file. Deux listes, et elles ne se
+           mélangent pas : celle que le staff pose à la main, sans fin, et
+           celle que le bot pose tout seul après trop d'absences, qui se
+           lève d'elle-même. Les confondre ferait disparaître une sanction
+           du staff au bout de vingt-quatre heures. -->
+      <section class="sec" data-section="acces" aria-labelledby="h-acces" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-acces" data-i18n="s.access">Accès</h1>
+          <p class="lead sec__lead" data-i18n="ac.lead"></p>
+        </header>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="ac.grpNoshow">Absences</h2>
+          <div class="grp__card">
+            <div class="row">
+              <p class="row__text"><label class="row__label" for="ns-on" data-i18n="ac.enabled">Compter les absences</label> <span class="row__desc" id="ns-on-d" data-i18n="ac.enabledD"></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="ns-on" aria-describedby="ns-on-d" data-setting="noshow.enabled" data-controls="#ns-thr-row,#ns-hrs-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+            </div>
+            <div class="row" id="ns-thr-row">
+              <p class="row__text"><label class="row__label" for="ns-thr" data-i18n="ac.threshold">Absences tolérées</label> <span class="row__desc" id="ns-thr-d"><span data-i18n="ac.thresholdD"></span><span class="row__bounds">2 – 20</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="ns-thr" type="number" inputmode="numeric" step="1" min="2" max="20" value="3" data-min="2" data-max="20" aria-describedby="ns-thr-d ns-thr-e" data-setting="noshow.threshold"><span class="num__unit" aria-hidden="true">×</span></span></div>
+              <p class="row__err" id="ns-thr-e" data-error-for="ns-thr" hidden></p>
+            </div>
+            <div class="row" id="ns-hrs-row">
+              <p class="row__text"><label class="row__label" for="ns-hrs" data-i18n="ac.banHours">Durée de l'exclusion</label> <span class="row__desc" id="ns-hrs-d"><span data-i18n="ac.banHoursD"></span><span class="row__bounds">1 – 720</span></span></p>
+              <span class="row__state" data-state aria-hidden="true"></span>
+              <div class="row__ctl"><span class="num"><input class="num__input" id="ns-hrs" type="number" inputmode="numeric" step="1" min="1" max="720" value="24" data-min="1" data-max="720" aria-describedby="ns-hrs-d ns-hrs-e" data-setting="noshow.banHours"><span class="num__unit" data-i18n="u.h">h</span></span></div>
+              <p class="row__err" id="ns-hrs-e" data-error-for="ns-hrs" hidden></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="ac.grpBlacklist">Liste noire</h2>
+          <div class="grp__card grp__card--pad">
+            <p class="rank__note" data-i18n="ac.blacklistNote"></p>
+            <!-- Un identifiant Discord et pas un sélecteur de membre : le
+                 panneau ne charge pas la liste des membres, qui peut
+                 compter des dizaines de milliers de lignes. Le clic droit
+                 sur un pseudo dans Discord donne l'identifiant. -->
+            <div class="rank__add">
+              <input class="text" type="text" inputmode="numeric" maxlength="25" autocomplete="off"
+                     data-ban-id data-i18n-attr="aria-label:ac.banId,placeholder:ac.banId">
+              <input class="text" type="text" maxlength="200" autocomplete="off"
+                     data-ban-reason data-i18n-attr="aria-label:ac.banReason,placeholder:ac.banReason">
+              <button class="pill pill--ghost pill--sm" type="button" data-ban-add>
+                <span data-i18n="ac.banAdd">Exclure</span>
+              </button>
+            </div>
+            <p class="row__err" data-ban-err hidden></p>
+          </div>
+          <div class="grp__card" data-blacklist></div>
+        </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="ac.grpAuto">Exclusions automatiques</h2>
+          <div class="grp__card" data-queuebans></div>
+        </div>
+      </section>
+
+      <!-- ============================== JOURNAL ============================== -->
+      <!-- Qui a changé quoi, et depuis où. Le bot en tenait déjà un, mais EN
+           MÉMOIRE : un redémarrage l'effaçait, et il ne voyait que les
+           commandes Discord. Un réglage modifié ici ne laissait donc aucune
+           trace nulle part.
+
+           Les VALEURS n'y sont pas, seulement les noms des blocs touchés :
+           un journal qui note un mot de passe de queue devient lui-même un
+           secret, lisible par tous les administrateurs. -->
+      <section class="sec" data-section="journal" aria-labelledby="h-journal" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-journal" data-i18n="s.journal">Journal</h1>
+          <p class="lead sec__lead" data-i18n="jo.lead"></p>
+        </header>
+
+        <div class="grp">
+          <div class="grp__card" data-journal></div>
+        </div>
+      </section>
+
       <!-- =========================== DIAGNOSTIC =========================== -->
       <section class="sec" data-section="diagnostic" aria-labelledby="h-diagnostic" hidden>
         <header class="sec__head sec__head--action">
@@ -850,14 +1141,15 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610290516"></script>
-<script src="assets/js/config.js?v=202610290516"></script>
-<script src="assets/js/lang/fr.js?v=202610290516"></script>
-<script src="assets/js/lang/en.js?v=202610290516"></script>
-<script src="assets/js/lang/es.js?v=202610290516"></script>
-<script src="assets/js/lang/de.js?v=202610290516"></script>
-<script src="assets/js/lang/ko.js?v=202610290516"></script>
-<script src="assets/js/app.js?v=202610290516"></script>
-<script src="assets/js/page-dashboard.js?v=202610290516"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610290603"></script>
+<script src="assets/js/config.js?v=202610290603"></script>
+<script src="assets/js/lang/fr.js?v=202610290603"></script>
+<script src="assets/js/lang/en.js?v=202610290603"></script>
+<script src="assets/js/lang/es.js?v=202610290603"></script>
+<script src="assets/js/lang/de.js?v=202610290603"></script>
+<script src="assets/js/lang/ko.js?v=202610290603"></script>
+<script src="assets/js/app.js?v=202610290603"></script>
+<script src="assets/js/page-dashboard.js?v=202610290603"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610290603"></script>
 </body>
 </html>

@@ -244,7 +244,9 @@
         "pw_not_in": "Du bist nicht in dieser Queue.",
         "pw_closed": "❌ Die Anmeldung für diese Queue ist geschlossen.",
         "pw_full": "❌ Die Queue ist voll.",
-        "thread_name": "Organisation — {queue}"
+        "thread_name": "Organisation — {queue}",
+        "noshow_blocked_dm": "⏳ Du bist vorerst ausgeschlossen: Du hast dich für Queues angemeldet und bist nicht erschienen. Die Sperre endet von selbst.",
+        "noshow_banned_dm": "⏳ Du hast dich einmal zu oft angemeldet, ohne zu kommen: Du kannst {hours} Std. lang keiner Queue beitreten."
     },
     "classement": {
         "title": "🏆 **Spieler-Rangliste**",
@@ -474,7 +476,8 @@
         "clan_request": "Beitrittsanfrage",
         "clan_request_accepted": "Beitrittsanfrage angenommen",
         "clan_request_refused": "Beitrittsanfrage abgelehnt",
-        "clan_transfer": "Clan übertragen"
+        "clan_transfer": "Clan übertragen",
+        "queue_noshow_banned": "Automatische Sperre: wiederholtes Fernbleiben"
     },
     "help": {
         "overview_title": "📚 CreateYourQueue · Hilfe",

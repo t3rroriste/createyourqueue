@@ -1353,6 +1353,10 @@ label.row__label { cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   html:not(.motion-force) .savebar:not([hidden]) { animation: none; }
+  /* La pastille d'un jour s'enfonce au doigt. C'est un retour utile, pas
+     une décoration : on le coupe quand même, et la coche reste le signal. */
+  html:not(.motion-force) .jour__lab { transition: none; }
+  html:not(.motion-force) .jour__lab:active { transform: none; }
 }
 
 /* ------------------------- les sous-entrées du menu -------------------- */
@@ -1382,4 +1386,129 @@ label.row__label { cursor: pointer; }
      distinction qui survit à l'horizontale, la taille du texte. */
   .dbnav__sub { flex-direction: row; }
   .navlink--sub { padding-left: 14px; }
+}
+
+
+/* ======================================================================
+   HISTORIQUE, STATISTIQUES, ACCÈS, JOURNAL
+   Six écrans neufs, et pas un token de plus : tout reprend les variables
+   du panneau. Les barres des statistiques sont des div à hauteur
+   calculée — un graphique en SVG aurait demandé une bibliothèque, et la
+   règle du dépôt est qu'on n'en ajoute pas.
+   ====================================================================== */
+
+/* ---- une ligne qui s'étale sur toute la largeur ----------------------- */
+.row__ctl--wide { flex: 1 1 100%; justify-content: flex-start; flex-wrap: wrap; gap: 8px; }
+
+/* ---- le champ d'ajout : identifiant, motif, bouton -------------------- */
+.rank__add { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.rank__add .text { flex: 1 1 180px; min-width: 0; }
+
+/* ---- les jours de la semaine ----------------------------------------- */
+/* Des cases à cocher déguisées en pastilles. Le vrai input reste là,
+   seulement masqué visuellement : un bouton aria-pressed aurait privé le
+   clavier de la navigation par groupe que donnent sept checkbox. */
+.jour { position: relative; }
+.jour__box {
+  position: absolute; opacity: 0; width: 1px; height: 1px;
+  margin: 0; pointer-events: none;
+}
+.jour__lab {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 42px; padding: 7px 10px;
+  border: 1px solid var(--hair); border-radius: 999px;
+  font-size: 13px; color: var(--ink-60); cursor: pointer;
+  transition: transform .12s ease, opacity .12s ease;
+}
+/* Coche = crème plein, comme le sélecteur de langue : le cuivre
+   (--accent) ne sert qu'UNE fois par écran, et sept jours cochables ne
+   sont pas cet endroit-là. */
+.jour__box:checked + .jour__lab { color: var(--bg); background: var(--ink); border-color: var(--ink); }
+.jour__box:focus-visible + .jour__lab { outline: 2px solid var(--ink); outline-offset: 2px; }
+.jour__lab:active { transform: scale(.96); }
+.jour__box:disabled + .jour__lab { opacity: .45; cursor: not-allowed; }
+
+/* ---- une ligne de match ---------------------------------------------- */
+.match { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.match__date { flex: 0 0 auto; font-size: 12.5px; color: var(--ink-40); font-variant-numeric: tabular-nums; }
+.match__teams { flex: 1 1 220px; min-width: 0; font-size: 14px; }
+.match__win { color: var(--ink); font-weight: 500; }
+.match__lose { color: var(--ink-40); }
+.match__mvp { flex: 0 0 auto; font-size: 12.5px; color: var(--ink-60); }
+
+/* Un pseudo cliquable : il ouvre la fiche du joueur. Souligné seulement
+   au survol — vingt noms soulignés d'un coup feraient un mur de traits. */
+.joueur {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: inherit; font: inherit; text-decoration: none;
+}
+.joueur:hover, .joueur:focus-visible { text-decoration: underline; }
+
+/* ---- la fiche d'un joueur -------------------------------------------- */
+.fiche { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+.fiche__id { display: flex; align-items: center; gap: 12px; flex: 1 1 200px; }
+.fiche__av { width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto; }
+/* Le nom et le MMR sont deux <span> côte à côte : sans mise en bloc,
+   « Joueur2 » et « 1180 MMR » se collent en « Joueur21180 MMR ». */
+.fiche__nom { display: block; font-size: 16px; }
+.fiche__mmr { display: block; font-size: 13px; color: var(--ink-60); font-variant-numeric: tabular-nums; }
+
+/* Les chiffres d'un coup d'œil. `auto-fit` plutôt qu'un nombre fixe de
+   colonnes : à 375 px, cinq chiffres côte à côte deviendraient illisibles. */
+.chiffres {
+  display: grid; gap: 1px; background: var(--panel);
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  border-radius: 10px; overflow: hidden;
+}
+/* Le filet est porté par la CASE, pas par la grille. Cinq chiffres dans
+   une grille de six laissent une case vide : un fond de grille s'y verrait
+   comme un bloc gris qui ne veut rien dire. */
+.chiffre {
+  background: var(--panel); padding: 14px 16px;
+  box-shadow: 0 0 0 1px var(--hair);
+}
+.chiffre__n { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.chiffre__l { display: block; font-size: 12px; color: var(--ink-60); margin-top: 2px; }
+
+/* ---- les barres ------------------------------------------------------- */
+/* Hauteur en pourcentage, posée en style inline par le script : c'est une
+   donnée, pas un choix de dessin, et elle change à chaque lecture. */
+.barres { display: flex; align-items: flex-end; gap: 3px; height: 120px; }
+.barre { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+.barre__fill { background: var(--ink); opacity: .55; border-radius: 3px 3px 0 0; min-height: 2px; }
+.barre:hover .barre__fill { opacity: 1; }
+.barres__axe { display: flex; gap: 3px; margin-top: 8px; }
+.barres__axe span { flex: 1 1 0; text-align: center; font-size: 10.5px; color: var(--ink-40); }
+
+/* ---- la courbe de MMR -------------------------------------------------- */
+/* Un SVG écrit à la main, pas une bibliothèque : vingt points et une
+   polyligne, c'est exactement ce dont on a besoin. */
+.courbe__boite { margin-top: 18px; }
+.courbe { width: 100%; height: 72px; display: block; overflow: visible; }
+.courbe__trait { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+
+/* ---- le journal et les listes ----------------------------------------- */
+.ligne { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.ligne__date { flex: 0 0 auto; font-size: 12.5px; color: var(--ink-40); font-variant-numeric: tabular-nums; }
+.ligne__qui { flex: 0 0 auto; font-size: 13.5px; }
+.ligne__quoi { flex: 1 1 160px; min-width: 0; font-size: 13px; color: var(--ink-60); }
+.ligne__ou {
+  flex: 0 0 auto; font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink-40); border: 1px solid var(--hair); border-radius: 999px; padding: 2px 8px;
+}
+
+/* ---- l'état vide ------------------------------------------------------- */
+/* Sans API, sans match, sans ligne : on l'écrit. Inventer des données pour
+   remplir l'écran est la seule chose que ce panneau ne fait jamais. */
+.vide { padding: 22px 20px; font-size: 13.5px; color: var(--ink-40); text-align: center; }
+
+@media (max-width: 560px) {
+  /* La date passe au-dessus : à 375 px, elle et le reste de la ligne ne
+     tiennent pas côte à côte sans couper les pseudos. */
+  .match__date, .ligne__date { flex: 1 1 100%; }
+  .barres { height: 90px; }
+  /* La semaine tient sur UNE ligne, ou elle ne se lit plus comme une
+     semaine : à 375 px, sept pastilles de 42 px passent à la ligne après
+     la cinquième, et « S D » tout seuls en dessous ne veulent rien dire. */
+  .jour__lab { min-width: 34px; padding: 7px 4px; }
 }

@@ -244,7 +244,9 @@
         "pw_not_in": "이 큐에 참가하지 않았습니다.",
         "pw_closed": "❌ 이 큐의 참가 신청이 마감되었습니다.",
         "pw_full": "❌ 큐가 가득 찼습니다.",
-        "thread_name": "운영 — {queue}"
+        "thread_name": "운영 — {queue}",
+        "noshow_blocked_dm": "⏳ 지금은 참가할 수 없습니다. 큐에 등록해 놓고 오지 않았기 때문입니다. 제한은 자동으로 풀립니다.",
+        "noshow_banned_dm": "⏳ 등록해 놓고 오지 않은 횟수가 한도를 넘었습니다. {hours}시간 동안 큐에 참가할 수 없습니다."
     },
     "classement": {
         "title": "🏆 **플레이어 순위**",
@@ -474,7 +476,8 @@
         "clan_request": "가입 신청",
         "clan_request_accepted": "가입 신청 수락",
         "clan_request_refused": "가입 신청 거절",
-        "clan_transfer": "클랜 양도"
+        "clan_transfer": "클랜 양도",
+        "queue_noshow_banned": "자동 제한: 반복된 불참"
     },
     "help": {
         "overview_title": "📚 CreateYourQueue 도움말",
