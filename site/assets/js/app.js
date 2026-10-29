@@ -305,10 +305,22 @@
        animations derrière nous, et une animation l'emporte sur un style en
        ligne comme sur une règle. Sans ce ménage, la barre refusait de
        revenir. Le coût est nul quand il n'y en a pas. */
+    /* On n'annule QUE les animations d'anime.js. `getAnimations()` rend
+       aussi la CSSTransition que la règle `.nav { transition: transform … }`
+       vient de créer : l'annuler à chaque événement de défilement tuait la
+       transition de sortie à l'image suivante, et la barre SAUTAIT en
+       partant. Au retour en haut, le dernier événement n'était suivi de
+       rien, plus personne n'annulait, et la transition se jouait — d'où
+       l'asymétrie exacte qu'on observait.
+
+       Le garde sur `CSSTransition` n'est pas de la prudence gratuite :
+       l'interface n'est pas exposée partout, et la lire sans vérifier
+       ferait tomber tout l'effacement sur ces navigateurs-là. */
     function liberer() {
-      if (nav.getAnimations) {
-        nav.getAnimations().forEach(function (a) { a.cancel(); });
-      }
+      if (!nav.getAnimations) return;
+      nav.getAnimations().forEach(function (a) {
+        if (typeof CSSTransition === 'undefined' || !(a instanceof CSSTransition)) a.cancel();
+      });
     }
 
     /* On écrit le mouvement EN LIGNE, et non par la classe : anime.js a
@@ -322,8 +334,20 @@
        en arrière-plan, et la barre restait cachée au retour en haut. Lire
        `pageYOffset` dans un écouteur passif ne coûte rien, et
        `classList.toggle` ne réécrit pas une classe déjà en place. */
+    /* L'état courant, et le seul. Un défilement émet des dizaines
+       d'événements d'affilée ; sans cette mémoire, chacun réécrivait le
+       même `transform`, la même opacité et la même classe. C'était des
+       dizaines d'écritures de style par seconde pour un état qui ne
+       changeait pas — et, surtout, autant d'occasions de couper la
+       transition en cours. `null` et non `false` : au premier passage,
+       aucun état n'a encore été posé, et il faut l'écrire même s'il se
+       trouve être « visible ». */
+    var cachee = null;
+
     function placer() {
       var cacher = window.pageYOffset > SEUIL;
+      if (cacher === cachee) return;
+      cachee = cacher;
       liberer();
       nav.style.transform = cacher ? CACHEE : 'none';
       nav.style.opacity = cacher ? '0' : '1';
