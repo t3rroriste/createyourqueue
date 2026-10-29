@@ -46,7 +46,6 @@ window.CYQ_I18N.de = {
   "s.presetsD": "Bis zu 10 gespeicherte Warteschlangen-Konfigurationen zum Laden.",
   "s.logs": "Protokolle",
   "s.logsD": "10 Protokolle: Sprache, Nachrichten, Warteschlange, Match, Duell, Clan, Befehle, Beitritte, Moderation, Server.",
-  "s.security": "Sicherheit",
   "s.securityD": "Anti-Link, automatisches Aufräumen, Anti-Raid und seine Schwellen.",
 
   "sv.title": "Server auswählen",
@@ -243,8 +242,6 @@ window.CYQ_I18N.de = {
   "lo.duel": "Duell", "lo.clan": "Clan", "lo.commands": "Befehle", "lo.joins": "Beitritte",
   "lo.moderation": "Moderation", "lo.server": "Server",
   "lo.channel": "Protokoll-Kanal", "lo.enabledCount": "{n} von 10 Protokollen aktiv",
-
-  "se.lead": "Die automatischen Schutzfunktionen. Alle werden hier eingestellt — der Link-Schutz kanalweise, wie /antilink.",
   "se.antilink": "Anti-Link", "se.antilinkD": "Löscht Links außerhalb der erlaubten Kanäle. Wird kanalweise eingestellt.",
   "se.autoclean": "Automatisches Aufräumen", "se.autocleanD": "Leert einen Kanal in regelmäßigen Abständen. Das Statusfeld bleibt erhalten.",
   "se.threshold": "Beitritts-Schwelle", "se.thresholdD": "Zahl der Beitritte, die den Alarm auslöst",
@@ -252,6 +249,10 @@ window.CYQ_I18N.de = {
   "se.accountAge": "Mindestalter des Kontos", "se.accountAgeD": "Darunter gilt ein Beitritt als verdächtig",
   "se.raidKick": "Automatisches Kicken", "se.raidKickD": "Kickt Mitglieder, die während einer Anti-Raid-Sperre beitreten",
   "se.grpRaid": "Anti-Raid", "se.grpDiscord": "Auf Discord einstellen",
+  "se.raidLead": "Der Bot zählt die Zugänge. Über dem Schwellenwert sperrt er die Kanäle und warnt das Team.",
+  "se.cleanLead": "Ein Kanal, der in festem Takt geleert wird. Das Statuspanel bleibt verschont.",
+  "se.linkLead": "Links werden gelöscht, Kanal für Kanal. Das Team wird nicht gefiltert.",
+  "se.previewTitle": "In Discord",
   "se.grpClean": "Automatisches Aufräumen",
   "se.autocleanChannel": "Aufgeräumter Kanal", "se.autocleanChannelD": "Bei jedem Durchlauf werden alle Nachrichten darin gelöscht",
   "se.autocleanDelay": "Intervall", "se.autocleanDelayD": "Abstand zwischen zwei Durchläufen",

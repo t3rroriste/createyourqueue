@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610291814">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610291814">
+<link rel="stylesheet" href="assets/css/home.css?v=202610291821">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610291821">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -149,7 +149,9 @@
         <div class="dbnav__grp">
           <p class="dbnav__cat" data-i18n="cat.security">Sécurité</p>
           <a class="navlink" href="#logs" data-goto="logs"><span class="navlink-label" data-i18n="s.logs">Logs</span><span class="navlink__n" data-nav-count="logs"></span></a>
-          <a class="navlink" href="#securite" data-goto="securite"><span class="navlink-label" data-i18n="s.security">Sécurité</span></a>
+          <a class="navlink" href="#antiraid" data-goto="antiraid"><span class="navlink-label" data-i18n="se.grpRaid">Anti-raid</span></a>
+          <a class="navlink" href="#nettoyage" data-goto="nettoyage"><span class="navlink-label" data-i18n="se.grpClean">Nettoyage automatique</span></a>
+          <a class="navlink" href="#antilien" data-goto="antilien"><span class="navlink-label" data-i18n="se.grpAntilink">Anti-lien</span></a>
         </div>
 
         <div class="dbnav__grp">
@@ -997,13 +999,78 @@
                n'a de sens qu'une fois qu'il écrit quelque part. -->
           <div class="grp__card" data-logs></div>
         </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- Trois des dix journaux, dans l'ordre de KINDS (logs.py,
+                 l. 36) : vocal, messages, queue. Le cadre est celui de
+                 `build()` — « icône  titre », l'auteur au-dessus, le nom du
+                 journal et l'identifiant du membre en pied. -->
+            <div class="secprev" data-secprev="logs" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">21:04</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__auteur"><span class="dprev__pastille"></span>Nova</p>
+                      <p class="dprev__title">🎤  A rejoint un vocal</p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field">
+                          <span class="dprev__fname">Salon</span>
+                          <span class="dprev__fval">Attente</span>
+                        </div>
+                      </div>
+                      <p class="dprev__foot">Vocal  ·  ID 428913702496370689</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__alerte">
+                  <div class="dprev__main">
+                    <div class="dprev__embed">
+                      <p class="dprev__auteur"><span class="dprev__pastille"></span>Milo</p>
+                      <p class="dprev__title">💬  Message supprimé</p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field">
+                          <span class="dprev__fname">Salon</span>
+                          <span class="dprev__fval">général</span>
+                        </div>
+                      </div>
+                      <p class="dprev__foot">Messages  ·  ID 530118264992137216</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__apres">
+                  <div class="dprev__main">
+                    <div class="dprev__embed">
+                      <p class="dprev__auteur"><span class="dprev__pastille"></span>Nova</p>
+                      <p class="dprev__title">🔔  Queue ouverte</p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field">
+                          <span class="dprev__fname">Queue</span>
+                          <span class="dprev__fval">5v5</span>
+                        </div>
+                      </div>
+                      <p class="dprev__foot">Queue  ·  ID 428913702496370689</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <!-- ============================ SÉCURITÉ ============================ -->
-      <section class="sec" data-section="securite" aria-labelledby="h-securite" hidden>
+      <!-- ============================ ANTI-RAID ============================ -->
+      <section class="sec" data-section="antiraid" aria-labelledby="h-antiraid" hidden>
         <header class="sec__head">
-          <h1 class="sec__title" id="h-securite" data-i18n="s.security">Sécurité</h1>
-          <p class="lead sec__lead" data-i18n="se.lead"></p>
+          <h1 class="sec__title" id="h-antiraid" data-i18n="se.grpRaid">Anti-raid</h1>
+          <p class="lead sec__lead" data-i18n="se.raidLead"></p>
         </header>
 
         <!-- L'anti-raid, et lui seul, est tenu par le bot : c'est
@@ -1020,7 +1087,6 @@
              Il ne connaît qu'une expulsion pendant un lockdown.
              Voir docs/INVENTAIRE-REGLAGES.md. -->
         <div class="grp">
-          <h2 class="grp__title" data-i18n="se.grpRaid">Anti-raid</h2>
           <div class="grp__card">
             <div class="row">
               <p class="row__text"><label class="row__label" for="f-raidn" data-i18n="se.threshold">Seuil d'arrivées</label> <span class="row__desc" id="f-raidn-d"><span data-i18n="se.thresholdD"></span><span class="row__bounds">2 – 100</span></span></p>
@@ -1048,6 +1114,83 @@
           </div>
         </div>
 
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- La séquence que le bot vit : trois arrivées rapprochées —
+                 le journal `join` de logs.py — puis l'alerte de
+                 antiraid.py, avec ses trois champs. Pas de bannissement :
+                 pendant un lockdown le bot ne sait faire qu'une
+                 expulsion, et `/antiraid unlock` lève le verrou. -->
+            <div class="secprev" data-secprev="antiraid" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">03:12</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__auteur"><span class="dprev__pastille"></span>Lyra</p>
+                      <p class="dprev__title">👋  Arrivée sur le serveur</p>
+                      <p class="dprev__foot">Arrivées et départs</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__arrive">
+                  <div class="dprev__main">
+                    <div class="dprev__embed">
+                      <p class="dprev__auteur"><span class="dprev__pastille"></span>Zed</p>
+                      <p class="dprev__title">👋  Arrivée sur le serveur</p>
+                      <p class="dprev__foot">Arrivées et départs</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__arrive">
+                  <div class="dprev__main">
+                    <div class="dprev__embed">
+                      <p class="dprev__auteur"><span class="dprev__pastille"></span>Kim</p>
+                      <p class="dprev__title">👋  Arrivée sur le serveur</p>
+                      <p class="dprev__foot">Arrivées et départs</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__alerte">
+                  <div class="dprev__main">
+                    <div class="dprev__embed">
+                      <p class="dprev__title">🚨 RAID DÉTECTÉ · Lockdown activé</p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field">
+                          <span class="dprev__fname">🚀 Déclencheur</span>
+                          <span class="dprev__fval"><b>10</b> arrivées en moins de <b>30s</b></span>
+                        </div>
+                        <div class="dprev__field">
+                          <span class="dprev__fname">🔒 Salons verrouillés</span>
+                          <span class="dprev__fval"><b>14</b> salon(s) : <code>send_messages</code> révoqué sur @everyone</span>
+                        </div>
+                        <div class="dprev__field">
+                          <span class="dprev__fname">✅ Activé</span>
+                          <span class="dprev__fval">🛡️ Protection anti-raid <b>activée</b>.</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ NETTOYAGE AUTOMATIQUE ============================ -->
+      <section class="sec" data-section="nettoyage" aria-labelledby="h-nettoyage" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-nettoyage" data-i18n="se.grpClean">Nettoyage automatique</h1>
+          <p class="lead sec__lead" data-i18n="se.cleanLead"></p>
+        </header>
+
         <!-- Le nettoyage automatique. Il se règle VRAIMENT ici depuis que
              sa configuration est écrite sur le disque (data/autoclean.json) :
              avant, elle se perdait à chaque redémarrage du bot, et il n'y
@@ -1058,7 +1201,6 @@
              éteint : un délai réglé sur un nettoyage éteint n'est pas un
              réglage, c'est une intention. Les bornes sont celles du cog. -->
         <div class="grp">
-          <h2 class="grp__title" data-i18n="se.grpClean">Nettoyage automatique</h2>
           <div class="grp__card">
             <div class="row">
               <p class="row__text"><label class="row__label" for="se-clean" data-i18n="se.autoclean">Nettoyage automatique</label> <span class="row__desc" id="se-clean-d" data-i18n="se.autocleanD"></span></p>
@@ -1079,6 +1221,69 @@
           </div>
         </div>
 
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- Le salon se remplit, l'intervalle tombe, `purge()` vide
+                 tout (auto_clean.py, clean_channel_loop() l. 155) ; la
+                 confirmation est `moderation.autoclean_on`, avec le salon
+                 et l'intervalle qu'on a réglés au-dessus. -->
+            <div class="secprev" data-secprev="nettoyage" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__efface">
+                  <span class="dprev__av"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">Milo</span>
+                      <span class="dprev__time">20:04</span>
+                    </div>
+                    <p class="dprev__line">quelqu'un pour un 5v5 ?</p>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__efface">
+                  <div class="dprev__main">
+                    <p class="dprev__line">go go go</p>
+                  </div>
+                </div>
+                <div class="dprev secprev__efface">
+                  <span class="dprev__av"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">Lyra</span>
+                      <span class="dprev__time">20:06</span>
+                    </div>
+                    <p class="dprev__line">je suis dispo après 21 h</p>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__efface">
+                  <div class="dprev__main">
+                    <p class="dprev__line">gg wp</p>
+                  </div>
+                </div>
+                <div class="dprev secprev__apres">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">20:24</span>
+                    </div>
+                    <p class="dprev__line">✅ Nettoyage automatique configuré pour <span class="dprev__ment">#général</span> toutes les <b>20</b> minute(s).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ ANTI-LIEN ============================ -->
+      <section class="sec" data-section="antilien" aria-labelledby="h-antilien" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-antilien" data-i18n="se.grpAntilink">Anti-lien</h1>
+          <p class="lead sec__lead" data-i18n="se.linkLead"></p>
+        </header>
+
         <!-- L'anti-lien se règle par SALON, pas par serveur : c'est ce que
              fait /antilink, et l'interrupteur unique que le panneau
              affichait autrefois ne pouvait pas le représenter — il
@@ -1089,7 +1294,6 @@
              chargement. Le filtre est là parce qu'un serveur à quatre-
              vingts salons donne quatre-vingts rangées. -->
         <div class="grp">
-          <h2 class="grp__title" data-i18n="se.grpAntilink">Anti-lien</h2>
           <div class="grp__card grp__card--pad">
             <p class="rank__note" data-i18n="se.antilinkNote"></p>
             <input class="text" type="search" autocomplete="off" data-antilink-filtre
@@ -1098,6 +1302,57 @@
           <div class="grp__card" data-antilink></div>
         </div>
 
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- `on_message` (antilink.py l. 113) supprime le lien et
+                 répond en message privé — `moderation.antilink_title` et
+                 `moderation.antilink_deleted`. `_is_staff` (l. 39) exempte
+                 le staff : son lien reste, et c'est la différence que la
+                 boucle montre. -->
+            <div class="secprev" data-secprev="antilien" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__efface">
+                  <span class="dprev__av"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">Milo</span>
+                      <span class="dprev__time">20:12</span>
+                    </div>
+                    <p class="dprev__line">Regardez ça <span class="dprev__lien">https://exemple.com/clip</span></p>
+                  </div>
+                </div>
+                <div class="dprev">
+                  <span class="dprev__av"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">Kaori</span>
+                      <span class="dprev__time">20:12</span>
+                    </div>
+                    <p class="dprev__line">Le règlement est ici <span class="dprev__lien">https://exemple.com/regles</span></p>
+                  </div>
+                </div>
+                <div class="dprev secprev__apres">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">20:12</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__title">🚫 Lien supprimé</p>
+                      <div class="dprev__lines">
+                        <p>🚫 Les liens ne sont pas autorisés dans <span class="dprev__ment">#général</span>.</p>
+                        <p>Contacte un modérateur si tu as besoin d'aide.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ========================== PROGRAMMATION ========================== -->
@@ -1345,15 +1600,15 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610291814"></script>
-<script src="assets/js/config.js?v=202610291814"></script>
-<script src="assets/js/lang/fr.js?v=202610291814"></script>
-<script src="assets/js/lang/en.js?v=202610291814"></script>
-<script src="assets/js/lang/es.js?v=202610291814"></script>
-<script src="assets/js/lang/de.js?v=202610291814"></script>
-<script src="assets/js/lang/ko.js?v=202610291814"></script>
-<script src="assets/js/app.js?v=202610291814"></script>
-<script src="assets/js/page-dashboard.js?v=202610291814"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610291814"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610291821"></script>
+<script src="assets/js/config.js?v=202610291821"></script>
+<script src="assets/js/lang/fr.js?v=202610291821"></script>
+<script src="assets/js/lang/en.js?v=202610291821"></script>
+<script src="assets/js/lang/es.js?v=202610291821"></script>
+<script src="assets/js/lang/de.js?v=202610291821"></script>
+<script src="assets/js/lang/ko.js?v=202610291821"></script>
+<script src="assets/js/app.js?v=202610291821"></script>
+<script src="assets/js/page-dashboard.js?v=202610291821"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610291821"></script>
 </body>
 </html>

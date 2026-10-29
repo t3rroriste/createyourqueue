@@ -46,7 +46,6 @@ window.CYQ_I18N.en = {
   "s.presetsD": "Up to 10 saved queue configurations you can reload.",
   "s.logs": "Logs",
   "s.logsD": "10 logs: voice, messages, queue, match, duel, clan, commands, joins, moderation, server.",
-  "s.security": "Security",
   "s.securityD": "Anti-link, auto-clean, anti-raid and its thresholds.",
 
   "sv.title": "Choose a server",
@@ -243,8 +242,6 @@ window.CYQ_I18N.en = {
   "lo.duel": "Duel", "lo.clan": "Clan", "lo.commands": "Commands", "lo.joins": "Joins",
   "lo.moderation": "Moderation", "lo.server": "Server",
   "lo.channel": "Log channel", "lo.enabledCount": "{n} of 10 logs active",
-
-  "se.lead": "The automatic protections. All are set here — anti-link channel by channel, like /antilink.",
   "se.antilink": "Anti-link", "se.antilinkD": "Deletes links posted outside the allowed channels. Set channel by channel.",
   "se.autoclean": "Auto-clean", "se.autocleanD": "Empties a channel at a regular interval. The status panel is spared.",
   "se.threshold": "Join threshold", "se.thresholdD": "Number of joins that triggers the alert",
@@ -252,6 +249,10 @@ window.CYQ_I18N.en = {
   "se.accountAge": "Minimum account age", "se.accountAgeD": "Below this, a join is flagged as suspicious",
   "se.raidKick": "Automatic kick", "se.raidKickD": "Kicks members who join during an anti-raid lockdown",
   "se.grpRaid": "Anti-raid", "se.grpDiscord": "Set on Discord",
+  "se.raidLead": "The bot counts arrivals. Past the threshold it locks the channels down and alerts the staff.",
+  "se.cleanLead": "A channel emptied at a set interval. The status panel is left alone.",
+  "se.linkLead": "Links deleted, channel by channel. Staff are not filtered.",
+  "se.previewTitle": "In Discord",
   "se.grpClean": "Auto-clean",
   "se.autocleanChannel": "Channel cleaned", "se.autocleanChannelD": "Every message in it is deleted on each pass",
   "se.autocleanDelay": "Interval", "se.autocleanDelayD": "Delay between two cleanings",

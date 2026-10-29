@@ -46,7 +46,6 @@ window.CYQ_I18N.fr = {
   "s.presetsD": "Jusqu'à 10 configurations de queue enregistrées et rechargeables.",
   "s.logs": "Logs",
   "s.logsD": "10 journaux : vocal, messages, queue, match, duel, clan, commandes, arrivées, modération, serveur.",
-  "s.security": "Sécurité",
   "s.securityD": "Anti-lien, nettoyage automatique, anti-raid et ses seuils.",
 
   "sv.title": "Choisir un serveur",
@@ -243,8 +242,6 @@ window.CYQ_I18N.fr = {
   "lo.duel": "Duel", "lo.clan": "Clan", "lo.commands": "Commandes", "lo.joins": "Arrivées",
   "lo.moderation": "Modération", "lo.server": "Serveur",
   "lo.channel": "Salon du journal", "lo.enabledCount": "{n} journaux actifs sur 10",
-
-  "se.lead": "Les protections automatiques. Toutes se règlent ici — l'anti-lien salon par salon, comme /antilink.",
   "se.antilink": "Anti-lien", "se.antilinkD": "Supprime les liens postés hors des salons autorisés. Se règle salon par salon.",
   "se.autoclean": "Nettoyage automatique", "se.autocleanD": "Vide un salon à intervalle régulier. Le panneau de statut est épargné.",
   "se.threshold": "Seuil d'arrivées", "se.thresholdD": "Nombre d'arrivées qui déclenche l'alerte",
@@ -252,6 +249,10 @@ window.CYQ_I18N.fr = {
   "se.accountAge": "Âge minimum du compte", "se.accountAgeD": "En dessous, une arrivée est signalée comme suspecte",
   "se.raidKick": "Expulsion automatique", "se.raidKickD": "Expulse les arrivants pendant un verrouillage anti-raid",
   "se.grpRaid": "Anti-raid", "se.grpDiscord": "À régler sur Discord",
+  "se.raidLead": "Le bot compte les arrivées. Au-delà du seuil, il verrouille les salons et prévient le staff.",
+  "se.cleanLead": "Un salon vidé à intervalle régulier. Le panneau de statut est épargné.",
+  "se.linkLead": "Les liens supprimés, salon par salon. Le staff n'est pas filtré.",
+  "se.previewTitle": "Dans Discord",
   "se.grpClean": "Nettoyage automatique",
   "se.autocleanChannel": "Salon nettoyé", "se.autocleanChannelD": "Tous ses messages seront effacés à chaque passage",
   "se.autocleanDelay": "Intervalle", "se.autocleanDelayD": "Délai entre deux nettoyages",

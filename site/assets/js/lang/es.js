@@ -46,7 +46,6 @@ window.CYQ_I18N.es = {
   "s.presetsD": "Hasta 10 configuraciones de cola guardadas y recargables.",
   "s.logs": "Registros",
   "s.logsD": "10 registros: voz, mensajes, cola, partida, duelo, clan, comandos, entradas, moderación, servidor.",
-  "s.security": "Seguridad",
   "s.securityD": "Anti-enlace, limpieza automática, anti-raid y sus umbrales.",
 
   "sv.title": "Elegir un servidor",
@@ -243,8 +242,6 @@ window.CYQ_I18N.es = {
   "lo.duel": "Duelo", "lo.clan": "Clan", "lo.commands": "Comandos", "lo.joins": "Entradas",
   "lo.moderation": "Moderación", "lo.server": "Servidor",
   "lo.channel": "Canal del registro", "lo.enabledCount": "{n} de 10 registros activos",
-
-  "se.lead": "Las protecciones automáticas. Todas se ajustan aquí — el anti-enlace canal por canal, como /antilink.",
   "se.antilink": "Anti-enlace", "se.antilinkD": "Elimina los enlaces publicados fuera de los canales permitidos. Se ajusta canal por canal.",
   "se.autoclean": "Limpieza automática", "se.autocleanD": "Vacía un canal a intervalos regulares. El panel de estado se conserva.",
   "se.threshold": "Umbral de entradas", "se.thresholdD": "Número de entradas que activa la alerta",
@@ -252,6 +249,10 @@ window.CYQ_I18N.es = {
   "se.accountAge": "Edad mínima de la cuenta", "se.accountAgeD": "Por debajo, una entrada se marca como sospechosa",
   "se.raidKick": "Expulsión automática", "se.raidKickD": "Expulsa a quienes entran durante un bloqueo anti-raid",
   "se.grpRaid": "Anti-raid", "se.grpDiscord": "Se ajusta en Discord",
+  "se.raidLead": "El bot cuenta las llegadas. Superado el umbral, bloquea los canales y avisa al staff.",
+  "se.cleanLead": "Un canal vaciado a intervalos regulares. El panel de estado se respeta.",
+  "se.linkLead": "Enlaces eliminados, canal por canal. El staff no se filtra.",
+  "se.previewTitle": "En Discord",
   "se.grpClean": "Limpieza automática",
   "se.autocleanChannel": "Canal limpiado", "se.autocleanChannelD": "Todos sus mensajes se borran en cada pasada",
   "se.autocleanDelay": "Intervalo", "se.autocleanDelayD": "Tiempo entre dos limpiezas",

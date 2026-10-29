@@ -46,7 +46,6 @@ window.CYQ_I18N.ko = {
   "s.presetsD": "최대 10개의 대기열 설정을 저장하고 다시 불러옵니다.",
   "s.logs": "로그",
   "s.logsD": "로그 10종: 음성, 메시지, 대기열, 매치, 듀얼, 클랜, 명령어, 입장, 관리, 서버.",
-  "s.security": "보안",
   "s.securityD": "링크 차단, 자동 정리, 안티레이드와 임계값.",
 
   "sv.title": "서버 선택",
@@ -243,8 +242,6 @@ window.CYQ_I18N.ko = {
   "lo.duel": "듀얼", "lo.clan": "클랜", "lo.commands": "명령어", "lo.joins": "입장",
   "lo.moderation": "관리", "lo.server": "서버",
   "lo.channel": "로그 채널", "lo.enabledCount": "10개 중 {n}개 로그 활성",
-
-  "se.lead": "자동 보호 기능입니다. 모두 여기서 설정하며, 링크 차단은 /antilink처럼 채널별로 설정합니다.",
   "se.antilink": "링크 차단", "se.antilinkD": "허용된 채널 밖에 올린 링크를 삭제합니다. 채널별로 설정합니다.",
   "se.autoclean": "자동 정리", "se.autocleanD": "일정 간격으로 채널을 비웁니다. 상태 패널은 제외됩니다.",
   "se.threshold": "입장 임계값", "se.thresholdD": "경보가 울리는 입장 수",
@@ -252,6 +249,10 @@ window.CYQ_I18N.ko = {
   "se.accountAge": "계정 최소 생성 기간", "se.accountAgeD": "이보다 짧으면 입장을 의심스러운 것으로 표시합니다",
   "se.raidKick": "자동 추방", "se.raidKickD": "안티레이드 잠금 중 입장한 멤버를 추방합니다",
   "se.grpRaid": "안티레이드", "se.grpDiscord": "디스코드에서 설정",
+  "se.raidLead": "봇이 입장 수를 셉니다. 임계값을 넘으면 채널을 잠그고 스태프에게 알립니다.",
+  "se.cleanLead": "일정 간격으로 비워지는 채널. 상태 패널은 건드리지 않습니다.",
+  "se.linkLead": "채널별로 링크를 삭제합니다. 스태프는 걸러지지 않습니다.",
+  "se.previewTitle": "디스코드에서는",
   "se.grpClean": "자동 정리",
   "se.autocleanChannel": "정리할 채널", "se.autocleanChannelD": "실행할 때마다 안의 모든 메시지가 지워집니다",
   "se.autocleanDelay": "간격", "se.autocleanDelayD": "두 번의 정리 사이의 대기 시간",

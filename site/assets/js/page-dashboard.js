@@ -1930,6 +1930,44 @@
       });
     }
 
+    /* ---- les boucles des maquettes de Sécurité ------------------------
+       Quatre maquettes, quatre boucles, et une seule règle : une boucle ne
+       tourne que lorsque sa section est à l'écran. app.js émet
+       `cyq:section` à chaque navigation ; on écoute, et on coupe tout le
+       reste du temps. Quatre animations qui tourneraient en permanence,
+       ce serait du calcul — et de la batterie sur un portable — dépensé
+       pour une maquette que personne ne regarde. L'onglet passé en
+       arrière-plan coupe de même.
+
+       `calme` ne ralentit pas la boucle, il l'éteint : la maquette garde
+       alors son état final, qui se lit tout aussi bien, et c'est la
+       variante demandée sous `prefers-reduced-motion`. `?motion=on` la
+       remet pour qu'on puisse la vérifier. */
+    var sectionVue = null;
+
+    function boucles() {
+      var tourne = !document.hidden && (force || !calme);
+      $$('[data-secprev]').forEach(function (m) {
+        m.classList.toggle('is-anime',
+          tourne && m.getAttribute('data-secprev') === sectionVue);
+      });
+    }
+
+    function maquettesSecurite() {
+      if (!$('[data-secprev]')) return;
+      /* app.js a déjà affiché une section avant nous : son événement est
+         passé, on lit donc la section visible plutôt que de l'attendre. */
+      var vue = $('.sec:not([hidden])');
+      sectionVue = vue ? vue.getAttribute('data-section') : null;
+      boucles();
+
+      document.addEventListener('cyq:section', function (e) {
+        sectionVue = e.detail;
+        boucles();
+      });
+      document.addEventListener('visibilitychange', boucles);
+    }
+
     /* ------------------------------------------------------------ départ */
 
     nommerEquipes();
@@ -1939,6 +1977,7 @@
     compterJournaux();
     apercuQueue();
     maquettesOptions();
+    maquettesSecurite();
     placerMarque(false);
     ouverture();
     chargerCompte();

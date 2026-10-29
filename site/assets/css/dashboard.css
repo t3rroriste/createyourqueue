@@ -1114,6 +1114,83 @@ label.row__label { cursor: pointer; }
 }
 .dprev__btn--ok { background: var(--ink); color: var(--bg); }
 
+/* ---- les maquettes animées de la catégorie Sécurité -------------------
+   Une boucle en CSS, et pas un GIF : un GIF pèserait des centaines de
+   kilo-octets par maquette, échapperait au `?v=` qui versionne tout le
+   reste, et ne saurait pas se taire quand on demande moins de mouvement.
+   Ici, rien d'autre que `transform` et `opacity`.
+
+   Sans la classe `is-anime`, chaque maquette montre son état final :
+   lisible, immobile, complet. C'est exactement la variante calme, et
+   c'est aussi ce qu'on voit si le script ne tourne pas du tout. C'est
+   page-dashboard.js qui pose la classe, et seulement quand la section est
+   à l'écran — quatre boucles qui tournent en permanence, c'est de la
+   batterie dépensée pour une maquette que personne ne regarde. */
+.secprev { max-width: 520px; }   /* au-delà, un embed Discord n'existe pas */
+.secprev__flux { display: grid; gap: 12px; }
+/* Deux messages de suite du même auteur : Discord ne réaffiche ni
+   l'avatar ni l'en-tête, il garde seulement la gouttière. */
+.dprev--suite .dprev__main { grid-column: 2; }
+.secprev__flux > .dprev--suite { margin-top: -8px; }
+
+/* L'auteur d'un embed de log — `embed.set_author()` : une pastille et un
+   pseudo, au-dessus du titre, en plus petit. */
+.dprev__auteur {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 500;
+}
+.dprev__pastille {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--film); flex: 0 0 auto;
+}
+/* Un lien dans un message : Discord le souligne et le colore. Ici il
+   reste dans l'encre, souligné — la couleur est prise ailleurs. */
+.dprev__lien { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Les quatre temps d'une boucle. Tous durent 8 s et démarrent ensemble :
+   c'est leur place DANS le cycle qui les ordonne, et non un délai qui
+   décalerait leur fin hors du tour. Chacun finit où il a commencé, sur
+   l'état final, pour que l'arrêt de la boucle ne laisse jamais une
+   maquette à moitié effacée. */
+@keyframes secprev-arrive {
+  0%   { opacity: 0; transform: translate3d(0, 10px, 0); }
+  5%   { opacity: 1; transform: none; }
+  88%  { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translate3d(0, -6px, 0); }
+}
+@keyframes secprev-alerte {
+  0%, 22%  { opacity: 0; transform: translate3d(0, 10px, 0); }
+  28%, 88% { opacity: 1; transform: none; }
+  100%     { opacity: 0; transform: translate3d(0, -6px, 0); }
+}
+@keyframes secprev-apres {
+  0%, 56%  { opacity: 0; transform: translate3d(0, 8px, 0); }
+  62%, 88% { opacity: 1; transform: none; }
+  100%     { opacity: 0; transform: translate3d(0, -6px, 0); }
+}
+/* L'effacement : le message rapetisse et part, puis le salon se remplit à
+   nouveau — c'est la boucle du nettoyage, et celle de l'anti-lien. */
+@keyframes secprev-efface {
+  0%, 44%  { opacity: 1; transform: none; }
+  56%, 92% { opacity: 0; transform: scale3d(.96, .96, 1); }
+  100%     { opacity: 1; transform: none; }
+}
+
+.secprev.is-anime .secprev__arrive { animation: secprev-arrive 8s var(--e-out) infinite both; }
+.secprev.is-anime .secprev__alerte { animation: secprev-alerte 8s var(--e-out) infinite both; }
+.secprev.is-anime .secprev__apres  { animation: secprev-apres  8s var(--e-out) infinite both; }
+.secprev.is-anime .secprev__efface { animation: secprev-efface 8s var(--e-soft) infinite both; }
+
+/* Les trois arrivées de l'anti-raid tombent coup sur coup : un décalage
+   court, qui ne sort pas du tour de 8 s. */
+[data-secprev="antiraid"].is-anime .secprev__arrive:nth-child(2) { animation-delay: .3s; }
+[data-secprev="antiraid"].is-anime .secprev__arrive:nth-child(3) { animation-delay: .6s; }
+/* Les quatre messages du salon s'effacent l'un après l'autre, comme
+   `purge()` les retire. */
+[data-secprev="nettoyage"].is-anime .secprev__efface:nth-child(2) { animation-delay: .08s; }
+[data-secprev="nettoyage"].is-anime .secprev__efface:nth-child(3) { animation-delay: .16s; }
+[data-secprev="nettoyage"].is-anime .secprev__efface:nth-child(4) { animation-delay: .24s; }
+
 .qprev__note { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.5; color: var(--ink-60); }
 
 /* ============================ diagnostic ============================== */
