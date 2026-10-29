@@ -507,6 +507,8 @@ class Handler(BaseHTTPRequestHandler):
                 gid = chemin[len("/api/guilds/"):-len(fin)]
                 if gid and "/" not in gid:
                     return self.queue_geste(gid, geste)
+        if chemin == "/contact.php":
+            return self.contact()
         return self.json_out(404, {"error": "NOT_FOUND"})
 
     def do_PATCH(self):
@@ -780,6 +782,89 @@ class Handler(BaseHTTPRequestHandler):
         if code == 503:
             return self.json_out(503, {"error": rep.get("error", "BOT_API_ABSENTE")})
         return self.json_out(502, {"error": rep.get("error", "BOT_INJOIGNABLE")})
+
+    # ------------------------------- le contact ------------------------------
+
+    def contact(self):
+        """Le pendant de `site/contact.php`, pour pouvoir essayer le
+        formulaire de support en local.
+
+        Il N'ENVOIE RIEN. Un serveur de développement qui expédie du courrier
+        pour de vrai, c'est la boîte de contact remplie de brouillons le jour
+        où on met au point la page. Le message est écrit dans le journal, et
+        c'est là qu'on va le lire.
+
+        En revanche il refuse EXACTEMENT ce que refuse le PHP, avec les mêmes
+        motifs : c'est tout l'intérêt d'avoir les deux côtés d'accord. Les
+        états d'erreur de la page ne se vérifient que si on peut les
+        provoquer ici."""
+        BORNES = {
+            "nom": (2, 80),
+            "email": (5, 190),
+            "sujet": (2, 120),
+            "message": (10, 5000),
+        }
+        corps = self.corps_json()
+        if not isinstance(corps, dict):
+            return self.json_out(400, {"error": "BAD_REQUEST"})
+
+        # Le piège à robots : rempli, on répond le succès sans rien faire.
+        if str(corps.get("site") or "").strip():
+            return self.repondre(204)
+
+        valeurs = {}
+        for champ, (mini, maxi) in BORNES.items():
+            v = corps.get(champ, "")
+            if not isinstance(v, str):
+                return self.json_out(400, {"error": "BAD_REQUEST"})
+            v = v.strip()
+            if champ != "message":
+                v = v.replace("\r", " ").replace("\n", " ").replace("\0", " ").strip()
+            if len(v) < mini:
+                return self.json_out(
+                    400, {"error": "CHAMP_MANQUANT" if not v else "TROP_COURT"})
+            if len(v) > maxi:
+                return self.json_out(400, {"error": "TROP_LONG"})
+            valeurs[champ] = v
+
+        # Le même contrôle qu'en PHP, en moins fin : `filter_var` connaît des
+        # cas tordus que cette expression ignore. Assez pour le développement,
+        # et c'est le PHP qui fait foi.
+        courriel = valeurs["email"]
+        if courriel.count("@") != 1 or " " in courriel:
+            return self.json_out(400, {"error": "EMAIL_INVALIDE"})
+        avant, apres = courriel.split("@")
+        if not avant or "." not in apres or apres.startswith(".") or apres.endswith("."):
+            return self.json_out(400, {"error": "EMAIL_INVALIDE"})
+
+        # Un interrupteur pour voir la page échouer sans rien casser : un
+        # sujet qui commence par ECHEC rejoue « l'envoi a échoué », et un
+        # sujet qui commence par QUOTA rejoue le dépassement de quota.
+        #
+        # Le déclencheur est dans le SUJET et non dans l'adresse, parce que
+        # la page poste sur « contact.php » tout court : un paramètre
+        # d'URL n'arriverait jamais ici, sauf à faire porter au JS de
+        # production un bout de code qui ne sert qu'au développement.
+        if valeurs["sujet"].startswith("ECHEC"):
+            return self.json_out(502, {"error": "ENVOI_IMPOSSIBLE"})
+        if valeurs["sujet"].startswith("QUOTA"):
+            return self.json_out(429, {"error": "TROP_DE_DEMANDES"})
+
+        # flush : la sortie de Python est tamponnée dès qu'elle ne va pas
+        # dans un terminal — lancé par l'éditeur ou redirigé dans un fichier,
+        # le message n'apparaissait qu'à l'arrêt du serveur, c'est-à-dire
+        # trop tard pour servir à quoi que ce soit.
+        print(
+            "\n--- contact (non envoyé) ---------------------------------\n"
+            f"  pour    : contact@cyqbot.eu\n"
+            f"  de      : {valeurs['nom']} <{valeurs['email']}>\n"
+            f"  sujet   : {valeurs['sujet']}\n"
+            f"  langue  : {corps.get('langue') or '?'}\n"
+            f"  message : {valeurs['message'][:400]}\n"
+            "----------------------------------------------------------\n",
+            flush=True,
+        )
+        return self.repondre(204)
 
     # -------------------------------- le site --------------------------------
 

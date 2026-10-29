@@ -39,8 +39,19 @@ VITRINE = COMMUN + [
     # modules.html pointent dessus. C'est le troisième cas du même oubli.
     "support.html",
     "verif-php.php",                       # temporaire : test de l'hébergement
-    "assets/css/guide.css", "assets/css/modules.css",
+    # L'envoi du formulaire de support. Il est du côté VITRINE et pas dans
+    # api/ parce que support.html est une page de la vitrine, et que l'API du
+    # panneau ne pose aucun en-tête CORS — un appel d'une origine à l'autre
+    # serait refusé par le navigateur. Le fichier vit donc à côté de la page
+    # qui l'appelle. Rien à y déposer à la main : il ne contient aucun secret,
+    # l'adresse de destination est écrite sur la page de toute façon.
+    "contact.php",
+    "assets/css/guide.css", "assets/css/modules.css", "assets/css/support.css",
     "assets/js/page-home.js", "assets/js/page-guide.js", "assets/js/page-modules.js",
+    # page-support.js existait depuis le 16 octobre sans jamais être déclarée
+    # — et sans être chargée par personne, support.html appelant
+    # page-modules.js. Quatrième cas du même oubli.
+    "assets/js/page-support.js",
 ]
 
 # dashboard.cyqbot.eu — l'application.

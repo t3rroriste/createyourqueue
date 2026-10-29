@@ -1,0 +1,159 @@
+/* =========================================================================
+   support.html — mise en page.
+   Chargée APRÈS home.css, dont elle reprend les tokens, la coque, la
+   navigation, le pied et les utilitaires (.label, .lead, .fine, .pill,
+   .underlined). Aucun token n'est redéfini ici : une retouche de la D.A.
+   se fait à un seul endroit.
+
+   Pourquoi une feuille à elle, et pas modules.css comme avant. La page de
+   support n'a pas un seul élément en commun avec la page Modules : ni
+   module pleine hauteur, ni maquette Discord, ni alternance de colonnes.
+   Elle en chargeait pourtant les 829 lignes pour se servir de trois règles
+   d'en-tête, et héritait au passage d'une mise en page qui n'était pas la
+   sienne — c'est de là que venait le titre « Les modules » en haut de la
+   page de support.
+
+   Règle tenue : aucun état initial d'animation n'est posé ici. Pas
+   d'opacity: 0, pas de translate. Si le script échoue, la page reste
+   entièrement lisible — et surtout le formulaire reste utilisable, parce
+   qu'il n'a pas besoin de JavaScript pour être rempli.
+   ========================================================================= */
+
+/* ============================== l'en-tête ============================== */
+
+.sphead {
+  padding: 156px var(--sp-4) var(--sp-4);   /* même dégagement de nav que le héros */
+  max-width: 1180px; margin: 0 auto;
+}
+.sphead__title {
+  font-size: clamp(2.25rem, 3.8vw, 3.5rem);
+  line-height: 1.04; letter-spacing: -0.03em; font-weight: 500;
+  text-transform: lowercase;
+  margin: var(--sp-3) 0 var(--sp-3); max-width: 18ch;
+}
+.sphead__lead { max-width: 54ch; margin: 0; }
+
+/* =============================== la grille ============================= */
+
+/* Le formulaire d'abord, et plus large : c'est ce pour quoi on vient. Les
+   cartes de droite sont des recours, pas des égales — une grille en deux
+   moitiés les aurait mises au même rang. */
+.spgrid {
+  max-width: 1180px; margin: 0 auto;
+  padding: 0 var(--sp-4) var(--sp-5);
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: var(--sp-3); align-items: start;
+}
+.spside { display: grid; gap: var(--sp-3); }
+
+/* =============================== les cartes ============================ */
+
+.spcard {
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-card);
+  padding: var(--sp-3);
+  display: grid; gap: var(--sp-2); justify-items: start;
+}
+.spcard--form { padding: var(--sp-3) var(--sp-3) var(--sp-3); }
+
+.spcard__ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 12px;
+  border: 1px solid var(--hair); color: var(--ink-60);
+}
+.spcard__title {
+  font-size: 1.25rem; line-height: 1.2; letter-spacing: -0.02em;
+  font-weight: 500; margin: 0;
+}
+.spcard__body { font-size: 14px; line-height: 1.6; color: var(--ink-60); margin: 0; max-width: 46ch; }
+/* --ink-60 et non --ink-40 pour toutes ces mentions : l'encre à 40 % est
+   marquée « JAMAIS de texte courant, réservé au décor » dans home.css, et
+   une note qu'on demande aux gens de lire est du texte courant. */
+.spcard__note { font-size: 12.5px; line-height: 1.55; color: var(--ink-60); margin: 0; max-width: 42ch; }
+.spcard__foot {
+  font-size: 12.5px; line-height: 1.55; color: var(--ink-60);
+  margin: var(--sp-2) 0 0; padding-top: var(--sp-2);
+  border-top: 1px solid var(--hair); width: 100%;
+}
+
+.spside__note { font-size: 12.5px; line-height: 1.55; color: var(--ink-60); margin: 0; }
+
+/* ============================= le formulaire =========================== */
+
+.spform { display: grid; gap: var(--sp-2); width: 100%; }
+.spform__row { display: grid; gap: 6px; }
+
+/* Le piège à robots. Hors écran et non `display: none` : certains robots
+   sautent ce qui est masqué en CSS, et le piège ne prendrait plus rien.
+   aria-hidden et tabindex=-1 le retirent du clavier et des lecteurs
+   d'écran, donc personne ne tombe dessus par accident. */
+.spform__trap {
+  position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;
+}
+
+.spform__lab { font-size: 12.5px; font-weight: 500; color: var(--ink); }
+
+.spform__in {
+  width: 100%; min-height: 44px; padding: 11px 14px;
+  border-radius: 12px; border: 1px solid var(--hair);
+  background: var(--panel); color: var(--ink);
+  font: 400 14px var(--sans); letter-spacing: 0;
+  transition: border-color 180ms var(--e-soft);
+}
+.spform__in::placeholder { color: var(--ink-40); }
+.spform__in:focus-visible { outline: none; border-color: var(--ink-60); }
+
+/* La zone de texte : redimensionnable en hauteur seulement. En largeur,
+   elle sortirait de sa colonne. */
+.spform__in--long { resize: vertical; min-height: 150px; line-height: 1.6; }
+
+.spform__hint { font-size: 12px; line-height: 1.5; color: var(--ink-60); margin: 0; }
+/* Le compteur ne s'allume qu'à l'approche de la limite — il passe de la
+   teinte du décor à celle du texte. Montrer « 12 / 5000 » dès le premier
+   mot ne renseigne personne et attire l'œil pour rien. */
+.spform__count { justify-self: end; color: var(--ink-40); font-variant-numeric: tabular-nums; }
+.spform__count[data-pres="1"] { color: var(--ink); }
+
+/* L'erreur d'un champ. L'accent du site sert ici, comme il sert déjà au
+   `:user-invalid` du bandeau de configuration de l'accueil : c'est le seul
+   endroit de cette page où il apparaît, et il n'apparaît que si quelque
+   chose ne va pas. La couleur ne porte JAMAIS l'information seule — le
+   message est écrit en toutes lettres sous le champ, et le champ porte
+   aria-invalid. */
+.spform__err { font-size: 12px; line-height: 1.5; color: var(--accent); margin: 0; }
+.spform__in[aria-invalid="true"] { border-color: var(--accent); }
+
+.spform__send {
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+  margin-top: var(--sp-1);
+}
+/* Le bouton d'envoi n'a pas de flèche, contrairement aux autres pilules du
+   site : la flèche porte l'unique accent autorisé par écran, et il est déjà
+   pris par la pilule « Se connecter » de la navigation. Envoyer n'est pas
+   aller ailleurs, de toute façon. */
+.spform__send .pill { padding: 0 22px; }
+.spform__send .pill[disabled] { opacity: .55; cursor: default; }
+
+.spform__state { font-size: 13px; line-height: 1.5; margin: 0; color: var(--ink-60); }
+.spform__state[data-etat="ok"]  { color: var(--ink); }
+.spform__state[data-etat="err"] { color: var(--accent); }
+.spform__state a { color: inherit; text-decoration: underline; text-underline-offset: 4px; }
+
+/* ============================== responsive ============================= */
+
+@media (max-width: 1100px) {
+  .sphead { padding: 144px var(--sp-4) var(--sp-4); }
+  /* Une colonne : le formulaire reste en premier, les recours passent
+     dessous. L'ordre du DOM est déjà le bon, rien à réordonner. */
+  .spgrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 780px) {
+  .sphead { padding-top: 128px; }
+  .spgrid { padding-bottom: var(--sp-4); }
+  .spcard { padding: var(--sp-2); }
+  /* 16 px au moins sur les champs : en dessous, Safari sur iPhone zoome sur
+     le champ au moment où on le touche, et ne dézoome jamais après. */
+  .spform__in { font-size: 16px; }
+}
