@@ -342,7 +342,32 @@
       return f.value;
     }
 
-    function retenir(f) { f._dernier = f.type === 'checkbox' ? f.checked : f.value; }
+    /* La dernière valeur ENREGISTRÉE d'un champ, celle qui sert de point de
+       comparaison et de retour en arrière.
+
+       Les boutons radio sont à part, et c'est ce qui faisait que la langue
+       ne s'enregistrait jamais. Cinq champs y portent UNE valeur : celle du
+       groupe. Retenir `f.value` revenait à retenir l'étiquette du bouton,
+       « en » sur le bouton English, qui ne change évidemment jamais. Le
+       comparatif d'`envoyer` trouvait donc toujours « avant » égal à
+       « maintenant », retirait la langue de l'attente aussitôt posée, et la
+       barre d'enregistrement n'apparaissait même pas. On choisissait
+       l'anglais, rien ne partait, et le rechargement remontait le français.
+
+       On retient donc la valeur COCHÉE, et sur TOUS les boutons du groupe :
+       ne la poser que sur celui qui vient de bouger laisserait les quatre
+       autres croire que rien n'a changé — revenir au français juste après
+       aurait été vu comme un non-changement. */
+    function retenir(f) {
+      if (f.type === 'radio') {
+        var choisie = valeurDe(f);
+        $$('input[type="radio"][name="' + f.name + '"]').forEach(function (r) {
+          r._dernier = choisie;
+        });
+        return;
+      }
+      f._dernier = f.type === 'checkbox' ? f.checked : f.value;
+    }
 
     /* L'emplacement d'état de la rangée. Il est réservé dans la mise en
        page : changer d'état n'y change que le contenu et l'opacité. */
@@ -416,7 +441,11 @@
          sans ça, la barre resterait affichée après un aller-retour sur un
          interrupteur, en promettant une modification qui n'existe plus. */
       var avant = enAttente[cle].avant;
-      var maintenant = f.type === 'checkbox' ? f.checked : f.value;
+      // Même raison que dans `retenir` : pour un groupe de boutons radio,
+      // ce qui compte est la valeur cochée, pas celle du bouton cliqué.
+      var maintenant = f.type === 'checkbox' ? f.checked
+                     : f.type === 'radio' ? valeurDe(f)
+                     : f.value;
       if (avant !== undefined && String(avant) === String(maintenant)) {
         delete enAttente[cle];
       }
