@@ -122,12 +122,14 @@ garantit fichier par fichier :
 | --- | --- | --- |
 | `bot/.env` | Jetons Discord du bot | Sur chaque PC, et sur AdKyNet |
 | `site/api/secrets.php` | `CLIENT_SECRET` Discord | Déposé à la main sur LWS |
+| `site/etat.secrets.php` | Adresse et clé de l'API du bot, pour la page d'état | Déposé à la main sur LWS |
 | `outils/reglages/lws.json` | Identifiants FTP | Sur chaque machine |
 | mot de passe FTP | — | DPAPI (Windows) ou Trousseau (macOS) |
 | mot de passe SFTP AdKyNet | — | DPAPI (Windows) ou Trousseau (macOS) |
 
-`.env.example`, `lws.config.exemple.ps1` et `secrets.exemple.php` sont là
-pour documenter les champs : ce sont eux qu'on édite et qu'on cite.
+`.env.example`, `lws.config.exemple.ps1`, `secrets.exemple.php` et
+`etat.secrets.exemple.php` sont là pour documenter les champs : ce sont eux
+qu'on édite et qu'on cite.
 
 Les variables d'environnement `LWS_FTP_PASS` et `ADKYNET_SFTP_PASSWORD`
 restent prioritaires sur le coffre, quand on veut forcer une valeur le
@@ -141,6 +143,34 @@ pas, et la page s'affiche en HTML nu en production — c'est arrivé à
 `servers.css`, à `dashboard.css`, puis à `support.html`.
 `outils/numeroter_versions.py` avertit quand une page réclame un fichier
 qui n'est pas déclaré.
+
+## Le sous-domaine d'état
+
+`status.cyqbot.eu` est la troisième racine de l'hébergement, à côté de la
+vitrine et du panneau. Elle reçoit `status.html` — que `DirectoryIndex`
+sert à la racine du sous-domaine — le socle commun, et `etat.php`, qui
+interroge le bot côté serveur pour que sa clé d'API ne se retrouve pas
+dans le JavaScript de la page.
+
+Deux choses à faire une fois, à la main :
+
+1. **`lws.json` : la clé `racine_status`**, le dossier que LWS a créé pour
+   le sous-domaine. `lws.config.exemple.ps1` dit où le trouver. Laissée
+   vide, la cible `statut` est sautée et les deux autres partent
+   normalement ;
+2. **déposer `etat.secrets.php`** à la racine du sous-domaine, en copiant
+   `site/etat.secrets.exemple.php`. Deux valeurs, `bot_api_base` et
+   `bot_api_key`, les mêmes que dans `api/secrets.php`. Sans lui, la page
+   affiche « mesure non configurée » — elle ne fait jamais semblant.
+
+```bash
+python outils/publier_site.py --cible statut
+```
+
+Le dossier `etat-cache/` doit être inscriptible par le serveur web : c'est
+là que la mesure est gardée vingt secondes, pour qu'une page d'état très
+consultée n'appelle pas le bot à chaque visite. S'il ne l'est pas, la page
+fonctionne quand même — chaque visite refait la mesure.
 
 ## Comparer avec ce qui est en ligne
 

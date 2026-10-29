@@ -19,6 +19,15 @@
 # n'a aucune raison d'exister ailleurs que sur le serveur et sur ce PC.
 site/api/secrets.php
 
+# L'adresse et la clé de l'API du bot, pour la page d'état. Même règle :
+# déposé à la main sur le sous-domaine, jamais ici. Le modèle
+# `etat.secrets.exemple.php`, lui, reste versionné.
+site/etat.secrets.php
+
+# La mesure gardée par etat.php. Elle est refaite toutes les vingt
+# secondes et ne regarde personne d'autre que le serveur.
+site/etat-cache/*.json
+
 # Les identifiants FTP de LWS, et les mots de passe retenus par le coffre
 # du système. `lws.config.exemple.ps1` reste versionné : c'est le modèle.
 # lws.json est la version lisible des deux machines ; l'ancienne .ps1 reste

@@ -75,5 +75,30 @@ APPLICATION = COMMUN + [
     "api/data/.htaccess",
 ]
 
+# status.cyqbot.eu — la page d'état.
+#
+# Le sous-domaine a sa propre racine chez LWS, et il n'y reçoit QUE de quoi
+# répondre à une question : est-ce que le bot marche. Pas de panneau, pas
+# d'OAuth, pas d'anime.js — c'est la page qu'on ouvre quand quelque chose
+# est cassé, elle ne doit dépendre de rien.
+#
+# status.html part sous ce nom et c'est DirectoryIndex, dans .htaccess, qui
+# en fait la porte d'entrée du sous-domaine. Les fichiers vivent donc tous
+# à leur place habituelle dans `site/` : la page s'essaie en local comme
+# n'importe quelle autre, sans dossier à part et sans chemin à traduire.
+#
+# etat.secrets.php n'y figure pas : comme api/secrets.php, il se dépose à
+# la main sur le serveur et ne doit jamais partir d'ici.
+STATUT = COMMUN + [
+    "status.html",
+    "assets/css/status.css",
+    "assets/js/page-status.js",
+    # La mesure, côté serveur : c'est elle qui détient la clé de l'API du
+    # bot, pour qu'elle ne soit pas dans le JavaScript de la page.
+    "etat.php",
+    "etat.secrets.exemple.php",
+    "etat-cache/.htaccess",
+]
+
 # Tout ce qui est déclaré, sans doublon — ce que lit le contrôle des oublis.
-DECLARES = sorted(set(VITRINE) | set(APPLICATION))
+DECLARES = sorted(set(VITRINE) | set(APPLICATION) | set(STATUT))

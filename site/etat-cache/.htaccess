@@ -1,0 +1,13 @@
+# La mesure mise en cache. etat.json ne contient aucun secret — ni adresse,
+# ni clé — mais il n'a aucune raison d'être lisible directement : la page
+# demande etat.php, qui décide quand la mesure est encore valable.
+#
+# Même refus que api/data/ du panneau, et pour la même raison : un dossier
+# que PHP écrit n'est pas un dossier qu'on sert.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>

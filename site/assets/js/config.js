@@ -23,6 +23,18 @@ window.CYQ_CONFIG = {
   SITE_ORIGIN: 'https://cyqbot.eu',
   APP_ORIGIN:  'https://dashboard.cyqbot.eu',
 
+  /* --- La page d'état -------------------------------------------------
+     status.cyqbot.eu est une TROISIÈME origine, avec sa propre racine
+     chez LWS. Elle est déclarée ici pour une seule raison : app.js doit
+     savoir qu'elle est un vrai domaine. Sans cette ligne, les liens
+     « Documentation », « Modules » et « Support » de la page d'état
+     restent relatifs et cherchent status.cyqbot.eu/guide, qui n'existe
+     pas — la page d'état ne contient qu'elle-même.
+
+     Laisse-la VIDE si la page d'état est servie depuis le domaine
+     principal : les liens redeviennent relatifs, et tout fonctionne.    */
+  STATUS_ORIGIN: 'https://status.cyqbot.eu',
+
   /* --- Discord ---------------------------------------------------------
      CLIENT_ID : l'identifiant de ton application, dans le portail
      développeur Discord → ton application → General Information.
@@ -107,7 +119,10 @@ window.CYQ_CONFIG = {
      « Support » de la navigation et celui du pied de page.
      Exemple : 'https://discord.gg/xxxxxxx'                                */
   SUPPORT_URL: 'https://discord.gg/e9E8Fc4Bqb',
-  STATUS_URL: '#',
+  /* L'adresse publique de la page d'état. Elle alimente le lien « État
+     du service » du pied de page, sur toutes les pages du site. Laissée
+     à '#', app.js ne récrit pas le lien et il reste inerte. */
+  STATUS_URL: 'https://status.cyqbot.eu',
   PRIVACY_URL: '#',
 
   /* Langue de repli si celle du navigateur n'est pas gérée. */

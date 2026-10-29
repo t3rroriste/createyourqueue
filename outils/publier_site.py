@@ -1,10 +1,11 @@
 """
 Mise en ligne du site sur l'hébergement LWS, en une commande.
 =============================================================
-Le site vit sur DEUX domaines :
+Le site vit sur TROIS domaines :
 
   cyqbot.eu             la vitrine    index, modules, guide, support
   dashboard.cyqbot.eu   l'application login, welcome, servers, dashboard
+  status.cyqbot.eu      la page d'état status.html et sa mesure
 
 Chacun reçoit ses pages, plus le socle commun (app.js, config.js, les cinq
 langues, anime.js, le logo, .htaccess). Le script :
@@ -16,6 +17,7 @@ langues, anime.js, le logo, .htaccess). Le script :
 
     python outils/publier_site.py                 # les deux domaines
     python outils/publier_site.py --cible app     # le panneau seulement
+    python outils/publier_site.py --cible statut  # la page d'état seulement
     python outils/publier_site.py --essai         # montre, n'envoie rien
     python outils/publier_site.py --lister        # repérage des dossiers
     python outils/publier_site.py --recuperer ici # TÉLÉCHARGE ce qui est en ligne
@@ -103,6 +105,7 @@ def _migrer_depuis_powershell() -> dict | None:
         "utilisateur": brut.get("Utilisateur", ""),
         "racine_site": brut.get("RacineSite", ""),
         "racine_app": brut.get("RacineApp", ""),
+        "racine_status": brut.get("RacineStatus", ""),
         "ftps": bool(brut.get("Ftps", True)),
         "certificat_non_verifie": bool(brut.get("CertificatNonVerifie", False)),
     }
@@ -126,6 +129,10 @@ def lire_config() -> dict | None:
 
 
 def verifier_config(conf: dict) -> list[str]:
+    # `racine_status` n'est PAS dans cette liste, et c'est volontaire : une
+    # installation en place doit continuer à publier ses deux sites sans
+    # avoir à remplir une clé neuve. Tant qu'elle est vide, la cible
+    # `statut` est simplement sautée, et `--cible statut` le dit.
     manquants = [c for c in ("serveur", "utilisateur", "racine_site", "racine_app")
                  if not str(conf.get(c, "")).strip()
                  or "A_REMPLIR" in str(conf.get(c, ""))]
@@ -190,13 +197,22 @@ def explique(code: int, sortie: str) -> str:
 def cibles(conf: dict, quoi: str) -> list[dict]:
     liste = []
     if quoi in ("tout", "site"):
-        liste.append({"nom": "vitrine (cyqbot.eu)",
+        liste.append({"nom": "vitrine (cyqbot.eu)", "court": "vitrine",
                       "racine": conf["racine_site"].rstrip("/"),
                       "fichiers": fichiers_du_site.VITRINE})
     if quoi in ("tout", "app"):
-        liste.append({"nom": "application (dashboard.cyqbot.eu)",
+        liste.append({"nom": "application (dashboard.cyqbot.eu)", "court": "app",
                       "racine": conf["racine_app"].rstrip("/"),
                       "fichiers": fichiers_du_site.APPLICATION})
+    # Le sous-domaine d'état n'existe que si on lui a donné un dossier. Sans
+    # racine_status, on ne devine pas : on saute la cible, plutôt que
+    # d'envoyer la page d'état à la racine de la vitrine.
+    if quoi in ("tout", "statut"):
+        racine = str(conf.get("racine_status", "")).strip().rstrip("/")
+        if racine:
+            liste.append({"nom": "état (status.cyqbot.eu)", "court": "statut",
+                          "racine": racine,
+                          "fichiers": fichiers_du_site.STATUT})
     return liste
 
 
@@ -227,7 +243,10 @@ def lister(conf: dict, curl: Curl, base: str) -> int:
                       "panneau LWS, rubrique FTP.", file=sys.stderr)
         return 1
 
-    for nom, racine in (("vitrine", conf["racine_site"]), ("application", conf["racine_app"])):
+    dossiers = [("vitrine", conf["racine_site"]), ("application", conf["racine_app"])]
+    if str(conf.get("racine_status", "")).strip():
+        dossiers.append(("état", conf["racine_status"]))
+    for nom, racine in dossiers:
         racine = racine.rstrip("/")
         print(f"\n--- {nom} : {base}{racine}/")
         code, sortie = curl("--list-only", base + racine + "/")
@@ -239,7 +258,7 @@ def recuperer(conf: dict, curl: Curl, base: str, dest: str) -> int:
     """Télécharge ce qui est en ligne. N'envoie rien, n'efface rien."""
     ok = absents = echecs = 0
     for cible in cibles(conf, "tout"):
-        court = "vitrine" if "vitrine" in cible["nom"] else "app"
+        court = cible["court"]
         for rel in cible["fichiers"]:
             local = os.path.join(dest, court, rel.replace("/", os.sep))
             os.makedirs(os.path.dirname(local), exist_ok=True)
@@ -264,9 +283,16 @@ def recuperer(conf: dict, curl: Curl, base: str, dest: str) -> int:
 
 
 def envoyer(conf: dict, curl: Curl, base: str, quoi: str, essai: bool) -> int:
+    buts = cibles(conf, quoi)
+    if not buts:
+        print("Rien à envoyer : « racine_status » est vide dans lws.json. "
+              "Mets-y le dossier\ndu sous-domaine status.cyqbot.eu — "
+              "lws.config.exemple.ps1 explique où le trouver.", file=sys.stderr)
+        return 1
+
     # Un fichier listé mais absent du disque est une erreur de manifeste,
     # pas un détail : on s'arrête avant d'envoyer un site incomplet.
-    manquants = sorted({rel for c in cibles(conf, quoi) for rel in c["fichiers"]
+    manquants = sorted({rel for c in buts for rel in c["fichiers"]
                         if not os.path.isfile(os.path.join(SITE, rel.replace("/", os.sep)))})
     if manquants:
         print("Fichiers introuvables sur le disque :", file=sys.stderr)
@@ -275,7 +301,7 @@ def envoyer(conf: dict, curl: Curl, base: str, quoi: str, essai: bool) -> int:
         return 1
 
     partis, rates = 0, []
-    for cible in cibles(conf, quoi):
+    for cible in buts:
         print(f"=== {cible['nom']}  ->  {base}{cible['racine']}/   "
               f"({len(cible['fichiers'])} fichiers)")
         for rel in cible["fichiers"]:
@@ -318,7 +344,8 @@ def main() -> int:
     global _mot_de_passe_courant
 
     parser = argparse.ArgumentParser(description="Publie le site sur LWS.")
-    parser.add_argument("--cible", choices=("site", "app", "tout"), default="tout")
+    parser.add_argument("--cible", choices=("site", "app", "statut", "tout"),
+                        default="tout")
     parser.add_argument("--essai", action="store_true", help="montre, n'envoie rien")
     parser.add_argument("--sans-numerotation", action="store_true",
                         help="n'incrémente pas les ?v= (la veille l'a déjà fait)")

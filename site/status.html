@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>État du service — CreateYourQueue</title>
+<meta name="description" content="Le bot CreateYourQueue répond-il ? Cette page le demande au bot au moment où vous la regardez.">
+<meta name="color-scheme" content="dark">
+<!-- Le sous-domaine a sa propre racine : cette page y part sous le nom
+     index.html, et c'est « https://status.cyqbot.eu/ » qui doit circuler.
+     Sans ce canonique, la même page existerait à deux adresses. -->
+<link rel="canonical" href="https://status.cyqbot.eu/">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/home.css?v=202610300036">
+<link rel="stylesheet" href="assets/css/status.css?v=202610300036">
+<script>
+// Pas de garde anti-flash ici, et pas d'anime.js non plus : c'est LA page
+// qu'on ouvre quand quelque chose ne marche plus. Elle ne doit dépendre de
+// rien — ni d'une bibliothèque, ni d'une animation qui finit. Tout ce
+// qu'elle sait s'affiche dès la première image.
+document.documentElement.classList.remove('no-js');
+// ?motion=on rejoue le battement du point même si le système demande moins
+// de mouvement. Sert à le vérifier sans toucher aux réglages Windows.
+if (/[?&]motion=on(&|$)/.test(location.search)) {
+  document.documentElement.classList.add('motion-force');
+}
+</script>
+</head>
+<body>
+
+<div class="cadre" aria-hidden="true"></div>
+
+<a class="skip" href="#main" data-i18n="c.skip">Aller au contenu</a>
+
+<!-- ===================== navigation =====================
+     Sans la pilule « Se connecter » des autres pages : on arrive ici
+     parce qu'on se demande si ça marche, pas pour ouvrir un panneau. Les
+     liens sont marqués data-site parce que ce sous-domaine est une
+     TROISIÈME origine — app.js les récrit vers cyqbot.eu. -->
+<nav class="nav nav--plain" aria-label="Principale" data-nav>
+  <a class="nav__mark" href="index" data-site="index">
+    <img src="assets/img/logo.png" alt="" width="22" height="22">
+    <span>CreateYourQueue</span>
+  </a>
+  <div class="nav__links">
+    <a href="guide" data-site="guide" data-i18n="n.docs">Documentation</a>
+    <a href="modules" data-site="modules" data-i18n="m.nav">Modules</a>
+    <a href="support" data-site="support" data-i18n="n.support">Support</a>
+  </div>
+  <div class="langmenu">
+    <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
+            aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.lang">
+      <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
+        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
+        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
+        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
+        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
+        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
+    </div>
+  </div>
+</nav>
+
+<main class="shell" id="main">
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="sthead">
+    <p class="label" data-i18n="stt.eyebrow">État du service</p>
+    <h1 class="sthead__title" data-i18n="stt.title"></h1>
+    <p class="lead sthead__lead" data-i18n="stt.lead"></p>
+  </header>
+
+  <!-- ======================= le verdict =======================
+       aria-live="polite" : le verdict change tout seul toutes les trente
+       secondes. Sans cela, une personne au lecteur d'écran resterait sur
+       la première mesure sans jamais savoir qu'une autre est arrivée. -->
+  <section class="stverdict" aria-labelledby="st-verdict-h" data-etat="wait"
+           aria-live="polite">
+    <h2 class="stverdict__h" id="st-verdict-h">
+      <!-- LE SEUL CUIVRE DE L'ÉCRAN. Il dit « une mesure est arrivée » et
+           rien d'autre : il s'éteint, il ne rougit pas. -->
+      <span class="stverdict__point" aria-hidden="true"></span>
+      <span data-verdict data-i18n="stt.vWait"></span>
+    </h2>
+    <p class="stverdict__d lead" data-verdict-desc data-i18n="stt.dWait"></p>
+
+    <div class="stverdict__pied">
+      <button class="pill pill--ghost pill--sm" type="button" data-refresh>
+        <span data-i18n="stt.again">Mesurer maintenant</span>
+      </button>
+      <p class="fine" data-tempo></p>
+    </div>
+  </section>
+
+  <!-- ======================= les mesures =======================
+       Deux lignes, deux choses réellement mesurées. Rien d'autre n'est
+       listé : un composant qu'on ne mesure pas afficherait un voyant vert
+       permanent, ce qui est un mensonge avec une bonne présentation. -->
+  <section class="stgrp" aria-labelledby="st-mes-h">
+    <h2 class="label stgrp__h" id="st-mes-h" data-i18n="stt.measured">Ce qui est mesuré</h2>
+    <dl class="stmes">
+      <div class="stmes__l">
+        <dt data-i18n="stt.mPing">Liaison du bot avec Discord</dt>
+        <dd data-ping>—</dd>
+      </div>
+      <div class="stmes__l">
+        <dt data-i18n="stt.mApi">Réponse du bot au site</dt>
+        <dd data-api>—</dd>
+      </div>
+    </dl>
+    <p class="fine stgrp__note" data-i18n="stt.cachedNote"></p>
+  </section>
+
+  <!-- ======================= les chiffres =======================
+       Ils viennent du bot lui-même, pas d'ici. Masqués tant qu'aucune
+       mesure n'a abouti : un « 0 serveur » affiché pendant une panne
+       serait faux, et inquiétant pour rien. -->
+  <section class="stgrp" aria-labelledby="st-chif-h" data-chiffres hidden>
+    <h2 class="label stgrp__h" id="st-chif-h" data-i18n="stt.figures">Ce que le bot rapporte</h2>
+    <dl class="stchif">
+      <div class="stchif__c">
+        <dt data-i18n="stt.mUptime">En ligne depuis</dt>
+        <dd data-uptime>—</dd>
+      </div>
+      <div class="stchif__c">
+        <dt data-i18n="stt.mGuilds">Serveurs</dt>
+        <dd data-guilds>—</dd>
+      </div>
+      <div class="stchif__c">
+        <dt data-i18n="stt.mQueues">Queues en cours</dt>
+        <dd data-queues>—</dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- ======================= l'historique absent =======================
+       Il n'y en a pas, et c'est dit. Le bot ne garde aucun relevé de sa
+       propre disponibilité, et cette page ne mesure que quand on la
+       regarde : quatre-vingt-dix barres vertes seraient quatre-vingt-dix
+       jours que personne n'a mesurés. -->
+  <section class="stgrp stgrp--fin" aria-labelledby="st-hist-h">
+    <h2 class="label stgrp__h" id="st-hist-h" data-i18n="stt.noHistoryTitle">Pas d'historique</h2>
+    <p class="lead stgrp__body" data-i18n="stt.noHistory"></p>
+    <p class="fine stgrp__note" data-i18n="stt.panelNote"></p>
+  </section>
+
+  <footer class="foot">
+    <span class="foot__end">
+      <a href="guide" data-site="guide" data-i18n="n.docs">Documentation</a>
+      <a href="modules" data-site="modules" data-i18n="m.nav">Modules</a>
+      <a href="support" data-site="support" data-i18n="n.support">Support</a>
+      <a href="#" data-cfg-link="PRIVACY_URL" data-i18n="n.privacy">Confidentialité</a>
+    </span>
+  </footer>
+</main>
+
+<script src="assets/js/config.js?v=202610300036"></script>
+<script src="assets/js/lang/fr.js?v=202610300036"></script>
+<script src="assets/js/lang/en.js?v=202610300036"></script>
+<script src="assets/js/lang/es.js?v=202610300036"></script>
+<script src="assets/js/lang/de.js?v=202610300036"></script>
+<script src="assets/js/lang/ko.js?v=202610300036"></script>
+<script src="assets/js/app.js?v=202610300036"></script>
+<script src="assets/js/page-status.js?v=202610300036"></script>
+</body>
+</html>

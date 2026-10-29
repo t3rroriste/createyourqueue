@@ -1,0 +1,174 @@
+/* =========================================================================
+   status.html — mise en page.
+   Chargée APRÈS home.css, dont elle reprend les tokens, la coque, la
+   navigation, le pied et les utilitaires (.label, .lead, .fine, .pill).
+   Aucun token n'est redéfini ici : une retouche de la D.A. se fait à un
+   seul endroit.
+
+   Deux règles tenues de bout en bout, et ce sont les deux raisons d'être
+   de cette feuille :
+
+   · AUCUN état initial d'animation. Pas d'opacity: 0, pas de translate.
+     C'est la page qu'on ouvre quand quelque chose ne marche plus : elle
+     s'affiche entière à la première image, sans attendre un script, et
+     elle ne charge pas anime.js du tout.
+
+   · UN SEUL CUIVRE, et c'est le point du verdict. Il dit « une mesure est
+     arrivée ». Quand rien ne répond, il s'éteint vers --ink-40 : il ne
+     passe pas au rouge, parce que la D.A. n'a pas de rouge et qu'une
+     couleur inventée pour l'occasion serait un deuxième accent.
+   ========================================================================= */
+
+/* La barre sans sa pilule « Se connecter » : les 7 px de droite étaient
+   le logement de la pilule. Sans elle, il faut le même dégagement qu'à
+   gauche, sinon le menu de langue touche le bord. */
+.nav--plain { padding-right: 20px; }
+
+/* ============================== l'en-tête ============================== */
+
+.sthead {
+  padding: 156px var(--sp-4) var(--sp-4);   /* même dégagement de nav que le héros */
+  max-width: 1180px; margin: 0 auto;
+}
+.sthead__title {
+  font-size: clamp(2.25rem, 3.8vw, 3.5rem);
+  line-height: 1.04; letter-spacing: -0.03em; font-weight: 500;
+  text-transform: lowercase;
+  margin: var(--sp-3) 0 var(--sp-3); max-width: 20ch;
+}
+.sthead__lead { max-width: 56ch; margin: 0; }
+
+/* =============================== le verdict ============================ */
+
+/* La seule carte de la page qui soit une carte : c'est la réponse à la
+   question qu'on se posait en arrivant. Tout le reste est du détail. */
+.stverdict {
+  max-width: 1180px; margin: 0 auto var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-card);
+}
+.stverdict__h {
+  display: flex; align-items: center; gap: 14px;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  line-height: 1.1; letter-spacing: -0.02em; font-weight: 500;
+  text-transform: lowercase;
+  margin: 0 0 var(--sp-2);
+}
+.stverdict__d { max-width: 54ch; margin: 0; }
+
+/* Le point. 10 px, un vrai rond, posé sur la ligne du titre. */
+.stverdict__point {
+  flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent);
+}
+/* Rien n'a encore été mesuré, ou rien n'a répondu : le point s'éteint.
+   `--ink-40` est une valeur de décor, et c'est bien ce que devient un
+   voyant qui n'a rien à dire. */
+.stverdict[data-etat="wait"] .stverdict__point,
+.stverdict[data-etat="down"] .stverdict__point,
+.stverdict[data-etat="unset"] .stverdict__point {
+  background: var(--ink-40);
+}
+/* Quand ça ne répond pas, l'insistance vient du trait, pas de la couleur :
+   le cadre se marque, le texte dit la suite. */
+.stverdict[data-etat="down"] { border-color: rgba(244,241,236,.22); }
+
+.stverdict__pied {
+  margin-top: var(--sp-3);
+  display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap;
+}
+.stverdict__pied .fine { margin: 0; }
+
+/* =============================== les blocs ============================= */
+
+.stgrp {
+  max-width: 1180px; margin: 0 auto;
+  padding: 0 0 var(--sp-3);
+}
+.stgrp__h { margin: 0 0 var(--sp-2); }
+.stgrp__body { max-width: 60ch; margin: 0; }
+.stgrp__note { max-width: 60ch; margin: var(--sp-2) 0 0; }
+.stgrp--fin { padding-bottom: var(--sp-5); }
+
+/* Les mesures : une ligne par chose mesurée, le chiffre à droite, un
+   filet entre deux. Une liste, pas des cartes — deux cartes pour deux
+   nombres, ce serait de la décoration. */
+.stmes { margin: 0; }
+.stmes__l {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 14px 0;
+  border-top: 1px solid var(--hair);
+}
+.stmes__l:last-child { border-bottom: 1px solid var(--hair); }
+.stmes dt { font-size: 14px; color: var(--ink-60); }
+.stmes dd {
+  margin: 0; font-size: 15px; font-weight: 500; color: var(--ink);
+  font-variant-numeric: tabular-nums;   /* un chiffre qui change ne déplace rien */
+}
+
+/* Les chiffres rapportés par le bot : trois colonnes, parce qu'ils se
+   comparent d'un coup d'œil plutôt qu'en les lisant un par un. */
+.stchif {
+  margin: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-2);
+  border-top: 1px solid var(--hair);
+  padding-top: var(--sp-2);
+}
+.stchif dt { font-size: 12.5px; color: var(--ink-60); }
+.stchif dd {
+  margin: 4px 0 0; font-size: 20px; font-weight: 500; letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================== la coque =============================== */
+
+/* Les blocs partagent la gouttière de l'en-tête. Posée ici une fois
+   plutôt que répétée sur chaque section. */
+.stverdict, .stgrp { width: calc(100% - var(--sp-4) * 2); }
+
+/* ============================== responsive ============================= */
+
+@media (max-width: 900px) {
+  .sthead { padding: 144px var(--sp-3) var(--sp-3); }
+  .stverdict, .stgrp { width: calc(100% - var(--sp-3) * 2); }
+}
+@media (max-width: 560px) {
+  .sthead { padding: 128px var(--sp-2) var(--sp-3); }
+  .stverdict, .stgrp { width: calc(100% - var(--sp-2) * 2); }
+  .stverdict { padding: var(--sp-2); }
+  /* Trois colonnes de chiffres sur 375 px donnent trois colonnes d'une
+     syllabe. Deux, et la troisième passe dessous. */
+  .stchif { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stgrp--fin { padding-bottom: var(--sp-4); }
+}
+
+/* =============================== mouvement ============================= */
+
+/* Le battement du point : il dit que la page est vivante et qu'une mesure
+   suivra. `transform` et `opacity` seulement, 2,4 s — assez lent pour
+   qu'on ne le regarde pas. Il ne tourne que quand une mesure est arrivée :
+   un voyant éteint qui pulse serait un signal contradictoire. */
+@keyframes st-battement {
+  0%, 100% { opacity: 1; transform: scale3d(1, 1, 1); }
+  50%      { opacity: .55; transform: scale3d(.78, .78, 1); }
+}
+
+/* La variante calme est le DÉFAUT : le point est simplement là, posé.
+   L'animation ne s'ajoute que si le système ne demande pas moins de
+   mouvement — ou si ?motion=on la réclame, pour pouvoir la vérifier. */
+@media (prefers-reduced-motion: no-preference) {
+  .stverdict[data-etat="good"] .stverdict__point,
+  .stverdict[data-etat="ok"] .stverdict__point,
+  .stverdict[data-etat="slow"] .stverdict__point {
+    animation: st-battement 2.4s var(--e-soft) infinite;
+  }
+}
+html.motion-force .stverdict[data-etat="good"] .stverdict__point,
+html.motion-force .stverdict[data-etat="ok"] .stverdict__point,
+html.motion-force .stverdict[data-etat="slow"] .stverdict__point {
+  animation: st-battement 2.4s var(--e-soft) infinite;
+}

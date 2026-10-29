@@ -411,10 +411,31 @@ class DashboardAPI(commands.Cog):
     # Lecture
     # ------------------------------------------------------------------
     async def health(self, request: web.Request) -> web.Response:
+        """L'état du bot, pour le panneau et pour la page d'état publique.
+
+        Les trois champs d'origine ne bougent pas. Trois autres s'ajoutent,
+        et ce sont EXACTEMENT ceux que cogs/statuspanel.py publie déjà dans
+        Discord : deux endroits qui mesurent la même chose doivent la
+        mesurer pareil. Les gardes sont donc les mêmes que build_embed() —
+        une latence `nan` tant que le premier heartbeat n'est pas revenu
+        vaut 0, un cog absent vaut 0 — jamais une valeur devinée.
+        """
+        latency = self.bot.latency
+        # latency != latency est vrai pour nan, et seulement pour nan.
+        latency_ms = round(latency * 1000) if latency == latency else 0
+
+        queue_cog = self.bot.get_cog("QueueConfig")
+        active = 0
+        if queue_cog is not None:
+            active = sum(1 for s in queue_cog.active_sessions.values() if not s.ended)
+
         return web.json_response({
             "status": "ok",
             "bot": str(self.bot.user) if self.bot.user else None,
             "guilds": len(self.bot.guilds),
+            "latency_ms": latency_ms,
+            "active_queues": active,
+            "uptime_seconds": int(time.time() - self.started_at),
         })
 
     async def stats(self, request: web.Request) -> web.Response:

@@ -154,10 +154,15 @@
      dossier local, un serveur de test ou une adresse IP, le site est un
      seul dossier : on garde les liens relatifs, sinon un clic en local
      renverrait le testeur sur le site en production. */
+  /* STATUS_ORIGIN depuis le 29 octobre : le sous-domaine d'état est un
+     TROISIÈME vrai domaine. Sans lui dans cette liste, la page d'état
+     était traitée comme un dossier de test, ses liens restaient relatifs,
+     et « Documentation » y cherchait status.cyqbot.eu/guide. */
   function surUnDesDeuxDomaines() {
     var ici = window.location.origin;
-    return (CFG.SITE_ORIGIN && ici === CFG.SITE_ORIGIN) ||
-           (CFG.APP_ORIGIN  && ici === CFG.APP_ORIGIN);
+    return (CFG.SITE_ORIGIN   && ici === CFG.SITE_ORIGIN) ||
+           (CFG.APP_ORIGIN    && ici === CFG.APP_ORIGIN) ||
+           (CFG.STATUS_ORIGIN && ici === CFG.STATUS_ORIGIN);
   }
 
   /* Le nom du dossier qui porte l'application dans le dépôt, déduit du

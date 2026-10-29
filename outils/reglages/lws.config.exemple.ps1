@@ -1,5 +1,5 @@
 ﻿# Réglages de mise en ligne — copie ce fichier sous le nom
-# « deploy-lws.config.ps1 » et remplis les quatre valeurs.
+# « deploy-lws.config.ps1 » et remplis les valeurs.
 #
 # Où les trouver : panneau client LWS -> ton hébergement -> « FTP ».
 # Le mot de passe ne se met PAS ici : le script le demande, ou le lit dans
@@ -23,6 +23,17 @@
   # Sous-domaines) : il te demande un dossier, souvent « /dashboard » ou
   # « /subdomains/dashboard ». Recopie ici exactement celui que tu as donné.
   RacineApp = '/dashboard'
+
+  # Dossier public de status.cyqbot.eu — la page d'état. Même origine que
+  # le précédent : c'est LWS qui crée le dossier quand tu ajoutes le
+  # sous-domaine. Recopie ici exactement celui que tu as donné, souvent
+  # « /status » ou « /subdomains/status ».
+  #
+  # La SEULE valeur facultative de ce fichier. Laissée vide, la cible
+  # `statut` est simplement sautée : la vitrine et le panneau continuent
+  # de partir comme avant. C'est voulu — ajouter un sous-domaine ne doit
+  # pas pouvoir bloquer la mise en ligne des deux autres.
+  RacineStatus = '/status'
 
   # Dans le doute sur l'un ou l'autre :
   #   powershell -ExecutionPolicy Bypass -File deploy-lws.ps1 -ListRemote
