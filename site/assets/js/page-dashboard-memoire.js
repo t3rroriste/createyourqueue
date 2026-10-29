@@ -173,14 +173,20 @@
       var noms = (d && d.names) || {};
       Object.keys(noms).forEach(function (k) { if (noms[k]) hist.noms[k] = noms[k]; });
       rendreHistorique(d, null);
-    }).catch(function (e) { rendreHistorique(null, e); });
+    }).catch(function (e) {
+      rendreHistorique(null, e);
+      /* Relancée : l'appelant doit pouvoir savoir que ça a échoué. La
+         page suivante l'ignore, le chargement paresseux s'en sert pour
+         rendre sa section à nouveau chargeable. */
+      throw e;
+    });
   }
 
   var suivant = $('[data-history-next]');
   if (suivant) {
     suivant.addEventListener('click', function () {
       hist.page += 1;
-      chargerHistorique(true);
+      chargerHistorique(true).catch(function () {});
     });
   }
 
@@ -323,18 +329,33 @@
         '<span class="chiffre__l">' + esc(t('st2.wait')) + '</span></span>' +
       '</div>';
 
+    /* `bot/history.py:stats()` renvoie TOUJOURS ses vingt-quatre heures et
+       ses trente jours, trous compris — c'est voulu, un graphique qui
+       saute les jours creux ment sur le rythme. Mais du coup la liste
+       n'est jamais vide, l'état vide ne s'affichait jamais, et un serveur
+       sans activité se retrouvait avec vingt-quatre barres de hauteur
+       nulle sous un axe : ça ne ressemble pas à « rien ne s'est passé »,
+       ça ressemble à un écran cassé.
+
+       On regarde donc les VALEURS, pas la longueur. Et on ne triche pas
+       avec une hauteur minimale : un graphique vide se dit. */
+    function duVide(valeurs) {
+      return !valeurs.length || valeurs.every(function (v) { return !v; });
+    }
+
     if (heures) {
-      var parHeure = d.byHour || [];
-      heures.innerHTML = parHeure.length
-        ? barres(parHeure, parHeure.map(function (_, i) { return i + 'h'; }), t('st2.grpHours'))
-        : vide('st2.empty');
+      var parHeure = (d.byHour || []).map(Number);
+      heures.innerHTML = duVide(parHeure)
+        ? vide('st2.empty')
+        : barres(parHeure, parHeure.map(function (_, i) { return i + 'h'; }), t('st2.grpHours'));
     }
     if (jours) {
       var parJour = d.byDay || [];
-      jours.innerHTML = parJour.length
-        ? barres(parJour.map(function (x) { return x.n; }),
-                 parJour.map(function (x) { return x.day.slice(8); }), t('st2.grpDays'))
-        : vide('st2.empty');
+      var n = parJour.map(function (x) { return Number(x && x.n); });
+      jours.innerHTML = duVide(n)
+        ? vide('st2.empty')
+        : barres(n, parJour.map(function (x) { return String(x.day || '').slice(8); }),
+                 t('st2.grpDays'));
     }
   }
 
@@ -626,17 +647,31 @@
      changer un salon. */
   function visiter(nom) {
     if (charge[nom]) return;
+    /* Le drapeau sert à deux choses, et une seule des deux est permanente.
+
+       Il empêche un second appel de partir pendant que le premier est en
+       vol — ça, il faut le poser tout de suite. Mais il disait aussi
+       « cette section est chargée », et posé AVANT la réponse il le disait
+       même quand la réponse n'arrivait jamais : le bot éteint une seconde,
+       et la section restait vide pour le reste de la visite. On y revenait,
+       elle se croyait faite, plus rien ne repartait, et le bandeau « API
+       injoignable » n'avait aucun moyen de se démentir.
+
+       Il retombe donc à l'échec : revenir sur la section relance l'appel,
+       ce qui est exactement ce qu'on attend en revenant dessus. */
     charge[nom] = true;
+    function echoue(e) { charge[nom] = false; return e; }
+
     if (nom === 'historique') {
-      chargerHistorique(false);
+      chargerHistorique(false).catch(echoue);
     } else if (nom === 'stats') {
       lire('/activity?days=30')
         .then(function (d) { rendreStats(d); })
-        .catch(function (e) { rendreStats(null, e); });
+        .catch(function (e) { rendreStats(null, echoue(e)); });
     } else if (nom === 'journal') {
       lire('/audit?limit=50')
         .then(function (d) { rendreJournal(d); })
-        .catch(function (e) { rendreJournal(null, e); });
+        .catch(function (e) { rendreJournal(null, echoue(e)); });
     }
   }
 
