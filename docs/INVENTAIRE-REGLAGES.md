@@ -210,6 +210,26 @@ que le panneau sait afficher.
     utile (`guild.me.nick`), et la fusion de lecture le fait gagner sur la
     copie du site. Renommé à la main sur Discord, le panneau le montre.
 
+**Retiré de l'écran le 29/10/2026 — pas du bot.**
+
+- **Le comptage des absences** (`noshow.enabled`, `noshow.threshold`,
+  `noshow.banHours`) **n'a plus de formulaire dans le panneau.** La section
+  « Accès » est devenue « Blacklist », et le groupe « Absences » en est
+  parti.
+
+  Ce n'est PAS un retrait de fonction. Les trois clés existent toujours
+  dans `bot/`, elles sont toujours pontées par `PONT_ABSENCES` dans
+  `site/api/index.php` et par `api-locale/server.py`, et le bot continue
+  de mettre de côté un joueur trop souvent absent. `/noshow` reste le
+  chemin pour les régler.
+
+  **Et le panneau ne peut pas les écraser.** `enregistrerTout()` ne
+  construit son corps de requête qu'à partir de `enAttente`, que seul un
+  événement `change` sur un `[data-setting]` PRÉSENT dans la page
+  alimente. Un champ absent du DOM n'a donc aucune clé en attente, et
+  `remplir()` ne fait l'inverse que sur des champs qui existent. Rien ne
+  part, et surtout pas une chaîne vide.
+
 **Ce qui reste.**
 
 - **`queue.session`** (à la demande / programmée) reste un réglage

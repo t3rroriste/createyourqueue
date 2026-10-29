@@ -23,7 +23,6 @@ window.CYQ_I18N.en = {
   "h.invite": "Add the bot to a server",
   "h.inviteNote": "Opens Discord's authorisation screen. You need the Manage Server permission on the server you pick.",
     "h.loginBtn": "Sign in with Discord",
-          
   "s.language": "Language",
   "s.config": "Configuration",
   "s.configD": "The bot's language and its identity on this server.",
@@ -259,7 +258,6 @@ window.CYQ_I18N.en = {
   "se.antilinkNote": "In a watched channel, links are deleted except those from staff. This is the same setting as /antilink.",
   "se.antilinkFilter": "Filter channels",
 
-
   /* --- what the bot remembers: history, stats, access, journal ------- */
   "s.history": "History", "s.stats": "Statistics", "s.journal": "Journal",
   "s.schedule": "Schedule", "s.seasons": "Seasons", "s.access": "Access",
@@ -295,13 +293,11 @@ window.CYQ_I18N.en = {
   "se2.announce": "Announce the podium", "se2.announceD": "Posts the podium in the leaderboard channel",
   "se2.keepHistory": "Keep the hall of fame", "se2.keepHistoryD": "Archives the podium before the reset",
   "se2.grpArchive": "Hall of fame", "se2.empty": "No season closed yet.",
-  "ac.lead": "Who may join a queue. Two lists: the staff's, with no end, and the one the bot sets after too many no-shows.",
-  "ac.grpNoshow": "No-shows",
-  "ac.enabled": "Count no-shows", "ac.enabledD": "A signed-up player missing from voice at launch is counted",
-  "ac.threshold": "No-shows allowed", "ac.thresholdD": "Past this, the player is set aside",
-  "ac.banHours": "Ban length", "ac.banHoursD": "It lifts on its own after this delay",
+  "ac.lead": "Who cannot join a queue. The list the staff adds by hand, with no end date, and the one the bot adds on its own and lifts when its delay runs out.",
   "ac.grpBlacklist": "Blacklist", "ac.grpAuto": "Automatic bans",
-  "ac.blacklistNote": "Right-click a name in Discord, \u00ab Copy ID \u00bb. This is the same list as /blacklist.",
+  "s.blacklist": "Blacklist",
+  "ac.colMember": "Member", "ac.colReason": "Reason", "ac.colSince": "Since",
+  "ac.colAction": "Action",
   "ac.banId": "Discord ID", "ac.banReason": "Reason (optional)",
   "ac.banAdd": "Ban", "ac.banRemove": "Unban", "ac.lift": "Lift",
   "ac.badId": "A Discord ID is a string of digits.",
@@ -349,7 +345,6 @@ window.CYQ_I18N.en = {
   "cine.channels": "Category · Clans",
 
   /* --- chiffres marquants de l'accueil --- */
-      
     "u.pts": "pts", "u.s": "s", "u.h": "h", "u.min": "min",
 
   /* --- modules.html --- */
@@ -414,7 +409,6 @@ window.CYQ_I18N.en = {
   "sp.docsBtn": "Read the documentation",
   "sp.delay": "Replies are not automatic: they can take a few days.",
 
-  
   /* --- connexion Discord et ecran d'accueil (login.html, welcome.html) --- */
   "au.step1": "Step 1 of 2",
   "au.step2": "Step 2 of 2",

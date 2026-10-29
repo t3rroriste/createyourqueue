@@ -23,7 +23,6 @@ window.CYQ_I18N.de = {
   "h.invite": "Füge den Bot zu einem Server hinzu",
   "h.inviteNote": "Öffnet die Autorisierungsseite von Discord. Du brauchst die Berechtigung „Server verwalten“ auf dem gewählten Server.",
     "h.loginBtn": "Mit Discord anmelden",
-          
   "s.language": "Sprache",
   "s.config": "Konfiguration",
   "s.configD": "Die Sprache des Bots und seine Identität auf diesem Server.",
@@ -259,7 +258,6 @@ window.CYQ_I18N.de = {
   "se.antilinkNote": "In einem überwachten Kanal werden Links gelöscht, außer denen des Staffs. Dies ist dieselbe Einstellung wie /antilink.",
   "se.antilinkFilter": "Kanäle filtern",
 
-
   /* --- was der Bot sich merkt: Verlauf, Statistik, Zugang, Protokoll -- */
   "s.history": "Verlauf", "s.stats": "Statistik", "s.journal": "Protokoll",
   "s.schedule": "Zeitplan", "s.seasons": "Saisons", "s.access": "Zugang",
@@ -295,13 +293,11 @@ window.CYQ_I18N.de = {
   "se2.announce": "Podium ank\u00fcndigen", "se2.announceD": "Ver\u00f6ffentlicht das Podium im Ranglisten-Kanal",
   "se2.keepHistory": "Bestenliste behalten", "se2.keepHistoryD": "Archiviert das Podium vor dem Zur\u00fccksetzen",
   "se2.grpArchive": "Bestenliste", "se2.empty": "Noch keine Saison abgeschlossen.",
-  "ac.lead": "Wer einer Queue beitreten darf. Zwei Listen: die des Staffs, ohne Ende, und die, die der Bot nach zu vielem Fernbleiben setzt.",
-  "ac.grpNoshow": "Fernbleiben",
-  "ac.enabled": "Fernbleiben z\u00e4hlen", "ac.enabledD": "Wer angemeldet ist und beim Start nicht im Sprachkanal sitzt, wird gez\u00e4hlt",
-  "ac.threshold": "Erlaubtes Fernbleiben", "ac.thresholdD": "Dar\u00fcber hinaus wird der Spieler ausgeschlossen",
-  "ac.banHours": "Dauer der Sperre", "ac.banHoursD": "Sie endet nach dieser Frist von selbst",
+  "ac.lead": "Wer keiner Queue beitreten darf. Die Liste, die das Team von Hand pflegt, ohne Ende, und die, die der Bot selbst setzt und nach Ablauf der Frist wieder aufhebt.",
   "ac.grpBlacklist": "Schwarze Liste", "ac.grpAuto": "Automatische Sperren",
-  "ac.blacklistNote": "Rechtsklick auf einen Namen in Discord, \u00bb ID kopieren \u00ab. Es ist dieselbe Liste wie /blacklist.",
+  "s.blacklist": "Blacklist",
+  "ac.colMember": "Mitglied", "ac.colReason": "Grund", "ac.colSince": "Seit",
+  "ac.colAction": "Aktion",
   "ac.banId": "Discord-ID", "ac.banReason": "Grund (optional)",
   "ac.banAdd": "Sperren", "ac.banRemove": "Entsperren", "ac.lift": "Aufheben",
   "ac.badId": "Eine Discord-ID ist eine Ziffernfolge.",
@@ -349,7 +345,6 @@ window.CYQ_I18N.de = {
   "cine.channels": "Kategorie · Clans",
 
   /* --- chiffres marquants de l'accueil --- */
-      
     "u.pts": "Pkt.", "u.s": "s", "u.h": "Std.", "u.min": "Min.",
 
   /* --- modules.html --- */
@@ -414,7 +409,6 @@ window.CYQ_I18N.de = {
   "sp.docsBtn": "Dokumentation lesen",
   "sp.delay": "Antworten kommen nicht automatisch: Sie können ein paar Tage dauern.",
 
-  
   /* --- connexion Discord et ecran d'accueil (login.html, welcome.html) --- */
   "au.step1": "Schritt 1 von 2",
   "au.step2": "Schritt 2 von 2",

@@ -1429,6 +1429,27 @@ label.row__label { cursor: pointer; }
 .rank__add { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .rank__add .text { flex: 1 1 180px; min-width: 0; }
 
+/* ---- le formulaire d'exclusion --------------------------------------
+   Une variante, et pas une retouche de `.rank__add` : la classe de base
+   sert aussi aux rangs, aux presets et à l'export/import, où il n'y a
+   qu'un champ ou que des boutons. Elle n'a rien à séparer.
+
+   Ici, deux champs de nature différente se suivent — un identifiant
+   Discord à coller, un motif à écrire. Collés, on remplit le second en
+   croyant finir le premier. --sp-2 (16 px) au lieu des 10 px de base les
+   sépare franchement, et le bouton reste au bout de la rangée.
+
+   --sp-2 sous le bloc, avant le tableau : le geste d'ajout et la liste de
+   ce qui est déjà exclu sont deux choses, et la carte ne le dit pas
+   toute seule. */
+.rank__add--blacklist { gap: var(--sp-2); margin-bottom: var(--sp-2); }
+/* 150 px au lieu des 180 de base : avec 16 px d'espacement au lieu de 10,
+   les deux champs et le bouton ne tenaient plus sur une ligne dans la
+   carte, et « Exclure » passait seul en dessous. Ils s'étirent de toute
+   façon pour remplir la rangée ; c'est leur largeur MINIMALE qui décide
+   du moment où la rangée se plie. */
+.rank__add--blacklist .text { flex: 1 1 150px; }
+
 /* ---- les jours de la semaine ----------------------------------------- */
 /* Des cases à cocher déguisées en pastilles. Le vrai input reste là,
    seulement masqué visuellement : un bouton aria-pressed aurait privé le
@@ -1520,6 +1541,57 @@ label.row__label { cursor: pointer; }
 .ligne__ou {
   flex: 0 0 auto; font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
   color: var(--ink-40); border: 1px solid var(--hair); border-radius: 999px; padding: 2px 8px;
+}
+
+/* ---- un vrai tableau --------------------------------------------------
+   Trois colonnes à aligner d'une ligne à l'autre, un en-tête qui les
+   nomme : c'est la définition d'un tableau, et une grille de div avec des
+   rôles ARIA ne ferait que le réécrire plus mal.
+
+   `border-collapse` et non `separate` : les filets sont portés par les
+   cellules, et deux filets voisins qui se doublent se voient. */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th {
+  text-align: left; font-weight: 500;
+  font-size: 11px; letter-spacing: .04em;
+  color: var(--ink-40);
+  padding: 12px 16px 8px;
+}
+.tbl td {
+  padding: 13px 16px;
+  font-size: 13.5px; vertical-align: baseline;
+  border-top: 1px solid var(--hair);
+}
+.tbl__sourd { color: var(--ink-60); font-size: 13px; }
+.tbl__date { color: var(--ink-40); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+/* La colonne d'action ne prend que la largeur de son bouton : sans ça,
+   les quatre colonnes se partagent la carte à parts égales et le motif,
+   qui est le seul texte long, se retrouve à l'étroit. */
+.tbl__fin { width: 1%; white-space: nowrap; text-align: right; }
+/* La carte du tableau n'a pas de rembourrage à elle : les cellules le
+   portent, sinon le filet d'en-tête s'arrêterait avant les bords. */
+.grp__card--tbl { padding: 0; overflow: hidden; }
+
+/* Sous 640 px, quatre colonnes ne tiennent plus : le motif passe à deux
+   caractères par ligne. Le tableau s'empile donc, une entrée par bloc, et
+   chaque cellule reprend le nom de sa colonne (data-th, posé par le
+   script) — sans lui, une date seule ne dirait plus ce qu'elle date.
+   640 et non 560 : un tableau est plus large qu'une rangée de réglage,
+   il craque avant elle. */
+@media (max-width: 640px) {
+  .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tbl, .tbl tbody, .tbl tr, .tbl td { display: block; width: auto; }
+  .tbl tr { border-top: 1px solid var(--hair); padding: 10px 0; }
+  .tbl tr:first-child { border-top: 0; }
+  .tbl td { border-top: 0; padding: 3px 16px; }
+  .tbl td::before {
+    content: attr(data-th) ' ';
+    color: var(--ink-40); font-size: 11px; letter-spacing: .04em;
+    margin-right: 8px;
+  }
+  /* La cellule d'action n'a pas de data-th : son en-tête est vide, et le
+     bouton dit déjà ce qu'il fait. */
+  .tbl__fin { width: auto; text-align: left; padding-top: 8px; }
 }
 
 /* ---- l'état vide ------------------------------------------------------- */

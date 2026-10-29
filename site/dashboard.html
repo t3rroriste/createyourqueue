@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610291753">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610291753">
+<link rel="stylesheet" href="assets/css/home.css?v=202610291800">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610291800">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -143,7 +143,7 @@
 
         <div class="dbnav__grp">
           <p class="dbnav__cat" data-i18n="cat.access">Accès</p>
-          <a class="navlink" href="#acces" data-goto="acces"><span class="navlink-label" data-i18n="s.access">Accès</span><span class="navlink__n" data-nav-count="acces"></span></a>
+          <a class="navlink" href="#blacklist" data-goto="blacklist"><span class="navlink-label" data-i18n="s.blacklist">Blacklist</span><span class="navlink__n" data-nav-count="blacklist"></span></a>
         </div>
 
         <div class="dbnav__grp">
@@ -1062,50 +1062,42 @@
         </div>
       </section>
 
-      <!-- =============================== ACCÈS =============================== -->
+      <!-- ============================= BLACKLIST ============================= -->
       <!-- Qui a le droit d'entrer dans une file. Deux listes, et elles ne se
            mélangent pas : celle que le staff pose à la main, sans fin, et
            celle que le bot pose tout seul après trop d'absences, qui se
            lève d'elle-même. Les confondre ferait disparaître une sanction
-           du staff au bout de vingt-quatre heures. -->
-      <section class="sec" data-section="acces" aria-labelledby="h-acces" hidden>
+           du staff au bout de vingt-quatre heures.
+
+           « Accès » est devenu un NOM DE FAMILLE dans le menu, pas une
+           section : la famille contiendra d'autres écrans, celui-ci n'en
+           est qu'un, et il porte donc le nom de ce qu'il montre.
+
+           LE COMPTAGE DES ABSENCES N'EST PLUS ICI, et c'est un retrait
+           d'écran, pas de fonction. `noshow.enabled`, `.threshold` et
+           `.banHours` existent toujours côté bot, sont toujours pontés par
+           `PONT_ABSENCES` et continuent d'agir : le bot met toujours de
+           côté un joueur trop souvent absent. Seul le formulaire a
+           disparu. Rien ne peut les écraser depuis ici — l'enregistrement
+           n'envoie que les clés dont le champ a bougé dans la page, et ces
+           champs n'existent plus. Voir docs/INVENTAIRE-REGLAGES.md. -->
+      <section class="sec" data-section="blacklist" aria-labelledby="h-blacklist" hidden>
         <header class="sec__head">
-          <h1 class="sec__title" id="h-acces" data-i18n="s.access">Accès</h1>
+          <h1 class="sec__title" id="h-blacklist" data-i18n="s.blacklist">Blacklist</h1>
           <p class="lead sec__lead" data-i18n="ac.lead"></p>
         </header>
 
         <div class="grp">
-          <h2 class="grp__title" data-i18n="ac.grpNoshow">Absences</h2>
-          <div class="grp__card">
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="ns-on" data-i18n="ac.enabled">Compter les absences</label> <span class="row__desc" id="ns-on-d" data-i18n="ac.enabledD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="ns-on" aria-describedby="ns-on-d" data-setting="noshow.enabled" data-controls="#ns-thr-row,#ns-hrs-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-            </div>
-            <div class="row" id="ns-thr-row">
-              <p class="row__text"><label class="row__label" for="ns-thr" data-i18n="ac.threshold">Absences tolérées</label> <span class="row__desc" id="ns-thr-d"><span data-i18n="ac.thresholdD"></span><span class="row__bounds">2 – 20</span></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="num"><input class="num__input" id="ns-thr" type="number" inputmode="numeric" step="1" min="2" max="20" value="3" data-min="2" data-max="20" aria-describedby="ns-thr-d ns-thr-e" data-setting="noshow.threshold"><span class="num__unit" aria-hidden="true">×</span></span></div>
-              <p class="row__err" id="ns-thr-e" data-error-for="ns-thr" hidden></p>
-            </div>
-            <div class="row" id="ns-hrs-row">
-              <p class="row__text"><label class="row__label" for="ns-hrs" data-i18n="ac.banHours">Durée de l'exclusion</label> <span class="row__desc" id="ns-hrs-d"><span data-i18n="ac.banHoursD"></span><span class="row__bounds">1 – 720</span></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="num"><input class="num__input" id="ns-hrs" type="number" inputmode="numeric" step="1" min="1" max="720" value="24" data-min="1" data-max="720" aria-describedby="ns-hrs-d ns-hrs-e" data-setting="noshow.banHours"><span class="num__unit" data-i18n="u.h">h</span></span></div>
-              <p class="row__err" id="ns-hrs-e" data-error-for="ns-hrs" hidden></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="grp">
           <h2 class="grp__title" data-i18n="ac.grpBlacklist">Liste noire</h2>
           <div class="grp__card grp__card--pad">
-            <p class="rank__note" data-i18n="ac.blacklistNote"></p>
             <!-- Un identifiant Discord et pas un sélecteur de membre : le
                  panneau ne charge pas la liste des membres, qui peut
                  compter des dizaines de milliers de lignes. Le clic droit
                  sur un pseudo dans Discord donne l'identifiant. -->
-            <div class="rank__add">
+            <!-- `--blacklist` et non `.rank__add` tout court : la classe de
+                 base sert aussi aux rangs, aux presets et à
+                 l'export/import, qui n'ont pas deux champs à séparer. -->
+            <div class="rank__add rank__add--blacklist">
               <input class="text" type="text" inputmode="numeric" maxlength="25" autocomplete="off"
                      data-ban-id data-i18n-attr="aria-label:ac.banId,placeholder:ac.banId">
               <input class="text" type="text" maxlength="200" autocomplete="off"
@@ -1116,7 +1108,7 @@
             </div>
             <p class="row__err" data-ban-err hidden></p>
           </div>
-          <div class="grp__card" data-blacklist></div>
+          <div class="grp__card grp__card--tbl" data-blacklist></div>
         </div>
 
         <div class="grp">
@@ -1161,15 +1153,15 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610291753"></script>
-<script src="assets/js/config.js?v=202610291753"></script>
-<script src="assets/js/lang/fr.js?v=202610291753"></script>
-<script src="assets/js/lang/en.js?v=202610291753"></script>
-<script src="assets/js/lang/es.js?v=202610291753"></script>
-<script src="assets/js/lang/de.js?v=202610291753"></script>
-<script src="assets/js/lang/ko.js?v=202610291753"></script>
-<script src="assets/js/app.js?v=202610291753"></script>
-<script src="assets/js/page-dashboard.js?v=202610291753"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610291753"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610291800"></script>
+<script src="assets/js/config.js?v=202610291800"></script>
+<script src="assets/js/lang/fr.js?v=202610291800"></script>
+<script src="assets/js/lang/en.js?v=202610291800"></script>
+<script src="assets/js/lang/es.js?v=202610291800"></script>
+<script src="assets/js/lang/de.js?v=202610291800"></script>
+<script src="assets/js/lang/ko.js?v=202610291800"></script>
+<script src="assets/js/app.js?v=202610291800"></script>
+<script src="assets/js/page-dashboard.js?v=202610291800"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610291800"></script>
 </body>
 </html>

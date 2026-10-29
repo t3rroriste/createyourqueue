@@ -23,7 +23,6 @@ window.CYQ_I18N.es = {
   "h.invite": "Añade el bot a un servidor",
   "h.inviteNote": "Abre la pantalla de autorización de Discord. Necesitas el permiso Gestionar servidor en el servidor elegido.",
     "h.loginBtn": "Iniciar sesión con Discord",
-          
   "s.language": "Idioma",
   "s.config": "Configuración",
   "s.configD": "El idioma del bot y su identidad en este servidor.",
@@ -259,7 +258,6 @@ window.CYQ_I18N.es = {
   "se.antilinkNote": "En un canal vigilado, los enlaces se borran salvo los del staff. Es el mismo ajuste que /antilink.",
   "se.antilinkFilter": "Filtrar canales",
 
-
   /* --- lo que el bot recuerda: historial, estad\u00edsticas, acceso, diario */
   "s.history": "Historial", "s.stats": "Estad\u00edsticas", "s.journal": "Diario",
   "s.schedule": "Programaci\u00f3n", "s.seasons": "Temporadas", "s.access": "Acceso",
@@ -295,13 +293,11 @@ window.CYQ_I18N.es = {
   "se2.announce": "Anunciar el podio", "se2.announceD": "Publica el podio en el canal de clasificaci\u00f3n",
   "se2.keepHistory": "Guardar el palmar\u00e9s", "se2.keepHistoryD": "Archiva el podio antes del reinicio",
   "se2.grpArchive": "Palmar\u00e9s", "se2.empty": "A\u00fan no se ha cerrado ninguna temporada.",
-  "ac.lead": "Qui\u00e9n puede unirse a una cola. Dos listas: la del staff, sin fin, y la que pone el bot tras demasiadas ausencias.",
-  "ac.grpNoshow": "Ausencias",
-  "ac.enabled": "Contar las ausencias", "ac.enabledD": "Se cuenta a quien se apunta y no est\u00e1 en el canal de voz al lanzar",
-  "ac.threshold": "Ausencias toleradas", "ac.thresholdD": "A partir de ah\u00ed, el jugador queda apartado",
-  "ac.banHours": "Duraci\u00f3n de la exclusi\u00f3n", "ac.banHoursD": "Se levanta sola tras ese tiempo",
+  "ac.lead": "Quién no puede unirse a una cola. La lista que el staff añade a mano, sin fin, y la que el bot pone solo y levanta al cabo de su plazo.",
   "ac.grpBlacklist": "Lista negra", "ac.grpAuto": "Exclusiones autom\u00e1ticas",
-  "ac.blacklistNote": "Clic derecho en un nombre en Discord, \u00ab Copiar ID \u00bb. Es la misma lista que /blacklist.",
+  "s.blacklist": "Lista negra",
+  "ac.colMember": "Miembro", "ac.colReason": "Motivo", "ac.colSince": "Desde",
+  "ac.colAction": "Acción",
   "ac.banId": "ID de Discord", "ac.banReason": "Motivo (opcional)",
   "ac.banAdd": "Excluir", "ac.banRemove": "Readmitir", "ac.lift": "Levantar",
   "ac.badId": "Un ID de Discord es una serie de cifras.",
@@ -349,7 +345,6 @@ window.CYQ_I18N.es = {
   "cine.channels": "Categoría · Clanes",
 
   /* --- chiffres marquants de l'accueil --- */
-      
     "u.pts": "pts", "u.s": "s", "u.h": "h", "u.min": "min",
 
   /* --- modules.html --- */
@@ -414,7 +409,6 @@ window.CYQ_I18N.es = {
   "sp.docsBtn": "Leer la documentación",
   "sp.delay": "Las respuestas no son automáticas: pueden tardar unos días.",
 
-  
   /* --- connexion Discord et ecran d'accueil (login.html, welcome.html) --- */
   "au.step1": "Paso 1 de 2",
   "au.step2": "Paso 2 de 2",

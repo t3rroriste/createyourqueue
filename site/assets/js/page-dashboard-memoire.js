@@ -339,29 +339,54 @@
   }
 
   /* ================================================================== */
-  /* 4. L'ACCÈS : absences, liste noire, exclusions automatiques         */
+  /* 4. LA BLACKLIST : liste du staff, exclusions automatiques           */
   /* ================================================================== */
 
   /* Ces deux listes viennent de la charge utile des RÉGLAGES, pas d'une
      route à part : elles sont courtes, et page-dashboard.js les a déjà
      chargées. On les récupère par l'événement qu'il émet. */
+
+  /* Un vrai <table>, et non une grille avec des rôles ARIA. Trois colonnes
+     alignées d'une ligne à l'autre, un en-tête qui les nomme, et un
+     lecteur d'écran qui annonce « Motif, colonne 2 » sans qu'on ait à le
+     lui apprendre : c'est exactement ce qu'un tableau sait faire, et
+     refaire ce travail en div coûterait six attributs par cellule.
+
+     `data-th` porte le nom de la colonne sur chaque cellule. Il ne sert
+     qu'au petit écran, où le tableau s'empile et où une valeur seule ne
+     dirait plus de quelle colonne elle vient. */
+  function cellule(valeur, colonne) {
+    return '<td data-th="' + esc(t(colonne)) + '">' + valeur + '</td>';
+  }
+
   function rendreAcces(donnees) {
     var noire = $('[data-blacklist]');
     var autos = $('[data-queuebans]');
-    var compteur = $('[data-nav-count="acces"]');
+    var compteur = $('[data-nav-count="blacklist"]');
 
     var liste = (donnees && donnees.blacklist) || [];
     if (noire) {
-      noire.innerHTML = liste.length ? liste.map(function (e) {
-        return '<div class="row"><div class="ligne">' +
-          '<span class="ligne__qui">' + esc(e.name || ('#' + String(e.id).slice(-4))) + '</span>' +
-          '<span class="ligne__quoi">' + esc(e.reason || t('ac.noReason')) + '</span>' +
-          '<span class="ligne__date">' + esc(quand(e.at)) + '</span>' +
-          '</div><div class="row__ctl">' +
-            '<button class="pill pill--ghost pill--sm" type="button" data-ban-del="' + esc(e.id) + '">' +
-              esc(t('ac.banRemove')) + '</button>' +
-          '</div></div>';
-      }).join('') : vide('ac.blacklistEmpty');
+      noire.innerHTML = liste.length
+        ? '<table class="tbl"><thead><tr>' +
+            '<th scope="col">' + esc(t('ac.colMember')) + '</th>' +
+            '<th scope="col">' + esc(t('ac.colReason')) + '</th>' +
+            '<th scope="col">' + esc(t('ac.colSince')) + '</th>' +
+            '<th scope="col"><span class="sr-only">' + esc(t('ac.colAction')) + '</span></th>' +
+          '</tr></thead><tbody>' +
+          liste.map(function (e) {
+            /* Le nom, ou l'identifiant tronqué : le panneau ne charge pas
+               les membres, et il n'a parfois que le numéro. */
+            return '<tr>' +
+              cellule(esc(e.name || ('#' + String(e.id).slice(-4))), 'ac.colMember') +
+              cellule('<span class="tbl__sourd">' + esc(e.reason || t('ac.noReason')) + '</span>', 'ac.colReason') +
+              cellule('<span class="tbl__date">' + esc(quand(e.at)) + '</span>', 'ac.colSince') +
+              '<td class="tbl__fin">' +
+                '<button class="pill pill--ghost pill--sm" type="button" data-ban-del="' + esc(e.id) + '">' +
+                  esc(t('ac.banRemove')) + '</button>' +
+              '</td></tr>';
+          }).join('') +
+          '</tbody></table>'
+        : vide('ac.blacklistEmpty');
     }
 
     var bans = (donnees && donnees.queueBans) || [];
@@ -426,7 +451,7 @@
     });
   }
 
-  var sectionAcces = $('[data-section="acces"]');
+  var sectionAcces = $('[data-section="blacklist"]');
   if (sectionAcces) {
     sectionAcces.addEventListener('click', function (e) {
       var sup = e.target.closest('[data-ban-del]');

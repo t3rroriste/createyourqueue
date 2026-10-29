@@ -23,7 +23,6 @@ window.CYQ_I18N.ko = {
   "h.invite": "서버에 봇 추가",
   "h.inviteNote": "디스코드 권한 승인 화면을 엽니다. 선택한 서버에서 「서버 관리」 권한이 필요합니다.",
     "h.loginBtn": "디스코드로 로그인",
-          
   "s.language": "언어",
   "s.config": "설정",
   "s.configD": "이 서버에서의 봇 언어와 정체성.",
@@ -259,7 +258,6 @@ window.CYQ_I18N.ko = {
   "se.antilinkNote": "감시 중인 채널에서는 스태프의 링크를 제외하고 모두 삭제됩니다. /antilink와 같은 설정입니다.",
   "se.antilinkFilter": "채널 필터",
 
-
   /* --- \ubd07\uc774 \uae30\uc5b5\ud558\ub294 \uac83 : \uae30\ub85d, \ud1b5\uacc4, \uc811\uadfc, \uc77c\uc9c0 --- */
   "s.history": "\uae30\ub85d", "s.stats": "\ud1b5\uacc4", "s.journal": "\uc77c\uc9c0",
   "s.schedule": "\uc608\uc57d", "s.seasons": "\uc2dc\uc98c", "s.access": "\uc811\uadfc",
@@ -295,13 +293,11 @@ window.CYQ_I18N.ko = {
   "se2.announce": "\uc2dc\uc0c1\ub300 \uacf5\uc9c0", "se2.announceD": "\uc21c\uc704 \ucc44\ub110\uc5d0 \uc2dc\uc0c1\ub300\ub97c \uc62c\ub9bd\ub2c8\ub2e4",
   "se2.keepHistory": "\uc5ed\ub300 \uae30\ub85d \ubcf4\uad00", "se2.keepHistoryD": "\ucd08\uae30\ud654 \uc804\uc5d0 \uc2dc\uc0c1\ub300\ub97c \ubcf4\uad00\ud569\ub2c8\ub2e4",
   "se2.grpArchive": "\uc5ed\ub300 \uae30\ub85d", "se2.empty": "\uc544\uc9c1 \ub9c8\uac10\ub41c \uc2dc\uc98c\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.",
-  "ac.lead": "\ub204\uac00 \ud050\uc5d0 \ucc38\uc5ec\ud560 \uc218 \uc788\ub294\uc9c0\uc785\ub2c8\ub2e4. \ub450 \uac00\uc9c0 \ubaa9\ub85d\uc774 \uc788\uc2b5\ub2c8\ub2e4 : \uae30\ud55c\uc774 \uc5c6\ub294 \uc2a4\ud0ed \ubaa9\ub85d\uacfc, \ubd88\ucc38\uc774 \uc7a6\uc744 \ub54c \ubd07\uc774 \ub9cc\ub4dc\ub294 \ubaa9\ub85d.",
-  "ac.grpNoshow": "\ubd88\ucc38",
-  "ac.enabled": "\ubd88\ucc38 \uc138\uae30", "ac.enabledD": "\ub4f1\ub85d\ud558\uace0\ub3c4 \uc2dc\uc791 \uc2dc \uc74c\uc131 \ucc44\ub110\uc5d0 \uc5c6\uc73c\uba74 \uc138\uc5b4\uc9d1\ub2c8\ub2e4",
-  "ac.threshold": "\ud5c8\uc6a9 \ubd88\ucc38 \ud69f\uc218", "ac.thresholdD": "\uc774\ub97c \ub118\uc73c\uba74 \ucc38\uc5ec\uac00 \uc81c\ud55c\ub429\ub2c8\ub2e4",
-  "ac.banHours": "\uc81c\ud55c \uae30\uac04", "ac.banHoursD": "\uc774 \uc2dc\uac04\uc774 \uc9c0\ub098\uba74 \uc790\ub3d9\uc73c\ub85c \ud480\ub9bd\ub2c8\ub2e4",
+  "ac.lead": "대기열에 참가할 수 없는 사람. 스태프가 직접 등록하는 무기한 목록과, 봇이 스스로 등록했다가 기한이 지나면 해제하는 목록.",
   "ac.grpBlacklist": "\ube14\ub799\ub9ac\uc2a4\ud2b8", "ac.grpAuto": "\uc790\ub3d9 \uc81c\ud55c",
-  "ac.blacklistNote": "\ub514\uc2a4\ucf54\ub4dc\uc5d0\uc11c \uc774\ub984\uc744 \uc6b0\ud074\ub9ad\ud558\uace0 \u300cID \ubcf5\uc0ac\u300d. /blacklist\uc640 \uac19\uc740 \ubaa9\ub85d\uc785\ub2c8\ub2e4.",
+  "s.blacklist": "블랙리스트",
+  "ac.colMember": "멤버", "ac.colReason": "사유", "ac.colSince": "등록일",
+  "ac.colAction": "작업",
   "ac.banId": "\ub514\uc2a4\ucf54\ub4dc ID", "ac.banReason": "\uc0ac\uc720 (\uc120\ud0dd)",
   "ac.banAdd": "\uc81c\ud55c", "ac.banRemove": "\ud574\uc81c", "ac.lift": "\ud480\uae30",
   "ac.badId": "\ub514\uc2a4\ucf54\ub4dc ID\ub294 \uc22b\uc790\ub85c\ub9cc \uc774\ub8e8\uc5b4\uc9d1\ub2c8\ub2e4.",
@@ -349,7 +345,6 @@ window.CYQ_I18N.ko = {
   "cine.channels": "카테고리 · 클랜",
 
   /* --- chiffres marquants de l'accueil --- */
-      
     "u.pts": "점", "u.s": "초", "u.h": "시간", "u.min": "분",
 
   /* --- modules.html --- */
@@ -414,7 +409,6 @@ window.CYQ_I18N.ko = {
   "sp.docsBtn": "문서 읽기",
   "sp.delay": "답장은 자동이 아닙니다. 며칠 걸릴 수 있습니다.",
 
-  
   /* --- connexion Discord et ecran d'accueil (login.html, welcome.html) --- */
   "au.step1": "1단계 / 2단계",
   "au.step2": "2단계 / 2단계",

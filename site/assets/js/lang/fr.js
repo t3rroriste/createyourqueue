@@ -23,7 +23,6 @@ window.CYQ_I18N.fr = {
   "h.invite": "Invite le bot sur un serveur",
   "h.inviteNote": "Ouvre l'écran d'autorisation Discord. Il te faut la permission « Gérer le serveur » sur le serveur choisi.",
     "h.loginBtn": "Se connecter avec Discord",
-          
   "s.language": "Langue",
   "s.config": "Configurations",
   "s.configD": "La langue du bot et son identité sur ce serveur.",
@@ -259,7 +258,6 @@ window.CYQ_I18N.fr = {
   "se.antilinkNote": "Un salon surveillé voit ses liens supprimés, sauf ceux du staff. Le réglage est le même que /antilink.",
   "se.antilinkFilter": "Filtrer les salons",
 
-
   /* --- la mémoire du bot : historique, stats, accès, journal --------- */
   "s.history": "Historique", "s.stats": "Statistiques", "s.journal": "Journal",
   "s.schedule": "Programmation", "s.seasons": "Saisons", "s.access": "Accès",
@@ -295,13 +293,11 @@ window.CYQ_I18N.fr = {
   "se2.announce": "Annoncer le podium", "se2.announceD": "Publie le podium dans le salon classement",
   "se2.keepHistory": "Garder le palmarès", "se2.keepHistoryD": "Archive le podium avant la remise à zéro",
   "se2.grpArchive": "Palmarès", "se2.empty": "Aucune saison close pour l'instant.",
-  "ac.lead": "Qui peut rejoindre une file. Deux listes : celle du staff, sans fin, et celle que le bot pose après trop d'absences.",
-  "ac.grpNoshow": "Absences",
-  "ac.enabled": "Compter les absences", "ac.enabledD": "Un inscrit absent du vocal au lancement est compté",
-  "ac.threshold": "Absences tolérées", "ac.thresholdD": "Au-delà, le joueur est mis de côté",
-  "ac.banHours": "Durée de l'exclusion", "ac.banHoursD": "Elle se lève toute seule au bout de ce délai",
+  "ac.lead": "Qui ne peut pas rejoindre une file. Celle que le staff pose à la main, sans fin, et celle que le bot pose tout seul et lève au bout de son délai.",
   "ac.grpBlacklist": "Liste noire", "ac.grpAuto": "Exclusions automatiques",
-  "ac.blacklistNote": "Clic droit sur un pseudo dans Discord, « Copier l'identifiant ». C'est la même liste que /blacklist.",
+  "s.blacklist": "Blacklist",
+  "ac.colMember": "Membre", "ac.colReason": "Motif", "ac.colSince": "Depuis",
+  "ac.colAction": "Action",
   "ac.banId": "Identifiant Discord", "ac.banReason": "Motif (facultatif)",
   "ac.banAdd": "Exclure", "ac.banRemove": "Réintégrer", "ac.lift": "Lever",
   "ac.badId": "Un identifiant Discord est une suite de chiffres.",
@@ -349,7 +345,6 @@ window.CYQ_I18N.fr = {
   "cine.channels": "Catégorie · Clans",
 
   /* --- chiffres marquants de l'accueil --- */
-      
     "u.pts": "pts", "u.s": "s", "u.h": "h", "u.min": "min",
 
   /* --- modules.html --- */
@@ -414,7 +409,6 @@ window.CYQ_I18N.fr = {
   "sp.docsBtn": "Lire la documentation",
   "sp.delay": "Les réponses ne sont pas automatiques : elles peuvent prendre quelques jours.",
 
-  
   /* --- connexion Discord et ecran d'accueil (login.html, welcome.html) --- */
   "au.step1": "Étape 1 sur 2",
   "au.step2": "Étape 2 sur 2",
