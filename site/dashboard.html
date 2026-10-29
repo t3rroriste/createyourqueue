@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610291750">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610291750">
+<link rel="stylesheet" href="assets/css/home.css?v=202610291753">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610291753">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -84,10 +84,19 @@
         <a class="dbguild__swap underlined" href="servers" data-app="servers" data-i18n="d.changeServer">Changer de serveur</a>
       </div>
 
-      <!-- Dix sections, cinq familles : le bot, le serveur, le jeu, la
-           surveillance, les outils. Le regroupement se lit à l'espace
-           entre les familles, pas à une étiquette — il n'y a rien à
-           écrire en gros. -->
+      <!-- Six familles, et elles portent maintenant leur NOM.
+           Le regroupement se lisait à l'espace entre les familles : 2 px
+           entre deux entrées, 14 px entre deux groupes, et ce rapport de
+           un à sept suffisait tant qu'il y avait dix entrées à ranger. Le
+           panneau en compte plus de vingt depuis que Sécurité s'est
+           ouverte en quatre et qu'Accès est devenue une catégorie : passé
+           cette taille, l'espace ne dit plus où s'arrête une famille, il
+           dit seulement qu'il y a un trou.
+
+           L'étiquette n'est PAS un contrôle : elle ne se clique pas, elle
+           ne replie rien. Sous 900 px la nav passe en rangée défilante et
+           les étiquettes disparaissent — là, chaque pixel horizontal est
+           une entrée qu'on ne voit pas. -->
       <nav class="dbnav" data-dbnav data-i18n-attr="aria-label:d.navLabel">
         <!-- L'indicateur unique. Il n'est jamais recréé : il glisse d'une
              entrée à l'autre, et reste invisible tant qu'il n'a pas été
@@ -95,6 +104,7 @@
         <span class="dbnav__mark" data-mark aria-hidden="true"></span>
 
         <div class="dbnav__grp">
+          <p class="dbnav__cat" data-i18n="cat.bot">Le bot</p>
           <a class="navlink" href="#configurations" data-goto="configurations"><span class="navlink-label" data-i18n="s.config">Configurations</span></a>
           <a class="navlink" href="#options" data-goto="options"><span class="navlink-label" data-i18n="s.options">Options</span></a>
 
@@ -120,22 +130,32 @@
              le réglage qu'on vient modifier le plus souvent, et il ne
              dépend d'aucune fonction qu'on pourrait couper. -->
         <div class="dbnav__grp">
+          <p class="dbnav__cat" data-i18n="cat.queue">Queue</p>
           <a class="navlink" href="#queue" data-goto="queue"><span class="navlink-label" data-i18n="s.queue">Queue</span></a>
           <a class="navlink" href="#programmation" data-goto="programmation"><span class="navlink-label" data-i18n="s.schedule">Programmation</span></a>
+        </div>
+
+        <div class="dbnav__grp">
+          <p class="dbnav__cat" data-i18n="cat.server">Le serveur</p>
+          <a class="navlink" href="#salons" data-goto="salons"><span class="navlink-label" data-i18n="s.channels">Salons</span></a>
+          <a class="navlink" href="#roles" data-goto="roles"><span class="navlink-label" data-i18n="s.roles">Rôles</span></a>
+        </div>
+
+        <div class="dbnav__grp">
+          <p class="dbnav__cat" data-i18n="cat.access">Accès</p>
           <a class="navlink" href="#acces" data-goto="acces"><span class="navlink-label" data-i18n="s.access">Accès</span><span class="navlink__n" data-nav-count="acces"></span></a>
         </div>
 
         <div class="dbnav__grp">
-          <a class="navlink" href="#salons" data-goto="salons"><span class="navlink-label" data-i18n="s.channels">Salons</span></a>
-          <a class="navlink" href="#roles" data-goto="roles"><span class="navlink-label" data-i18n="s.roles">Rôles</span></a>
-        </div>
-        <div class="dbnav__grp">
+          <p class="dbnav__cat" data-i18n="cat.security">Sécurité</p>
           <a class="navlink" href="#logs" data-goto="logs"><span class="navlink-label" data-i18n="s.logs">Logs</span><span class="navlink__n" data-nav-count="logs"></span></a>
           <a class="navlink" href="#securite" data-goto="securite"><span class="navlink-label" data-i18n="s.security">Sécurité</span></a>
+        </div>
+
+        <div class="dbnav__grp">
+          <p class="dbnav__cat" data-i18n="cat.monitor">Suivi</p>
           <a class="navlink" href="#stats" data-goto="stats"><span class="navlink-label" data-i18n="s.stats">Statistiques</span></a>
           <a class="navlink" href="#journal" data-goto="journal"><span class="navlink-label" data-i18n="s.journal">Journal</span></a>
-        </div>
-        <div class="dbnav__grp">
           <a class="navlink" href="#diagnostic" data-goto="diagnostic"><span class="navlink-label" data-i18n="d.diagnostic">Diagnostic</span><span class="navlink__warn" data-nav-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span class="sr-only" data-i18n="d.navWarn">Droits manquants</span></span></a>
         </div>
       </nav>
@@ -1141,15 +1161,15 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610291750"></script>
-<script src="assets/js/config.js?v=202610291750"></script>
-<script src="assets/js/lang/fr.js?v=202610291750"></script>
-<script src="assets/js/lang/en.js?v=202610291750"></script>
-<script src="assets/js/lang/es.js?v=202610291750"></script>
-<script src="assets/js/lang/de.js?v=202610291750"></script>
-<script src="assets/js/lang/ko.js?v=202610291750"></script>
-<script src="assets/js/app.js?v=202610291750"></script>
-<script src="assets/js/page-dashboard.js?v=202610291750"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610291750"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610291753"></script>
+<script src="assets/js/config.js?v=202610291753"></script>
+<script src="assets/js/lang/fr.js?v=202610291753"></script>
+<script src="assets/js/lang/en.js?v=202610291753"></script>
+<script src="assets/js/lang/es.js?v=202610291753"></script>
+<script src="assets/js/lang/de.js?v=202610291753"></script>
+<script src="assets/js/lang/ko.js?v=202610291753"></script>
+<script src="assets/js/app.js?v=202610291753"></script>
+<script src="assets/js/page-dashboard.js?v=202610291753"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610291753"></script>
 </body>
 </html>

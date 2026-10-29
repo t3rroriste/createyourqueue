@@ -91,6 +91,8 @@ window.CYQ_I18N.fr = {
   "d.tools": "Outils", "d.diagnostic": "Diagnostic", "d.export": "Exporter la config",
   "d.openDiscord": "Ouvrir dans Discord", "d.crumbServers": "Serveurs",
   "d.navLabel": "Sections de configuration",
+  "cat.bot": "Le bot", "cat.queue": "Queue", "cat.server": "Le serveur",
+  "cat.access": "Accès", "cat.security": "Sécurité", "cat.monitor": "Suivi",
   "d.crumbLabel": "Fil d'Ariane",
   "d.diagnosticD": "Vérification des droits du bot, des salons configurés et de la hiérarchie des rôles.",
   "d.unsaved": "Modifications non enregistrées",

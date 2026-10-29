@@ -105,9 +105,11 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
 
 /* ============================== le menu ============================== */
 
-/* Dix entrées, cinq familles. La famille se lit à l'ESPACE : 2 px entre
-   deux entrées d'une même famille, 14 px entre deux familles. Un rapport
-   de un à sept suffit à l'œil, sans étiquette ni filet. */
+/* Plus de vingt entrées, six familles. La famille se lisait à l'ESPACE :
+   2 px entre deux entrées, 14 px entre deux familles, et ce rapport de un
+   à sept suffisait à l'œil tant qu'il y avait dix entrées. Au-delà de
+   vingt, l'espace ne dit plus où s'arrête une famille — il dit seulement
+   qu'il y a un trou. L'espace est resté, et il porte maintenant un nom. */
 .dbnav {
   position: relative;
   display: flex; flex-direction: column;
@@ -118,6 +120,24 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
 .dbnav::-webkit-scrollbar { display: none; }
 .dbnav__grp { display: flex; flex-direction: column; gap: 2px; }
 .dbnav__grp + .dbnav__grp { margin-top: 14px; }
+
+/* L'étiquette de famille. Elle n'est pas un contrôle : rien à cliquer,
+   rien à replier. --ink-40 est réservé au décor, et c'en est : le nom de
+   la famille ne se lit pas, il se repère.
+
+   PAS de text-transform: uppercase. La chaîne est traduite, et le coréen
+   n'a pas de majuscules : la règle ne ferait rien là-bas et donnerait deux
+   menus d'allures différentes selon la langue. Le petit corps et
+   l'interlettrage suffisent à la distinguer d'une entrée.
+
+   Le retrait de 16 px est celui du texte des entrées, pas celui de leur
+   fond : l'étiquette s'aligne sur les mots, pas sur les pilules. */
+.dbnav__cat {
+  margin: 0 0 4px; padding: 0 12px 0 16px;
+  font-size: 11px; font-weight: 500; letter-spacing: .04em;
+  color: var(--ink-40);
+}
+.dbnav__grp + .dbnav__grp .dbnav__cat { margin-top: 0; }
 
 /* L'entrée, à l'identique d'une catégorie du choix du serveur — à ceci
    près qu'elle mesure 36 px et non 40 : dix entrées, pas cinq. On y vise
@@ -1140,6 +1160,11 @@ label.row__label { cursor: pointer; }
   }
   .dbnav__grp { flex-direction: row; gap: 6px; }
   .dbnav__grp + .dbnav__grp { margin-top: 0; margin-left: 14px; }
+
+  /* En rangée, une étiquette occuperait la place d'une entrée — et on ne
+     voit déjà que trois entrées à la fois. L'espacement entre groupes
+     continue de dire le regroupement, comme avant. */
+  .dbnav__cat { display: none; }
 
   .navlink {
     flex: 0 0 auto;

@@ -91,6 +91,8 @@ window.CYQ_I18N.es = {
   "d.tools": "Herramientas", "d.diagnostic": "Diagnóstico", "d.export": "Exportar la configuración",
   "d.openDiscord": "Abrir en Discord", "d.crumbServers": "Servidores",
   "d.navLabel": "Secciones de configuración",
+  "cat.bot": "El bot", "cat.queue": "Cola", "cat.server": "El servidor",
+  "cat.access": "Acceso", "cat.security": "Seguridad", "cat.monitor": "Seguimiento",
   "d.crumbLabel": "Ruta de navegación",
   "d.diagnosticD": "Comprobación de los permisos del bot, los canales configurados y la jerarquía de roles.",
   "d.unsaved": "Cambios sin guardar",

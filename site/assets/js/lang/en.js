@@ -91,6 +91,8 @@ window.CYQ_I18N.en = {
   "d.tools": "Tools", "d.diagnostic": "Diagnostics", "d.export": "Export config",
   "d.openDiscord": "Open in Discord", "d.crumbServers": "Servers",
   "d.navLabel": "Configuration sections",
+  "cat.bot": "The bot", "cat.queue": "Queue", "cat.server": "The server",
+  "cat.access": "Access", "cat.security": "Security", "cat.monitor": "Monitoring",
   "d.crumbLabel": "Breadcrumb",
   "d.diagnosticD": "A check of the bot's permissions, the configured channels and the role hierarchy.",
   "d.unsaved": "Unsaved changes",
