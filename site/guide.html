@@ -197,14 +197,42 @@
   </div>
 
   <!-- ======================== pied ======================== -->
+  <!-- Le même pied que l'accueil, au caractère près : c'est le même bloc
+       sur toute la vitrine, et deux variantes finiraient par diverger. -->
   <footer class="foot">
-    <span class="foot__end">
-      <a href="guide" data-i18n="n.docs">Documentation</a>
-      <a href="modules" data-i18n="m.nav">Modules</a>
-      <a href="#" data-cfg-link="STATUS_URL" data-i18n="n.status">État du service</a>
-      <a href="support" data-i18n="n.support">Support</a>
+    <div class="foot__grid">
+
+      <div class="foot__brand">
+        <a class="foot__mark" href="index">
+          <img src="assets/img/logo.png" alt="" width="26" height="26">
+          <span>CreateYourQueue</span>
+        </a>
+        <p class="foot__pitch" data-i18n="f.pitch">Le bot Discord qui organise vos files d'attente et compose les équipes.</p>
+        <a class="foot__status" href="#" data-cfg-link="STATUS_URL">
+          <span class="foot__dot" aria-hidden="true"></span>
+          <span data-i18n="n.status">État du service</span>
+        </a>
+      </div>
+
+      <nav class="foot__col" aria-labelledby="pied-produit">
+        <h2 class="foot__title" id="pied-produit" data-i18n="f.product">Produit</h2>
+        <a href="modules" data-i18n="m.nav">Modules</a>
+        <a href="#" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
+        <a href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
+      </nav>
+
+      <nav class="foot__col" aria-labelledby="pied-communaute">
+        <h2 class="foot__title" id="pied-communaute" data-i18n="f.community">Communauté</h2>
+        <a href="#" data-cfg-link="SUPPORT_URL" data-i18n="f.discord">Serveur Discord</a>
+        <a href="support" data-i18n="n.support">Support</a>
+      </nav>
+
+    </div>
+
+    <div class="foot__bar">
+      <span class="foot__fine">© 2026 CreateYourQueue</span>
       <a href="#" data-cfg-link="PRIVACY_URL" data-i18n="n.privacy">Confidentialité</a>
-    </span>
+    </div>
   </footer>
 </main>
 

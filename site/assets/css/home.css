@@ -553,8 +553,11 @@ html::-webkit-scrollbar { display: none; }
   .nav__links { display: none; }
   .nav__mark span { display: none; }
   .matter { max-width: 280px; margin-top: var(--sp-3); }
-  .foot { padding: var(--sp-3) var(--sp-4); }
-  .foot__end { margin-left: 0; width: 100%; }
+  .foot { padding: var(--sp-4) var(--sp-4) var(--sp-2); }
+  /* Une seule colonne : à 375 px, deux listes côte à côte laissent sept
+     caractères par ligne et « Documentation » se coupe en trois. */
+  .foot__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  .foot__bar a { margin-left: 0; }
 }
 
 /* ==================== mouvement réduit : bloquant ===================== */

@@ -18,6 +18,13 @@ window.CYQ_I18N.fr = {
   "n.status": "État du service", "n.support": "Support", "n.privacy": "Confidentialité",
   "n.operational": "Service opérationnel", "n.botTag": "bot Discord",
 
+  /* Le pied de la vitrine. Les intitulés de colonne, et la phrase de la
+     colonne de marque — plus courte que celle du héros, parce qu'elle est
+     lue en dernier et qu'on en connaît déjà le sujet. */
+  "f.pitch": "Le bot Discord qui organise vos files d'attente et compose les équipes.",
+  "f.product": "Produit", "f.community": "Communauté",
+  "f.discord": "Serveur Discord",
+
     "h.title": "Configure, customise et crée tes queues en moins de 5 minutes.",
   "h.lead": "Toute la configuration du bot sur un seul écran. Le bot continue de fonctionner par commande, le panneau ne fait que le régler.",
   "h.invite": "Invite le bot sur un serveur",

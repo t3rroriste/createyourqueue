@@ -148,13 +148,40 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
     <p class="fine stgrp__note" data-i18n="stt.panelNote"></p>
   </section>
 
+  <!-- Le pied de la vitrine, à deux différences près, et les deux viennent
+       de l'origine : cette page est servie par status.cyqbot.eu, donc ses
+       liens vers la vitrine passent par `data-site`, qui les rend absolus.
+       Et le badge d'état n'y est pas : il mènerait à la page qu'on lit. -->
   <footer class="foot">
-    <span class="foot__end">
-      <a href="guide" data-site="guide" data-i18n="n.docs">Documentation</a>
-      <a href="modules" data-site="modules" data-i18n="m.nav">Modules</a>
-      <a href="support" data-site="support" data-i18n="n.support">Support</a>
+    <div class="foot__grid">
+
+      <div class="foot__brand">
+        <a class="foot__mark" href="index" data-site="index">
+          <img src="assets/img/logo.png" alt="" width="26" height="26">
+          <span>CreateYourQueue</span>
+        </a>
+        <p class="foot__pitch" data-i18n="f.pitch">Le bot Discord qui organise vos files d'attente et compose les équipes.</p>
+      </div>
+
+      <nav class="foot__col" aria-labelledby="pied-produit">
+        <h2 class="foot__title" id="pied-produit" data-i18n="f.product">Produit</h2>
+        <a href="modules" data-site="modules" data-i18n="m.nav">Modules</a>
+        <a href="guide" data-site="guide" data-i18n="n.docs">Documentation</a>
+        <a href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
+      </nav>
+
+      <nav class="foot__col" aria-labelledby="pied-communaute">
+        <h2 class="foot__title" id="pied-communaute" data-i18n="f.community">Communauté</h2>
+        <a href="#" data-cfg-link="SUPPORT_URL" data-i18n="f.discord">Serveur Discord</a>
+        <a href="support" data-site="support" data-i18n="n.support">Support</a>
+      </nav>
+
+    </div>
+
+    <div class="foot__bar">
+      <span class="foot__fine">© 2026 CreateYourQueue</span>
       <a href="#" data-cfg-link="PRIVACY_URL" data-i18n="n.privacy">Confidentialité</a>
-    </span>
+    </div>
   </footer>
 </main>
 

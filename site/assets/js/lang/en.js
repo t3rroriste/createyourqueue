@@ -18,6 +18,11 @@ window.CYQ_I18N.en = {
   "n.status": "Service status", "n.support": "Support", "n.privacy": "Privacy",
   "n.operational": "Service operational", "n.botTag": "Discord bot",
 
+  /* Le pied de la vitrine. */
+  "f.pitch": "The Discord bot that runs your queues and builds the teams.",
+  "f.product": "Product", "f.community": "Community",
+  "f.discord": "Discord server",
+
     "h.title": "Set up, customise and create your queues in under 5 minutes.",
   "h.lead": "Every bot setting on one screen. The bot still works through commands; this panel only configures it.",
   "h.invite": "Add the bot to a server",
