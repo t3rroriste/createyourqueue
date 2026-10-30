@@ -114,10 +114,13 @@ def rendre(gabarit: str, params: dict, ou: str) -> str:
             if not p:
                 raise SystemExit(f"{ou} : condition illisible — {{{{si {corps}}}}}")
             cle, attendu = p.group(1), p.group(2)
-            if cle not in params:
-                # On avertit sans refuser : un paramètre oublié rend la
-                # condition fausse, ce qui est visible à l'œil sur la page.
-                print(f"  ! {ou} : paramètre « {cle} » non fourni")
+            # Rien à dire si la page ne fournit pas `cle` : un paramètre
+            # qui n'est qu'un drapeau — `plain=oui` sur la seule page qui
+            # en a besoin — s'omet partout ailleurs, et l'écrire six fois
+            # pour le mettre à « non » serait exactement le genre de
+            # répétition que ce script existe pour supprimer. C'est le
+            # paramètre EN TROP qui trahit une faute de frappe, et il est
+            # signalé plus bas, là où on connaît les deux listes.
             pile.append(params.get(cle) == attendu)
         elif genre == "sinon":
             if not pile:
@@ -165,7 +168,17 @@ def traiter(page: str, verifier: bool) -> tuple[int, bool]:
         marge, nom, args, _ancien = m.group(1), m.group(2), m.group(3), m.group(4)
         params = dict(PARAM.findall(args))
         ou = f"{os.path.basename(page)} / {nom}"
-        bloc = rendre(charger(nom), params, ou).strip("\r\n")
+        gabarit = charger(nom)
+
+        # Un paramètre que le fragment ne regarde jamais ne peut être
+        # qu'une faute de frappe : il ne changera rien, et en silence.
+        connus = {m.group(2).split("=")[0].strip()
+                  for m in JETON.finditer(gabarit)
+                  if m.group(1) in ("si", "=")}
+        for inconnu in sorted(set(params) - connus):
+            print(f"  ! {ou} : « {inconnu} » n'existe pas dans le fragment")
+
+        bloc = rendre(gabarit, params, ou).strip("\r\n")
         # Une ligne, et une seule, pour dire d'où vient ce qui suit : qui
         # ouvre la page doit voir tout de suite que le corriger ici ne
         # servira à rien. L'explication, elle, reste dans le fragment.

@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302201">
-<link rel="stylesheet" href="assets/css/status.css?v=202610302201">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302203">
+<link rel="stylesheet" href="assets/css/status.css?v=202610302203">
 <script>
 // Pas de garde anti-flash ici, et pas d'anime.js non plus : c'est LA page
 // qu'on ouvre quand quelque chose ne marche plus. Elle ne doit dépendre de
@@ -40,14 +40,25 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
      parce qu'on se demande si ça marche, pas pour ouvrir un panneau. Les
      liens sont marqués data-site parce que ce sous-domaine est une
      TROISIÈME origine — app.js les récrit vers cyqbot.eu. -->
+<!-- cyq:nav courant=aucun origine=externe bouton=aucun plain=oui -->
+<!-- engendré par outils/fragments.py depuis outils/communs/nav.html -->
 <nav class="nav nav--plain" aria-label="Principale" data-nav>
   <a class="nav__mark" href="index" data-site="index">
     <img src="assets/img/logo.png" alt="" width="22" height="22">
     <span>CreateYourQueue</span>
   </a>
   <div class="nav__links">
-    <a href="guide" data-site="guide" data-i18n="n.docs">Documentation</a>
+    <!-- href="guide" et non "#" : DOCS_URL vaut « guide » aujourd'hui,
+         mais un lien de la vitrine ne doit pas dépendre d'un réglage pour
+         mener quelque part. app.js récrit par-dessus quand DOCS_URL est
+         posé, et ne touche à rien quand il est vide. -->
+    <a href="guide" data-site="guide" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
     <a href="modules" data-site="modules" data-i18n="m.nav">Modules</a>
+    <!-- Pas de data-cfg-link ici, contrairement aux autres entrées :
+         SUPPORT_URL désigne le serveur Discord, et app.js récrivait ce
+         lien avec. L'onglet Support ne menait donc jamais à la page
+         Support — il sautait sur Discord. Le serveur garde sa carte dans
+         la page, où il a sa place. -->
     <a href="support" data-site="support" data-i18n="n.support">Support</a>
   </div>
   <div class="langmenu">
@@ -56,14 +67,15 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
       <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
     <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
     </div>
   </div>
 </nav>
+<!-- cyq:/nav -->
 
 <main class="shell" id="main">
   <div class="grain" aria-hidden="true"></div>
@@ -192,13 +204,13 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
   <!-- cyq:/pied -->
 </main>
 
-<script src="assets/js/config.js?v=202610302201"></script>
-<script src="assets/js/lang/fr.js?v=202610302201"></script>
-<script src="assets/js/lang/en.js?v=202610302201"></script>
-<script src="assets/js/lang/es.js?v=202610302201"></script>
-<script src="assets/js/lang/de.js?v=202610302201"></script>
-<script src="assets/js/lang/ko.js?v=202610302201"></script>
-<script src="assets/js/app.js?v=202610302201"></script>
-<script src="assets/js/page-status.js?v=202610302201"></script>
+<script src="assets/js/config.js?v=202610302203"></script>
+<script src="assets/js/lang/fr.js?v=202610302203"></script>
+<script src="assets/js/lang/en.js?v=202610302203"></script>
+<script src="assets/js/lang/es.js?v=202610302203"></script>
+<script src="assets/js/lang/de.js?v=202610302203"></script>
+<script src="assets/js/lang/ko.js?v=202610302203"></script>
+<script src="assets/js/app.js?v=202610302203"></script>
+<script src="assets/js/page-status.js?v=202610302203"></script>
 </body>
 </html>
