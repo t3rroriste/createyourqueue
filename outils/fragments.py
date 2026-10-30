@@ -79,12 +79,20 @@ JETON = re.compile(r"\{\{(sinon|si|/si|=)[ \t]*([^}]*?)[ \t]*\}\}")
 SEUL = re.compile(r"^[ \t]*(\{\{(?:si[^}]*|sinon|/si)\}\})[ \t]*\r?\n", re.M)
 
 
+# Le commentaire qui OUVRE un fragment documente le fragment : ce que font
+# ses paramètres, pourquoi il existe. Il parle au prochain qui ouvrira
+# `outils/communs/`, pas au lecteur d'une page — recopié onze fois, il
+# noierait le balisage qu'il accompagne. Les commentaires qui suivent, eux,
+# expliquent une ligne de HTML et partent avec elle.
+ENTETE = re.compile(r"\A\s*<!--.*?-->[ \t]*\r?\n", re.S)
+
+
 def charger(nom: str) -> str:
     chemin = os.path.join(COMMUNS, nom + ".html")
     if not os.path.isfile(chemin):
         raise SystemExit(f"fragment introuvable : {chemin}")
     with open(chemin, encoding="utf-8", newline="") as f:
-        return f.read()
+        return ENTETE.sub("", f.read(), count=1)
 
 
 def rendre(gabarit: str, params: dict, ou: str) -> str:
@@ -158,10 +166,15 @@ def traiter(page: str, verifier: bool) -> tuple[int, bool]:
         params = dict(PARAM.findall(args))
         ou = f"{os.path.basename(page)} / {nom}"
         bloc = rendre(charger(nom), params, ou).strip("\r\n")
+        # Une ligne, et une seule, pour dire d'où vient ce qui suit : qui
+        # ouvre la page doit voir tout de suite que le corriger ici ne
+        # servira à rien. L'explication, elle, reste dans le fragment.
         return (
             f"{marge}<!-- cyq:{nom}{args.rstrip()}"
             + (" " if args.strip() else "")
             + "-->\n"
+            + f"{marge}<!-- engendré par outils/fragments.py "
+            + f"depuis outils/communs/{nom}.html -->\n"
             + indenter(bloc, marge)
             + f"\n{marge}<!-- cyq:/{nom} -->"
         )

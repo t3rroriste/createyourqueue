@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302157">
-<link rel="stylesheet" href="assets/css/status.css?v=202610302157">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302159">
+<link rel="stylesheet" href="assets/css/status.css?v=202610302159">
 <script>
 // Pas de garde anti-flash ici, et pas d'anime.js non plus : c'est LA page
 // qu'on ouvre quand quelque chose ne marche plus. Elle ne doit dépendre de
@@ -153,17 +153,7 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
        liens vers la vitrine passent par `data-site`, qui les rend absolus.
        Et le badge d'état n'y est pas : il mènerait à la page qu'on lit. -->
   <!-- cyq:pied origine=externe statut=non -->
-  <!-- Le pied de page, pour TOUTES les pages de la vitrine.
-       Source unique : outils/fragments.py la recopie dans chaque page entre
-       ses deux repères. Ne pas modifier le résultat dans une page — il sera
-       réécrit au prochain passage, et la correction sera perdue.
-
-       Deux paramètres :
-         origine   site (la vitrine) · externe (status, sur son sous-domaine)
-         statut    oui · non (la pastille « État du service »)
-
-       `statut=non` sur la page d'état elle-même : un lien vers soi-même, au
-       pied de la page vers laquelle il mène, n'est pas un raccourci. -->
+  <!-- engendré par outils/fragments.py depuis outils/communs/pied.html -->
   <footer class="foot">
     <div class="foot__grid">
 
@@ -202,13 +192,13 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
   <!-- cyq:/pied -->
 </main>
 
-<script src="assets/js/config.js?v=202610302157"></script>
-<script src="assets/js/lang/fr.js?v=202610302157"></script>
-<script src="assets/js/lang/en.js?v=202610302157"></script>
-<script src="assets/js/lang/es.js?v=202610302157"></script>
-<script src="assets/js/lang/de.js?v=202610302157"></script>
-<script src="assets/js/lang/ko.js?v=202610302157"></script>
-<script src="assets/js/app.js?v=202610302157"></script>
-<script src="assets/js/page-status.js?v=202610302157"></script>
+<script src="assets/js/config.js?v=202610302159"></script>
+<script src="assets/js/lang/fr.js?v=202610302159"></script>
+<script src="assets/js/lang/en.js?v=202610302159"></script>
+<script src="assets/js/lang/es.js?v=202610302159"></script>
+<script src="assets/js/lang/de.js?v=202610302159"></script>
+<script src="assets/js/lang/ko.js?v=202610302159"></script>
+<script src="assets/js/app.js?v=202610302159"></script>
+<script src="assets/js/page-status.js?v=202610302159"></script>
 </body>
 </html>
