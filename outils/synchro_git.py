@@ -38,6 +38,9 @@ from datetime import datetime
 OUTILS_DIR = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(OUTILS_DIR)
 
+sys.path.insert(0, OUTILS_DIR)
+import sans_fenetre  # noqa: E402
+
 # Git n'est pas toujours dans le PATH d'un processus lancé avant son
 # installation : on le cherche aussi là où l'installeur Windows le met.
 CHEMINS_GIT = (
@@ -50,7 +53,8 @@ CHEMINS_GIT = (
 def _git_exe() -> str | None:
     for chemin in CHEMINS_GIT:
         try:
-            subprocess.run([chemin, "--version"], capture_output=True, check=True)
+            subprocess.run([chemin, "--version"], capture_output=True, check=True,
+                           creationflags=sans_fenetre.DRAPEAU)
             return chemin
         except (OSError, subprocess.CalledProcessError):
             continue
@@ -61,6 +65,10 @@ def git(exe: str, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [exe, *args], cwd=RACINE, capture_output=True, text=True,
         encoding="utf-8", errors="replace",
+        # Sous `pythonw`, chaque appel à git ouvrirait sa propre fenêtre de
+        # console. Une dizaine par passage, un passage toutes les trente
+        # secondes : le bureau clignotait sans arrêt.
+        creationflags=sans_fenetre.DRAPEAU,
     )
 
 
