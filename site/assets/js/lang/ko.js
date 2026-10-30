@@ -18,6 +18,11 @@ window.CYQ_I18N.ko = {
   "n.status": "서비스 상태", "n.support": "지원", "n.privacy": "개인정보",
   "n.operational": "서비스 정상", "n.botTag": "디스코드 봇",
 
+  /* Le pied de la vitrine. */
+  "f.pitch": "대기열을 정리하고 균형 잡힌 팀을 구성하는 디스코드 봇.",
+  "f.product": "제품", "f.community": "커뮤니티",
+  "f.discord": "디스코드 서버",
+
     "h.title": "대기열을 5분 안에 설정하고, 꾸미고, 만드세요.",
   "h.lead": "봇의 모든 설정을 한 화면에서. 봇은 계속 명령어로 동작하고, 이 패널은 설정만 합니다.",
   "h.invite": "서버에 봇 추가",

@@ -18,6 +18,11 @@ window.CYQ_I18N.de = {
   "n.status": "Dienststatus", "n.support": "Support", "n.privacy": "Datenschutz",
   "n.operational": "Dienst läuft", "n.botTag": "Discord-Bot",
 
+  /* Le pied de la vitrine. */
+  "f.pitch": "Der Discord-Bot, der deine Warteschlangen organisiert und die Teams zusammenstellt.",
+  "f.product": "Produkt", "f.community": "Community",
+  "f.discord": "Discord-Server",
+
     "h.title": "Richte deine Warteschlangen ein, passe sie an und erstelle sie in unter 5 Minuten.",
   "h.lead": "Die komplette Bot-Konfiguration auf einem Bildschirm. Der Bot läuft weiter über Befehle; das Panel stellt ihn nur ein.",
   "h.invite": "Füge den Bot zu einem Server hinzu",

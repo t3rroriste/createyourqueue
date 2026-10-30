@@ -18,6 +18,11 @@ window.CYQ_I18N.es = {
   "n.status": "Estado del servicio", "n.support": "Soporte", "n.privacy": "Privacidad",
   "n.operational": "Servicio operativo", "n.botTag": "bot de Discord",
 
+  /* Le pied de la vitrine. */
+  "f.pitch": "El bot de Discord que organiza tus colas y forma los equipos.",
+  "f.product": "Producto", "f.community": "Comunidad",
+  "f.discord": "Servidor de Discord",
+
     "h.title": "Configura, personaliza y crea tus colas en menos de 5 minutos.",
   "h.lead": "Toda la configuración del bot en una sola pantalla. El bot sigue funcionando por comandos; el panel solo lo configura.",
   "h.invite": "Añade el bot a un servidor",
