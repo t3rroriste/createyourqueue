@@ -1396,6 +1396,93 @@ class DashboardAPI(commands.Cog):
         log.info(f"Tableau de bord : queue fermée sur {guild.name} ({guild.id})")
         return web.json_response(resume)
 
+    # ------------------------------------------------------------------
+    # Redémarrage
+    # ------------------------------------------------------------------
+    async def restart(self, request: web.Request) -> web.Response:
+        """Relance le bot sur le code qui est sur le disque.
+
+        Pourquoi le bot se relance LUI-MÊME plutôt que le panneau AdKyNet :
+        l'API Pterodactyl demanderait une clé de plus, à créer, à ranger
+        dans les deux coffres et à garder valide, pour faire ce qu'`os.execv`
+        fait sans rien de neuf. Et `execv` REMPLACE le processus en place —
+        même PID, même dossier, même ligne de commande — donc le panneau ne
+        voit pas son serveur s'arrêter et n'a aucune raison de le marquer
+        éteint ni de compter un plantage.
+
+        UNE QUEUE EN COURS BLOQUE LE REDÉMARRAGE, et c'est le cœur de cette
+        route. Les sessions de queue vivent en mémoire : relancer pendant une
+        partie perd les équipes, les accès donnés aux salons et le lien de
+        l'annonce publiée. On répond donc 409 avec le nombre de queues
+        ouvertes, et `outils/redemarrer_bot.py` réessaie plus tard. Le
+        forçage existe — `{"force": true}` — mais il faut l'écrire.
+
+        Corps (facultatif) : {"force": true}
+        """
+        try:
+            corps = await request.json()
+        except (json.JSONDecodeError, ValueError):
+            corps = {}
+        force = bool(corps.get("force")) if isinstance(corps, dict) else False
+
+        # Le même décompte que /api/health, et au même endroit : une queue
+        # est ouverte tant que sa session n'est pas marquée terminée.
+        cog = self.bot.get_cog("QueueConfig")
+        ouvertes = 0
+        if cog is not None:
+            ouvertes = sum(1 for s in cog.active_sessions.values() if not s.ended)
+
+        if ouvertes and not force:
+            return web.json_response(
+                {"error": "queues_open", "active_queues": ouvertes}, status=409)
+
+        log.warning("Tableau de bord : redémarrage demandé" + (
+            f" — FORCÉ avec {ouvertes} queue(s) en cours" if ouvertes
+            else " (aucune queue en cours)"))
+
+        # La réponse doit partir AVANT que le processus soit remplacé : execv
+        # n'est pas un arrêt mais une substitution immédiate, et tout ce qui
+        # n'est pas encore passé sur le réseau disparaît avec l'ancien
+        # processus. On rend donc la main à la boucle, aiohttp écrit sa
+        # réponse, et c'est une tâche détachée qui relance ensuite. Sans ça
+        # l'appelant voit une connexion coupée et ne sait pas distinguer un
+        # redémarrage accepté d'un bot qui vient de tomber.
+        tache = asyncio.create_task(self._relancer())
+        self._relances.add(tache)
+        tache.add_done_callback(self._relances.discard)
+
+        return web.json_response({
+            "restarting": True,
+            "pid": os.getpid(),
+            "uptime_seconds": int(time.time() - self.started_at),
+            "active_queues": ouvertes,
+        })
+
+    async def _relancer(self) -> None:
+        # Une demi-seconde, le temps qu'aiohttp vide sa socket.
+        await asyncio.sleep(0.5)
+        try:
+            # Fermer la passerelle proprement évite de laisser Discord avec
+            # une session fantôme, et le délai évite d'attendre indéfiniment
+            # une fermeture qui n'arrive pas.
+            await asyncio.wait_for(self.bot.close(), timeout=5)
+        except Exception:
+            log.exception("Fermeture propre impossible — on relance quand même")
+        finally:
+            # Dans un `finally`, et pas à la suite du `try` : fermer le bot
+            # annule les tâches en cours, celle-ci comprise. Sans ce
+            # `finally`, l'annulation emporterait le redémarrage et
+            # laisserait un bot à moitié fermé, vivant mais sans passerelle
+            # — injoignable, silencieux, et que rien ne relèverait.
+            #
+            # `-u` est remis s'il y était : Pterodactyl affiche la console en
+            # direct grâce à lui, et une relance qui l'oublie rend un bot
+            # dont les journaux n'apparaissent plus qu'au compte-gouttes.
+            argv = [sys.executable]
+            if sys.flags.unbuffered:
+                argv.append("-u")
+            os.execv(sys.executable, argv + sys.argv)
+
     @staticmethod
     def _matches_kind(guild: discord.Guild, resource_id: int, kind: str) -> bool:
         if kind == "role":
