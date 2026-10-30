@@ -423,6 +423,18 @@ def main() -> int:
             print("    python outils/verifier_langues.py --completer")
             print("    La mise en ligne continue.\n")
 
+        # Même traitement pour le pont des réglages : un `data-setting` que
+        # le PHP ne connaît pas s'enregistre sans jamais atteindre le bot,
+        # et c'est muet. Ça se dit avant d'envoyer, pas après.
+        api = subprocess.run(
+            [sys.executable, os.path.join(OUTILS_DIR, "verifier_api.py"),
+             "--silencieux"], cwd=RACINE)
+        if api.returncode:
+            print("  ! Le panneau et l'API ne sont pas d'accord — voir"
+                  " ci-dessus.")
+            print("    python outils/verifier_api.py")
+            print("    La mise en ligne continue.\n")
+
     return envoyer(conf, curl, base, args.cible, args.essai)
 
 

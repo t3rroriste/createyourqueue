@@ -28,7 +28,17 @@ CE QU'IL VÉRIFIE
 Dur (une faute, il sort en erreur) :
   · un `data-setting` du panneau qu'aucun pont ne connaît, que le PHP ne
     cite nulle part, et dont `docs/INVENTAIRE-REGLAGES.md` ne parle pas ;
-  · un point d'API servi par une implémentation et pas par l'autre.
+  · un point d'API décrit dans `docs/site-README.md` dont une des deux
+    implémentations ne parle pas du tout.
+
+Le second est volontairement grossier : il cherche les NOMS du chemin,
+en mots entiers, n'importe où dans le fichier. Il ne compare pas les
+routes, parce que les deux routeurs ne s'écrivent pas pareil — le PHP
+range `matches`, `activity` et `audit` dans une seule alternance, le
+Python délègue à une méthode qui les traite plus loin. La première
+version de ce script tentait de reconstruire les deux formes : elle
+criait au loup neuf fois sur un dépôt sain, et un contrôle qui se trompe
+autant est un contrôle qu'on apprend à ignorer.
 
 Souple (un avis) :
   · un réglage qui traverse AUTREMENT que par le pont — `bot.nick` part
@@ -126,7 +136,7 @@ def sert(fichier: str, chemin: str) -> bool:
     un point ajoute d'un seul cote.
     """
     noms = [b for b in chemin.split("/") if b and not b.startswith("{")]
-    return all(re.search(r"%s" % re.escape(n), fichier) for n in noms)
+    return all(re.search(r"\b" + re.escape(n) + r"\b", fichier) for n in noms)
 
 
 # ----------------------------------------------------------------- relevé ---
@@ -200,8 +210,9 @@ def main() -> int:
         print("\n%d faute(s)." % fautes)
         return 1
 
-    dire("\n%d réglages du panneau, %d points d'API : les trois fichiers"
-         " sont d'accord." % (len(reglages_du_panneau(html)), len(cote_php)))
+    dire("\n%d réglages du panneau et %d points du contrat : le panneau, le"
+         " PHP et le Python sont d'accord."
+         % (len(reglages_du_panneau(html)), len(contrat)))
     return 0
 
 

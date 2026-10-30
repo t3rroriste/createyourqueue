@@ -168,6 +168,26 @@ Le contrat d'API (`GET /guilds`, `GET /guilds/{id}`, …) est décrit dans
 `docs/site-README.md`. Changer une réponse oblige à vérifier le front qui
 la consomme — et les deux implémentations, PHP et Python.
 
+```
+python outils/verifier_api.py
+```
+
+Il tient d'accord le panneau, le PHP et le Python. Son contrôle le plus
+utile n'est pas sur les routes : c'est **le pont des réglages**. Ajouter
+une ligne de réglage, c'est poser un `data-setting` dans `dashboard.html`
+— le panneau l'affiche, la suit et l'enregistre tout seul. Mais si les
+tables `PONT_*` d'`api/index.php` ne connaissent pas la clé, elle ne
+quitte jamais le fichier du site : le panneau dit « Enregistré » et le
+bot n'en sait rien. C'est arrivé aux sept réglages de sécurité et aux
+trois clés de clan. Une clé qui ne doit délibérément pas traverser se
+déclare dans `docs/INVENTAIRE-REGLAGES.md`, que le script lit comme
+liste d'exceptions — une décision pareille s'écrit là où un humain la
+lit, pas dans un script.
+
+PHP n'étant installé sur aucune des deux machines, ce contrôle est
+statique : il lit les fichiers, il ne les exécute pas.
+`publier_site.py` le lance et avertit sans bloquer.
+
 ## Synchro et publication
 
 `cyq veille` tient les deux machines et les deux hébergeurs à jour tout
