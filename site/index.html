@@ -12,9 +12,9 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302115">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302116">
 <!-- La page Modules est reprise entière dans l'accueil : sa feuille suit. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610302115">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610302116">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -80,10 +80,23 @@
       <div class="hero__copy">
         <h1 class="hero__title" data-hero="title" data-i18n="h.title"></h1>
 
-        <a class="pill" href="#" data-invite data-hero="cta">
-          <span data-i18n="h.invite">Invite le bot sur un serveur</span>
-          <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
-        </a>
+        <!-- L'accroche existait dans les cinq dictionnaires (`h.lead`) et
+             dans la feuille (`.hero__lead`) sans être posée dans la page :
+             la maquette lui redonne sa place, sous le titre. -->
+        <p class="lead hero__lead" data-hero="lead" data-i18n="h.lead"></p>
+
+        <!-- Deux actions, et une seule porte l'accent : la pilule claire
+             emmène sur Discord, la fantôme descend jusqu'à la démo. -->
+        <div class="hero__actions">
+          <a class="pill" href="#" data-invite data-hero="cta">
+            <span data-i18n="h.invite">Invite le bot sur un serveur</span>
+            <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </a>
+          <a class="pill pill--ghost" href="#demo" data-hero="cta2">
+            <span data-i18n="h.seeDemo">Voir une file en action</span>
+            <span aria-hidden="true">↓</span>
+          </a>
+        </div>
 
         <div class="setup" hidden data-needs-client-id>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg>
@@ -111,7 +124,60 @@
         </div>
       </div>
 
-      <div class="matter" aria-hidden="true" data-hero="matter"></div>
+      <!-- La colonne droite. Deux calques, et ils ne se mélangent pas :
+           le halo d'origine garde `data-hero="matter"`, puisque c'est lui
+           que l'ouverture floute, et la carte arrive par-dessus avec sa
+           propre animation — un flou sur une maquette d'embed la rendrait
+           illisible pendant une seconde et demie.
+
+           La maquette Discord est celle de modules.css, telle quelle. Rien
+           n'a été réécrit : le site a déjà sa grammaire d'embed, et une
+           seconde la contredirait au premier changement de couleur. -->
+      <div class="hero__stage">
+        <div class="matter" aria-hidden="true" data-hero="matter"></div>
+
+        <div class="hero__embed" data-hero="embed">
+          <div class="hero__embed-card">
+            <div class="mock mock--queue" aria-hidden="true">
+              <div class="mock__bar">
+                <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+                <span class="mock__bar-name">queue-5v5</span>
+                <span class="mock__bar-topic">Scrims du soir · rejoindre avec les boutons</span>
+              </div>
+              <div class="mock__chat">
+                <div class="mock__msg">
+                  <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+                  <div class="mock__main">
+                    <div class="mock__head">
+                      <span class="mock__name">CreateYourQueue</span>
+                      <span class="mock__app">APP</span>
+                      <span class="mock__time">Aujourd’hui à 21:04</span>
+                    </div>
+                    <div class="mock__embed">
+                      <div class="mock__embed-author"><span class="mock__av mock__av--xs">N</span>Queue ouverte par Nova</div>
+                      <div class="mock__embed-title">Scrim du soir</div>
+                      <div class="mock__fields">
+                        <div class="mock__field"><span class="mock__field-k">Format</span><span class="mock__field-v">2 × 5</span></div>
+                        <div class="mock__field"><span class="mock__field-k">Places</span><span class="mock__field-v">7 / 10</span></div>
+                        <div class="mock__field"><span class="mock__field-k">Preset</span><span class="mock__field-v">Ranked</span></div>
+                      </div>
+                      <div class="mock__embed-foot">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+                        <span>Rassemblement dans Attente scrim · 7 connectés</span>
+                      </div>
+                    </div>
+                    <div class="mock__btns">
+                      <span class="mock__btn mock__btn--primary">Rejoindre</span>
+                      <span class="mock__btn">Quitter</span>
+                      <span class="mock__btn mock__btn--off">Lancer</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -587,7 +653,7 @@
         </a>
         <p class="foot__pitch" data-i18n="f.pitch">Le bot Discord qui organise vos files d'attente et compose les équipes.</p>
         <a class="foot__status" href="#" data-cfg-link="STATUS_URL">
-          <span class="foot__dot" aria-hidden="true"></span>
+          <span class="dot" aria-hidden="true"></span>
           <span data-i18n="n.status">État du service</span>
         </a>
       </div>
@@ -614,14 +680,14 @@
   </footer>
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302115"></script>
-<script src="assets/js/config.js?v=202610302115"></script>
-<script src="assets/js/lang/fr.js?v=202610302115"></script>
-<script src="assets/js/lang/en.js?v=202610302115"></script>
-<script src="assets/js/lang/es.js?v=202610302115"></script>
-<script src="assets/js/lang/de.js?v=202610302115"></script>
-<script src="assets/js/lang/ko.js?v=202610302115"></script>
-<script src="assets/js/app.js?v=202610302115"></script>
-<script src="assets/js/page-home.js?v=202610302115"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302116"></script>
+<script src="assets/js/config.js?v=202610302116"></script>
+<script src="assets/js/lang/fr.js?v=202610302116"></script>
+<script src="assets/js/lang/en.js?v=202610302116"></script>
+<script src="assets/js/lang/es.js?v=202610302116"></script>
+<script src="assets/js/lang/de.js?v=202610302116"></script>
+<script src="assets/js/lang/ko.js?v=202610302116"></script>
+<script src="assets/js/app.js?v=202610302116"></script>
+<script src="assets/js/page-home.js?v=202610302116"></script>
 </body>
 </html>

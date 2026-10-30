@@ -29,6 +29,13 @@
      dégradé, jamais deux fois dans le même écran. */
   --accent: #C08A5A;                    /* 6.3:1 sur --panel */
 
+  /* --- le bleu de Discord, qui n'est PAS un accent ---
+     C'est la couleur d'une marque tierce. Elle est là parce que la
+     maquette pose un bouton « rejoindre le Discord », et elle n'a que cet
+     emploi : un bouton qui mène littéralement sur Discord. Jamais un
+     fond, jamais un filet, jamais un état. */
+  --discord: #5865F2;
+
   /* --- formes : le rayon n'est jamais uniforme --- */
   --r-shell: 36px;
   --r-card:  24px;
@@ -439,7 +446,12 @@ html::-webkit-scrollbar { display: none; }
   transition: background 200ms var(--e-soft);
 }
 .foot__status:hover { background: rgba(255,255,255,.1); }
-.foot__dot {
+
+/* Le point. Il sert ici et dans la rangée de repères de l'accueil, d'où un
+   nom qui n'appartient à aucune des deux. Il reste du décor tant que
+   personne ne sait l'état réel du service : une couleur ne dit rien à qui
+   ne la voit pas, et le libellé à côté porte seul l'information. */
+.dot {
   width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
   background: var(--ink-40);
 }
@@ -821,6 +833,19 @@ html::-webkit-scrollbar { display: none; }
 @media (max-width: 1100px) {
   .hero__in { grid-template-columns: minmax(0,1fr); padding-top: 144px; }
   .matter { justify-self: center; margin: 0 auto; max-width: 380px; }
+  /* La carte reprend la pleine largeur de la colonne, le halo rétrécit
+     derrière elle : à cette largeur, un halo plus large que la carte
+     déborde de la coque. */
+  .hero__stage { margin-top: var(--sp-3); }
+  .hero__stage .matter { max-width: 420px; }
+  .demo__in { grid-template-columns: minmax(0, 1fr); }
+  .demo__copy { text-align: center; }
+  .demo__copy .lead { margin-left: auto; margin-right: auto; }
+  /* Deux colonnes, et la carte large reprend sa place normale : étalée sur
+     deux colonnes sur trois, elle passerait à la ligne toute seule et
+     laisserait un trou. */
+  .mgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mcard--wide { grid-column: span 2; }
 }
 
 /* La marque passe la ligne entière, les deux colonnes de liens se
@@ -843,6 +868,28 @@ html::-webkit-scrollbar { display: none; }
   .nav__links { display: none; }
   .nav__mark span { display: none; }
   .matter { max-width: 280px; margin-top: var(--sp-3); }
+
+  /* Les sections en creux se resserrent sur les côtés : `--sp-3` de marge
+     plus `--sp-4` de rembourrage laissaient 24 px de texte utile. */
+  .bloc { margin: 0 var(--sp-2); padding: var(--sp-5) var(--sp-3); }
+  .stats { padding: var(--sp-3) var(--sp-3) var(--sp-4); }
+  .demo, .commu, .ctafin { padding: var(--sp-5) var(--sp-3); }
+
+  /* Une colonne partout. Le trait qui relie les trois étapes disparaît :
+     empilées, elles ne sont plus sur une ligne, et un filet horizontal
+     derrière la première icône ne relie plus rien. */
+  .etapes__list { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+  .etapes__list::before { display: none; }
+  .mgrid { grid-template-columns: minmax(0, 1fr); }
+  .mcard--wide { grid-column: span 1; }
+  .mcard__view, .mcard--wide .mcard__view { min-height: 140px; }
+
+  /* Les séparateurs verticaux de la rangée de repères ne tiennent pas
+     debout dans une pile : les trois repères se mettent en ligne serrée et
+     les filets s'effacent. */
+  .stats__bar { display: none; }
+  .stats__in { gap: var(--sp-3) var(--sp-4); }
+
   .foot { padding: var(--sp-4) var(--sp-4) var(--sp-2); }
   /* Une seule colonne : à 375 px, deux listes côte à côte laissent sept
      caractères par ligne et « Documentation » se coupe en trois. */
