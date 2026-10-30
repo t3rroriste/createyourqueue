@@ -35,7 +35,7 @@ l'allocation réseau de ton serveur, dans le panneau AdKyNet
 
 Ensuite, dans l'ordre : redémarrer le bot, vérifier avec
 `verifier_api_bot.py`, déposer `site/api/secrets.php` sur le panneau par
-FTP, et lancer `deposer_secrets_etat.py` pour le sous-domaine d'état.
+FTP, et lancer `deposer_secrets.py` pour le sous-domaine d'état.
 """
 
 import argparse
@@ -199,7 +199,7 @@ Il reste quatre gestes, dans cet ordre :
      doit répondre « HTTP 200 » et « tous présents » ;
   3. déposer site/api/secrets.php à la racine du panneau par FTP, à la
      main : il n'est dans aucune liste d'envoi, pour la même raison ;
-  4. python outils/deposer_secrets_etat.py
+  4. python outils/deposer_secrets.py --cible etat
      pour porter la même clé sur le sous-domaine d'état.""")
     return 0
 

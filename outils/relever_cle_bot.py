@@ -119,8 +119,8 @@ redémarré : c'est le site qui était désaccordé, pas lui.
      doit répondre « HTTP 200 » et non plus 401 ;
   2. déposer site/api/secrets.php à la racine du panneau par FTP, à la
      main — il n'est dans aucune liste d'envoi ;
-  3. python outils/deposer_secrets_etat.py
-     pour porter la même clé sur le sous-domaine d'état.""")
+  3. python outils/deposer_secrets.py
+     pour porter la même clé sur les deux hôtes.""")
     return 0
 
 

@@ -164,7 +164,7 @@ Deux choses à faire une fois, à la main :
    — elle ne fait jamais semblant.
 
 ```bash
-python outils/deposer_secrets_etat.py
+python outils/deposer_secrets.py
 ```
 
 Ce script recopie les deux valeurs d'un fichier à l'autre sans jamais les

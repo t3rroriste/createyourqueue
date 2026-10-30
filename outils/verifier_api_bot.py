@@ -18,7 +18,7 @@ https://status.cyqbot.eu tranche la question :
                                  l'éteint complètement).
   répond 401 ou 403           -> la clé ne correspond pas.
 
-EN AVEUGLE, comme deposer_secrets_etat.py : l'adresse et la clé ne sont
+EN AVEUGLE, comme deposer_secrets.py : l'adresse et la clé ne sont
 jamais affichées. De l'adresse, il ne dit que sa FORME — protocole, et
 port présent ou non — parce que c'est là que se nichent les fautes de
 frappe, et que ça ne désigne aucune machine.
@@ -121,7 +121,7 @@ def main() -> int:
               "d'état mesure à zéro milliseconde.\n\nLa vraie clé est "
               "DASHBOARD_API_KEY dans bot/.env. Recopie-la EN ENTIER dans\n"
               "site/api/secrets.php, puis relance\n"
-              "  python outils/deposer_secrets_etat.py")
+              "  python outils/deposer_secrets.py")
         return 1
 
     requete = urllib.request.Request(
