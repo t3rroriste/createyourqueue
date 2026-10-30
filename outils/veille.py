@@ -195,9 +195,9 @@ def publier(exe: str) -> None:
 
     # Les fichiers sont déposés, mais le processus en cours garde l'ancien
     # code en mémoire : tant qu'il n'est pas relancé, la publication n'a rien
-    # changé pour personne. On note donc que le redémarrage est dû, et
-    # `redemarrage_du()` le RAPPELLE — il ne le fait pas, et sa docstring dit
-    # pourquoi.
+    # changé pour personne. On note donc que le redémarrage est dû, et c'est
+    # `redemarrage_du()` qui s'en charge — tout de suite, ou dans une heure
+    # si une queue est en cours.
     if bot_publie:
         ecrire_marque(REDEMARRAGE,
                       synchro_git.git(exe, "rev-parse", "HEAD").stdout.strip())
@@ -210,27 +210,36 @@ def publier(exe: str) -> None:
 
 # ----------------------------------------------------------- redémarrage ---
 
-# Entre deux rappels, pour ne pas écrire la même ligne toutes les trente
-# secondes : au bout d'une nuit, le journal ne contiendrait plus que ça et la
-# ligne utile y serait introuvable.
-RAPPEL_ATTENTE = 1800
+# Après un échec, on laisse passer ce délai avant de réessayer. Sans lui, un
+# bot qui refuse de repartir ferait écrire une ligne d'échec toutes les
+# trente secondes : au bout d'une nuit, le journal ne contiendrait plus que
+# ça et la ligne utile y serait introuvable.
+ECHEC_ATTENTE = 300
 
 
 def redemarrage_du() -> None:
-    """Signale que le bot a reçu du code neuf et attend d'être relancé.
+    """Relance le bot s'il a reçu du code neuf.
 
-    SIGNALE, et ne relance pas. Le redémarrage automatique a été écrit, puis
-    retiré d'ici le 30 octobre 2026 : son premier vrai essai a mis le bot à
-    terre. `POST /api/restart` a répondu 200, `os.execv` a remplacé le
-    processus, et le bot n'est jamais revenu — il a fallu le relancer depuis
-    le panneau AdKyNet. Un mécanisme qui éteint la production une fois sur
-    une n'a rien à faire dans une boucle qui tourne seule toutes les trente
-    secondes, et une boucle n'est pas l'endroit où l'on apprend qu'il est
-    cassé.
+    HISTOIRE, parce qu'elle explique chaque garde-fou qui suit. Ce
+    redémarrage automatique a été écrit le 30 octobre 2026, et son premier
+    vrai essai a mis le bot à terre : la relance lisait
+    `sys.flags.unbuffered`, qui n'existe pas, et mourait sur cet attribut
+    juste après avoir fermé la passerelle Discord, sans jamais atteindre
+    `os.execv`. Le processus est sorti proprement, et le panneau marque
+    « éteint » un serveur qui sort proprement. Il a fallu le relancer à la
+    main.
 
-    La marque reste donc posée, `cyq etat` l'affiche, et c'est
-    `cyq redemarrer` à la main qui tranche. L'appel automatique ne revient
-    ici que quand le redémarrage manuel aura marché deux fois de suite.
+    L'appel a donc été coupé, le temps que le geste fasse ses preuves à la
+    main — deux fois de suite, le même jour, dont une avec la vérification
+    améliorée. Il est revenu ici ensuite, mais entouré : un `.py` qui ne
+    compile pas ne part plus (`publier_bot.verifier_syntaxe`), une queue en
+    cours fait répondre 409 au bot, et `redemarrer_bot.py` n'annonce le
+    retour que quand la passerelle Discord est reconnectée — pas quand le
+    port répond.
+
+    Tenté à CHAQUE passage, et pas une seule fois après la publication : une
+    queue en cours reporte, et ce report doit être repris plus tard. Tant que
+    la marque est là, on redemande.
 
     La pause est respectée : `cyq pause` veut dire « la mise en ligne
     attend », et un redémarrage est le dernier geste de la mise en ligne.
@@ -239,19 +248,44 @@ def redemarrage_du() -> None:
         return
 
     # La marque porte le commit publié, et sur une deuxième ligne l'heure du
-    # dernier rappel.
+    # dernier échec s'il y en a eu un.
     lignes = (lire_marque(REDEMARRAGE) or "").splitlines()
     tete = lignes[0] if lignes else ""
     try:
-        dernier_rappel = float(lignes[1]) if len(lignes) > 1 else 0.0
+        dernier_echec = float(lignes[1]) if len(lignes) > 1 else 0.0
     except ValueError:
-        dernier_rappel = 0.0
-    if dernier_rappel and time.time() - dernier_rappel < RAPPEL_ATTENTE:
+        dernier_echec = 0.0
+    if dernier_echec and time.time() - dernier_echec < ECHEC_ATTENTE:
         return
 
+    res = subprocess.run(
+        [sys.executable, os.path.join(OUTILS_DIR, "redemarrer_bot.py")],
+        cwd=RACINE, capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+
+    if res.returncode == 0:
+        try:
+            os.remove(REDEMARRAGE)
+        except OSError:
+            pass
+        dire("Bot redémarré : il tourne sur le code publié, et il est "
+             "connecté à Discord.")
+        return
+
+    if res.returncode == 2:
+        # Une queue est en cours : ce n'est pas un échec, c'est une attente.
+        # Pas de délai — dès que la partie se termine, le passage suivant
+        # relance. Mais rien dans le journal : à trente secondes
+        # d'intervalle, une partie d'une heure y écrirait cent vingt lignes
+        # identiques.
+        dire("Redémarrage du bot en attente — une queue est en cours.",
+             journal=False)
+        return
+
+    derniere = (res.stdout or res.stderr).strip().splitlines()
     ecrire_marque(REDEMARRAGE, tete + "\n" + str(time.time()))
-    dire("Le bot a reçu du code neuf et tourne encore sur l'ancien. "
-         "À relancer : cyq redemarrer")
+    dire("Bot NON redémarré — " + (derniere[-1] if derniere else "cause inconnue")
+         + f" (nouvel essai dans {ECHEC_ATTENTE // 60} min)")
 
 
 # ------------------------------------------------------------------ passage ---
