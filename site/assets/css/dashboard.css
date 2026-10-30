@@ -58,25 +58,34 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
 /* ============================ la grille =============================== */
 
 /* Même squelette que le choix du serveur : une colonne de menu de 236 px,
-   le contenu à droite. 132 px en haut et non 148 : la colonne de gauche
-   porte ici dix entrées et une carte de serveur, chaque pixel de hauteur
-   compte pour qu'elle tienne sur un écran de portable sans défiler. */
+   le contenu à droite.
+
+   --db-top est le haut de la page, et il s'écrit UNE fois : la grille, la
+   colonne collante, sa hauteur et l'aperçu collant le lisaient tous les
+   quatre en dur, et un décalage se corrigeait donc à quatre endroits —
+   dont deux dans un `calc`, où on l'oublie.
+
+   104 px et non 132 : la barre du haut flotte et se termine à 86 px, ce
+   qui laissait 62 px de vide avant la carte du serveur. Trente suffisent
+   à détacher la page de la barre, et les vingt-huit repris sont vingt-huit
+   pixels d'entrées de menu visibles sans défiler sur un portable. */
 .db {
+  --db-top: 104px;
   position: relative; z-index: 2;
   display: grid;
   grid-template-columns: 236px minmax(0, 1fr);
   gap: var(--sp-4);
   min-height: calc(100dvh - var(--gutter) * 2);
-  padding: 132px var(--sp-4) var(--sp-4);
+  padding: var(--db-top) var(--sp-4) var(--sp-4);
 }
 
 /* Collante, et d'une hauteur fixée : c'est ce qui laisse le compte au bas
    de la fenêtre au lieu du bas d'une colonne aussi longue que la section.
    Le menu, lui, défile seul si la fenêtre est vraiment basse. */
 .db__side {
-  position: sticky; top: 132px;
+  position: sticky; top: var(--db-top);
   align-self: start;
-  height: calc(100dvh - 132px - var(--gutter) * 2 - var(--sp-3));
+  height: calc(100dvh - var(--db-top) - var(--gutter) * 2 - var(--sp-3));
   display: flex; flex-direction: column;
   min-height: 0;
 }
@@ -86,11 +95,15 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
 
 /* ======================== la carte du serveur ========================= */
 
+/* Une seule rangée depuis que « Changer de serveur » a quitté la carte :
+   le bouton Retour de la barre du haut fait déjà ce voyage, et le dire
+   deux fois sur le même écran donnait deux sorties pour une seule idée.
+   La seconde rangée du gabarit est partie avec lui — laissée là, elle
+   gardait sa gouttière de 10 px sous un contenu qui n'existait plus. */
 .dbguild {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  column-gap: 12px; row-gap: 10px;
+  column-gap: 12px;
   align-items: center;
   margin-bottom: var(--sp-3);
 }
@@ -115,12 +128,6 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
    garder sa place : la colonne de texte dépassait alors la hauteur de
    l'icône, et le nom du serveur montait au-dessus de son centre. */
 .dbguild__meta:empty { display: none; }
-.dbguild__swap {
-  grid-column: 1 / -1;
-  justify-self: start;
-  font-size: 12.5px;
-  text-underline-offset: 4px;
-}
 
 /* ============================== le menu ============================== */
 
@@ -366,7 +373,7 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
    défilement : on règle à gauche, on voit l'effet à droite sans remonter. */
 @media (min-width: 1240px) {
   .sec__body { grid-template-columns: minmax(0, 1fr) 272px; align-items: start; }
-  .sec__aside { position: sticky; top: 132px; }
+  .sec__aside { position: sticky; top: var(--db-top); }
 
   /* La queue fait exception : son aperçu n'est pas un résumé mais la
      maquette d'un message Discord, avec sa gouttière d'avatar, son embed
@@ -1342,10 +1349,13 @@ label.row__label { cursor: pointer; }
      cases de la grille. Le serveur en tête, puis la rangée de sections,
      le contenu, et le compte en pied — sans qu'un nœud du DOM bouge. */
   .db {
+    /* Plus haut qu'en grand écran : sous 900 px la barre du haut passe sur
+       deux rangées, et il faut la laisser passer. */
+    --db-top: 112px;
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "guild" "nav" "main" "me";
     gap: var(--sp-3);
-    padding: 112px var(--sp-3) var(--sp-3);
+    padding: var(--db-top) var(--sp-3) var(--sp-3);
   }
   .db__side { display: contents; }
   .dbguild { grid-area: guild; margin-bottom: 0; }
@@ -1354,7 +1364,6 @@ label.row__label { cursor: pointer; }
   .dbme { grid-area: me; margin-top: 0; }
 
   .dbguild { grid-template-columns: 38px minmax(0, 1fr) auto; grid-template-rows: auto; }
-  .dbguild__swap { grid-column: auto; }
 
   /* Une rangée, pas un tiroir : les sections restent sous les yeux. Elle
      défile à l'horizontale avec un calage par entrée, et déborde jusqu'aux
