@@ -99,9 +99,9 @@ Toutes les trente secondes, `outils/veille.py` fait un passage :
 2. il enregistre, récupère ce que l'autre PC a poussé, et pousse ;
 3. il publie ce qui a changé depuis la dernière publication **réussie** :
    `site/` sur LWS par FTPS, `bot/` sur AdKyNet par SFTP ;
-4. si le bot a reçu des fichiers, il **rappelle qu'il faut le relancer** —
-   sinon le processus en cours garde l'ancien code en mémoire et la
-   publication n'a rien changé pour personne.
+4. si le bot a reçu des fichiers, il le **redémarre** — sinon le processus
+   en cours garderait l'ancien code en mémoire et la publication n'aurait
+   rien changé pour personne.
 
 GitHub est la référence, pas l'hébergeur. Rien ne part en ligne sans être
 d'abord enregistré — en septembre, cinq jours de travail n'ont existé que
@@ -121,26 +121,35 @@ Quatre garde-fous, et une chose qui ne se fait pas toute seule :
   vivent en mémoire : relancer pendant une partie perdrait les équipes, les
   accès aux salons et le lien de l'annonce. Le bot répond alors 409.
 
-### Le redémarrage du bot n'est PAS automatique
+### Le redémarrage du bot
 
-Il l'a été pendant une heure, le 30 octobre 2026, et le premier vrai essai a
-mis le bot à terre : il a fallu le relancer depuis le panneau AdKyNet. La
-cause était un bug à moi — la relance lisait `sys.flags.unbuffered`, qui
-n'existe pas, et mourait sur cet attribut juste après avoir fermé la
-passerelle Discord, sans jamais atteindre `os.execv`.
+Le bot se relance **lui-même**, par sa propre API (`POST /api/restart`) :
+`os.execv` remplace le processus en place, même PID, même dossier, donc le
+panneau AdKyNet ne voit pas son serveur s'arrêter. Pas de clé d'API de
+panneau à créer ni à ranger dans les deux coffres.
 
-C'est corrigé (la relance part d'un fil système et ne ferme plus rien avant),
-mais le mécanisme n'a pas encore fait ses preuves. La veille se contente donc
-de rappeler dans son journal qu'un redémarrage est dû, et `.\cyq etat`
-affiche « redémarrage du bot en attente ». Le geste se demande :
+À la main, quand on ne veut pas attendre le passage de la veille :
 
 ```powershell
 .\cyq redemarrer            # refuse pendant une queue
 .\cyq redemarrer --force    # passe outre
 ```
 
-L'appel automatique ne reviendra dans `veille.py` que quand ce geste aura
-marché deux fois de suite à la main.
+**Une chose à savoir si ce mécanisme est un jour retouché.** Écrit le
+30 octobre 2026, son premier essai a mis le bot à terre. La relance lisait
+`sys.flags.unbuffered` — un attribut qui n'existe pas — et mourait dessus
+juste après avoir fermé la passerelle Discord, sans jamais atteindre
+`os.execv`. Le processus est sorti proprement, et le panneau marque
+« éteint » un serveur qui sort proprement : il a fallu le relancer à la main.
+
+D'où la forme actuelle, et chaque détail y est une leçon : la relance part
+d'un **fil système**, que la fermeture de la boucle asyncio n'annule pas ;
+elle ne ferme **plus rien** avant de partir ; `PYTHONUNBUFFERED` passe par
+l'environnement, hérité, au lieu d'être deviné en interrogeant
+l'interpréteur ; et `redemarrer_bot.py` n'annonce le retour que quand la
+**passerelle Discord est reconnectée**, pas quand le port répond — au
+premier essai réussi il criait victoire à une seconde de vie, alors que le
+bot ne voyait encore aucun serveur.
 
 Le journal de la veille : `outils/etat/journal.log`.
 
