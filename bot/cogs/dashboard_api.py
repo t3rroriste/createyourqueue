@@ -629,10 +629,25 @@ class DashboardAPI(commands.Cog):
             "category": [
                 {"id": str(c.id), "name": c.name} for c in guild.categories
             ],
+            # `position` accompagne le rôle depuis que le relais PHP peut se
+            # replier sur cette route quand Discord ne lui répond pas. Le
+            # panneau s'en sert pour UNE chose : prévenir qu'un rôle choisi
+            # est placé plus haut que celui du bot, qui ne pourra donc pas
+            # l'attribuer. Sans elle, `Number(undefined)` vaut NaN, toute
+            # comparaison est fausse, et l'avertissement disparaît sans que
+            # rien n'ait l'air cassé.
+            #
+            # Décroissant, comme ce que le relais construit depuis Discord :
+            # deux sources qui remplissent la même liste doivent la rendre
+            # dans le même ordre, sinon le menu change d'ordre selon que
+            # Discord a répondu ou non.
             "role": [
-                {"id": str(r.id), "name": r.name}
-                for r in guild.roles
-                if not r.is_default() and not r.managed
+                {"id": str(r.id), "name": r.name, "position": r.position}
+                for r in sorted(
+                    (r for r in guild.roles if not r.is_default() and not r.managed),
+                    key=lambda r: r.position,
+                    reverse=True,
+                )
             ],
         })
 

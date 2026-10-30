@@ -1472,7 +1472,53 @@ if (preg_match('#^/guilds/(\d{5,25})(/settings)?$#', $chemin, $m)) {
                 }
             } catch (Throwable $e) {
                 // Le bot n'est pas sur ce serveur, ou il lui manque un droit.
-                // Les listes restent vides, le panneau le montre.
+                // Le repli ci-dessous rattrape ce cas.
+            }
+        }
+
+        /* LE REPLI SUR LE BOT.
+           Jusqu'ici, un BOT_TOKEN absent de secrets.php ou un appel à
+           Discord qui échouait donnait quatre listes vides, EN SILENCE.
+           Conséquence visible : tous les menus de salons et de rôles du
+           panneau restaient muets, et la section Anti-lien n'affichait
+           qu'un filtre sans rien à filtrer — un écran qui a l'air fini et
+           qui ne sert à rien.
+
+           Le bot tient déjà ces listes : c'est `GET /guilds/{id}/options`,
+           et il les a pour les huit serveurs. On les lui redemande plutôt
+           que de servir du vide. Il est d'ailleurs mieux placé que nous
+           pour les salons textuels : il n'y met que ceux où il a le droit
+           d'écrire.
+
+           Liste par liste, et non « tout ou rien » : Discord peut très bien
+           rendre les salons et refuser les rôles, et dans ce cas on ne
+           remplace que ce qui manque. */
+        if (!$rep['channels'] || !$rep['voiceChannels']
+            || !$rep['categories'] || !$rep['roles']) {
+            [$codeOpt, $opt] = appel_bot('GET', '/api/guilds/' . $gid . '/options');
+            if ($codeOpt === 200 && is_array($opt)) {
+                /* On recopie champ par champ au lieu de passer la réponse
+                   telle quelle : le front attend `{id, name}` en chaînes, et
+                   une entrée mal formée doit disparaître, pas arriver
+                   jusqu'à un menu sous la forme « undefined ». */
+                $repli = static function ($brut): array {
+                    $sortie = [];
+                    foreach (is_array($brut) ? $brut : [] as $e) {
+                        if (!is_array($e) || !isset($e['id'], $e['name'])) {
+                            continue;
+                        }
+                        $un = ['id' => (string)$e['id'], 'name' => (string)$e['name']];
+                        if (isset($e['position'])) {
+                            $un['position'] = (int)$e['position'];
+                        }
+                        $sortie[] = $un;
+                    }
+                    return $sortie;
+                };
+                if (!$rep['channels'])      { $rep['channels']      = $repli($opt['text'] ?? null); }
+                if (!$rep['voiceChannels']) { $rep['voiceChannels'] = $repli($opt['voice'] ?? null); }
+                if (!$rep['categories'])    { $rep['categories']    = $repli($opt['category'] ?? null); }
+                if (!$rep['roles'])         { $rep['roles']         = $repli($opt['role'] ?? null); }
             }
         }
         repondre(200, $rep);
