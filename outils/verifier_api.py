@@ -56,6 +56,7 @@ PANNEAU = os.path.join(RACINE, "site", "dashboard.html")
 API_PHP = os.path.join(RACINE, "site", "api", "index.php")
 API_PY = os.path.join(RACINE, "api-locale", "server.py")
 INVENTAIRE = os.path.join(RACINE, "docs", "INVENTAIRE-REGLAGES.md")
+CONTRAT_DOC = os.path.join(RACINE, "docs", "site-README.md")
 
 # La fonction du PHP qui décide de ce qui part vers le bot.
 TRI = "function trier_pour_le_bot"
@@ -97,40 +98,35 @@ def reglages_du_panneau(html: str) -> list[str]:
     return sorted(set(re.findall(r'data-setting="([^"]+)"', html)))
 
 
-# ----------------------------------------------------------- les routes -----
+# ------------------------------------------------- le contrat ecrit ---------
 
-# PHP : $chemin === '/me' && $methode === 'GET'
-ROUTE_PHP = re.compile(r"\$chemin\s*===\s*'(/[^']*)'")
-# PHP : preg_match('#^/guilds/(\d{5,25})/(matches|activity|audit)$#', $chemin
-MOTIF_PHP = re.compile(r"preg_match\('#\^(/[^']+?)\$?#',\s*\$chemin")
-# Python : chemin == "/api/me"  ·  chemin.endswith("/settings")
-ROUTE_PY = re.compile(r'chemin\s*==\s*"(/[^"]*)"')
-BOUT_PY = re.compile(r'chemin\.endswith\(\s*"(/[^"]*)"')
+# Les points d'API tels que `docs/site-README.md` les titre :
+#     ### `GET /guilds/{id}/activity`
+CONTRAT = re.compile(r"^#{3,4} `(GET|POST|PATCH|DELETE) (/[^`]+)`", re.M)
 
 
-def points(texte: str, *motifs: re.Pattern) -> set[str]:
-    """Les NOMS de points d'API cités, prefixe /api et identifiants ôtés.
+def points_du_contrat(doc: str) -> list[tuple[str, str]]:
+    return CONTRAT.findall(doc)
 
-    On ne compare pas des routes entières : le PHP les écrit en
-    expressions, le Python en `startswith` + `endswith`, et prétendre
-    reconstruire les deux formes donnerait un outil qui se trompe plus
-    souvent qu'il n'aide. On compare ce dont on est sûr — les noms qui
-    apparaissent dans les chemins. Un point ajouté d'un seul côté s'y
-    voit, et c'est la faute qu'on cherche.
+
+def sert(fichier: str, chemin: str) -> bool:
+    """Le fichier parle-t-il de ce point d'API ?
+
+    On cherche les NOMS du chemin, en mots entiers, n'importe ou dans le
+    fichier — pas la route elle-meme. Les deux routeurs ne s'ecrivent pas
+    du tout pareil : le PHP range matches, activity et audit dans une
+    seule alternance `(matches|activity|audit)`, et le Python delegue a
+    une methode qui les traite plus loin. Reconstruire les deux formes
+    donnerait un outil qui se trompe plus souvent qu'il n'aide — la
+    premiere version de ce script criait au loup neuf fois sur un depot
+    sain.
+
+    Une recherche large ne repere donc que l'absence COMPLETE d'un nom.
+    C'est peu, mais c'est sur, et c'est exactement la faute qu'on cherche :
+    un point ajoute d'un seul cote.
     """
-    vus: set[str] = set()
-    for m in motifs:
-        for brut in m.findall(texte):
-            chemin = re.sub(r"^/api", "", brut)
-            for bout in chemin.split("/"):
-                bout = bout.strip()
-                # Ce qui n'est pas un nom : un identifiant, un groupe
-                # d'expression, un reste de syntaxe.
-                if re.fullmatch(r"[a-z][a-z0-9_.-]*", bout) and bout != "api":
-                    vus.add(bout)
-            for alt in re.findall(r"\(([a-z|]+)\)", chemin):
-                vus |= {a for a in alt.split("|") if a}
-    return vus
+    noms = [b for b in chemin.split("/") if b and not b.startswith("{")]
+    return all(re.search(r"%s" % re.escape(n), fichier) for n in noms)
 
 
 # ----------------------------------------------------------------- relevé ---
@@ -174,19 +170,20 @@ def main() -> int:
         print("  À relier dans les tables PONT_* de site/api/index.php, ou"
               "\n  à déclarer propres au site dans docs/INVENTAIRE-REGLAGES.md.")
 
-    # 2. Les points d'API servis d'un seul côté.
-    cote_php = points(php, ROUTE_PHP, MOTIF_PHP)
-    cote_py = points(py, ROUTE_PY, BOUT_PY)
-    manque_py = sorted(cote_php - cote_py)
-    manque_php = sorted(cote_py - cote_php)
+    # 2. Le contrat, et les deux implémentations qui doivent le tenir.
+    contrat = points_du_contrat(lire(CONTRAT_DOC)) if os.path.isfile(CONTRAT_DOC) else []
+    absents = []
+    for verbe, chemin in contrat:
+        for fichier, nom in ((php, "site/api/index.php"),
+                             (py, "api-locale/server.py")):
+            if not sert(fichier, chemin):
+                absents.append((verbe, chemin, nom))
 
-    if manque_py or manque_php:
-        fautes += len(manque_py) + len(manque_php)
-        print("\nPoints d'API servis d'un seul côté :")
-        for p in manque_py:
-            print("  %-14s en PHP, pas dans api-locale/server.py" % p)
-        for p in manque_php:
-            print("  %-14s en Python, pas dans site/api/index.php" % p)
+    if absents:
+        fautes += len(absents)
+        print("\nPoints du contrat qu'une implémentation ne sert pas :")
+        for verbe, chemin, nom in absents:
+            print("  %-6s %-32s absent de %s" % (verbe, chemin, nom))
         print("  Le développement et la production ne répondent pas pareil.")
 
     # 3. Les avis.
