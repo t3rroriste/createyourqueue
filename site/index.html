@@ -12,13 +12,13 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302125">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302127">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610302125">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610302127">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -196,22 +196,22 @@
   <section class="stats" data-mod>
     <div class="stats__in">
 
-      <div class="stat">
-        <p class="label" data-reveal-text data-i18n="st.modules">Modules</p>
-        <p class="stat__n" data-reveal-text>6</p>
+      <div class="stat" data-reveal-text>
+        <p class="label" data-i18n="st.modules">Modules</p>
+        <p class="stat__n">6</p>
       </div>
 
       <span class="stats__bar" aria-hidden="true"></span>
 
-      <div class="stat">
-        <p class="label" data-reveal-text data-i18n="st.langs">Langues</p>
-        <p class="stat__n" data-reveal-text>5</p>
+      <div class="stat" data-reveal-text>
+        <p class="label" data-i18n="st.langs">Langues</p>
+        <p class="stat__n">5</p>
       </div>
 
       <span class="stats__bar" aria-hidden="true"></span>
 
-      <div class="stat">
-        <p class="label" data-reveal-text data-i18n="st.service">Service</p>
+      <div class="stat" data-reveal-text>
+        <p class="label" data-i18n="st.service">Service</p>
         <a class="stat__link" href="#" data-cfg-link="STATUS_URL">
           <span class="dot" aria-hidden="true"></span>
           <span data-i18n="n.status">État du service</span>
@@ -228,27 +228,27 @@
     </div>
 
     <ol class="etapes__list">
-      <li class="etape">
+      <li class="etape" data-reveal-text>
         <span class="etape__ico" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </span>
-        <h3 class="etape__t" data-reveal-text data-i18n="step.1t">Invite le bot</h3>
+        <h3 class="etape__t" data-i18n="step.1t">Invite le bot</h3>
         <p class="etape__p" data-i18n="step.1l">Un lien, deux clics, le bot rejoint ton serveur.</p>
       </li>
 
-      <li class="etape">
+      <li class="etape" data-reveal-text>
         <span class="etape__ico" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </span>
-        <h3 class="etape__t" data-reveal-text data-i18n="step.2t">Règle ta file</h3>
+        <h3 class="etape__t" data-i18n="step.2t">Règle ta file</h3>
         <p class="etape__p" data-i18n="step.2l">Format, salons, rôles, langue — tout depuis le panneau.</p>
       </li>
 
-      <li class="etape">
+      <li class="etape" data-reveal-text>
         <span class="etape__ico" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </span>
-        <h3 class="etape__t" data-reveal-text data-i18n="step.3t">Ouvre la queue</h3>
+        <h3 class="etape__t" data-i18n="step.3t">Ouvre la queue</h3>
         <p class="etape__p" data-i18n="step.3l">Les joueurs rejoignent, le bot compose les équipes et ouvre les vocaux.</p>
       </li>
     </ol>
@@ -348,7 +348,7 @@
 
       <!-- 01 — queue. Deux colonnes : c'est le module qu'on vient
            chercher, et le seul dont l'aperçu a besoin de largeur. -->
-      <a class="mcard mcard--wide" href="modules#queue">
+      <a class="mcard mcard--wide" data-reveal-text href="modules#queue">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-queue">
             <p class="ap-queue__t">Scrim du soir</p>
@@ -363,7 +363,7 @@
       </a>
 
       <!-- 02 — match & mmr -->
-      <a class="mcard" href="modules#mmr">
+      <a class="mcard" data-reveal-text href="modules#mmr">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-mmr">
             <i style="height:30%"></i><i style="height:50%"></i><i style="height:70%"></i>
@@ -378,7 +378,7 @@
       </a>
 
       <!-- 03 — duel -->
-      <a class="mcard" href="modules#duel">
+      <a class="mcard" data-reveal-text href="modules#duel">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-duel">
             <span class="ap-duel__d">
@@ -397,7 +397,7 @@
       </a>
 
       <!-- 04 — clans -->
-      <a class="mcard" href="modules#clan">
+      <a class="mcard" data-reveal-text href="modules#clan">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-stack">
             <span>A</span><span>B</span><span>C</span><span>+4</span>
@@ -410,7 +410,7 @@
       </a>
 
       <!-- 05 — modération & sécurité -->
-      <a class="mcard" href="modules#securite">
+      <a class="mcard" data-reveal-text href="modules#securite">
         <div class="mcard__view" aria-hidden="true">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,236,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4" stroke="rgba(244,241,236,.4)"/></svg>
         </div>
@@ -421,7 +421,7 @@
       </a>
 
       <!-- 06 — options -->
-      <a class="mcard" href="modules#options">
+      <a class="mcard" data-reveal-text href="modules#options">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-opts">
             <span class="ap-opt"><span>Classement</span><span class="ap-sw is-on"></span></span>
@@ -606,14 +606,14 @@
   </footer>
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302125"></script>
-<script src="assets/js/config.js?v=202610302125"></script>
-<script src="assets/js/lang/fr.js?v=202610302125"></script>
-<script src="assets/js/lang/en.js?v=202610302125"></script>
-<script src="assets/js/lang/es.js?v=202610302125"></script>
-<script src="assets/js/lang/de.js?v=202610302125"></script>
-<script src="assets/js/lang/ko.js?v=202610302125"></script>
-<script src="assets/js/app.js?v=202610302125"></script>
-<script src="assets/js/page-home.js?v=202610302125"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302127"></script>
+<script src="assets/js/config.js?v=202610302127"></script>
+<script src="assets/js/lang/fr.js?v=202610302127"></script>
+<script src="assets/js/lang/en.js?v=202610302127"></script>
+<script src="assets/js/lang/es.js?v=202610302127"></script>
+<script src="assets/js/lang/de.js?v=202610302127"></script>
+<script src="assets/js/lang/ko.js?v=202610302127"></script>
+<script src="assets/js/app.js?v=202610302127"></script>
+<script src="assets/js/page-home.js?v=202610302127"></script>
 </body>
 </html>

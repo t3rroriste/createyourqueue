@@ -685,15 +685,20 @@ html::-webkit-scrollbar { display: none; }
    d'attente tient deux colonnes : c'est le module qu'on vient chercher, et
    le seul dont l'aperçu a besoin de largeur pour se lire. */
 .mgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+/* Le survol éclaire le filet, il ne soulève pas la carte. Ce n'est pas un
+   goût : la révélation au défilement écrit un `transform` EN LIGNE sur
+   chaque carte, et un style en ligne bat toujours une règle `:hover`. Un
+   `translateY` de survol ne jouerait donc jamais, et on chercherait
+   longtemps pourquoi. */
 .mcard {
   display: flex; flex-direction: column; min-width: 0;
   background: var(--raised-2); border-radius: var(--r-card);
+  border: 1px solid transparent;
   overflow: hidden;
-  transition: transform 260ms var(--e-out);
+  transition: border-color 200ms var(--e-soft);
 }
 .mcard--wide { grid-column: span 2; }
-.mcard:hover { transform: translateY(-3px); }
-@media (prefers-reduced-motion: reduce) { .mcard:hover { transform: none; } }
+.mcard:hover { border-color: var(--hair); }
 
 /* L'aperçu est plus sombre que la carte : c'est un creux dans un bloc,
    la même grammaire que le reste du site. */
