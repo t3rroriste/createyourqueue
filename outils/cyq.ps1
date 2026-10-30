@@ -68,7 +68,19 @@ switch ($Verbe) {
     Assurer-Etat
     $exe = Python-Sans-Fenetre
     # Surtout pas $args : c'est une variable automatique de PowerShell.
-    $argsVeille = @((Join-Path $outils 'veille.py')) + $Reste
+    #
+    # Le `if` n'est pas une précaution de style. Sans arguments, $Reste vaut
+    # $null, et `@(…) + $null` rend un tableau de DEUX éléments dont le
+    # second est nul : Start-Process refuse alors son ArgumentList, et
+    # `cyq veille` tout court échouait. C'est ce qui a fait que la veille ne
+    # repartait pas toute seule — le fichier du dossier Démarrage l'appelle
+    # justement sans argument.
+    #
+    # Le chemin est entre guillemets parce qu'ArgumentList recolle le
+    # tableau avec des espaces : un dossier contenant une espace couperait
+    # l'argument en deux, et Python chercherait un fichier qui n'existe pas.
+    $argsVeille = @('"' + (Join-Path $outils 'veille.py') + '"')
+    if ($Reste) { $argsVeille += $Reste }
     $p = Start-Process -FilePath $exe -ArgumentList $argsVeille -WorkingDirectory $racine `
                        -WindowStyle Hidden -PassThru
     $p.Id | Out-File -FilePath $pid_veille -Encoding ascii
