@@ -12,6 +12,7 @@
 #   ./cyq pause        la synchro continue, la mise en ligne attend
 #   ./cyq reprendre    lève la pause, et lève un conflit réglé
 #   ./cyq local        sert le site sur http://localhost:8765
+#   ./cyq verifier     les trois relevés : blocs communs, langues, API
 #
 # Le jumeau de `cyq.ps1`, verbe pour verbe. Les deux appellent les mêmes
 # scripts Python : il n'y a qu'une implémentation de chaque geste, et elle
@@ -44,7 +45,11 @@ veille_pid() {
   echo "$n"
 }
 
-aide() { sed -n '3,18p' "$OUTILS/cyq.sh" | sed 's/^# \{0,1\}//'; }
+# 19 et non 18 : l'aide est l'en-tête de ce fichier, et ce nombre doit
+# suivre quand une ligne s'y ajoute — sinon le dernier verbe disparaît
+# de l'aide sans que rien ne le signale. Le jumeau PowerShell a la même
+# borne à tenir, et s'est déjà fait avoir.
+aide() { sed -n '3,19p' "$OUTILS/cyq.sh" | sed 's/^# \{0,1\}//'; }
 
 verbe="${1:-aide}"
 shift || true

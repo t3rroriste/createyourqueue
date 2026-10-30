@@ -23,7 +23,7 @@
 param(
   [Parameter(Position = 0)]
   [ValidateSet('amorcer', 'veille', 'arret', 'synchro', 'publier', 'redemarrer',
-               'etat', 'pause', 'reprendre', 'local', 'aide')]
+               'etat', 'pause', 'reprendre', 'local', 'verifier', 'aide')]
   [string]$Verbe = 'aide',
 
   # Repassés tels quels au script appelé : -Cible app, -DryRun, --intervalle 120…
@@ -177,11 +177,17 @@ switch ($Verbe) {
     & python (Join-Path $outils 'serveur_local.py')
   }
 
+  'verifier' {
+    # Il ne corrige rien : il dit ce qui a dérivé et quelle commande le
+    # répare. Le code de sortie vaut le nombre de relevés en faute.
+    & python (Join-Path $outils 'verifier.py') @Reste
+  }
+
   default {
-    # 20 et non 17 : l'aide est l'en-tête de ce fichier, et ce nombre doit
+    # 21 et non 17 : l'aide est l'en-tête de ce fichier, et ce nombre doit
     # suivre quand une ligne s'y ajoute. À 17, le verbe `redemarrer` a fait
     # disparaître la note sur le jumeau macOS, en bas.
-    Get-Content (Join-Path $outils 'cyq.ps1') | Select-Object -First 20 |
+    Get-Content (Join-Path $outils 'cyq.ps1') | Select-Object -First 21 |
       ForEach-Object { $_ -replace '^# ?', '' } | Where-Object { $_ -notmatch '^=+$' }
   }
 }
