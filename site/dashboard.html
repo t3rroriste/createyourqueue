@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302149">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302149">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302151">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302151">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -175,6 +175,25 @@
           <a class="navlink" href="#diagnostic" data-goto="diagnostic"><span class="navlink-label" data-i18n="d.diagnostic">Diagnostic</span><span class="navlink__warn" data-nav-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span class="sr-only" data-i18n="d.navWarn">Droits manquants</span></span></a>
         </div>
       </nav>
+
+      <!-- L'ÉTAT DU BOT, au pied du menu.
+
+           Il est déjà dit deux fois : en chiffre sur la vue d'ensemble, et
+           en bandeau quand le bot ne répond plus. Ni l'un ni l'autre ne
+           suffit ici — le chiffre n'existe que sur l'écran d'arrivée, et
+           le bandeau ne parle que dans le mauvais cas. Cette ligne-ci est
+           la seule qui confirme que tout va bien, depuis n'importe quelle
+           section, sans qu'on ait à revenir en arrière pour le vérifier.
+
+           Aucune couleur : le panneau est monochrome et les trois emplois
+           du cuivre sont pris. C'est le TEXTE qui porte l'état, ce qui est
+           de toute façon la règle de la page — la pastille ne fait que
+           l'accompagner. Vide tant que l'API n'a pas répondu : « joignable »
+           affiché avant d'avoir demandé serait une réponse inventée. -->
+      <p class="dbstate" data-bot-state hidden>
+        <span class="dbstate__dot" aria-hidden="true"></span>
+        <span data-bot-state-text></span>
+      </p>
 
       <!-- Le compte, collé en bas, comme sur le choix du serveur. -->
       <div class="dbme" data-me>
@@ -1818,16 +1837,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302149"></script>
-<script src="assets/js/config.js?v=202610302149"></script>
-<script src="assets/js/lang/fr.js?v=202610302149"></script>
-<script src="assets/js/lang/en.js?v=202610302149"></script>
-<script src="assets/js/lang/es.js?v=202610302149"></script>
-<script src="assets/js/lang/de.js?v=202610302149"></script>
-<script src="assets/js/lang/ko.js?v=202610302149"></script>
-<script src="assets/js/app.js?v=202610302149"></script>
-<script src="assets/js/page-dashboard.js?v=202610302149"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610302149"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610302149"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302151"></script>
+<script src="assets/js/config.js?v=202610302151"></script>
+<script src="assets/js/lang/fr.js?v=202610302151"></script>
+<script src="assets/js/lang/en.js?v=202610302151"></script>
+<script src="assets/js/lang/es.js?v=202610302151"></script>
+<script src="assets/js/lang/de.js?v=202610302151"></script>
+<script src="assets/js/lang/ko.js?v=202610302151"></script>
+<script src="assets/js/app.js?v=202610302151"></script>
+<script src="assets/js/page-dashboard.js?v=202610302151"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610302151"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610302151"></script>
 </body>
 </html>

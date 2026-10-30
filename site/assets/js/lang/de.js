@@ -107,6 +107,7 @@ window.CYQ_I18N.de = {
   "ov.historyD": "Gespielte Matches, neueste zuerst.",
   "ov.blacklistD": "Von Queues ausgeschlossene Spieler.",
   "ov.quick": "Direkt dorthin",
+  "ov.recent": "Letzte Aktivität", "ov.seeAll": "Alles anzeigen",
 
   "s.config": "Konfiguration",
   "s.configD": "Die Sprache des Bots und seine Identität auf diesem Server.",

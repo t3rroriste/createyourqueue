@@ -1938,6 +1938,33 @@ label.row__label { cursor: pointer; }
 .ovprog__word a:hover,
 .ovprog__word a:focus-visible { border-bottom-color: var(--ink-40); }
 
+/* ----------------------- l'activite recente --------------------------- */
+
+/* Le bloc reprend la carte et les rangees du Journal, sans les redecrire :
+   `grp__card` et `.ligne` viennent de la, et c'est voulu. Deux lectures
+   du meme releve doivent se ressembler, sinon on croit lire deux choses.
+
+   Seul le chapeau est propre a cet endroit : un titre et un lien vers le
+   Journal sur la meme ligne de base, parce que la question qui suit
+   « il s'est passe quoi ? » est toujours « montre-moi le reste ». */
+.ovjrn { margin-top: var(--sp-2); }
+
+.ovjrn__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sp-1); margin-bottom: 10px;
+}
+
+/* Le titre perd sa marge basse : c'est le chapeau qui tient l'ecart
+   maintenant, et les deux cumules decollaient la carte de son titre. */
+.ovjrn__head .grp__title { margin-bottom: 0; }
+
+.ovjrn__all {
+  flex: 0 0 auto;
+  font-size: 13px; color: var(--ink-60);
+  transition: color 160ms var(--e-soft);
+}
+.ovjrn__all:hover, .ovjrn__all:focus-visible { color: var(--ink); }
+
 /* ------------------------- les deux colonnes -------------------------- */
 
 .ovcols {

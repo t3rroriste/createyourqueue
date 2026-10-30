@@ -1605,6 +1605,20 @@
       if (g.name) document.title = g.name + ' — CreateYourQueue';
     }
 
+    /* L'etat du bot au pied du menu. `=== true` / `=== false` et non `!` :
+       une API plus ancienne n'envoie pas le champ du tout, et son silence
+       ne dit pas « eteint » — la ligne reste alors cachee, ce qui est la
+       seule chose vraie qu'on puisse en montrer. */
+    function etatDuBot(joignable) {
+      var ligne = $('[data-bot-state]');
+      if (!ligne) return;
+      if (joignable !== true && joignable !== false) { ligne.hidden = true; return; }
+      var mot = $('[data-bot-state-text]', ligne);
+      if (mot) mot.textContent = t(joignable ? 'ov.botOn' : 'ov.botOff');
+      ligne.setAttribute('data-on', joignable ? '1' : '0');
+      ligne.hidden = false;
+    }
+
     function sessionGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
     function sessionSet(k, v) {
       try { if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); }
@@ -1792,6 +1806,7 @@
         /* `=== false` et pas `!` : une API plus ancienne ne renvoie pas du
            tout ce champ, et son silence ne veut pas dire « bot éteint ». */
         if (donnees.botJoignable === false) avis('botoff');
+        etatDuBot(donnees.botJoignable);
       }).catch(function (err) {
         donnees = null;
         /* Sur un échec, les sections restent visibles mais INERTES : elles

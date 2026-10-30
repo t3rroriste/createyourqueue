@@ -122,6 +122,12 @@ window.CYQ_I18N.fr = {
   "ov.blacklistD": "Les joueurs écartés des queues.",
   "ov.quick": "Aller droit au but",
 
+  /* L'activité récente de la vue d'ensemble. Le titre est celui de la
+     maquette ; « Tout voir » mène au Journal, qui montre le même relevé
+     en entier. Les lignes elles-mêmes réemploient les clés jo.* — c'est
+     le même relevé, il n'a pas à se nommer deux fois. */
+  "ov.recent": "Activité récente", "ov.seeAll": "Tout voir",
+
   "s.config": "Configurations",
   "s.configD": "La langue du bot et son identité sur ce serveur.",
   "s.options": "Options",

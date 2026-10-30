@@ -486,25 +486,43 @@
   /* 5. LE JOURNAL                                                       */
   /* ================================================================== */
 
+  /* Une entrée du relevé, en une rangée. Elle est sortie de
+     `rendreJournal` parce que la vue d'ensemble en montre les cinq
+     dernières : deux descriptions de la même ligne finiraient par
+     diverger, et c'est l'affichage de la date qui partirait le premier. */
+  function ligneAudit(l) {
+    var qui = (l.who && l.who.name) || t('jo.someone');
+    var quoi = (l.details && l.details.length)
+      ? l.details.join(', ')
+      : l.action;
+    return '<div class="row"><div class="ligne">' +
+      '<span class="ligne__date">' + esc(quand(l.at)) + '</span>' +
+      '<span class="ligne__qui">' + esc(qui) + '</span>' +
+      '<span class="ligne__quoi">' + esc(quoi) + '</span>' +
+      '<span class="ligne__ou">' + esc(t(l.source === 'panel' ? 'jo.panel' : 'jo.discord')) + '</span>' +
+      '</div></div>';
+  }
+
   function rendreJournal(d, err) {
     var carte = $('[data-journal]');
     if (!carte) return;
     if (err) { carte.innerHTML = panne(err); return; }
     var lignes = (d && d.entries) || [];
     if (!lignes.length) { carte.innerHTML = vide('jo.empty'); return; }
+    carte.innerHTML = lignes.map(ligneAudit).join('');
+  }
 
-    carte.innerHTML = lignes.map(function (l) {
-      var qui = (l.who && l.who.name) || t('jo.someone');
-      var quoi = (l.details && l.details.length)
-        ? l.details.join(', ')
-        : l.action;
-      return '<div class="row"><div class="ligne">' +
-        '<span class="ligne__date">' + esc(quand(l.at)) + '</span>' +
-        '<span class="ligne__qui">' + esc(qui) + '</span>' +
-        '<span class="ligne__quoi">' + esc(quoi) + '</span>' +
-        '<span class="ligne__ou">' + esc(t(l.source === 'panel' ? 'jo.panel' : 'jo.discord')) + '</span>' +
-        '</div></div>';
-    }).join('');
+  /* Le même relevé, raccourci, sur l'écran d'arrivée. Il ne porte pas sa
+     propre erreur en bandeau : la vue d'ensemble en affiche déjà un pour
+     la session et un pour le bot, et un troisième au milieu de la page
+     ferait passer une panne de lecture pour une panne de serveur. Elle
+     retombe donc sur l'état vide, qui est vrai : on ne sait pas. */
+  function rendreApercuJournal(d, err) {
+    var carte = $('[data-ov-journal]');
+    if (!carte) return;
+    var lignes = (!err && d && d.entries) || [];
+    if (!lignes.length) { carte.innerHTML = vide('jo.empty'); return; }
+    carte.innerHTML = lignes.map(ligneAudit).join('');
   }
 
   /* ================================================================== */
@@ -672,6 +690,15 @@
       lire('/audit?limit=50')
         .then(function (d) { rendreJournal(d); })
         .catch(function (e) { rendreJournal(null, echoue(e)); });
+    } else if (nom === 'apercu') {
+      /* Cinq, pas cinquante : voir le commentaire du balisage. Un appel
+         distinct de celui du Journal, et non un partage de réponse —
+         on arrive sur la vue d'ensemble, le Journal n'a souvent jamais
+         été ouvert, et faire dépendre l'un de l'autre reviendrait à
+         charger cinquante lignes pour en montrer cinq. */
+      lire('/audit?limit=5')
+        .then(function (d) { rendreApercuJournal(d); })
+        .catch(function (e) { rendreApercuJournal(null, echoue(e)); });
     }
   }
 

@@ -107,6 +107,7 @@ window.CYQ_I18N.es = {
   "ov.historyD": "Partidas jugadas, de la más reciente a la más antigua.",
   "ov.blacklistD": "Jugadores apartados de las colas.",
   "ov.quick": "Ir al grano",
+  "ov.recent": "Actividad reciente", "ov.seeAll": "Ver todo",
 
   "s.config": "Configuración",
   "s.configD": "El idioma del bot y su identidad en este servidor.",

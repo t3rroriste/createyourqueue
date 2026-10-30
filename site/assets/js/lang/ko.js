@@ -107,6 +107,7 @@ window.CYQ_I18N.ko = {
   "ov.historyD": "진행한 매치, 최신순.",
   "ov.blacklistD": "큐에서 제외된 플레이어.",
   "ov.quick": "바로 가기",
+  "ov.recent": "최근 활동", "ov.seeAll": "전체 보기",
 
   "s.config": "설정",
   "s.configD": "이 서버에서의 봇 언어와 정체성.",
