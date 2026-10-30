@@ -66,6 +66,16 @@ def forme(base: str) -> str:
     return ", ".join(bouts)
 
 
+def etat_cle(cle: str) -> str:
+    """Ce qu'on peut dire d'une clé sans la dire. Sa longueur n'est pas
+    donnée non plus : elle réduirait le travail de qui la chercherait."""
+    if not cle:
+        return "VIDE — l'API du bot la réclame, l'appel sera refusé"
+    if not cle.isascii():
+        return "ABRÉGÉE — elle contient un caractère hors ASCII"
+    return "présente"
+
+
 def main() -> int:
     if not os.path.isfile(SOURCE):
         print(f"{os.path.relpath(SOURCE, RACINE)} est absent de ce PC.",
@@ -82,9 +92,37 @@ def main() -> int:
               "appeler.\nC'est déjà l'explication.", file=sys.stderr)
         return 1
     print("adresse : " + forme(base))
-    print("clé     : " + ("présente" if cle else "VIDE — l'API du bot la "
-                          "réclame, l'appel sera refusé"))
+    print("clé     : " + etat_cle(cle))
     print()
+
+    # Une valeur abrégée ne part pas sur le réseau : on le dit ici, où la
+    # phrase est lisible, plutôt que de laisser urllib ou curl échouer
+    # vingt lignes plus bas sans expliquer pourquoi.
+    fautes = []
+    if "SANS PORT" in forme(base):
+        fautes.append(
+            "L'adresse n'a pas de port. L'API du bot écoute sur un port haut "
+            "— DASHBOARD_API_PORT\ndans son .env — et sans lui, l'appel part "
+            "sur le port 80, où rien ne répond.")
+    if cle and not cle.isascii():
+        fautes.append(
+            "La clé contient un caractère qui n'est pas de l'ASCII : « " +
+            "".join(sorted({c for c in cle if not c.isascii()})) + " ». Une "
+            "vraie clé n'en a\njamais. Celle-ci a été recopiée depuis un "
+            "affichage qui l'avait abrégée.")
+    elif cle and (cle != cle.strip() or " " in cle):
+        fautes.append("La clé porte une espace, en bord ou au milieu.")
+    if fautes:
+        print("À CORRIGER AVANT TOUT :\n")
+        for f in fautes:
+            print("  · " + f.replace("\n", "\n    ") + "\n")
+        print("Rien n'est appelé : une requête avec ces valeurs échoue sans "
+              "atteindre le\nréseau, et c'est précisément ce que la page "
+              "d'état mesure à zéro milliseconde.\n\nLa vraie clé est "
+              "DASHBOARD_API_KEY dans bot/.env. Recopie-la EN ENTIER dans\n"
+              "site/api/secrets.php, puis relance\n"
+              "  python outils/deposer_secrets_etat.py")
+        return 1
 
     requete = urllib.request.Request(
         base + "/api/health",
