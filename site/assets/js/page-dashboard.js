@@ -1350,9 +1350,28 @@
       var hote = $('[data-antilink]');
       if (!hote) return;
       var liste = (CYQ.data && CYQ.data.channels) || [];
-      /* Pas de salons lus : laisser la carte vide plutôt que d'afficher une
-         liste de rien qui ressemblerait à « aucun salon surveillé ». */
-      if (!liste.length) { hote.innerHTML = ''; return; }
+
+      /* Aucun salon : il y a DEUX raisons, très différentes, et les
+         confondre envoie chercher une panne qui n'existe pas. C'est la même
+         distinction que `peindreCombo` fait pour les menus — on la refait
+         ici au lieu de se taire.
+
+         Se taire était le comportement d'avant, et il donnait l'écran que
+         personne ne sait lire : un titre, une phrase d'explication, un
+         champ « Filtrer les salons »… et rien en dessous. Rien ne dit si ce
+         serveur n'a aucun salon textuel, si le panneau n'a pas pu les lire,
+         ou si la page est cassée. */
+      if (!liste.length) {
+        /* Avant le premier chargement, ou sans API : la section est inerte
+           et un avis global le dit déjà. Inutile d'en rajouter ici. */
+        if (!listesLues) { hote.innerHTML = ''; return; }
+        var cleVide = ((CYQ.data && CYQ.data.roles) || []).length
+          ? 'd.noChannel' : 'd.listUnavailable';
+        hote.innerHTML = '<div class="row row--stack">' +
+          '<p class="row__note" data-i18n="' + cleVide + '">' +
+          esc(t(cleVide)) + '</p></div>';
+        return;
+      }
       hote.innerHTML = liste.map(function (c) {
         var id = String(c.id);
         return '<div class="row" data-antilink-row data-nom="' +

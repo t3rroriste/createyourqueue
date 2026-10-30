@@ -745,7 +745,44 @@ class Handler(BaseHTTPRequestHandler):
                 ]
             except Exception as e:
                 # Le bot n'est pas sur ce serveur, ou il lui manque un droit.
+                # Le repli ci-dessous rattrape ce cas.
                 print(f"  Salons/rôles indisponibles pour {gid} : {type(e).__name__}")
+
+        # LE REPLI SUR LE BOT. Sans DISCORD_BOT_TOKEN — le cas normal en
+        # développement — les quatre listes restaient vides EN SILENCE : tous
+        # les menus de salons et de rôles du panneau étaient muets, et la
+        # section Anti-lien n'affichait qu'un filtre sans rien à filtrer.
+        # Le bot tient déjà ces listes. On les lui redemande.
+        #
+        # Le même repli existe dans site/api/index.php, et il doit y rester
+        # identique : une réponse qui diffère entre les deux implémentations,
+        # c'est un écran qui marche en local et pas en ligne.
+        if not all((rep["channels"], rep["voiceChannels"],
+                    rep["categories"], rep["roles"])):
+            code_opt, opt = appel_bot(f"/api/guilds/{gid}/options", {}, "GET")
+            if code_opt == 200 and isinstance(opt, dict):
+                def repli(brut):
+                    """Champ par champ : le front attend {id, name} en
+                    chaînes, et une entrée mal formée doit disparaître plutôt
+                    que d'arriver dans un menu sous la forme « undefined »."""
+                    sortie = []
+                    for e in brut if isinstance(brut, list) else []:
+                        if not isinstance(e, dict) or "id" not in e or "name" not in e:
+                            continue
+                        un = {"id": str(e["id"]), "name": str(e["name"])}
+                        if "position" in e:
+                            un["position"] = int(e["position"])
+                        sortie.append(un)
+                    return sortie
+
+                if not rep["channels"]:
+                    rep["channels"] = repli(opt.get("text"))
+                if not rep["voiceChannels"]:
+                    rep["voiceChannels"] = repli(opt.get("voice"))
+                if not rep["categories"]:
+                    rep["categories"] = repli(opt.get("category"))
+                if not rep["roles"]:
+                    rep["roles"] = repli(opt.get("role"))
 
         self.json_out(200, rep)
 
