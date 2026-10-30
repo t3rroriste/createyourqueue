@@ -140,20 +140,38 @@ def montrer(etat: dict) -> None:
     print("  en route depuis    : " + str(etat.get("uptime_seconds", "?")) + " s")
 
 
-def attendre_retour(base: str, cle: str, avant: int) -> dict | None:
-    """Le bot revenu, ou None s'il ne revient pas.
+def attendre_retour(base: str, cle: str, avant: int):
+    """(état, connecté) une fois le bot revenu, ou (None, False) s'il ne
+    revient pas.
 
-    On ne se contente pas d'une réponse : on exige un `uptime_seconds` PLUS
-    PETIT qu'avant. Sans cette comparaison, l'ancien processus encore en
-    train de se fermer répondrait « ok » et on annoncerait un redémarrage
-    qui n'a pas eu lieu."""
+    Deux exigences, et aucune n'est superflue.
+
+    Un `uptime_seconds` PLUS PETIT qu'avant : sans cette comparaison,
+    l'ancien processus encore en train de se fermer répondrait « ok » et on
+    annoncerait un redémarrage qui n'a pas eu lieu.
+
+    Et des serveurs. Le port HTTP s'ouvre AVANT que la passerelle Discord
+    soit connectée : au premier essai réussi, le 30 octobre 2026, l'outil a
+    annoncé « le bot tourne » à une seconde de vie, alors que `guilds`
+    valait encore 0 — seize secondes plus tard il en voyait huit. Se
+    contenter du port masquerait exactement le cas qu'on veut attraper : un
+    bot qui démarre mais n'atteint jamais Discord.
+    """
     limite = time.time() + RETOUR_MAX
+    neuf = None
     while time.time() < limite:
         time.sleep(RETOUR_PAS)
         etat = sante(base, cle)
-        if etat is not None and int(etat.get("uptime_seconds", avant)) < avant:
-            return etat
-    return None
+        if etat is None:
+            continue
+        if int(etat.get("uptime_seconds", avant)) >= avant:
+            # L'ancien processus répond encore.
+            continue
+        neuf = etat
+        if int(etat.get("guilds", 0)) > 0:
+            return etat, True
+    # Revenu mais sans passerelle, ou pas revenu du tout.
+    return neuf, False
 
 
 def redemarrer(base: str, cle: str, force: bool) -> int:
@@ -195,7 +213,8 @@ def redemarrer(base: str, cle: str, force: bool) -> int:
         return 1
 
     print("\nRedémarrage accepté. On attend son retour.")
-    apres = attendre_retour(base, cle, uptime_avant)
+    apres, connecte = attendre_retour(base, cle, uptime_avant)
+
     if apres is None:
         print(f"\nLE BOT N'EST PAS REVENU en {RETOUR_MAX} s.\n"
               "  C'est le cas grave : le code publié ne démarre peut-être pas. "
@@ -205,7 +224,19 @@ def redemarrer(base: str, cle: str, force: bool) -> int:
 
     print("Après :")
     montrer(apres)
-    print("\nLe bot tourne sur le code publié.")
+
+    if not connecte:
+        # Le processus est là, son port répond, mais il ne voit aucun
+        # serveur. Ce n'est pas « revenu » : c'est un bot qui démarre sans
+        # atteindre Discord — jeton refusé, réseau sortant bloqué, ou
+        # passerelle qui boucle sur une erreur.
+        print(f"\nLe processus a bien redémarré, mais il ne voit AUCUN serveur "
+              f"après {RETOUR_MAX} s.\n  Sa passerelle Discord n'est pas "
+              "connectée. La console du panneau AdKyNet dit\n  pourquoi.",
+              file=sys.stderr)
+        return 1
+
+    print("\nLe bot tourne sur le code publié, et il est connecté à Discord.")
     return 0
 
 
