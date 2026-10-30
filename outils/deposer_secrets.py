@@ -147,8 +147,13 @@ def main() -> int:
 
     envois = []
     if args.cible in ("panneau", "tout"):
+        # « api/secrets.php » et non « secrets.php » : index.php fait
+        # include __DIR__ . '/secrets.php', et __DIR__ est le dossier api/.
+        # Déposé à la racine, le fichier n'est lu par personne — et il
+        # traîne dans un dossier public, ce qu'un fichier de secrets n'a
+        # aucune raison de faire.
         envois.append(("panneau", conf.get("racine_app", ""), PANNEAU,
-                       "secrets.php", "racine_app"))
+                       "api/secrets.php", "racine_app"))
     if args.cible in ("etat", "tout"):
         envois.append(("état", conf.get("racine_status", ""), ETAT,
                        "etat.secrets.php", "racine_status"))
