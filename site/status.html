@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302153">
-<link rel="stylesheet" href="assets/css/status.css?v=202610302153">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302157">
+<link rel="stylesheet" href="assets/css/status.css?v=202610302157">
 <script>
 // Pas de garde anti-flash ici, et pas d'anime.js non plus : c'est LA page
 // qu'on ouvre quand quelque chose ne marche plus. Elle ne doit dépendre de
@@ -152,6 +152,18 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
        de l'origine : cette page est servie par status.cyqbot.eu, donc ses
        liens vers la vitrine passent par `data-site`, qui les rend absolus.
        Et le badge d'état n'y est pas : il mènerait à la page qu'on lit. -->
+  <!-- cyq:pied origine=externe statut=non -->
+  <!-- Le pied de page, pour TOUTES les pages de la vitrine.
+       Source unique : outils/fragments.py la recopie dans chaque page entre
+       ses deux repères. Ne pas modifier le résultat dans une page — il sera
+       réécrit au prochain passage, et la correction sera perdue.
+
+       Deux paramètres :
+         origine   site (la vitrine) · externe (status, sur son sous-domaine)
+         statut    oui · non (la pastille « État du service »)
+
+       `statut=non` sur la page d'état elle-même : un lien vers soi-même, au
+       pied de la page vers laquelle il mène, n'est pas un raccourci. -->
   <footer class="foot">
     <div class="foot__grid">
 
@@ -166,7 +178,9 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
       <nav class="foot__col" aria-labelledby="pied-produit">
         <h2 class="foot__title" id="pied-produit" data-i18n="f.product">Produit</h2>
         <a href="modules" data-site="modules" data-i18n="m.nav">Modules</a>
-        <a href="guide" data-site="guide" data-i18n="n.docs">Documentation</a>
+        <!-- href="guide" et non "#" : voir le fragment de la nav, même
+             raison — le lien doit mener quelque part sans DOCS_URL. -->
+        <a href="guide" data-site="guide" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
         <a href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
       </nav>
 
@@ -180,18 +194,21 @@ if (/[?&]motion=on(&|$)/.test(location.search)) {
 
     <div class="foot__bar">
       <span class="foot__fine">© 2026 CreateYourQueue</span>
+      <!-- PRIVACY_URL vaut « # » tant qu'il n'y a pas de page : app.js ne
+           récrit alors rien, et le lien ne prétend pas mener ailleurs. -->
       <a href="#" data-cfg-link="PRIVACY_URL" data-i18n="n.privacy">Confidentialité</a>
     </div>
   </footer>
+  <!-- cyq:/pied -->
 </main>
 
-<script src="assets/js/config.js?v=202610302153"></script>
-<script src="assets/js/lang/fr.js?v=202610302153"></script>
-<script src="assets/js/lang/en.js?v=202610302153"></script>
-<script src="assets/js/lang/es.js?v=202610302153"></script>
-<script src="assets/js/lang/de.js?v=202610302153"></script>
-<script src="assets/js/lang/ko.js?v=202610302153"></script>
-<script src="assets/js/app.js?v=202610302153"></script>
-<script src="assets/js/page-status.js?v=202610302153"></script>
+<script src="assets/js/config.js?v=202610302157"></script>
+<script src="assets/js/lang/fr.js?v=202610302157"></script>
+<script src="assets/js/lang/en.js?v=202610302157"></script>
+<script src="assets/js/lang/es.js?v=202610302157"></script>
+<script src="assets/js/lang/de.js?v=202610302157"></script>
+<script src="assets/js/lang/ko.js?v=202610302157"></script>
+<script src="assets/js/app.js?v=202610302157"></script>
+<script src="assets/js/page-status.js?v=202610302157"></script>
 </body>
 </html>

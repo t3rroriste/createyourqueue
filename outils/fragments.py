@@ -69,7 +69,9 @@ REPERES = re.compile(
 )
 
 PARAM = re.compile(r"([a-z][a-z0-9_-]*)=([^\s]+)")
-JETON = re.compile(r"\{\{(si|sinon|/si|=)[ \t]*([^}]*?)[ \t]*\}\}")
+# `sinon` AVANT `si` : l'alternation s'arrête au premier qui colle, et
+# « si » colle au début de « sinon » — {{sinon}} se lisait {{si non}}.
+JETON = re.compile(r"\{\{(sinon|si|/si|=)[ \t]*([^}]*?)[ \t]*\}\}")
 
 # Un jeton seul sur sa ligne : on mange la ligne entière, lui compris.
 # Sinon `{{si}}` posé sur sa propre ligne laisserait une ligne vide dans

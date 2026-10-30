@@ -12,8 +12,8 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302153">
-<link rel="stylesheet" href="assets/css/guide.css?v=202610302153">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302157">
+<link rel="stylesheet" href="assets/css/guide.css?v=202610302157">
 <script>
 // Même garde que sur l'accueil : on masque le temps que les états de départ
 // soient posés, avec un retrait automatique qui ne dépend pas d'anime.js.
@@ -34,14 +34,35 @@
 <a class="skip" href="#main" data-i18n="c.skip">Aller au contenu</a>
 
 <!-- ===================== navigation ===================== -->
+<!-- cyq:nav courant=guide origine=site -->
+<!-- La barre de navigation, pour TOUTES les pages qui en portent une.
+     Source unique : outils/fragments.py la recopie dans chaque page entre
+     ses deux repères. Ne pas modifier le résultat dans une page — il sera
+     réécrit au prochain passage, et la correction sera perdue.
+
+     Deux paramètres :
+       courant   index · modules · guide · support · aucun
+       origine   site (la vitrine) · app (login, servers, le panneau)
+
+     `origine=app` ajoute les data-site : depuis le panneau, un lien vers
+     la vitrine change de domaine, et c'est app.js qui le rend absolu. -->
 <nav class="nav" aria-label="Principale" data-nav>
   <a class="nav__mark" href="index">
     <img src="assets/img/logo.png" alt="" width="22" height="22">
     <span>CreateYourQueue</span>
   </a>
   <div class="nav__links">
-    <a href="guide" aria-current="page" data-i18n="n.docs">Documentation</a>
+    <!-- href="guide" et non "#" : DOCS_URL vaut « guide » aujourd'hui,
+         mais un lien de la vitrine ne doit pas dépendre d'un réglage pour
+         mener quelque part. app.js récrit par-dessus quand DOCS_URL est
+         posé, et ne touche à rien quand il est vide. -->
+    <a href="guide" data-cfg-link="DOCS_URL" aria-current="page" data-i18n="n.docs">Documentation</a>
     <a href="modules" data-i18n="m.nav">Modules</a>
+    <!-- Pas de data-cfg-link ici, contrairement aux autres entrées :
+         SUPPORT_URL désigne le serveur Discord, et app.js récrivait ce
+         lien avec. L'onglet Support ne menait donc jamais à la page
+         Support — il sautait sur Discord. Le serveur garde sa carte dans
+         la page, où il a sa place. -->
     <a href="support" data-i18n="n.support">Support</a>
   </div>
   <div class="langmenu">
@@ -50,11 +71,11 @@
       <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
     <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
-        <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
     </div>
   </div>
   <!-- data-login : app.js y pose l'URL de connexion. Sans cet attribut,
@@ -64,6 +85,7 @@
     <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
   </a>
 </nav>
+<!-- cyq:/nav -->
 
 <main class="shell" id="main">
   <div class="grain" aria-hidden="true"></div>
@@ -199,6 +221,18 @@
   <!-- ======================== pied ======================== -->
   <!-- Le même pied que l'accueil, au caractère près : c'est le même bloc
        sur toute la vitrine, et deux variantes finiraient par diverger. -->
+  <!-- cyq:pied origine=site statut=oui -->
+  <!-- Le pied de page, pour TOUTES les pages de la vitrine.
+       Source unique : outils/fragments.py la recopie dans chaque page entre
+       ses deux repères. Ne pas modifier le résultat dans une page — il sera
+       réécrit au prochain passage, et la correction sera perdue.
+
+       Deux paramètres :
+         origine   site (la vitrine) · externe (status, sur son sous-domaine)
+         statut    oui · non (la pastille « État du service »)
+
+       `statut=non` sur la page d'état elle-même : un lien vers soi-même, au
+       pied de la page vers laquelle il mène, n'est pas un raccourci. -->
   <footer class="foot">
     <div class="foot__grid">
 
@@ -217,7 +251,9 @@
       <nav class="foot__col" aria-labelledby="pied-produit">
         <h2 class="foot__title" id="pied-produit" data-i18n="f.product">Produit</h2>
         <a href="modules" data-i18n="m.nav">Modules</a>
-        <a href="#" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
+        <!-- href="guide" et non "#" : voir le fragment de la nav, même
+             raison — le lien doit mener quelque part sans DOCS_URL. -->
+        <a href="guide" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
         <a href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
       </nav>
 
@@ -231,19 +267,22 @@
 
     <div class="foot__bar">
       <span class="foot__fine">© 2026 CreateYourQueue</span>
+      <!-- PRIVACY_URL vaut « # » tant qu'il n'y a pas de page : app.js ne
+           récrit alors rien, et le lien ne prétend pas mener ailleurs. -->
       <a href="#" data-cfg-link="PRIVACY_URL" data-i18n="n.privacy">Confidentialité</a>
     </div>
   </footer>
+  <!-- cyq:/pied -->
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302153"></script>
-<script src="assets/js/config.js?v=202610302153"></script>
-<script src="assets/js/lang/fr.js?v=202610302153"></script>
-<script src="assets/js/lang/en.js?v=202610302153"></script>
-<script src="assets/js/lang/es.js?v=202610302153"></script>
-<script src="assets/js/lang/de.js?v=202610302153"></script>
-<script src="assets/js/lang/ko.js?v=202610302153"></script>
-<script src="assets/js/app.js?v=202610302153"></script>
-<script src="assets/js/page-guide.js?v=202610302153"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302157"></script>
+<script src="assets/js/config.js?v=202610302157"></script>
+<script src="assets/js/lang/fr.js?v=202610302157"></script>
+<script src="assets/js/lang/en.js?v=202610302157"></script>
+<script src="assets/js/lang/es.js?v=202610302157"></script>
+<script src="assets/js/lang/de.js?v=202610302157"></script>
+<script src="assets/js/lang/ko.js?v=202610302157"></script>
+<script src="assets/js/app.js?v=202610302157"></script>
+<script src="assets/js/page-guide.js?v=202610302157"></script>
 </body>
 </html>

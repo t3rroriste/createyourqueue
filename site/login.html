@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302153">
-<link rel="stylesheet" href="assets/css/auth.css?v=202610302153">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302157">
+<link rel="stylesheet" href="assets/css/auth.css?v=202610302157">
 <script>
 // Même garde que l'accueil : le bloc reste masqué le temps que le script
 // pose les états de départ, et se découvre tout seul après 1,8 s si le
@@ -34,14 +34,35 @@
 
 <a class="skip" href="#main" data-i18n="c.skip">Aller au contenu</a>
 
+<!-- cyq:nav courant=aucun origine=app -->
+<!-- La barre de navigation, pour TOUTES les pages qui en portent une.
+     Source unique : outils/fragments.py la recopie dans chaque page entre
+     ses deux repères. Ne pas modifier le résultat dans une page — il sera
+     réécrit au prochain passage, et la correction sera perdue.
+
+     Deux paramètres :
+       courant   index · modules · guide · support · aucun
+       origine   site (la vitrine) · app (login, servers, le panneau)
+
+     `origine=app` ajoute les data-site : depuis le panneau, un lien vers
+     la vitrine change de domaine, et c'est app.js qui le rend absolu. -->
 <nav class="nav" aria-label="Principale" data-nav>
   <a class="nav__mark" href="index" data-site="index">
     <img src="assets/img/logo.png" alt="" width="22" height="22">
     <span>CreateYourQueue</span>
   </a>
   <div class="nav__links">
-    <a href="#" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
+    <!-- href="guide" et non "#" : DOCS_URL vaut « guide » aujourd'hui,
+         mais un lien de la vitrine ne doit pas dépendre d'un réglage pour
+         mener quelque part. app.js récrit par-dessus quand DOCS_URL est
+         posé, et ne touche à rien quand il est vide. -->
+    <a href="guide" data-site="guide" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
     <a href="modules" data-site="modules" data-i18n="m.nav">Modules</a>
+    <!-- Pas de data-cfg-link ici, contrairement aux autres entrées :
+         SUPPORT_URL désigne le serveur Discord, et app.js récrivait ce
+         lien avec. L'onglet Support ne menait donc jamais à la page
+         Support — il sautait sur Discord. Le serveur garde sa carte dans
+         la page, où il a sa place. -->
     <a href="support" data-site="support" data-i18n="n.support">Support</a>
   </div>
   <div class="langmenu">
@@ -59,6 +80,7 @@
   </div>
   <a class="pill pill--ghost pill--sm" href="index" data-site="index" data-i18n="c.back">Retour</a>
 </nav>
+<!-- cyq:/nav -->
 
 <main class="shell" id="main">
   <div class="grain" aria-hidden="true"></div>
@@ -120,14 +142,14 @@
   </div>
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302153"></script>
-<script src="assets/js/config.js?v=202610302153"></script>
-<script src="assets/js/lang/fr.js?v=202610302153"></script>
-<script src="assets/js/lang/en.js?v=202610302153"></script>
-<script src="assets/js/lang/es.js?v=202610302153"></script>
-<script src="assets/js/lang/de.js?v=202610302153"></script>
-<script src="assets/js/lang/ko.js?v=202610302153"></script>
-<script src="assets/js/app.js?v=202610302153"></script>
-<script src="assets/js/page-login.js?v=202610302153"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302157"></script>
+<script src="assets/js/config.js?v=202610302157"></script>
+<script src="assets/js/lang/fr.js?v=202610302157"></script>
+<script src="assets/js/lang/en.js?v=202610302157"></script>
+<script src="assets/js/lang/es.js?v=202610302157"></script>
+<script src="assets/js/lang/de.js?v=202610302157"></script>
+<script src="assets/js/lang/ko.js?v=202610302157"></script>
+<script src="assets/js/app.js?v=202610302157"></script>
+<script src="assets/js/page-login.js?v=202610302157"></script>
 </body>
 </html>
