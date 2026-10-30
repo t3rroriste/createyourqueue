@@ -400,9 +400,28 @@ def main() -> int:
         return recuperer(conf, curl, base, os.path.abspath(args.recuperer))
 
     if not args.sans_numerotation and not args.essai:
+        # Les blocs communs d'abord : une page dont la nav a dérivé de son
+        # fragment partirait telle quelle, et les `?v=` doivent numéroter
+        # ce qui part, pas l'état d'avant la recopie.
+        subprocess.run([sys.executable, os.path.join(OUTILS_DIR, "fragments.py"),
+                        "--silencieux"], cwd=RACINE)
         subprocess.run([sys.executable, os.path.join(OUTILS_DIR, "numeroter_versions.py"),
                         "--silencieux"], cwd=RACINE)
         print()
+
+    # Les langues : on AVERTIT, on ne bloque pas. Même raison que pour les
+    # fichiers non déclarés — une clé manquante ne casse que la langue
+    # concernée, et refuser une mise en ligne entière pour ça empêcherait
+    # de corriger en urgence ce qui n'a rien à voir. Mais elle se dit
+    # fort, parce qu'une fois en ligne la page affiche la clé nue.
+    if not args.essai:
+        manque = subprocess.run(
+            [sys.executable, os.path.join(OUTILS_DIR, "verifier_langues.py"),
+             "--silencieux"], cwd=RACINE)
+        if manque.returncode:
+            print("  ! Des clés de langue manquent — voir ci-dessus.")
+            print("    python outils/verifier_langues.py --completer")
+            print("    La mise en ligne continue.\n")
 
     return envoyer(conf, curl, base, args.cible, args.essai)
 
