@@ -102,6 +102,23 @@ DirectoryIndex index.html login.html status.html
 # en clair. À commenter uniquement si le certificat n'est pas encore posé.
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # RewriteBase est INDISPENSABLE ici, et son absence a coûté une
+  # soirée. Sans elle, Apache DEVINE le préfixe d'URL du dossier où se
+  # trouve ce .htaccess, en comparant le chemin disque à l'URL
+  # demandée. Sur cyqbot.eu, où ce dossier EST la racine documentaire,
+  # il devine juste. Sur les deux sous-domaines, dont la racine
+  # documentaire est un sous-dossier du compte, il devine faux : une
+  # réécriture interne vers « servers.html » partait alors vers une
+  # adresse qui n'existe nulle part, et /servers répondait 404 sur
+  # dashboard.cyqbot.eu alors que servers.html y était bien — la page
+  # même sur laquelle OAuth retombe.
+  #
+  # Les redirections [R=301] n'étaient pas touchées, leur cible étant
+  # une URL absolue : d'où une panne qui ne se voyait que sur les
+  # adresses courtes, et seulement sur les sous-domaines.
+  RewriteBase /
+
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
@@ -172,16 +189,10 @@ DirectoryIndex index.html login.html status.html
   RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.html[\s?]
   RewriteRule ^(welcome|servers|dashboard|modules|guide|support)\.html$ /$1 [R=301,L,QSA]
 
-  # AUCUNE CONDITION `-f` ICI, ET C'EST VOLONTAIRE.
-  # Elle y était le 29 octobre, et elle a cassé la connexion au panneau :
-  # /servers répondait 404 sur dashboard.cyqbot.eu alors que servers.html
-  # y était bien, et c'est précisément la page sur laquelle OAuth
-  # retombe. En cause, %{REQUEST_FILENAME} : LWS sert ses sous-domaines
-  # par VirtualDocumentRoot, et dans un .htaccess qui n'est pas à la
-  # racine documentaire d'un vhost ordinaire, mod_rewrite n'a pas résolu
-  # le chemin du fichier — la variable vaut encore « /servers », le test
-  # porte donc sur « /servers.html » à la racine du disque, et échoue
-  # toujours. Sur la vitrine, où le .htaccess EST à la racine documentaire,
-  # la même règle marchait : d'où une panne qui ne touchait que le panneau.
+  # Pas de condition `-f` : le 404 des sous-domaines venait de
+  # RewriteBase, pas d'elle, mais elle ne servait à rien non plus. Une
+  # page absente de l'hôte — /guide sur le panneau — donne le 404
+  # d'Apache avec ou sans elle, et la liste explicite ci-dessus est le
+  # vrai garde-fou : /api n'y figure pas, donc n'y passe pas.
   RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide|support)$ $1.html [L,QSA]
 </IfModule>
