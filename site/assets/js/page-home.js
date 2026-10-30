@@ -252,15 +252,9 @@
        choses, pas comment elles y sont arrivées. Il est passif, il ne lit
        que des rectangles, et il se retire tout seul quand tout a joué. */
     var restant = secs.slice();
-    var tetePrete = !tete.length;
 
     function controler() {
       var limite = window.innerHeight * 0.85;
-
-      if (!tetePrete && mhead && mhead.getBoundingClientRect().top < limite) {
-        tetePrete = true;
-        tlTete.play();
-      }
 
       for (var i = restant.length - 1; i >= 0; i--) {
         if (restant[i].getBoundingClientRect().top >= limite) continue;
@@ -268,14 +262,14 @@
         restant.splice(i, 1);
       }
 
-      if (!restant.length && tetePrete) {
+      if (!restant.length) {
         window.removeEventListener('scroll', planifier);
         window.removeEventListener('resize', planifier);
       }
     }
 
     /* Une lecture par image au plus : le défilement en émet bien davantage,
-       et mesurer sept rectangles à chaque événement coûterait un calcul de
+       et mesurer huit rectangles à chaque événement coûterait un calcul de
        mise en page à chaque fois. */
     var prevu = false;
     function planifier() {
@@ -506,4 +500,43 @@
                          mouvement sans passer par page-home.js.           */
   document.addEventListener('cyq:titre-libre', partir);
   setTimeout(partir, 1900);
+})();
+
+
+/* =========================================================================
+   LA FAQ
+   =========================================================================
+   Dans sa propre IIFE, pour la même raison que la boucle du titre : la
+   fonction du dessus sort à sa deuxième ligne quand `window.anime` manque,
+   et une FAQ qui ne s'ouvre plus parce qu'une bibliothèque d'animation n'a
+   pas chargé serait un contenu perdu, pas un effet perdu.
+
+   Elle ne doit donc rien à anime.js, et elle n'anime rien : ouvrir une
+   réponse change la hauteur de la page, et animer une hauteur fait
+   recalculer la mise en page à chaque image. Le site n'anime que
+   `transform` et `opacity` — une réponse paraît, c'est tout.
+
+   Chaque question peut rester ouverte avec les autres. Un accordéon qui
+   referme la précédente est un geste de plus à comprendre, et il enlève à
+   quelqu'un ce qu'il venait d'ouvrir pour comparer deux réponses.
+   ========================================================================= */
+(function faq() {
+  'use strict';
+
+  var qs = document.querySelectorAll('[data-faq]');
+  if (!qs.length) return;
+
+  Array.prototype.forEach.call(qs, function (q) {
+    q.addEventListener('click', function () {
+      var rep = document.getElementById(q.getAttribute('aria-controls'));
+      if (!rep) return;
+      var ouvert = q.getAttribute('aria-expanded') === 'true';
+      q.setAttribute('aria-expanded', String(!ouvert));
+      /* `hidden` et non une classe : c'est l'attribut que les lecteurs
+         d'écran et la recherche du navigateur comprennent déjà, et
+         home.css le force en `display: none` pour tout le site. */
+      if (ouvert) rep.setAttribute('hidden', '');
+      else rep.removeAttribute('hidden');
+    });
+  });
 })();
