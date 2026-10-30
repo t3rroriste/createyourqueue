@@ -12,9 +12,14 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302116">
-<!-- La page Modules est reprise entière dans l'accueil : sa feuille suit. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610302116">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302119">
+<!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
+     reprend plus les six sections de la page Modules, mais il affiche deux
+     embeds — dans le héros et dans la démo — et c'est cette feuille qui
+     sait les dessiner. Une seconde grammaire d'embed se contredirait avec
+     celle-ci au premier changement de couleur. -->
+<link rel="stylesheet" href="assets/css/modules.css?v=202610302119">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610302119">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -183,461 +188,383 @@
   </div>
 
 
-  <!-- ===================== les modules, en entier =====================
-       La page Modules est reprise ici telle quelle : même balisage, même
-       feuille (modules.css), mêmes maquettes. Elle n'est pas résumée — un
-       résumé serait un second texte à tenir à jour, et il finirait par
-       mentir. modules.html reste en place et sert les mêmes ancres.
+  <!-- ============== SECTION 2 · trois repères vérifiables ==============
+       La maquette affichait ici 142 serveurs, 7 files actives et 99,8 % de
+       disponibilité. Cette page est statique : elle n'appelle aucune API et
+       ne peut rien savoir de tout cela. Restent les deux chiffres que le
+       dépôt prouve — six modules, cinq langues — et l'état du service, qui
+       redevient ce qu'il est : un lien, pas une affirmation. -->
+  <section class="stats" data-mod>
+    <div class="stats__in">
 
-       L'enveloppe n'est PAS décorative, mais son rôle a changé. Elle a été
-       le calque qui passait par-dessus un héros épinglé — sans lui, les
-       modules défilaient derrière le héros et on ne voyait que lui. Le
-       héros n'est plus épinglé depuis que l'accueil défile d'un seul
-       tenant, donc ce calque n'existe plus.
-
-       Ce qu'elle fait aujourd'hui : elle désigne « les modules lus dans
-       l'accueil ». modules.css est écrite pour une page entière qui ne
-       contient qu'eux ; deux règles de home.css s'accrochent ici pour la
-       ramener à un chapitre — l'en-tête ne réserve plus la place de la nav,
-       et un module ne fait plus un écran de haut. Retirer cette div rendrait
-       ces deux règles impossibles à viser sans toucher modules.html. -->
-  <div class="homemods">
-    <!-- ======================= en-tête ======================= -->
-    <header class="mhead">
-      <p class="label" data-reveal data-i18n="m.eyebrow">Les modules</p>
-      <h2 class="mhead__title" id="modules" data-reveal data-i18n="m.title"></h2>
-      <p class="lead mhead__lead" data-reveal data-i18n="m.lead"></p>
-    </header>
-
-    <!-- =========================== 01 — queue =========================== -->
-    <section class="mod" id="queue" data-mod>
-      <div class="mod__in">
-        <div class="mod__text">
-          <h2 class="mod__title" data-i18n="m.queueT"></h2>
-          <p class="mod__body" data-i18n="m.queueL"></p>
-        </div>
-        <!-- Maquette, pas une capture : la grammaire de Discord (salon,
-             message, embed, boutons) composée avec les tokens du site, pour
-             qu'elle vieillisse avec lui. Ces six blocs sont les mêmes que
-             dans modules.html : les toucher ici oblige à les y porter. -->
-        <div class="mod__visual" aria-hidden="true" data-mod-visual>
-          <div class="mock mock--queue">
-            <div class="mock__bar">
-              <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-              <span class="mock__bar-name">queue-5v5</span>
-              <span class="mock__bar-topic">Scrims du soir · rejoindre avec les boutons</span>
-              <span class="mock__bar-tools">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg>
-              </span>
-            </div>
-            <div class="mock__chat">
-              <div class="mock__msg">
-                <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
-                <div class="mock__main">
-                  <div class="mock__head">
-                    <span class="mock__name">CreateYourQueue</span>
-                    <span class="mock__app">APP</span>
-                    <span class="mock__time">Aujourd’hui à 21:04</span>
-                    <span class="mock__edited">(modifié)</span>
-                  </div>
-                  <div class="mock__embed">
-                    <div class="mock__embed-author"><span class="mock__av mock__av--xs">N</span>Queue ouverte par Nova</div>
-                    <div class="mock__embed-title">Scrim du soir</div>
-                    <div class="mock__fields">
-                      <div class="mock__field"><span class="mock__field-k">Format</span><span class="mock__field-v">2 × 5</span></div>
-                      <div class="mock__field"><span class="mock__field-k">Places</span><span class="mock__field-v">4 / 10</span></div>
-                      <div class="mock__field"><span class="mock__field-k">Preset</span><span class="mock__field-v">Ranked</span></div>
-                    </div>
-                    <div class="mock__teams">
-                      <div class="mock__team">
-                        <div class="mock__team-head"><span class="mock__swatch mock__swatch--acc"></span>Alpha<span class="mock__team-n">2/5</span></div>
-                        <div class="mock__slot"><span class="mock__av mock__av--sm">N</span>Nova</div>
-                        <div class="mock__slot"><span class="mock__av mock__av--sm">M</span>Mira</div>
-                        <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
-                        <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
-                        <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
-                      </div>
-                      <div class="mock__team">
-                        <div class="mock__team-head"><span class="mock__swatch"></span>Bravo<span class="mock__team-n">2/5</span></div>
-                        <div class="mock__slot"><span class="mock__av mock__av--sm">K</span>Kite</div>
-                        <div class="mock__slot"><span class="mock__av mock__av--sm">D</span>Dax</div>
-                        <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
-                        <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
-                        <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
-                      </div>
-                    </div>
-                    <div class="mock__embed-foot">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
-                      <span>Rassemblement dans Attente scrim · 4 connectés</span>
-                    </div>
-                  </div>
-                  <div class="mock__btns">
-                    <span class="mock__btn mock__btn--primary">Rejoindre</span>
-                    <span class="mock__btn">Quitter</span>
-                    <span class="mock__btn mock__btn--off">Lancer</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="stat">
+        <p class="label" data-reveal-text data-i18n="st.modules">Modules</p>
+        <p class="stat__n" data-reveal-text>6</p>
       </div>
-    </section>
 
-    <!-- ======================= 02 — match & mmr ======================== -->
-    <section class="mod" id="mmr" data-mod>
-      <div class="mod__in">
-        <div class="mod__text">
-          <h2 class="mod__title" data-i18n="m.mmrT"></h2>
-          <p class="mod__body" data-i18n="m.mmrL"></p>
-        </div>
-        <div class="mod__visual" aria-hidden="true" data-mod-visual>
-          <div class="mock mock--mmr">
-            <div class="mock__bar">
-              <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-              <span class="mock__bar-name">classement</span>
-              <span class="mock__bar-topic">Republié par le bot après chaque match</span>
-            </div>
-            <div class="mock__chat">
-              <div class="mock__msg">
-                <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
-                <div class="mock__main">
-                  <div class="mock__head">
-                    <span class="mock__name">CreateYourQueue</span>
-                    <span class="mock__app">APP</span>
-                    <span class="mock__time">Aujourd’hui à 22:31</span>
-                  </div>
-                  <div class="mock__embed">
-                    <div class="mock__embed-title">Vote MVP — match #42</div>
-                    <p class="mock__text mock__text--sub">Une voix par joueur, deux minutes pour voter.</p>
-                    <div class="mock__embed-foot">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                      <span>Vote clos · 4 voix sur 4 · MVP : Nova</span>
-                    </div>
-                  </div>
-                  <div class="mock__btns">
-                    <span class="mock__btn mock__btn--primary">Nova<span class="mock__btn-n">3</span></span>
-                    <span class="mock__btn">Kite<span class="mock__btn-n">1</span></span>
-                    <span class="mock__btn">Mira<span class="mock__btn-n">0</span></span>
-                    <span class="mock__btn">Dax<span class="mock__btn-n">0</span></span>
-                  </div>
-                </div>
-              </div>
-              <!-- Message groupé : même auteur, quelques minutes plus tard.
-                   Discord ne répète ni l'avatar ni le nom, d'où la gouttière
-                   laissée vide. -->
-              <div class="mock__msg mock__msg--cont">
-                <span></span>
-                <div class="mock__main">
-                  <div class="mock__embed">
-                    <div class="mock__embed-title">Classement — saison 3</div>
-                    <div class="mock__code">
-                      <div class="mock__code-row mock__code-row--head"><span>#</span><span>Joueur</span><span class="mock__num">MMR</span><span class="mock__num">±</span></div>
-                      <div class="mock__code-row"><span>1</span><span>Nova</span><span class="mock__num">1 135</span><span class="mock__num mock__up--acc">+35</span></div>
-                      <div class="mock__code-row"><span>2</span><span>Kite</span><span class="mock__num">1 090</span><span class="mock__num">+20</span></div>
-                      <div class="mock__code-row"><span>3</span><span>Mira</span><span class="mock__num">985</span><span class="mock__num mock__down">−15</span></div>
-                      <div class="mock__code-row"><span>4</span><span>Dax</span><span class="mock__num">960</span><span class="mock__num mock__down">−15</span></div>
-                    </div>
-                    <div class="mock__embed-foot"><span>Après le match #42 · départ 1 000 · victoire +20 · MVP +15</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <span class="stats__bar" aria-hidden="true"></span>
+
+      <div class="stat">
+        <p class="label" data-reveal-text data-i18n="st.langs">Langues</p>
+        <p class="stat__n" data-reveal-text>5</p>
       </div>
-    </section>
 
-    <!-- ============================ 03 — duel =========================== -->
-    <section class="mod" id="duel" data-mod>
-      <div class="mod__in">
-        <div class="mod__text">
-          <h2 class="mod__title" data-i18n="m.duelT"></h2>
-          <p class="mod__body" data-i18n="m.duelL"></p>
-        </div>
-        <div class="mod__visual" aria-hidden="true" data-mod-visual>
-          <div class="mock mock--duel">
-            <div class="mock__bar">
-              <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-              <span class="mock__bar-name">duels</span>
-              <span class="mock__bar-topic">Défis entre équipes · score confirmé au vote</span>
-            </div>
-            <div class="mock__chat">
-              <div class="mock__msg">
-                <div class="mock__used"><span class="mock__av mock__av--xs">N</span><span>Nova a utilisé</span><span class="mock__used-cmd">/duel</span></div>
-                <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
-                <div class="mock__main">
-                  <div class="mock__head">
-                    <span class="mock__name">CreateYourQueue</span>
-                    <span class="mock__app">APP</span>
-                    <span class="mock__time">Aujourd’hui à 21:47</span>
-                    <span class="mock__edited">(modifié)</span>
-                  </div>
-                  <div class="mock__embed">
-                    <div class="mock__embed-author">Duel #17 · Alpha défie Bravo</div>
-                    <div class="mock__vs">
-                      <div class="mock__side-team">
-                        <span class="mock__side-name">Alpha</span>
-                        <span class="mock__stack"><span class="mock__av mock__av--sm">N</span><span class="mock__av mock__av--sm">M</span></span>
-                        <span class="mock__side-who">Nova · Mira</span>
-                      </div>
-                      <div class="mock__score">
-                        <span class="mock__score-v"><span class="mock__score-acc">13</span> <span class="mock__score-sep">–</span> 9</span>
-                        <span class="mock__score-k">score proposé par Nova</span>
-                      </div>
-                      <div class="mock__side-team mock__side-team--end">
-                        <span class="mock__side-name">Bravo</span>
-                        <span class="mock__stack"><span class="mock__av mock__av--sm">K</span><span class="mock__av mock__av--sm">D</span></span>
-                        <span class="mock__side-who">Kite · Dax</span>
-                      </div>
-                    </div>
-                    <div class="mock__rule"></div>
-                    <div class="mock__fields">
-                      <div class="mock__field"><span class="mock__field-k">Confirmation</span><span class="mock__field-v">3 / 4 voix</span></div>
-                      <div class="mock__field"><span class="mock__field-k">Temps restant</span><span class="mock__field-v">1 min 58 s</span></div>
-                    </div>
-                    <div class="mock__embed-foot">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                      <span>Le score compte une fois confirmé dans le temps imparti</span>
-                    </div>
-                  </div>
-                  <div class="mock__btns">
-                    <span class="mock__btn mock__btn--primary">Confirmer<span class="mock__btn-n">3</span></span>
-                    <span class="mock__btn">Contester<span class="mock__btn-n">0</span></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+      <span class="stats__bar" aria-hidden="true"></span>
 
-    <!-- =========================== 04 — clans =========================== -->
-    <section class="mod" id="clan" data-mod>
-      <div class="mod__in">
-        <div class="mod__text">
-          <h2 class="mod__title" data-i18n="m.clanT"></h2>
-          <p class="mod__body" data-i18n="m.clanL"></p>
-        </div>
-        <div class="mod__visual" aria-hidden="true" data-mod-visual>
-          <div class="mock mock--clan">
-            <div class="mock__split">
-              <!-- La colonne des salons : c'est la partie de Discord qu'on
-                   reconnaît le plus vite, et c'est elle que le module crée. -->
-              <div class="mock__side">
-                <div class="mock__server">
-                  <span>Ligue du soir</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </div>
-                <div class="mock__cat">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
-                  <span>Queue</span>
-                </div>
-                <div class="mock__cat">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                  <span>Clans</span>
-                </div>
-                <div class="mock__chan mock__chan--on">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-                  <span>adhésions</span>
-                </div>
-                <div class="mock__chan">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-                  <span>alpha</span>
-                </div>
-                <div class="mock__chan">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
-                  <span>Vocal Alpha</span>
-                </div>
-                <div class="mock__voice">
-                  <div class="mock__vm">
-                    <span class="mock__av mock__av--sm mock__av--talk">N</span>
-                    <span class="mock__chef">Nova
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 6l4.5 6L21 8l-2 11H5L3 8z"/></svg>
-                    </span>
-                  </div>
-                  <div class="mock__vm"><span class="mock__av mock__av--sm">M</span><span>Mira</span></div>
-                </div>
-                <div class="mock__chan mock__chan--unread">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-                  <span>bravo</span>
-                </div>
-                <div class="mock__chan">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
-                  <span>Vocal Bravo</span>
-                </div>
-                <div class="mock__voice">
-                  <div class="mock__vm"><span class="mock__av mock__av--sm">K</span><span>Kite</span></div>
-                  <div class="mock__vm"><span class="mock__av mock__av--sm">D</span><span>Dax</span></div>
-                </div>
-              </div>
-              <div class="mock__pane">
-                <div class="mock__bar">
-                  <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-                  <span class="mock__bar-name">adhésions</span>
-                </div>
-                <div class="mock__chat">
-                  <div class="mock__msg">
-                    <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
-                    <div class="mock__main">
-                      <div class="mock__head">
-                        <span class="mock__name">CreateYourQueue</span>
-                        <span class="mock__app">APP</span>
-                        <span class="mock__time">21:32</span>
-                      </div>
-                      <p class="mock__text"><span class="mock__ment">@Dax</span> a rejoint le clan <span class="mock__ment">@Bravo</span>.</p>
-                    </div>
-                  </div>
-                  <div class="mock__msg mock__msg--cont">
-                    <span></span>
-                    <p class="mock__text">Clan war terminée : Alpha 2 – 1 Bravo. Résultat compté au classement.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================ 05 — modération & sécurité ====================== -->
-    <section class="mod" id="securite" data-mod>
-      <div class="mod__in">
-        <div class="mod__text">
-          <h2 class="mod__title" data-i18n="m.secT"></h2>
-          <p class="mod__body" data-i18n="m.secL"></p>
-        </div>
-        <div class="mod__visual" aria-hidden="true" data-mod-visual>
-          <div class="mock mock--securite">
-            <div class="mock__bar">
-              <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-              <span class="mock__bar-name">journal-modération</span>
-              <span class="mock__bar-topic">Un des dix journaux · écrit par le bot</span>
-            </div>
-            <div class="mock__chat">
-              <div class="mock__msg">
-                <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
-                <div class="mock__main">
-                  <div class="mock__head">
-                    <span class="mock__name">CreateYourQueue</span>
-                    <span class="mock__app">APP</span>
-                    <span class="mock__time">Aujourd’hui à 21:12</span>
-                  </div>
-                  <div class="mock__log-line">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6.5 12 5a4.24 4.24 0 0 1 6 6l-1.5 1.5M13.5 17.5 12 19a4.24 4.24 0 0 1-6-6l1.5-1.5M4 4l16 16"/></svg>
-                    <p>Lien supprimé dans <span class="mock__ment">#général</span> — envoyé par <span class="mock__ment">@Dax</span><span class="mock__log-note">Adresse hors des salons où les liens sont admis</span></p>
-                  </div>
-                </div>
-              </div>
-              <!-- Les lignes suivantes appartiennent au même groupe : l'heure
-                   prend la place de l'avatar, comme les messages groupés. -->
-              <div class="mock__logs">
-                <div class="mock__log">
-                  <span class="mock__log-time">21:13</span>
-                  <div class="mock__log-line">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
-                    <p>6 messages nettoyés dans <span class="mock__ment">#queue-5v5</span><span class="mock__log-note">Queue lancée, ses rappels n’avaient plus lieu d’être</span></p>
-                  </div>
-                </div>
-                <div class="mock__log">
-                  <span class="mock__log-time">21:15</span>
-                  <div class="mock__log-line mock__log-line--acc">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="M12 8v4M12 15.5v.01"/></svg>
-                    <p>Anti-raid déclenché : 12 arrivées en 10 s<span class="mock__log-note">Seuil réglé à 10 arrivées en 10 s</span></p>
-                  </div>
-                </div>
-                <div class="mock__log">
-                  <span class="mock__log-time">21:24</span>
-                  <div class="mock__log-line">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6.5 12 5a4.24 4.24 0 0 1 6 6l-1.5 1.5M13.5 17.5 12 19a4.24 4.24 0 0 1-6-6l1.5-1.5M4 4l16 16"/></svg>
-                    <p>Lien supprimé dans <span class="mock__ment">#queue-5v5</span> — envoyé par <span class="mock__ment">@Kite</span></p>
-                  </div>
-                </div>
-                <div class="mock__log">
-                  <span class="mock__log-time">21:26</span>
-                  <div class="mock__log-line">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
-                    <p>Message de <span class="mock__ment">@Mira</span> nettoyé dans <span class="mock__ment">#duels</span></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================== 06 — options ========================== -->
-    <section class="mod" id="options" data-mod>
-      <div class="mod__in">
-        <div class="mod__text">
-          <h2 class="mod__title" data-i18n="m.optT"></h2>
-          <p class="mod__body" data-i18n="m.optL"></p>
-        </div>
-        <div class="mod__visual" aria-hidden="true" data-mod-visual>
-          <div class="mock mock--options">
-            <div class="mock__bar">
-              <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
-              <span class="mock__bar-name">commandes</span>
-              <span class="mock__bar-topic">Réglages du bot, réservés aux organisateurs</span>
-            </div>
-            <div class="mock__chat">
-              <div class="mock__msg">
-                <div class="mock__used"><span class="mock__av mock__av--xs">N</span><span>Nova a utilisé</span><span class="mock__used-cmd">/salon</span></div>
-                <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
-                <div class="mock__main">
-                  <div class="mock__head">
-                    <span class="mock__name">CreateYourQueue</span>
-                    <span class="mock__app">APP</span>
-                    <span class="mock__time">Aujourd’hui à 20:58</span>
-                  </div>
-                  <p class="mock__text">Salon du classement : <span class="mock__ment">#classement</span>. Il y sera republié après chaque match.</p>
-                  <div class="mock__ephem">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <span>Seule Nova peut voir ce message</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- La saisie et son menu d'autocomplétion : le bot se pilote
-                 aussi depuis Discord, et il s'adapte au serveur. -->
-            <div class="mock__compose">
-              <div class="mock__menu">
-                <div class="mock__menu-head">
-                  <span class="mock__menu-k">langue</span>
-                  <span class="mock__menu-d">renomme aussi les salons et les rôles du bot</span>
-                </div>
-                <div class="mock__opt mock__opt--on"><span class="mock__opt-name">Français</span><span class="mock__opt-code">fr</span></div>
-                <div class="mock__opt"><span class="mock__opt-name">English</span><span class="mock__opt-code">en</span></div>
-                <div class="mock__opt"><span class="mock__opt-name">Español</span><span class="mock__opt-code">es</span></div>
-                <div class="mock__opt"><span class="mock__opt-name">Deutsch</span><span class="mock__opt-code">de</span></div>
-                <div class="mock__opt"><span class="mock__opt-name" lang="ko">한국어</span><span class="mock__opt-code">ko</span></div>
-              </div>
-              <div class="mock__input">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-                <span class="mock__input-cmd">/langue</span>
-                <span class="mock__input-arg">langue</span>
-                <span class="mock__caret"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====================== appel à l'action ========================== -->
-    <section class="mcta" data-mod>
-      <div class="mcta__in">
-        <h2 class="mcta__title" data-i18n="m.ctaT"></h2>
-        <p class="lead" data-i18n="m.ctaL"></p>
-        <a class="pill" href="servers" data-app="servers">
-          <span data-i18n="m.cta">Ouvrir le panneau</span>
-          <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+      <div class="stat">
+        <p class="label" data-reveal-text data-i18n="st.service">Service</p>
+        <a class="stat__link" href="#" data-cfg-link="STATUS_URL">
+          <span class="dot" aria-hidden="true"></span>
+          <span data-i18n="n.status">État du service</span>
         </a>
       </div>
-    </section>
-  </div>
+
+    </div>
+  </section>
+
+  <!-- ============== SECTION 3 · prêt en trois étapes ============== -->
+  <section class="bloc etapes" data-mod>
+    <div class="sect__head">
+      <h2 class="sect__title" data-reveal-text data-i18n="step.title">Prêt en trois étapes</h2>
+    </div>
+
+    <ol class="etapes__list">
+      <li class="etape">
+        <span class="etape__ico" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <h3 class="etape__t" data-reveal-text data-i18n="step.1t">Invite le bot</h3>
+        <p class="etape__p" data-i18n="step.1l">Un lien, deux clics, le bot rejoint ton serveur.</p>
+      </li>
+
+      <li class="etape">
+        <span class="etape__ico" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <h3 class="etape__t" data-reveal-text data-i18n="step.2t">Règle ta file</h3>
+        <p class="etape__p" data-i18n="step.2l">Format, salons, rôles, langue — tout depuis le panneau.</p>
+      </li>
+
+      <li class="etape">
+        <span class="etape__ico" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </span>
+        <h3 class="etape__t" data-reveal-text data-i18n="step.3t">Ouvre la queue</h3>
+        <p class="etape__p" data-i18n="step.3l">Les joueurs rejoignent, le bot compose les équipes et ouvre les vocaux.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============== SECTION 4 · la démo ==============
+       Elle n'a pas le bouton « relancer la démo » de la maquette : ce
+       bouton promet une animation qui rejoue le cycle, et promettre sans
+       tenir coûte plus cher que de ne rien promettre. La maquette arrive
+       en défilant comme les autres, et c'est tout ce qu'elle fait. -->
+  <section class="demo" id="demo" data-mod>
+    <div class="demo__in">
+
+      <div class="demo__copy">
+        <p class="label" data-reveal-text data-i18n="demo.eyebrow">La file, de bout en bout</p>
+        <h2 class="sect__title" data-reveal-text data-i18n="demo.title">La file se remplit, les équipes se forment</h2>
+        <p class="lead" data-reveal-text data-i18n="demo.lead">Dix joueurs rejoignent par les boutons. Le bot compose les équipes, crée les salons vocaux et y déplace tout le monde.</p>
+      </div>
+
+      <div class="demo__visual" aria-hidden="true" data-mod-visual>
+        <div class="mock mock--queue">
+          <div class="mock__bar">
+            <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+            <span class="mock__bar-name">queue-5v5</span>
+            <span class="mock__bar-topic">Scrims du soir</span>
+          </div>
+          <div class="mock__chat">
+
+            <div class="mock__msg">
+              <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+              <div class="mock__main">
+                <div class="mock__head">
+                  <span class="mock__name">CreateYourQueue</span>
+                  <span class="mock__app">APP</span>
+                  <span class="mock__time">21:12</span>
+                </div>
+                <div class="mock__embed">
+                  <div class="mock__embed-title">Scrim du soir</div>
+                  <p class="mock__text mock__text--sub">10 / 10 joueurs · la queue est pleine</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Message groupé : même auteur, quelques secondes plus tard.
+                 Discord ne répète ni l'avatar ni le nom, d'où la gouttière
+                 laissée vide. -->
+            <div class="mock__msg mock__msg--cont">
+              <span></span>
+              <div class="mock__main">
+                <div class="mock__embed">
+                  <div class="mock__embed-title">Équipes composées</div>
+                  <div class="mock__teams">
+                    <div class="mock__team">
+                      <div class="mock__team-head"><span class="mock__swatch mock__swatch--acc"></span>Alpha<span class="mock__team-n">5/5</span></div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">N</span>Nova</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">M</span>Mira</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">S</span>Selva</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">O</span>Orix</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">T</span>Tama</div>
+                    </div>
+                    <div class="mock__team">
+                      <div class="mock__team-head"><span class="mock__swatch"></span>Bravo<span class="mock__team-n">5/5</span></div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">K</span>Kite</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">D</span>Dax</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">R</span>Rune</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">W</span>Wisp</div>
+                      <div class="mock__slot"><span class="mock__av mock__av--sm">L</span>Lyss</div>
+                    </div>
+                  </div>
+                  <div class="mock__embed-foot">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span>Salons vocaux créés · joueurs déplacés</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============== SECTION 5 · la grille des six modules ==============
+       Elle remplace la page Modules reprise en entier. Celle-ci reste en
+       place et garde ses ancres : chaque carte y mène. Un résumé qui ne
+       mène nulle part serait un second texte à tenir à jour, et il
+       finirait par mentir. -->
+  <section class="bloc mods" data-mod>
+    <div class="sect__head">
+      <p class="label" data-reveal-text data-i18n="m.eyebrow">Les modules</p>
+      <h2 class="sect__title" id="modules" data-reveal-text data-i18n="mg.title">Six modules, un seul bot</h2>
+    </div>
+
+    <div class="mgrid">
+
+      <!-- 01 — queue. Deux colonnes : c'est le module qu'on vient
+           chercher, et le seul dont l'aperçu a besoin de largeur. -->
+      <a class="mcard mcard--wide" href="modules#queue">
+        <div class="mcard__view" aria-hidden="true">
+          <div class="ap-queue">
+            <p class="ap-queue__t">Scrim du soir</p>
+            <p class="ap-queue__n">7 / 10 joueurs · 2 × 5</p>
+            <div class="ap-bar"><span style="width:70%"></span></div>
+          </div>
+        </div>
+        <div class="mcard__body">
+          <h3 class="mcard__t" data-i18n="m.queueT">Queue / Scrims</h3>
+          <p class="mcard__p" data-i18n="mg.queue">La file et la composition des équipes : de 2 à 6 équipes, capitaines élus, vocal d'attente et dix presets.</p>
+        </div>
+      </a>
+
+      <!-- 02 — match & mmr -->
+      <a class="mcard" href="modules#mmr">
+        <div class="mcard__view" aria-hidden="true">
+          <div class="ap-mmr">
+            <i style="height:30%"></i><i style="height:50%"></i><i style="height:70%"></i>
+            <i class="is-mid" style="height:100%"></i>
+            <i style="height:60%"></i><i style="height:40%"></i><i style="height:25%"></i>
+          </div>
+        </div>
+        <div class="mcard__body">
+          <h3 class="mcard__t" data-i18n="m.mmrT">Match &amp; Mmr</h3>
+          <p class="mcard__p" data-i18n="mg.mmr">Le classement se tient tout seul : points de départ, gains, bonus MVP et de série.</p>
+        </div>
+      </a>
+
+      <!-- 03 — duel -->
+      <a class="mcard" href="modules#duel">
+        <div class="mcard__view" aria-hidden="true">
+          <div class="ap-duel">
+            <span class="ap-duel__d">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/></svg>
+            </span>
+            <span class="ap-duel__vs">VS</span>
+            <span class="ap-duel__d">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+          </div>
+        </div>
+        <div class="mcard__body">
+          <h3 class="mcard__t" data-i18n="m.duelT">Duel</h3>
+          <p class="mcard__p" data-i18n="mg.duel">L'affrontement direct, sans passer par la file. Le score est confirmé au vote.</p>
+        </div>
+      </a>
+
+      <!-- 04 — clans -->
+      <a class="mcard" href="modules#clan">
+        <div class="mcard__view" aria-hidden="true">
+          <div class="ap-stack">
+            <span>A</span><span>B</span><span>C</span><span>+4</span>
+          </div>
+        </div>
+        <div class="mcard__body">
+          <h3 class="mcard__t" data-i18n="m.clanT">Clan &amp; ClanWar</h3>
+          <p class="mcard__p" data-i18n="mg.clan">Les équipes permanentes, leurs salons créés tout seuls, et des guerres qui comptent au classement.</p>
+        </div>
+      </a>
+
+      <!-- 05 — modération & sécurité -->
+      <a class="mcard" href="modules#securite">
+        <div class="mcard__view" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,236,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4" stroke="rgba(244,241,236,.4)"/></svg>
+        </div>
+        <div class="mcard__body">
+          <h3 class="mcard__t" data-i18n="m.secT">Modération &amp; sécurité</h3>
+          <p class="mcard__p" data-i18n="mg.sec">Anti-lien, nettoyage automatique, anti-raid, et dix journaux indépendants.</p>
+        </div>
+      </a>
+
+      <!-- 06 — options -->
+      <a class="mcard" href="modules#options">
+        <div class="mcard__view" aria-hidden="true">
+          <div class="ap-opts">
+            <span class="ap-opt"><span>Classement</span><span class="ap-sw is-on"></span></span>
+            <span class="ap-opt"><span>Capitaines</span><span class="ap-sw is-on"></span></span>
+            <span class="ap-opt"><span>Mot de passe</span><span class="ap-sw"></span></span>
+          </div>
+        </div>
+        <div class="mcard__body">
+          <h3 class="mcard__t" data-i18n="m.optT">Options</h3>
+          <p class="mcard__p" data-i18n="mg.opt">Cinq langues, les salons, les rôles, et un panneau d'état qui montre ce qui tourne.</p>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ============== SECTION 6 · communauté ============== -->
+  <section class="commu" data-mod>
+    <div class="commu__mosaic" aria-hidden="true">
+      <i style="width:280px;height:180px;top:8%;left:4%;transform:rotate(-4deg)"></i>
+      <i style="width:220px;height:160px;top:14%;left:27%;transform:rotate(2deg)"></i>
+      <i style="width:240px;height:170px;top:6%;right:19%;transform:rotate(-2deg)"></i>
+      <i style="width:200px;height:150px;top:20%;right:3%;transform:rotate(5deg)"></i>
+      <i style="width:260px;height:180px;bottom:12%;left:9%;transform:rotate(3deg)"></i>
+      <i style="width:240px;height:160px;bottom:8%;right:14%;transform:rotate(-3deg)"></i>
+    </div>
+
+    <div class="commu__in">
+      <h2 class="sect__title" data-reveal-text data-i18n="commu.title">Rejoins la communauté</h2>
+      <p class="lead" data-reveal-text data-i18n="commu.lead">Le serveur Discord officiel : le support, les idées, et les nouveautés avant tout le monde.</p>
+      <div class="commu__actions">
+        <!-- Le seul emploi du bleu de Discord sur tout le site : un bouton
+             qui mène littéralement sur Discord. -->
+        <a class="pill pill--discord" href="#" data-cfg-link="SUPPORT_URL">
+          <svg width="18" height="14" viewBox="0 0 71 55" fill="currentColor" aria-hidden="true"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.4.2a.2.2 0 0 0-.2.1 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.5 37.5 0 0 0 25.4.3a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.5 4.9a.2.2 0 0 0-.1.1C1.5 18.7-.9 32.2.3 45.5v.1a58.7 58.7 0 0 0 17.9 9 .2.2 0 0 0 .3-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.7 38.7 0 0 1-5.5-2.6.2.2 0 0 1 0-.4c.4-.3.7-.6 1.1-.9a.2.2 0 0 1 .2 0 42 42 0 0 0 35.6 0 .2.2 0 0 1 .2 0l1.1.9a.2.2 0 0 1 0 .4 36.3 36.3 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47.2 47.2 0 0 0 3.6 5.9.2.2 0 0 0 .2.1 58.5 58.5 0 0 0 18-9v-.1c1.4-15-2.3-28.4-9.8-40.1a.2.2 0 0 0-.1-.1zM23.7 37.3c-3.5 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.2 6.3 7-2.8 7-6.3 7zm23.2 0c-3.5 0-6.3-3.2-6.3-7s2.8-7 6.3-7 6.4 3.2 6.3 7-2.8 7-6.3 7z"/></svg>
+          <span data-i18n="commu.join">Rejoindre le Discord</span>
+        </a>
+        <a class="pill pill--ghost" href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 7 · questions fréquentes ==============
+       Six questions, et chaque réponse est tirée du guide ou du contrat
+       d'API : aucune n'affirme quelque chose que le dépôt ne sait pas.
+       La maquette ouvrait « le bot est-il gratuit ? » — rien ici ne parle
+       de prix, donc la question n'est pas posée.
+
+       Un vrai bouton par question, avec `aria-expanded` et une région
+       associée : le `<div cursor:pointer>` de la maquette serait sauté par
+       la tabulation et jamais annoncé. -->
+  <section class="bloc faq" data-mod>
+    <div class="sect__head">
+      <h2 class="sect__title" data-reveal-text data-i18n="faq.title">Questions fréquentes</h2>
+    </div>
+
+    <div class="faq__list">
+
+      <div class="faq__item">
+        <h3>
+          <button class="faq__q" type="button" id="faq-q1" aria-expanded="true" aria-controls="faq-a1" data-faq>
+            <span data-i18n="faq.q1">Faut-il héberger le bot soi-même ?</span>
+            <span class="faq__sign" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-a1" role="region" aria-labelledby="faq-q1">
+          <p data-i18n="faq.a1">Non. Le bot est déjà hébergé : il suffit de l'inviter. Le panneau ne sert qu'à le régler — tu peux fermer le site, rien ne s'arrête.</p>
+        </div>
+      </div>
+
+      <div class="faq__item">
+        <h3>
+          <button class="faq__q" type="button" id="faq-q2" aria-expanded="false" aria-controls="faq-a2" data-faq>
+            <span data-i18n="faq.q2">Quelles permissions faut-il pour l'installer ?</span>
+            <span class="faq__sign" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-a2" role="region" aria-labelledby="faq-q2" hidden>
+          <p data-i18n="faq.a2">La permission « Gérer le serveur » sur le serveur choisi. La liste du panneau ne montre que les serveurs où tu es propriétaire ou gestionnaire.</p>
+        </div>
+      </div>
+
+      <div class="faq__item">
+        <h3>
+          <button class="faq__q" type="button" id="faq-q3" aria-expanded="false" aria-controls="faq-a3" data-faq>
+            <span data-i18n="faq.q3">Combien d'équipes et de joueurs par queue ?</span>
+            <span class="faq__sign" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-a3" role="region" aria-labelledby="faq-q3" hidden>
+          <p data-i18n="faq.a3">De 2 à 6 équipes, de 1 à 6 joueurs par équipe, chacune avec son nom et sa couleur. Jusqu'à dix presets gardent tes formats habituels.</p>
+        </div>
+      </div>
+
+      <div class="faq__item">
+        <h3>
+          <button class="faq__q" type="button" id="faq-q4" aria-expanded="false" aria-controls="faq-a4" data-faq>
+            <span data-i18n="faq.q4">Le bot parle-t-il plusieurs langues ?</span>
+            <span class="faq__sign" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-a4" role="region" aria-labelledby="faq-q4" hidden>
+          <p data-i18n="faq.a4">Cinq : français, anglais, espagnol, allemand, coréen. La langue renomme aussi les salons et les rôles que le bot crée, donc fixe-la avant de lancer quoi que ce soit.</p>
+        </div>
+      </div>
+
+      <div class="faq__item">
+        <h3>
+          <button class="faq__q" type="button" id="faq-q5" aria-expanded="false" aria-controls="faq-a5" data-faq>
+            <span data-i18n="faq.q5">Qu'est-ce que le panneau lit de mon compte ?</span>
+            <span class="faq__sign" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-a5" role="region" aria-labelledby="faq-q5" hidden>
+          <p data-i18n="faq.a5">Discord ne lui transmet que <code>identify</code> et <code>guilds</code> : de quoi lister tes serveurs et vérifier tes droits. Rien qui permette de lire un message.</p>
+        </div>
+      </div>
+
+      <div class="faq__item">
+        <h3>
+          <button class="faq__q" type="button" id="faq-q6" aria-expanded="false" aria-controls="faq-a6" data-faq>
+            <span data-i18n="faq.q6">Je rencontre un bug, comment le signaler ?</span>
+            <span class="faq__sign" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-a6" role="region" aria-labelledby="faq-q6" hidden>
+          <p data-i18n="faq.a6">Sur le serveur Discord, ou par le formulaire de la page Support. Le diagnostic du panneau vérifie d'abord les permissions salon par salon : il explique une bonne part des surprises.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============== SECTION 8 · l'appel final ============== -->
+  <section class="ctafin" data-mod>
+    <h2 class="sect__title" data-reveal-text data-i18n="cta.title">Prêt à lancer ta première queue ?</h2>
+    <p class="lead" data-reveal-text data-i18n="cta.lead">En deux minutes, le bot est sur ton serveur et ta première file d'attente est ouverte.</p>
+    <a class="pill" href="#" data-invite>
+      <span data-i18n="h.invite">Invite le bot sur un serveur</span>
+      <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+    </a>
+  </section>
 
   <!-- ======================== pied ========================
        Trois colonnes et une barre basse. Chaque lien mène à une page qui
@@ -680,14 +607,14 @@
   </footer>
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302116"></script>
-<script src="assets/js/config.js?v=202610302116"></script>
-<script src="assets/js/lang/fr.js?v=202610302116"></script>
-<script src="assets/js/lang/en.js?v=202610302116"></script>
-<script src="assets/js/lang/es.js?v=202610302116"></script>
-<script src="assets/js/lang/de.js?v=202610302116"></script>
-<script src="assets/js/lang/ko.js?v=202610302116"></script>
-<script src="assets/js/app.js?v=202610302116"></script>
-<script src="assets/js/page-home.js?v=202610302116"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302119"></script>
+<script src="assets/js/config.js?v=202610302119"></script>
+<script src="assets/js/lang/fr.js?v=202610302119"></script>
+<script src="assets/js/lang/en.js?v=202610302119"></script>
+<script src="assets/js/lang/es.js?v=202610302119"></script>
+<script src="assets/js/lang/de.js?v=202610302119"></script>
+<script src="assets/js/lang/ko.js?v=202610302119"></script>
+<script src="assets/js/app.js?v=202610302119"></script>
+<script src="assets/js/page-home.js?v=202610302119"></script>
 </body>
 </html>
