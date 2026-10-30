@@ -186,6 +186,20 @@ DirectoryIndex index.html login.html status.html
   # même page irait contre ce que cette règle cherche à faire.
   RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.html[\s?]
   RewriteRule ^index\.html$ / [R=301,L,QSA]
+
+  # Même raison sur le sous-domaine d'état : status.html y EST la page
+  # d'accueil, servie par DirectoryIndex, et son adresse canonique est
+  # « / » — c'est elle que <link rel="canonical"> annonce dans la page.
+  # Sans cette règle, la page répondait sous deux adresses, ce que ce
+  # chantier cherchait précisément à supprimer. Elle a été oubliée le
+  # 29 octobre, status.html étant arrivé après l'écriture des listes.
+  #
+  # La condition d'hôte est nécessaire : ailleurs le fichier n'existe
+  # pas, et renvoyer vers « / » servirait l'accueil de la vitrine pour
+  # une page absente, au lieu du 404 qui est la bonne réponse.
+  RewriteCond %{HTTP_HOST} ^status\. [NC]
+  RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.html[\s?]
+  RewriteRule ^status\.html$ / [R=301,L,QSA]
   RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.html[\s?]
   RewriteRule ^(welcome|servers|dashboard|modules|guide|support)\.html$ /$1 [R=301,L,QSA]
 
