@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302227">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302227">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302230">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302230">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -317,8 +317,6 @@
               </div>
             </div>
 
-            <!-- Quatre raccourcis, pas dix : une grille de raccourcis qui
-                 reprend tout le menu ne raccourcit rien. -->
             <div class="ovcol">
               <h2 class="grp__title" data-i18n="ov.quick">Aller droit au but</h2>
               <div class="ovquick">
@@ -340,12 +338,6 @@
           <p class="lead sec__lead" data-i18n="s.configD"></p>
         </header>
 
-        <!-- Le surnom du bot SUR CE SERVEUR. Pas son nom : le nom et la
-             photo appartiennent à l'application Discord et sont les mêmes
-             partout. Les changer ici les changerait sur tous les serveurs
-             où le bot est installé. Le surnom, lui, est propre à chaque
-             serveur — c'est la seule identité qu'un panneau par serveur a
-             le droit de toucher. -->
         <div class="grp">
           <h2 class="grp__title" data-i18n="cf.identity">Identité du bot</h2>
           <div class="grp__card">
@@ -378,14 +370,6 @@
           </div>
         </div>
       
-        <!-- Le webhook sortant. Le bot sait tout d'un match et ne le disait
-             qu'à Discord : un serveur qui tient son propre site devait
-             recopier les scores à la main.
-
-             https SEULEMENT, et jamais une adresse interne : le bot
-             refuse. Sans cela, une URL comme http://127.0.0.1:3000/ ferait
-             de lui un relais vers le réseau de l'hébergeur, pour quiconque
-             peut configurer un serveur. -->
         <div class="grp">
           <h2 class="grp__title" data-i18n="wh.grp">Webhook</h2>
           <div class="grp__card">
@@ -400,27 +384,13 @@
 
 </section>
 
-      <!-- ============================ OPTIONS ============================ -->
-      <!-- Allumer une option fait apparaître sa configuration en
-           sous-entrée du menu de gauche. L'éteindre la fait disparaître :
-           un réglage qui ne sert à rien n'est pas grisé, il n'est pas là. -->
+
       <section class="sec" data-section="options" aria-labelledby="h-options" hidden>
         <header class="sec__head">
           <h1 class="sec__title" id="h-options" data-i18n="s.options">Options</h1>
           <p class="lead sec__lead" data-i18n="fn.lead"></p>
         </header>
 
-        <!-- Sous chaque interrupteur, le message que l'option fait publier
-             par le bot, recopié des cogs et de `bot/locales/fr.json`. En
-             dur et sans `data-i18n` : ce sont les mots du BOT, qui parle la
-             langue du serveur Discord, pas celle de cette page. Décoratif —
-             `aria-hidden`, rien de focusable — parce que le libellé et la
-             description de la rangée disent déjà ce que l'option fait.
-             Replié au départ, une seule ouverte à la fois : six maquettes
-             dépliées feraient de cette section un mur, et on y perdrait le
-             fil. L'état de l'interrupteur ne change rien à la maquette :
-             elle montre ce que l'option FERAIT, et c'est tout l'intérêt de
-             la regarder avant de cocher. -->
         <div class="grp">
           <div class="grp__card">
             <div class="row">
@@ -431,8 +401,7 @@
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-leaderboard" aria-describedby="fn-leaderboard-d" data-setting="feature.leaderboard" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
-            <!-- Le classement publié dans son salon : titre, lignes, pied — recopiés
-                 de `classement.title`, `classement.row` et `classement.footer_count`. -->
+
             <div class="optprev" id="dp-board" hidden>
               <div class="dprev" aria-hidden="true">
                 <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
@@ -1809,16 +1778,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302227"></script>
-<script src="assets/js/config.js?v=202610302227"></script>
-<script src="assets/js/lang/fr.js?v=202610302227"></script>
-<script src="assets/js/lang/en.js?v=202610302227"></script>
-<script src="assets/js/lang/es.js?v=202610302227"></script>
-<script src="assets/js/lang/de.js?v=202610302227"></script>
-<script src="assets/js/lang/ko.js?v=202610302227"></script>
-<script src="assets/js/app.js?v=202610302227"></script>
-<script src="assets/js/page-dashboard.js?v=202610302227"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610302227"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610302227"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302230"></script>
+<script src="assets/js/config.js?v=202610302230"></script>
+<script src="assets/js/lang/fr.js?v=202610302230"></script>
+<script src="assets/js/lang/en.js?v=202610302230"></script>
+<script src="assets/js/lang/es.js?v=202610302230"></script>
+<script src="assets/js/lang/de.js?v=202610302230"></script>
+<script src="assets/js/lang/ko.js?v=202610302230"></script>
+<script src="assets/js/app.js?v=202610302230"></script>
+<script src="assets/js/page-dashboard.js?v=202610302230"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610302230"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610302230"></script>
 </body>
 </html>
