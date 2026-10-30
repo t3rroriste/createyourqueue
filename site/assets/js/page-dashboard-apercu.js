@@ -107,6 +107,17 @@
      sixième source de traduction qui ne couvre pas le coréen de la même
      façon donnerait deux voix sur le même écran.
      ================================================================== */
+  /* Une date arrive en TEXTE ISO de l'historique — `_maintenant()` côté
+     bot rend un isoformat UTC — et en secondes depuis 1970 de certaines
+     autres lignes, ce que rend `time.time()`. Les deux passent ici, comme
+     dans page-dashboard-memoire.js, et une valeur illisible rend null
+     plutôt que de produire « il y a NaN jours ». */
+  function lireDate(v) {
+    if (v == null || v === '') return null;
+    var d = typeof v === 'number' ? new Date(v * 1000) : new Date(v);
+    return isNaN(d.getTime()) ? null : d.getTime();
+  }
+
   function ilYA(ms) {
     var s = Math.max(0, Math.round((Date.now() - ms) / 1000));
     if (s < 90) return t('ov.agoNow');
@@ -149,17 +160,14 @@
     }
 
     var dernier = matchs && matchs.matches && matchs.matches[0];
-    var quand = dernier && dernier.at;
-    if (quand) {
-      /* Les horodatages du bot sont en secondes. Un nombre de 10
-         chiffres lu comme des millisecondes tomberait en 1970. */
-      var ms = Number(quand);
-      poser('last', ilYA(ms < 1e12 ? ms * 1000 : ms));
-    } else if (matchs) {
-      poser('last', t('ov.lastNone'));
-    } else {
-      poser('last', TIRET);
-    }
+    var ms = lireDate(dernier && dernier.at);
+    if (ms !== null) poser('last', ilYA(ms));
+    /* Une queue existe mais sa date ne se lit pas : le tiret, et surtout
+       pas « aucune pour l'instant » — ce serait affirmer le contraire de
+       ce que la réponse contient. */
+    else if (dernier) poser('last', TIRET);
+    else if (matchs) poser('last', t('ov.lastNone'));
+    else poser('last', TIRET);
 
     /* `=== false` et pas `!` : une API plus ancienne ne renvoie pas du
        tout ce champ, et son silence ne veut pas dire « bot éteint ».
