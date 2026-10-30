@@ -186,15 +186,66 @@ def publier(exe: str) -> None:
         return
 
     ok = True
+    bot_publie = False
     if du_site:
         ok = publier_site() and ok
     if du_bot or tout:
-        ok = publier_bot(du_bot or None) and ok
+        bot_publie = publier_bot(du_bot or None)
+        ok = bot_publie and ok
+
+    # Les fichiers sont déposés, mais le processus en cours garde l'ancien
+    # code en mémoire : tant qu'il n'est pas relancé, la publication n'a rien
+    # changé pour personne. On note donc que le redémarrage est dû, et c'est
+    # `redemarrage_du()` qui le tentera — ici ou dans dix minutes, selon
+    # qu'une queue est en cours.
+    if bot_publie:
+        ecrire_marque(REDEMARRAGE,
+                      synchro_git.git(exe, "rev-parse", "HEAD").stdout.strip())
 
     if ok:
         ecrire_marque(DERNIER_PUBLIE, synchro_git.git(exe, "rev-parse", "HEAD").stdout.strip())
     else:
         dire("La référence de publication n'avance pas : le prochain passage réessaiera.")
+
+
+# ----------------------------------------------------------- redémarrage ---
+
+def redemarrage_du() -> None:
+    """Relance le bot s'il a reçu des fichiers neufs.
+
+    Tenté à CHAQUE passage, et pas une seule fois juste après la
+    publication : une queue en cours fait répondre 409 au bot, et ce report
+    doit être repris plus tard. Tant que la marque est là, on redemande.
+
+    La pause est respectée : `cyq pause` veut dire « la mise en ligne
+    attend », et un redémarrage est le dernier geste de la mise en ligne.
+    """
+    if not os.path.exists(REDEMARRAGE) or os.path.exists(PAUSE):
+        return
+
+    res = subprocess.run(
+        [sys.executable, os.path.join(OUTILS_DIR, "redemarrer_bot.py")],
+        cwd=RACINE, capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+
+    if res.returncode == 0:
+        try:
+            os.remove(REDEMARRAGE)
+        except OSError:
+            pass
+        dire("Bot redémarré : il tourne sur le code publié.")
+        return
+
+    if res.returncode == 2:
+        # Une queue est en cours : ce n'est pas un échec, c'est une attente.
+        # Pas dans le journal : à trente secondes d'intervalle, une partie
+        # d'une heure y écrirait cent vingt lignes identiques.
+        dire("Redémarrage du bot en attente — une queue est en cours.",
+             journal=False)
+        return
+
+    derniere = (res.stdout or res.stderr).strip().splitlines()
+    dire("Bot NON redémarré — " + (derniere[-1] if derniere else "cause inconnue"))
 
 
 # ------------------------------------------------------------------ passage ---
@@ -227,6 +278,7 @@ def un_passage(exe: str, avec_publication: bool) -> None:
 
     if avec_publication:
         publier(exe)
+        redemarrage_du()
 
 
 def main() -> int:
