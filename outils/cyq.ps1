@@ -11,6 +11,7 @@
 #   .\cyq pause        la synchro continue, la mise en ligne attend
 #   .\cyq reprendre    lève la pause, et lève un conflit réglé
 #   .\cyq local        sert le site sur http://localhost:8765
+#   .\cyq verifier     les trois relevés : blocs communs, langues, API
 #
 # Pourquoi une seule porte d'entrée : les scripts en dessous ont des noms
 # clairs mais des arguments à retenir. Ici, il n'y a qu'un verbe.
