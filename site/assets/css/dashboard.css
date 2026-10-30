@@ -223,7 +223,7 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
   position: absolute; left: 0; top: 0; z-index: 1;
   width: 2px; height: 18px;
   border-radius: 1px;
-  background: var(--accent);          /* le seul accent de l'écran */
+  background: var(--accent);          /* premier des trois emplois du cuivre */
   opacity: 0;
   transform: translate3d(0, var(--y, 0px), 0);
   transition: transform 240ms var(--e-out), opacity 180ms var(--e-soft);
@@ -1650,9 +1650,10 @@ label.row__label { cursor: pointer; }
   font-size: 13px; color: var(--ink-60); cursor: pointer;
   transition: transform .12s ease, opacity .12s ease;
 }
-/* Coche = crème plein, comme le sélecteur de langue : le cuivre
-   (--accent) ne sert qu'UNE fois par écran, et sept jours cochables ne
-   sont pas cet endroit-là. */
+/* Coche = crème plein, comme le sélecteur de langue : la liste des
+   emplois du cuivre est fermée à trois (voir l'en-tête), et sept jours
+   cochables n'en font pas partie. Un état répété sept fois de suite sur
+   une rangée n'est pas un état actif : il serait lu comme un motif. */
 .jour__box:checked + .jour__lab { color: var(--bg); background: var(--ink); border-color: var(--ink); }
 .jour__box:focus-visible + .jour__lab { outline: 2px solid var(--ink); outline-offset: 2px; }
 .jour__lab:active { transform: scale(.96); }
@@ -1800,9 +1801,10 @@ label.row__label { cursor: pointer; }
    L'écran d'arrivée. Il ne règle rien, donc il n'emprunte aucune brique
    de réglage : ni rangée, ni barre d'enregistrement, ni état de champ.
 
-   AUCUN CUIVRE ICI. --accent garde son emploi unique, l'indicateur du
-   menu, et cette page n'y touche pas — c'est pourtant elle qui aurait
-   été la plus tentante, puisqu'elle porte une progression. La
+   AUCUN CUIVRE ICI. La liste des trois emplois du cuivre est fermée
+   (voir l'en-tête) et aucun des trois ne vit sur cette page — c'est
+   pourtant elle qui aurait été la plus tentante, puisqu'elle porte une
+   progression. La
    hiérarchie se fait donc au corps, à la graisse et à l'espace : le
    chiffre est gros et en --ink, son libellé est petit et en --ink-60,
    ce qui reste à faire est en --ink, ce qui est fait s'efface.
