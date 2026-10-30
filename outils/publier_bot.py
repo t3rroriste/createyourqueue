@@ -178,6 +178,45 @@ def comparer() -> int:
     return 0
 
 
+def verifier_syntaxe(relatifs: list[str]) -> bool:
+    """Vrai si tous les .py de la liste compilent.
+
+    Ce contrôle est arrivé avec le redémarrage automatique du bot. Avant
+    lui, un fichier cassé déposé sur AdKyNet ne faisait rien : le processus
+    en cours gardait l'ancien code jusqu'à ce qu'on le relance à la main, et
+    on s'en apercevait en le relançant. Maintenant que la veille relance
+    toute seule, le même fichier éteint le bot — et c'est le seul incident
+    de cette chaîne qui oblige à ouvrir la console du panneau pour en
+    sortir. Deux secondes de lecture ici valent mieux.
+
+    `compile()` ne lit que la syntaxe. Il n'exécute rien et n'importe aucun
+    module du bot : ce PC n'a ni les jetons Discord ni les dépendances du
+    serveur, et un import les réclamerait.
+    """
+    mauvais = []
+    for rel in relatifs:
+        if not rel.endswith(".py"):
+            continue
+        chemin = os.path.join(PROJECT_DIR, rel.replace("/", os.sep))
+        try:
+            with open(chemin, encoding="utf-8") as f:
+                compile(f.read(), rel, "exec")
+        except SyntaxError as e:
+            mauvais.append(f"{rel}, ligne {e.lineno} : {e.msg}")
+        except OSError as e:
+            mauvais.append(f"{rel} : {e}")
+
+    if not mauvais:
+        return True
+    print("\nRIEN N'A ÉTÉ ENVOYÉ : ces fichiers ne compilent pas.",
+          file=sys.stderr)
+    for m in mauvais:
+        print("  " + m, file=sys.stderr)
+    print("\nCorrige-les puis relance. Le bot en ligne n'a pas été touché.",
+          file=sys.stderr)
+    return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Envoie tout le projet sur AdKyNet.")
     parser.add_argument("--apercu", action="store_true",
@@ -214,6 +253,9 @@ def main() -> int:
             print(f"  {rel}")
         print("\nAperçu terminé. Relance sans --apercu pour envoyer.")
         return 0
+
+    if not verifier_syntaxe(wanted):
+        return 1
 
     try:
         import paramiko  # noqa: F401
@@ -252,7 +294,11 @@ def main() -> int:
 
     print(f"\n{sent} envoyé(s), {failed} échec(s).")
     if sent:
-        print("Redémarre le bot depuis le panneau AdKyNet pour appliquer.")
+        # Les fichiers sont là, le processus en cours garde l'ancien code.
+        # La veille s'en charge seule ; à la main, c'est cette commande, qui
+        # refuse de couper une queue en cours et vérifie le retour du bot.
+        print("Les fichiers sont déposés. Pour que le bot les lise :")
+        print("  python outils/redemarrer_bot.py")
     return 1 if failed else 0
 
 

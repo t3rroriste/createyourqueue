@@ -6,6 +6,7 @@
 #   .\cyq arret        arrête la veille
 #   .\cyq synchro      un passage tout de suite (enregistre, récupère, pousse)
 #   .\cyq publier      met en ligne maintenant : site sur LWS, bot sur AdKyNet
+#   .\cyq redemarrer   relance le bot sur le code publié (jamais pendant une queue)
 #   .\cyq etat         où en est tout : git, veille, dernière publication
 #   .\cyq pause        la synchro continue, la mise en ligne attend
 #   .\cyq reprendre    lève la pause, et lève un conflit réglé
