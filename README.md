@@ -158,10 +158,23 @@ Deux choses à faire une fois, à la main :
    le sous-domaine. `lws.config.exemple.ps1` dit où le trouver. Laissée
    vide, la cible `statut` est sautée et les deux autres partent
    normalement ;
-2. **déposer `etat.secrets.php`** à la racine du sous-domaine, en copiant
-   `site/etat.secrets.exemple.php`. Deux valeurs, `bot_api_base` et
-   `bot_api_key`, les mêmes que dans `api/secrets.php`. Sans lui, la page
-   affiche « mesure non configurée » — elle ne fait jamais semblant.
+2. **déposer `etat.secrets.php`** à la racine du sous-domaine. Deux
+   valeurs, `bot_api_base` et `bot_api_key`, les mêmes que dans
+   `api/secrets.php`. Sans lui, la page affiche « mesure non configurée »
+   — elle ne fait jamais semblant.
+
+```bash
+python outils/deposer_secrets_etat.py
+```
+
+Ce script recopie les deux valeurs d'un fichier à l'autre sans jamais les
+afficher, et dépose le résultat. À relancer le jour où la
+`DASHBOARD_API_KEY` du bot change : ce sont deux copies de la même valeur,
+et rien ne les tient alignées tout seul. `etat.secrets.php` n'est
+volontairement PAS dans la liste d'envoi — une publication ordinaire ne
+doit pouvoir ni l'écraser, ni l'emporter.
+
+Puis la mise en ligne de la page elle-même :
 
 ```bash
 python outils/publier_site.py --cible statut
