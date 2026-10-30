@@ -99,15 +99,15 @@ Toutes les trente secondes, `outils/veille.py` fait un passage :
 2. il enregistre, récupère ce que l'autre PC a poussé, et pousse ;
 3. il publie ce qui a changé depuis la dernière publication **réussie** :
    `site/` sur LWS par FTPS, `bot/` sur AdKyNet par SFTP ;
-4. si le bot a reçu des fichiers, il le **redémarre** — sinon le processus
-   en cours garderait l'ancien code en mémoire et la publication n'aurait
-   rien changé pour personne.
+4. si le bot a reçu des fichiers, il **rappelle qu'il faut le relancer** —
+   sinon le processus en cours garde l'ancien code en mémoire et la
+   publication n'a rien changé pour personne.
 
 GitHub est la référence, pas l'hébergeur. Rien ne part en ligne sans être
 d'abord enregistré — en septembre, cinq jours de travail n'ont existé que
 sur AdKyNet parce que le code y partait sans passer par git.
 
-Quatre garde-fous :
+Quatre garde-fous, et une chose qui ne se fait pas toute seule :
 
 - **un conflit suspend tout.** Si les deux PC ont modifié les mêmes lignes,
   le rebase est annulé, rien n'est publié, et `.\cyq etat` le dit. On règle
@@ -115,14 +115,32 @@ Quatre garde-fous :
 - **`.\cyq pause`** laisse la synchro entre PC tourner mais retient la mise
   en ligne. C'est ce qu'on veut en pleine refonte d'une page ;
 - **un `.py` qui ne compile pas ne part pas.** `publier_bot.py` lit la
-  syntaxe de chaque fichier Python avant de l'envoyer. Depuis que le
-  redémarrage est automatique, un fichier cassé n'est plus un détail qu'on
-  découvre plus tard : il éteindrait le bot ;
+  syntaxe de chaque fichier Python avant de l'envoyer, et refuse le lot
+  entier si l'un échoue ;
 - **une queue en cours bloque le redémarrage.** Les sessions de queue
   vivent en mémoire : relancer pendant une partie perdrait les équipes, les
-  accès aux salons et le lien de l'annonce. Le bot répond 409, la veille
-  réessaie au passage suivant, et `.\cyq etat` affiche « redémarrage du bot
-  en attente ». À la main, c'est `.\cyq redemarrer` (`--force` passe outre).
+  accès aux salons et le lien de l'annonce. Le bot répond alors 409.
+
+### Le redémarrage du bot n'est PAS automatique
+
+Il l'a été pendant une heure, le 30 octobre 2026, et le premier vrai essai a
+mis le bot à terre : il a fallu le relancer depuis le panneau AdKyNet. La
+cause était un bug à moi — la relance lisait `sys.flags.unbuffered`, qui
+n'existe pas, et mourait sur cet attribut juste après avoir fermé la
+passerelle Discord, sans jamais atteindre `os.execv`.
+
+C'est corrigé (la relance part d'un fil système et ne ferme plus rien avant),
+mais le mécanisme n'a pas encore fait ses preuves. La veille se contente donc
+de rappeler dans son journal qu'un redémarrage est dû, et `.\cyq etat`
+affiche « redémarrage du bot en attente ». Le geste se demande :
+
+```powershell
+.\cyq redemarrer            # refuse pendant une queue
+.\cyq redemarrer --force    # passe outre
+```
+
+L'appel automatique ne reviendra dans `veille.py` que quand ce geste aura
+marché deux fois de suite à la main.
 
 Le journal de la veille : `outils/etat/journal.log`.
 
