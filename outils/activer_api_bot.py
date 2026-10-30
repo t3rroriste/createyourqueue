@@ -188,13 +188,17 @@ dépôt ne peut pas connaître.""" % (port or "LE_PORT"))
     print("""
 Il reste quatre gestes, dans cet ordre :
 
-  1. publier le bot et le redémarrer depuis le panneau AdKyNet — tant
-     qu'il tourne, il garde l'ancienne valeur (vide) et n'écoute pas ;
+  1. REPORTER LES TROIS LIGNES sur le serveur. Ouvre bot/.env ici, copie
+     les lignes DASHBOARD_API_KEY, _HOST et _PORT, et colle-les dans le
+     .env du serveur — panneau AdKyNet, gestionnaire de fichiers. Une
+     publication ne les y portera pas : publier_bot.py exclut .env, pour
+     que le fichier du serveur ne puisse jamais être écrasé depuis un
+     PC. Puis redémarre le bot : tant qu'il tourne, il garde l'ancienne
+     valeur, c'est-à-dire aucune, et n'ouvre aucun port ;
   2. python outils/verifier_api_bot.py
      doit répondre « HTTP 200 » et « tous présents » ;
   3. déposer site/api/secrets.php à la racine du panneau par FTP, à la
-     main : il n'est dans aucune liste d'envoi, pour qu'une publication
-     ne puisse ni l'écraser ni l'emporter ;
+     main : il n'est dans aucune liste d'envoi, pour la même raison ;
   4. python outils/deposer_secrets_etat.py
      pour porter la même clé sur le sous-domaine d'état.""")
     return 0
