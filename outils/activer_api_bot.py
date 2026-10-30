@@ -24,12 +24,14 @@ hasard et écrite dans les deux fichiers sans jamais être affichée. Elle
 n'apparaît nulle part ailleurs — ni dans un terminal, ni dans le dépôt,
 les deux fichiers étant dans `.gitignore`.
 
-    python outils/activer_api_bot.py --hote node2.adky.net --port 25117
+    python outils/activer_api_bot.py               # montre, n'écrit rien
+    python outils/activer_api_bot.py --port 25117  # allume
 
-L'hôte et le port ne se devinent pas : ce sont ceux de l'allocation
-réseau de ton serveur, dans le panneau AdKyNet (Pterodactyl). Le port
-doit être une allocation OUVERTE, sinon le bot écoutera derrière une
-porte fermée.
+L'hôte n'est pas demandé : `outils/adkynet.py` le connaît, c'est la
+machine du SFTP et c'est la même. Le port, lui, ne se devine pas — c'est
+l'allocation réseau de ton serveur, dans le panneau AdKyNet
+(Pterodactyl), onglet Network. Elle doit être OUVERTE, sinon le bot
+écoutera derrière une porte fermée.
 
 Ensuite, dans l'ordre : redémarrer le bot, vérifier avec
 `verifier_api_bot.py`, déposer `site/api/secrets.php` sur le panneau par
@@ -45,6 +47,10 @@ import sys
 
 OUTILS_DIR = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(OUTILS_DIR)
+
+sys.path.insert(0, OUTILS_DIR)
+import adkynet  # noqa: E402
+
 ENV = os.path.join(RACINE, "bot", ".env")
 SECRETS_PHP = os.path.join(RACINE, "site", "api", "secrets.php")
 
@@ -90,10 +96,16 @@ def poser_php(texte: str, cle: str, valeur: str) -> tuple[str, bool]:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Allume l'API du bot, des deux côtés, avec la même clé.")
-    parser.add_argument("--hote", required=True,
-                        help="l'hôte du bot vu de l'extérieur, sans http://")
-    parser.add_argument("--port", required=True, type=int,
-                        help="le port de l'allocation ouverte du serveur")
+    # L'hôte n'est pas demandé : adkynet.py le connaît depuis toujours,
+    # c'est la machine du SFTP et c'est la même. L'option reste là pour le
+    # jour où le bot déménagerait.
+    parser.add_argument("--hote", default=adkynet.HOST,
+                        help="l'hôte du bot vu de l'extérieur, sans http:// "
+                             "(défaut : %(default)s)")
+    parser.add_argument("--port", type=int,
+                        help="le port de l'allocation ouverte du serveur ; "
+                             "sans lui, l'outil montre ce qui est configuré "
+                             "et ne touche à rien")
     parser.add_argument("--https", action="store_true",
                         help="le bot est derrière un proxy TLS (rare)")
     args = parser.parse_args()
@@ -104,6 +116,34 @@ def main() -> int:
     if not os.path.isfile(SECRETS_PHP):
         print("site/api/secrets.php est absent de ce PC.", file=sys.stderr)
         return 1
+    if args.port is None:
+        # Lecture seule : on dit ce qui est en place, sans rien écrire.
+        # Un port n'est pas un secret — c'est un numéro que le premier
+        # scan venu trouverait. De la clé, on ne dit que si elle est
+        # vide, parce que c'est la seule chose qui nous intéresse ici.
+        env = lire(ENV)
+        m = re.search(r"^DASHBOARD_API_PORT=(.*)$", env, re.M)
+        port = (m.group(1).strip() if m else "")
+        m = re.search(r"^DASHBOARD_API_KEY=(.*)$", env, re.M)
+        cle_vide = not (m and m.group(1).strip())
+        print("bot/.env :")
+        print("  DASHBOARD_API_PORT = " + (port or "absent"))
+        print("  DASHBOARD_API_KEY  = "
+              + ("VIDE — le bot n'ouvre aucun port" if cle_vide
+                 else "renseignée"))
+        print("  hôte connu du dépôt : " + args.hote
+              + "   (outils/adkynet.py)")
+        print(
+            """
+Rien n'a été écrit. Si ce port est bien l'allocation OUVERTE de ton
+serveur — panneau AdKyNet, onglet Network — relance avec :
+
+  python outils/activer_api_bot.py --port %s
+
+Sinon, mets le bon numéro à la place. C'est la seule valeur que ce
+dépôt ne peut pas connaître.""" % (port or "LE_PORT"))
+        return 0
+
     if not 1 <= args.port <= 65535:
         print("Le port doit être entre 1 et 65535.", file=sys.stderr)
         return 1
