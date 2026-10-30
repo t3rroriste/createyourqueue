@@ -93,6 +93,8 @@ if ($base !== '') {
     ]);
     $brut = curl_exec($c);
     $code = (int)curl_getinfo($c, CURLINFO_HTTP_CODE);
+    $errno = curl_errno($c);
+    $erreur = curl_error($c);
     curl_close($c);
     $etat['api_ms'] = (int)round((microtime(true) - $depart) * 1000);
 
@@ -116,8 +118,21 @@ if ($base !== '') {
         }
     } else {
         /* Injoignable, refusé, ou une réponse qu'on ne comprend pas : du
-           point de vue d'un visiteur, c'est la même chose. Le code HTTP
-           reste dans les logs d'Apache et ne part pas sur la page. */
+           point de vue d'un visiteur, c'est la même chose. Rien de tout
+           cela ne part sur la page.
+
+           Mais une page d'état incapable de dire POURQUOI elle a échoué
+           est une page qu'on ne peut pas réparer. La cause va donc dans
+           le journal d'erreurs du serveur — lisible depuis le panneau de
+           l'hébergeur, par le propriétaire du site et par personne
+           d'autre. L'adresse du bot n'y figure pas : le numéro d'erreur
+           de curl et le code HTTP suffisent à trancher entre « rien
+           n'écoute », « les sorties sont bloquées » et « la clé est
+           refusée ». */
+        error_log(sprintf(
+            'cyq-etat : appel du bot en echec — curl %d (%s), HTTP %d',
+            $errno, $erreur !== '' ? $erreur : 'sans message', $code
+        ));
         $etat['verdict'] = 'down';
     }
 }
