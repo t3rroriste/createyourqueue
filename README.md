@@ -35,6 +35,7 @@ Le même verbe des deux côtés. Sur le PC fixe `.\cyq`, sur le MacBook
 | `cyq arret` | L'arrête. |
 | `cyq synchro` | Un passage tout de suite. |
 | `cyq publier` | Met en ligne maintenant : site sur LWS, bot sur AdKyNet. |
+| `cyq redemarrer` | Relance le bot sur le code publié. Refuse pendant une queue. |
 | `cyq etat` | Où en est tout : git, veille, dernière publication. |
 | `cyq pause` | La synchro continue, la mise en ligne attend. |
 | `cyq reprendre` | Lève la pause — et lève un conflit réglé. |
@@ -97,19 +98,31 @@ Toutes les trente secondes, `outils/veille.py` fait un passage :
    même commit ;
 2. il enregistre, récupère ce que l'autre PC a poussé, et pousse ;
 3. il publie ce qui a changé depuis la dernière publication **réussie** :
-   `site/` sur LWS par FTPS, `bot/` sur AdKyNet par SFTP.
+   `site/` sur LWS par FTPS, `bot/` sur AdKyNet par SFTP ;
+4. si le bot a reçu des fichiers, il le **redémarre** — sinon le processus
+   en cours garderait l'ancien code en mémoire et la publication n'aurait
+   rien changé pour personne.
 
 GitHub est la référence, pas l'hébergeur. Rien ne part en ligne sans être
 d'abord enregistré — en septembre, cinq jours de travail n'ont existé que
 sur AdKyNet parce que le code y partait sans passer par git.
 
-Deux garde-fous :
+Quatre garde-fous :
 
 - **un conflit suspend tout.** Si les deux PC ont modifié les mêmes lignes,
   le rebase est annulé, rien n'est publié, et `.\cyq etat` le dit. On règle
   à la main (`git pull --rebase`), puis `.\cyq reprendre` ;
 - **`.\cyq pause`** laisse la synchro entre PC tourner mais retient la mise
-  en ligne. C'est ce qu'on veut en pleine refonte d'une page.
+  en ligne. C'est ce qu'on veut en pleine refonte d'une page ;
+- **un `.py` qui ne compile pas ne part pas.** `publier_bot.py` lit la
+  syntaxe de chaque fichier Python avant de l'envoyer. Depuis que le
+  redémarrage est automatique, un fichier cassé n'est plus un détail qu'on
+  découvre plus tard : il éteindrait le bot ;
+- **une queue en cours bloque le redémarrage.** Les sessions de queue
+  vivent en mémoire : relancer pendant une partie perdrait les équipes, les
+  accès aux salons et le lien de l'annonce. Le bot répond 409, la veille
+  réessaie au passage suivant, et `.\cyq etat` affiche « redémarrage du bot
+  en attente ». À la main, c'est `.\cyq redemarrer` (`--force` passe outre).
 
 Le journal de la veille : `outils/etat/journal.log`.
 
