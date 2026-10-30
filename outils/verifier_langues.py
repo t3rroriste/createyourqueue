@@ -63,6 +63,10 @@ POSE_ATTR = re.compile(r'data-i18n-attr="([^"]+)"')
 # `parseInt(`, `encodeURIComponent(` et autres fins de mot en « t ».
 APPEL = re.compile(r"(?<![\w.])t\(\s*'([A-Za-z_][\w.\-]*)'\s*\)")
 
+# La forme d'une clé : « ov.recent », « c.save ». Sert à écarter ce qui
+# n'en est pas une — un `{n}` de substitution, un bout de concaténation.
+CLE_VALIDE = re.compile(r"[A-Za-z_][\w.\-]*")
+
 MARQUE = "/* À TRADUIRE */"
 
 
@@ -98,14 +102,19 @@ def demandees() -> dict[str, set[str]]:
     ou: dict[str, set[str]] = {}
 
     def noter(cle: str, fich: str) -> None:
-        ou.setdefault(cle, set()).add(os.path.basename(fich))
+        # Tout ce qui n'a pas la forme d'une clé est écarté SANS RIEN DIRE,
+        # et c'est voulu : le panneau bâtit son balisage en JS, donc on
+        # tombe sur des `data-i18n="' + cle + '"` et des `data-i18n="lo.'
+        # + k + '"`. Ce sont de vraies poses, dont la clé ne se connaîtra
+        # qu'à l'exécution — les signaler reviendrait à demander qu'on
+        # écrive en dur ce qui est justement calculé.
+        if CLE_VALIDE.fullmatch(cle):
+            ou.setdefault(cle, set()).add(os.path.basename(fich))
 
     for chemin in sources():
         texte = lire(chemin)
         for m in POSE.finditer(texte):
-            # `{n} modifications` et consorts : une valeur, pas une clé.
-            if not m.group(1).startswith("{"):
-                noter(m.group(1), chemin)
+            noter(m.group(1), chemin)
         for m in POSE_ATTR.finditer(texte):
             for paire in m.group(1).split(","):
                 if ":" in paire:
