@@ -1447,9 +1447,7 @@ class DashboardAPI(commands.Cog):
         # réponse, et c'est une tâche détachée qui relance ensuite. Sans ça
         # l'appelant voit une connexion coupée et ne sait pas distinguer un
         # redémarrage accepté d'un bot qui vient de tomber.
-        tache = asyncio.create_task(self._relancer())
-        self._relances.add(tache)
-        tache.add_done_callback(self._relances.discard)
+        self._relancer_bientot()
 
         return web.json_response({
             "restarting": True,
