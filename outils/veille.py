@@ -230,6 +230,25 @@ def redemarrage_du() -> None:
     if not os.path.exists(REDEMARRAGE) or os.path.exists(PAUSE):
         return
 
+    # ------------------------------------------------------------------
+    # L'APPEL AUTOMATIQUE EST COUPÉ, ET IL FAUT SAVOIR POURQUOI.
+    #
+    # Le 30 octobre 2026 à 17 h, le premier vrai essai a mis le bot à
+    # terre : `POST /api/restart` a répondu 200, le processus a été
+    # remplacé, et le bot n'est jamais revenu — il a fallu le relancer
+    # depuis le panneau AdKyNet. Un mécanisme qui éteint la production une
+    # fois sur une n'a rien à faire dans une boucle qui tourne toute seule
+    # toutes les trente secondes.
+    #
+    # La veille se contente donc de DIRE que le redémarrage est dû. La
+    # marque reste, `cyq etat` l'affiche, et c'est `cyq redemarrer` à la
+    # main qui tranche. On ne remettra l'appel automatique ici que quand un
+    # redémarrage demandé à la main aura marché deux fois de suite.
+    # ------------------------------------------------------------------
+    dire("Le bot a reçu du code neuf : à relancer avec « cyq redemarrer ». "
+         "Le redémarrage automatique est coupé depuis l'incident du 30/10.")
+    return
+
     # La marque porte le commit publié, et sur une deuxième ligne l'heure du
     # dernier échec s'il y en a eu un.
     lignes = (lire_marque(REDEMARRAGE) or "").splitlines()
