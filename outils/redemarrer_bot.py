@@ -12,6 +12,13 @@ panneau Pterodactyl a bien une API de puissance, mais elle demanderait une
 clé de plus, à créer, à ranger dans les deux coffres et à garder valide,
 pour faire ce qu'`os.execv` fait sans rien de neuf.
 
+À LANCER À LA MAIN, ET À REGARDER. La veille ne l'appelle plus : son premier
+vrai essai, le 30 octobre 2026, a mis le bot à terre — il a fallu le relancer
+depuis le panneau. Le mécanisme a été repris depuis (la relance part d'un fil
+système et ne ferme plus la passerelle avant de partir), mais il n'a pas
+encore fait ses preuves. La veille se contente donc de rappeler dans son
+journal qu'un redémarrage est dû.
+
 UNE QUEUE EN COURS N'EST PAS ÉCRASÉE. Les sessions vivent en mémoire :
 relancer pendant une partie perd les équipes, les accès aux salons et le
 lien de l'annonce. Le bot répond alors 409, cet outil sort avec le code 2,
@@ -51,11 +58,14 @@ SECRETS_PHP = os.path.join(RACINE, "site", "api", "secrets.php")
 
 # Court pour une lecture, et le redémarrage n'attend pas de réponse longue.
 DELAI = 10
-# Le temps qu'on laisse au bot pour revenir. Il doit se reconnecter à
-# Discord et rouvrir son port : quinze secondes suffisent largement en
-# pratique, trente laissent de la marge un jour de réseau lent.
-RETOUR_MAX = 30
-RETOUR_PAS = 2
+# Le temps qu'on laisse au bot pour revenir. Il doit se reconnecter à Discord
+# et rouvrir son port. Trente secondes au premier essai, le 30 octobre 2026 :
+# trop court pour conclure, et l'outil a crié « pas revenu » sur un bot qui
+# était peut-être encore en train de se connecter. Une minute, maintenant —
+# une attente un peu longue vaut mieux qu'une fausse alerte sur un bot en
+# production.
+RETOUR_MAX = 60
+RETOUR_PAS = 3
 
 
 def valeur(texte: str, cle: str) -> str:
