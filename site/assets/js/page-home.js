@@ -57,17 +57,25 @@
     var titre  = $('[data-hero="title"]');
 
     /* L'ordre de la cascade est celui-ci, et il est tenu par les temps de
-       départ plus bas : titre, accroche, bouton, mention. */
+       départ plus bas : titre, accroche, boutons, mention. */
     var lead  = $('[data-hero="lead"]'),
         cta   = $('[data-hero="cta"]'),
+        cta2  = $('[data-hero="cta2"]'),       // la pilule fantôme, vers la démo
         note  = $('[data-hero="note"]'),
         setup = $('[data-needs-client-id]');   // visible seulement si CLIENT_ID est vide
-    var around = [lead, cta, note, setup].filter(Boolean);
+    var around = [lead, cta, cta2, note, setup].filter(Boolean);
+
+    /* La maquette d'embed, à part du halo et pour une raison précise : le
+       halo est flouté pendant toute l'ouverture, et un flou de 12 px sur
+       une carte couverte de texte la rend illisible une seconde et demie.
+       Elle arrive donc en opacité, échelle et translation seules. */
+    var embed = $('[data-hero="embed"]');
 
     utils.set(nav,    { opacity: 0, y: -24 });
     utils.set(around, { opacity: 0, y: 14 });
     utils.set(titre,  { opacity: 0, y: 14 });
     utils.set(matter, { opacity: 0, scale: 1.12, y: 40, filter: 'blur(12px)' });
+    utils.set(embed,  { opacity: 0, scale: .97, y: 24 });
 
     // Les états de départ sont posés : plus rien ne peut sauter, on affiche.
     decouvrir();
@@ -80,8 +88,9 @@
       utils.set(nav,    { y: 0 });
       utils.set(around, { y: 0 });
       utils.set(titre,  { y: 0 });
+      utils.set(embed,  { scale: 1, y: 0 });
       utils.set($('[data-hero-in]'), { scale: 1, y: 0, opacity: 1, filter: 'none' });
-      var all = [nav, matter, titre].concat(around).filter(Boolean);
+      var all = [nav, matter, embed, titre].concat(around).filter(Boolean);
       utils.set(all, { opacity: 1 });
       rendreLaMainAuCss();
       titreLibre();
@@ -96,6 +105,11 @@
     function rendreLaMainAuCss() {
       around.forEach(function (el) { el.style.transform = ''; });
       if (titre) titre.style.transform = '';
+      /* La carte d'embed aussi : la rotation de trois degrés est sur son
+         ENFANT, donc rien ne se dispute ici, mais un `transform` inline
+         resté sur un élément qui n'en a plus besoin finit toujours par
+         gêner la règle suivante qu'on écrira. */
+      if (embed) embed.style.transform = '';
     }
 
     /* La boucle de frappe attend ce signal, et rien d'autre. Elle ne peut
@@ -129,13 +143,21 @@
     tl.add(matter, { opacity: 1, scale: 1, y: 0,
                      filter: ['blur(12px)', 'blur(6px)'], duration: 1300 }, 300);
 
+    /* t=520 — la carte, par-dessus le halo. Elle part après lui : le halo
+       doit avoir commencé à monter pour que la carte paraisse se poser
+       dessus, et non surgir d'un fond noir. */
+    if (embed) tl.add(embed, { opacity: 1, scale: 1, y: 0, duration: 900 }, 520);
+
     /* La suite de la cascade. Des départs séparés plutôt qu'un stagger :
        chaque élément a sa propre durée, et l'accroche doit attendre que le
        titre soit posé avant de paraître — ce qu'un stagger régulier, qui
        ne connaît qu'un pas constant, ne sait pas faire. */
     if (lead) tl.add(lead, { opacity: 1, y: 0, duration: 550 }, 620);
     tl.add(cta, { opacity: 1, y: 0, duration: 550 }, 740);
-    if (note) tl.add(note, { opacity: 1, y: 0, duration: 500 }, 840);
+    /* La seconde pilule suit la première de 60 ms : assez pour qu'on lise
+       deux gestes et non un, trop peu pour qu'on attende. */
+    if (cta2) tl.add(cta2, { opacity: 1, y: 0, duration: 550 }, 800);
+    if (note) tl.add(note, { opacity: 1, y: 0, duration: 500 }, 880);
 
     /* La cascade se termine ici. Le ressort outBack qui fermait la marche
        est parti avec la carte d'accroche : c'était son seul emploi de toute
@@ -169,23 +191,24 @@
     }
   });
 
-  /* ================= les modules, révélés au défilement ================= */
+  /* ============== les sections, révélées au défilement ================== */
 
-  /* La page Modules est reprise entière dans l'accueil. Sa révélation l'est
-     aussi : mêmes sélecteurs, même découpage que page-modules.js, pour que
-     les deux pages se comportent pareil. On ne charge PAS page-modules.js
-     ici — il rejouerait l'entrée de la nav, que page-home.js anime déjà, et
-     les deux se marcheraient dessus.
+  /* Huit sections sous le héros : repères, trois étapes, démo, grille des
+     modules, communauté, FAQ, appel final. Chacune porte `data-mod`, son
+     texte porte `data-reveal-text`, et sa maquette `data-mod-visual`.
+
+     L'en-tête `.mhead` que cette fonction animait est parti avec la reprise
+     intégrale de la page Modules : il n'y a plus d'en-tête à part, chaque
+     section a le sien, et un `$$('.mhead [data-reveal]')` qui ne trouve
+     jamais rien est une timeline vide qu'on joue pour personne.
 
      À part du scope du héros, et volontairement : l'entrée du héros attend
-     le découpage du titre et le chargement des polices, ce qui peut prendre
-     une seconde et demie. Les modules sont hors de l'écran au chargement —
-     les faire dépendre de cette attente les ferait apparaître en retard, ou
-     pas du tout si le découpage échoue. */
-  (function modules() {
-    var secs  = $$('[data-mod]');
-    var tete  = $$('.mhead [data-reveal]');
-    var mhead = $('.mhead');
+     le chargement des polices, ce qui peut prendre une seconde et demie.
+     Ces sections sont hors de l'écran au chargement — les faire dépendre de
+     cette attente les ferait apparaître en retard, ou pas du tout si la
+     mesure du titre échoue. */
+  (function sections() {
+    var secs = $$('[data-mod]');
     if (!secs.length) return;
 
     /* Sans mouvement : rien n'est masqué, il n'y a donc rien à révéler.
@@ -193,16 +216,17 @@
        page resterait vide sous le héros. */
     if (calm) return;
 
-    utils.set(tete, { opacity: 0, y: 14 });
-
-    var tlTete = createTimeline({ defaults: { ease: OUT }, autoplay: false });
-    tlTete.add(tete, { opacity: 1, y: 0, duration: 650, delay: stagger(90) }, 0);
-
     /* Le sens d'arrivée de la maquette suit la colonne qu'elle occupe :
        elle entre depuis son propre bord, pas depuis un côté arbitraire. */
     var faites = secs.map(function (sec, i) {
-      var texte = [$('.mod__title', sec), $('.mod__body', sec),
-                   $('.mcta__title', sec)].filter(Boolean);
+      /* Un seul attribut, et non trois classes. Les sections de l'accueil
+         ne sont plus les six `.mod` de la page Modules : ce sont des
+         repères, trois étapes, une démo, une grille, une FAQ, un appel
+         final, et chacune nomme ses propres classes. `data-reveal-text`
+         dit « ce texte arrive au défilement » sans rien savoir de la
+         section qui le porte — une classe de plus à ajouter ici à chaque
+         section neuve, c'est la ligne qu'on oublie. */
+      var texte = $$('[data-reveal-text]', sec);
       var visuel = $('[data-mod-visual]', sec);
 
       utils.set(texte, { opacity: 0, y: 18 });

@@ -917,38 +917,18 @@ html::-webkit-scrollbar { display: none; }
 }
 
 
-/* ================= la page Modules, reprise dans l'accueil ============= */
+/* ============== ce qui reste de la reprise des modules ================ */
 
-/* `.homemods` était un calque : le héros étant épinglé, il fallait un fond
-   opaque et un `z-index` au-dessus de lui, sans quoi les six modules
-   défilaient DERRIÈRE le héros et restaient invisibles. Le héros n'est plus
-   épinglé, donc il n'y a plus de calque — et c'est précisément ce fond
-   `--bg`, plus sombre que le `--panel` de la coque, qui donnait l'impression
-   d'une seconde fenêtre posée sur la première.
+/* L'accueil a longtemps repris la page Modules EN ENTIER : les six
+   sections, leur en-tête, leur feuille. La maquette de refonte les
+   remplace par six cartes (`.mgrid`), et `modules.html` reste la page
+   longue, avec ses ancres — chaque carte y mène.
 
-   L'enveloppe reste quand même, et elle a maintenant un vrai métier : elle
-   est ce qui distingue « les modules lus dans l'accueil » de « les modules
-   lus sur leur propre page ». modules.css est écrite pour une page entière
-   dédiée ; les deux retouches ci-dessous la ramènent à un chapitre parmi
-   d'autres, et elles ne peuvent toucher que l'accueil.
+   Les deux retouches qui vivaient ici — `.homemods .mhead`, qui annulait
+   la réserve de la nav fixe, et `.homemods .mod`, qui annulait le « un
+   module par écran » — n'ont donc plus rien à viser et sont parties avec
+   l'enveloppe.
 
-   Elle n'a donc plus de style à elle — seulement un nom, qui sert de
-   portée. Lui laisser un `position: relative` orphelin ferait croire à un
-   calage dont rien ne dépend. */
-
-/* L'en-tête des modules réserve la place de la nav fixe sur sa propre
-   page. Ici la nav est déjà passée depuis longtemps quand on arrive :
-   cette réserve ferait un trou d'une hauteur d'écran. */
-.homemods .mhead { padding-top: var(--sp-4); min-height: 0; }
-
-/* Un module par écran, c'est la mise en page de modules.html : on y vient
-   pour lire les six fonctions l'une après l'autre, et la pleine hauteur
-   donne à chacune le temps d'exister. Dans l'accueil, la même règle hache
-   le défilement en six écrans pleins — six fenêtres de plus après celle du
-   héros, exactement ce qu'on vient de retirer.
-
-   Les 120 px de `--sp-5` que `.mod` porte déjà en haut et en bas suffisent
-   à séparer deux modules ; le filet du haut fait le reste. Sous 1100 px,
-   modules.css annule déjà cette hauteur pour tout le monde : cette règle
-   ne concerne donc que le grand écran. */
-.homemods .mod { min-height: 0; }
+   modules.css reste chargée par l'accueil, et pour une seule raison : ses
+   maquettes Discord (`.mock`). Le héros et la démo en affichent une
+   chacun, et c'est cette feuille qui sait les dessiner. */
