@@ -390,17 +390,86 @@ html::-webkit-scrollbar { display: none; }
 
 /* ============================== pied ================================== */
 
+/* Le pied n'était qu'une rangée de liens poussée à droite. La maquette le
+   développe : une colonne de marque, des colonnes de liens, une barre
+   basse. Il reste DANS la coque — fond `--panel`, les deux coins du bas au
+   rayon de la coque — sinon le cadre fixe laisse voir le `--bg` dessous.
+
+   Trois colonnes, et non les quatre de la maquette. La quatrième y portait
+   Tarifs, Changelog, Blog, GitHub, RGPD : ce site n'a aucune de ces pages,
+   et un lien mort coûte plus cher que la colonne qu'il remplissait. Une
+   colonne « Légal » réduite à un seul lien se lirait comme un oubli, donc
+   Confidentialité descend dans la barre basse, où un lien isolé est chez
+   lui. */
 .foot {
   position: relative; z-index: 2;
   background: var(--panel);
   border-radius: 0 0 var(--r-shell) var(--r-shell);
   border-top: 1px solid var(--hair);
-  padding: var(--sp-3) var(--sp-4);
-  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  padding: var(--sp-4) var(--sp-4) var(--sp-2);
 }
+
+/* La colonne de marque est plus large que les autres : elle porte une
+   phrase, les autres une liste de mots. */
+.foot__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-4);
+  padding-bottom: var(--sp-4);
+}
+
+.foot__mark { display: inline-flex; align-items: center; gap: 10px; }
+.foot__mark img { width: 26px; height: 26px; display: block; }
+.foot__mark span { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; }
+.foot__pitch {
+  margin-top: 14px; max-width: 30ch;
+  font-size: 12.5px; line-height: 1.55; color: var(--ink-60);
+}
+
+/* La maquette annonçait ici « tous les systèmes opérationnels », point vert
+   compris. Cette page est statique : elle n'interroge personne et ne peut
+   donc pas le savoir. Le badge devient ce qu'il peut être sans mentir — un
+   lien vers l'état du service — et son point reste du décor, pas un feu
+   vert qui affirmerait quelque chose. */
+.foot__status {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: var(--sp-2);
+  padding: 7px 14px; border-radius: var(--r-pill);
+  background: var(--film); border: 1px solid var(--hair);
+  transition: background 200ms var(--e-soft);
+}
+.foot__status:hover { background: rgba(255,255,255,.1); }
+.foot__dot {
+  width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--ink-40);
+}
+
+.foot__col {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 12px;
+}
+.foot__title {
+  margin-bottom: 4px;
+  font-size: 11px; font-weight: 500; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-60);
+}
+
 .foot a { font-size: 12.5px; color: var(--ink-60); }
 .foot a:hover { color: var(--ink); }
-.foot__end { margin-left: auto; display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+
+/* La barre basse. Les 56 px ne décorent pas : ils donnent au lien de
+   confidentialité une cible qu'on peut viser au doigt. */
+.foot__bar {
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  min-height: 56px;
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--hair);
+}
+/* Une mention, pas du texte courant — mais elle reste au plancher de
+   lisibilité : `--ink-40` est réservé au décor, et la maquette la posait
+   plus bas encore (.20), ce qui ne se lit plus. */
+.foot__fine { font-size: 12px; color: var(--ink-60); }
+.foot__bar a { margin-left: auto; }
 
 /* ======================== menu de langue ============================== */
 
@@ -462,6 +531,17 @@ html::-webkit-scrollbar { display: none; }
 @media (max-width: 1100px) {
   .hero__in { grid-template-columns: minmax(0,1fr); padding-top: 144px; }
   .matter { justify-self: center; margin: 0 auto; max-width: 380px; }
+}
+
+/* La marque passe la ligne entière, les deux colonnes de liens se
+   partagent la suivante : trois colonnes à cette largeur donneraient des
+   listes de deux mots sur trois lignes. */
+@media (max-width: 900px) {
+  .foot__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--sp-3) var(--sp-4);
+  }
+  .foot__brand { grid-column: 1 / -1; }
 }
 
 @media (max-width: 780px) {
