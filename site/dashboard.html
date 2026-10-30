@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302139">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302139">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302149">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302149">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -270,6 +270,29 @@
             </div>
             <ol class="ovrail" data-ov-rail></ol>
             <p class="ovprog__word" data-ov-word></p>
+          </div>
+
+          <!-- L'ACTIVITÉ RÉCENTE.
+
+               Elle vient de /audit, le relevé que la section Journal
+               montre déjà en entier — pas d'un second point d'API
+               inventé pour l'occasion. Cinq lignes et non cinquante :
+               la vue d'ensemble répond « il s'est passé quelque chose,
+               et quoi », le Journal répond « voici tout ». Le lien mène
+               de l'une à l'autre, pour que la question suivante ait sa
+               porte au lieu d'un retour par le menu.
+
+               La carte est vide tant que l'API n'a pas répondu, et elle
+               le dit. Aucune ligne d'exemple n'est écrite ici : une
+               fausse activité sur l'écran d'arrivée serait le pire
+               endroit du panneau pour en mettre une. -->
+          <div class="ovjrn">
+            <div class="ovjrn__head">
+              <h2 class="grp__title" data-i18n="ov.recent">Activité récente</h2>
+              <a class="ovjrn__all underlined" href="#journal" data-ov-goto="journal"
+                 data-i18n="ov.seeAll">Tout voir</a>
+            </div>
+            <div class="grp__card" data-ov-journal></div>
           </div>
 
           <div class="ovcols">
@@ -1795,16 +1818,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302139"></script>
-<script src="assets/js/config.js?v=202610302139"></script>
-<script src="assets/js/lang/fr.js?v=202610302139"></script>
-<script src="assets/js/lang/en.js?v=202610302139"></script>
-<script src="assets/js/lang/es.js?v=202610302139"></script>
-<script src="assets/js/lang/de.js?v=202610302139"></script>
-<script src="assets/js/lang/ko.js?v=202610302139"></script>
-<script src="assets/js/app.js?v=202610302139"></script>
-<script src="assets/js/page-dashboard.js?v=202610302139"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610302139"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610302139"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302149"></script>
+<script src="assets/js/config.js?v=202610302149"></script>
+<script src="assets/js/lang/fr.js?v=202610302149"></script>
+<script src="assets/js/lang/en.js?v=202610302149"></script>
+<script src="assets/js/lang/es.js?v=202610302149"></script>
+<script src="assets/js/lang/de.js?v=202610302149"></script>
+<script src="assets/js/lang/ko.js?v=202610302149"></script>
+<script src="assets/js/app.js?v=202610302149"></script>
+<script src="assets/js/page-dashboard.js?v=202610302149"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610302149"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610302149"></script>
 </body>
 </html>
