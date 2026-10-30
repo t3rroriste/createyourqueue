@@ -75,7 +75,21 @@ dans l'autre, ne jamais « harmoniser » les deux.
   commentaires : c'est précisément ce qui a abîmé `dashboard.html` et
   `bot.py` le 28 octobre.
 - **i18n** : tout texte visible passe par `data-i18n` et les cinq fichiers
-  de langue. Ajouter une clé = l'ajouter dans les cinq.
+  de langue. Ajouter une clé = l'ajouter dans les cinq. On l'écrit dans
+  `fr.js`, qui fait foi, puis :
+
+  ```
+  python outils/verifier_langues.py --completer
+  ```
+
+  Il la recopie dans les quatre autres, à la même place, marquée
+  `À TRADUIRE` — la page affiche alors du français au lieu de la clé nue,
+  et `grep "À TRADUIRE"` donne ce qui reste. Sans le drapeau, il se
+  contente du relevé : clés manquantes, clés en trop, clés réclamées par
+  le code et définies nulle part. `publier_site.py` le lance et avertit
+  sans bloquer. `--inutilisees` liste les clés que personne ne semble
+  demander — beaucoup sont bâties à l'exécution, donc jamais d'effacement
+  sur la foi de cette liste.
 - **Jamais de données inventées.** Sans API, les écrans affichent leurs
   états vides réels.
 
