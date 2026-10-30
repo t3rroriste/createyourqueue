@@ -174,6 +174,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     ap.add_argument("--completer", action="store_true",
                     help="recopie les clés manquantes depuis le français")
+    ap.add_argument("--inutilisees", action="store_true",
+                    help="liste les clés que le relevé ne voit demandées nulle part")
     ap.add_argument("--silencieux", action="store_true",
                     help="ne dit rien quand tout va bien")
     args = ap.parse_args()
@@ -226,13 +228,23 @@ def main() -> int:
 
     # 4. L'avis, qui ne fait pas échouer. Voir l'en-tête : beaucoup de clés
     #    sont construites à l'exécution et n'apparaissent pas au relevé.
+    #    Une ligne par défaut, la liste seulement si on la demande : elles
+    #    sont 230 sur 686, et les déverser à chaque passage noierait les
+    #    trois lignes pour lesquelles on lance ce script.
     jamais_vues = [c for c in ref if c not in reclamees]
-    if jamais_vues:
-        dire("\nAvis — %d clé(s) que le relevé ne voit réclamées nulle part."
-             % len(jamais_vues))
-        dire("  Beaucoup sont construites à l'exécution : à vérifier à la"
-             " main, jamais à effacer sur la foi de cette liste.")
-        dire("  " + ", ".join(jamais_vues[:12]) + (" …" if len(jamais_vues) > 12 else ""))
+    if jamais_vues and not args.inutilisees:
+        dire("\n%d clé(s) ne sont réclamées nulle part au relevé — beaucoup"
+             " sont bâties à l'exécution." % len(jamais_vues))
+        dire("  La liste : --inutilisees")
+    elif jamais_vues:
+        print("\n%d clé(s) que le relevé ne voit réclamées nulle part."
+              % len(jamais_vues))
+        print("  Une clé bâtie à l'exécution — t(cle), t('ov.ago' + unite) —"
+              " figure forcément ici.")
+        print("  À vérifier une par une, jamais à effacer sur la foi de"
+              " cette liste.\n")
+        for c in jamais_vues:
+            print("  " + c)
 
     if fautes:
         print("\n%d faute(s). Pour recopier les manquantes depuis le français :"
