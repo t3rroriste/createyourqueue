@@ -25,6 +25,65 @@ window.CYQ_I18N.fr = {
   "f.product": "Produit", "f.community": "Communauté",
   "f.discord": "Serveur Discord",
 
+  /* L'accueil refondu : les repères, les trois étapes, la démo, la grille
+     des six modules, la communauté, la FAQ et l'appel final.
+
+     Les titres gardent leur casse normale. C'est la feuille qui les met en
+     bas de casse, et c'est volontaire : une règle de casse décidée pour le
+     français n'a aucun sens en allemand, où les noms portent la majuscule,
+     ni en coréen, qui n'a pas de casse du tout.
+
+     Les six réponses de la FAQ ne sont pas des arguments de vente : chacune
+     reprend un fait écrit dans le guide ou dans le contrat d'API. La
+     question « le bot est-il gratuit ? » de la maquette n'y est pas —
+     aucune page de ce site ne parle de prix, et une réponse inventée sur un
+     sujet pareil se paierait cher. */
+
+  "h.seeDemo": "Voir une file en action",
+
+  "st.modules": "Modules", "st.langs": "Langues", "st.service": "Service",
+
+  "step.title": "Prêt en trois étapes",
+  "step.1t": "Invite le bot",
+  "step.1l": "Un lien, deux clics, et le bot rejoint ton serveur Discord.",
+  "step.2t": "Règle ta queue",
+  "step.2l": "Format, salons, rôles, langue : tout se règle depuis le panneau.",
+  "step.3t": "Ouvre la queue",
+  "step.3l": "Les joueurs rejoignent, le bot compose les équipes et ouvre les vocaux.",
+
+  "demo.eyebrow": "La file, de bout en bout",
+  "demo.title": "La file se remplit, les équipes se forment",
+  "demo.lead": "Dix joueurs rejoignent par les boutons. Le bot compose les équipes, crée les salons vocaux et y déplace tout le monde.",
+
+  "mg.title": "Six modules, un seul bot",
+  "mg.queue": "La file et la composition des équipes : de 2 à 6 équipes, capitaines élus, vocal d'attente et dix presets.",
+  "mg.mmr": "Le classement se tient tout seul : points de départ, gains, bonus MVP et de série.",
+  "mg.duel": "L'affrontement direct, sans passer par la file. Le score est confirmé au vote.",
+  "mg.clan": "Les équipes permanentes, leurs salons créés tout seuls, et des guerres qui comptent au classement.",
+  "mg.sec": "Anti-lien, nettoyage automatique, anti-raid, et dix journaux indépendants.",
+  "mg.opt": "Cinq langues, les salons, les rôles, et un panneau d'état qui montre ce qui tourne.",
+
+  "commu.title": "Rejoins la communauté",
+  "commu.lead": "Le serveur Discord officiel : le support, les idées, et les nouveautés avant tout le monde.",
+  "commu.join": "Rejoindre le Discord",
+
+  "faq.title": "Questions fréquentes",
+  "faq.q1": "Faut-il héberger le bot soi-même ?",
+  "faq.a1": "Non. Le bot est déjà hébergé : il suffit de l'inviter. Le panneau ne sert qu'à le régler — tu peux fermer le site, rien ne s'arrête.",
+  "faq.q2": "Quelles permissions faut-il pour l'installer ?",
+  "faq.a2": "La permission « Gérer le serveur » sur le serveur choisi. La liste du panneau ne montre que les serveurs où tu es propriétaire ou gestionnaire.",
+  "faq.q3": "Combien d'équipes et de joueurs par queue ?",
+  "faq.a3": "De 2 à 6 équipes, de 1 à 6 joueurs par équipe, chacune avec son nom et sa couleur. Jusqu'à dix presets gardent tes formats habituels.",
+  "faq.q4": "Le bot parle-t-il plusieurs langues ?",
+  "faq.a4": "Cinq : français, anglais, espagnol, allemand, coréen. La langue renomme aussi les salons et les rôles que le bot crée, donc fixe-la avant de lancer quoi que ce soit.",
+  "faq.q5": "Qu'est-ce que le panneau lit de mon compte ?",
+  "faq.a5": "Discord ne lui transmet que identify et guilds : de quoi lister tes serveurs et vérifier tes droits. Rien qui permette de lire un message.",
+  "faq.q6": "Je rencontre un bug, comment le signaler ?",
+  "faq.a6": "Sur le serveur Discord, ou par le formulaire de la page Support. Le diagnostic du panneau vérifie d'abord les permissions salon par salon : il explique une bonne part des surprises.",
+
+  "cta.title": "Prêt à lancer ta première queue ?",
+  "cta.lead": "En deux minutes, le bot est sur ton serveur et ta première file d'attente est ouverte.",
+
     "h.title": "Configure, customise et crée tes queues en moins de 5 minutes.",
   "h.lead": "Toute la configuration du bot sur un seul écran. Le bot continue de fonctionner par commande, le panneau ne fait que le régler.",
   "h.invite": "Invite le bot sur un serveur",

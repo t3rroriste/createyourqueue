@@ -23,6 +23,53 @@ window.CYQ_I18N.es = {
   "f.product": "Producto", "f.community": "Comunidad",
   "f.discord": "Servidor de Discord",
 
+  /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
+
+  "h.seeDemo": "Ver una cola en acción",
+
+  "st.modules": "Módulos", "st.langs": "Idiomas", "st.service": "Servicio",
+
+  "step.title": "Listo en tres pasos",
+  "step.1t": "Invita al bot",
+  "step.1l": "Un enlace, dos clics, y el bot entra en tu servidor de Discord.",
+  "step.2t": "Configura tu cola",
+  "step.2l": "Formato, canales, roles, idioma: todo se ajusta desde el panel.",
+  "step.3t": "Abre la cola",
+  "step.3l": "Los jugadores entran, el bot forma los equipos y abre los canales de voz.",
+
+  "demo.eyebrow": "La cola, de principio a fin",
+  "demo.title": "La cola se llena, los equipos se forman",
+  "demo.lead": "Diez jugadores entran con los botones. El bot forma los equipos, crea los canales de voz y mueve a todo el mundo.",
+
+  "mg.title": "Seis módulos, un solo bot",
+  "mg.queue": "La cola y la formación de equipos: de 2 a 6 equipos, capitanes elegidos, canal de voz de espera y diez presets.",
+  "mg.mmr": "La clasificación se mantiene sola: puntos de partida, ganancias, bonus de MVP y de racha.",
+  "mg.duel": "El enfrentamiento directo, sin pasar por la cola. El resultado se confirma por votación.",
+  "mg.clan": "Los equipos permanentes, sus canales creados solos, y guerras que cuentan para la clasificación.",
+  "mg.sec": "Antienlaces, limpieza automática, antirraid y diez registros independientes.",
+  "mg.opt": "Cinco idiomas, los canales, los roles y un panel de estado que muestra lo que funciona.",
+
+  "commu.title": "Únete a la comunidad",
+  "commu.lead": "El servidor de Discord oficial: soporte, ideas y las novedades antes que nadie.",
+  "commu.join": "Entrar en el Discord",
+
+  "faq.title": "Preguntas frecuentes",
+  "faq.q1": "¿Hay que alojar el bot uno mismo?",
+  "faq.a1": "No. El bot ya está alojado: solo hay que invitarlo. El panel sirve únicamente para configurarlo: puedes cerrar el sitio, nada se detiene.",
+  "faq.q2": "¿Qué permisos hacen falta para instalarlo?",
+  "faq.a2": "El permiso « Gestionar servidor » en el servidor elegido. El panel solo muestra los servidores donde eres propietario o gestor.",
+  "faq.q3": "¿Cuántos equipos y jugadores por cola?",
+  "faq.a3": "De 2 a 6 equipos, de 1 a 6 jugadores cada uno, cada equipo con su nombre y su color. Hasta diez presets guardan tus formatos habituales.",
+  "faq.q4": "¿El bot habla varios idiomas?",
+  "faq.a4": "Cinco: francés, inglés, español, alemán y coreano. El idioma también renombra los canales y los roles que crea el bot, así que fíjalo antes de lanzar nada.",
+  "faq.q5": "¿Qué lee el panel de mi cuenta?",
+  "faq.a5": "Discord solo le transmite identify y guilds: lo justo para listar tus servidores y comprobar tus permisos. Nada que permita leer un mensaje.",
+  "faq.q6": "He encontrado un error, ¿cómo lo comunico?",
+  "faq.a6": "En el servidor de Discord, o con el formulario de la página de Soporte. El diagnóstico del panel comprueba antes los permisos canal por canal: explica buena parte de las sorpresas.",
+
+  "cta.title": "¿Listo para abrir tu primera cola?",
+  "cta.lead": "En dos minutos, el bot está en tu servidor y tu primera cola está abierta.",
+
     "h.title": "Configura, personaliza y crea tus colas en menos de 5 minutos.",
   "h.lead": "Toda la configuración del bot en una sola pantalla. El bot sigue funcionando por comandos; el panel solo lo configura.",
   "h.invite": "Añade el bot a un servidor",

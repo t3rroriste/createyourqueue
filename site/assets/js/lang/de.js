@@ -23,6 +23,53 @@ window.CYQ_I18N.de = {
   "f.product": "Produkt", "f.community": "Community",
   "f.discord": "Discord-Server",
 
+  /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
+
+  "h.seeDemo": "Eine Queue in Aktion sehen",
+
+  "st.modules": "Module", "st.langs": "Sprachen", "st.service": "Dienst",
+
+  "step.title": "In drei Schritten bereit",
+  "step.1t": "Bot einladen",
+  "step.1l": "Ein Link, zwei Klicks, und der Bot ist auf deinem Discord-Server.",
+  "step.2t": "Queue einstellen",
+  "step.2l": "Format, Kanäle, Rollen, Sprache: alles im Panel.",
+  "step.3t": "Queue öffnen",
+  "step.3l": "Die Spieler treten ein, der Bot stellt die Teams zusammen und öffnet die Sprachkanäle.",
+
+  "demo.eyebrow": "Die Queue, von Anfang bis Ende",
+  "demo.title": "Die Queue füllt sich, die Teams entstehen",
+  "demo.lead": "Zehn Spieler treten über die Buttons ein. Der Bot stellt die Teams zusammen, erstellt die Sprachkanäle und zieht alle hinein.",
+
+  "mg.title": "Sechs Module, ein Bot",
+  "mg.queue": "Die Warteschlange und die Teamzusammenstellung: 2 bis 6 Teams, gewählte Kapitäne, ein Warte-Sprachkanal und zehn Presets.",
+  "mg.mmr": "Die Rangliste pflegt sich selbst: Startpunkte, Gewinne, MVP- und Serienbonus.",
+  "mg.duel": "Das direkte Duell, ohne Warteschlange. Das Ergebnis wird per Abstimmung bestätigt.",
+  "mg.clan": "Feste Teams, ihre Kanäle von selbst erstellt, und Kriege, die für die Rangliste zählen.",
+  "mg.sec": "Linkfilter, automatisches Aufräumen, Anti-Raid und zehn unabhängige Protokolle.",
+  "mg.opt": "Fünf Sprachen, die Kanäle, die Rollen und ein Statuspanel, das zeigt, was läuft.",
+
+  "commu.title": "Komm in die Community",
+  "commu.lead": "Der offizielle Discord-Server: Support, Ideen und Neuigkeiten als Erster.",
+  "commu.join": "Discord beitreten",
+
+  "faq.title": "Häufige Fragen",
+  "faq.q1": "Muss ich den Bot selbst hosten?",
+  "faq.a1": "Nein. Der Bot ist bereits gehostet: du lädst ihn nur ein. Das Panel stellt ihn lediglich ein — du kannst die Seite schließen, nichts hört auf.",
+  "faq.q2": "Welche Rechte brauche ich für die Installation?",
+  "faq.a2": "Das Recht « Server verwalten » auf dem gewählten Server. Das Panel zeigt nur Server, auf denen du Inhaber oder Verwalter bist.",
+  "faq.q3": "Wie viele Teams und Spieler pro Queue?",
+  "faq.a3": "2 bis 6 Teams, 1 bis 6 Spieler pro Team, jedes mit eigenem Namen und eigener Farbe. Bis zu zehn Presets bewahren deine üblichen Formate.",
+  "faq.q4": "Spricht der Bot mehrere Sprachen?",
+  "faq.a4": "Fünf: Französisch, Englisch, Spanisch, Deutsch, Koreanisch. Die Sprache benennt auch die Kanäle und Rollen um, die der Bot erstellt — lege sie also fest, bevor du etwas startest.",
+  "faq.q5": "Was liest das Panel von meinem Konto?",
+  "faq.a5": "Discord übergibt ihm nur identify und guilds: genug, um deine Server zu listen und deine Rechte zu prüfen. Nichts, womit man eine Nachricht lesen könnte.",
+  "faq.q6": "Ich habe einen Fehler gefunden, wie melde ich ihn?",
+  "faq.a6": "Auf dem Discord-Server oder über das Formular der Support-Seite. Die Diagnose im Panel prüft zuerst die Rechte Kanal für Kanal: das erklärt einen guten Teil der Überraschungen.",
+
+  "cta.title": "Bereit für deine erste Queue?",
+  "cta.lead": "Zwei Minuten, und der Bot ist auf deinem Server — mit der ersten offenen Warteschlange.",
+
     "h.title": "Richte deine Warteschlangen ein, passe sie an und erstelle sie in unter 5 Minuten.",
   "h.lead": "Die komplette Bot-Konfiguration auf einem Bildschirm. Der Bot läuft weiter über Befehle; das Panel stellt ihn nur ein.",
   "h.invite": "Füge den Bot zu einem Server hinzu",

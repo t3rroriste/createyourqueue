@@ -23,6 +23,53 @@ window.CYQ_I18N.en = {
   "f.product": "Product", "f.community": "Community",
   "f.discord": "Discord server",
 
+  /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
+
+  "h.seeDemo": "See a queue in action",
+
+  "st.modules": "Modules", "st.langs": "Languages", "st.service": "Service",
+
+  "step.title": "Ready in three steps",
+  "step.1t": "Invite the bot",
+  "step.1l": "One link, two clicks, and the bot joins your Discord server.",
+  "step.2t": "Set up your queue",
+  "step.2l": "Format, channels, roles, language: it all happens in the panel.",
+  "step.3t": "Open the queue",
+  "step.3l": "Players join, the bot builds the teams and opens the voice channels.",
+
+  "demo.eyebrow": "The queue, end to end",
+  "demo.title": "The queue fills up, the teams take shape",
+  "demo.lead": "Ten players join with the buttons. The bot builds the teams, creates the voice channels and moves everyone in.",
+
+  "mg.title": "Six modules, one bot",
+  "mg.queue": "The queue and team building: 2 to 6 teams, elected captains, a waiting voice channel and ten presets.",
+  "mg.mmr": "The ranking keeps itself: starting points, gains, MVP and streak bonuses.",
+  "mg.duel": "A direct match, without the queue. The score is confirmed by vote.",
+  "mg.clan": "Permanent teams, their channels created for you, and wars that count towards the ranking.",
+  "mg.sec": "Link filter, automatic cleanup, anti-raid, and ten independent logs.",
+  "mg.opt": "Five languages, the channels, the roles, and a status panel showing what is running.",
+
+  "commu.title": "Join the community",
+  "commu.lead": "The official Discord server: support, ideas, and what is new before anyone else.",
+  "commu.join": "Join the Discord",
+
+  "faq.title": "Frequently asked questions",
+  "faq.q1": "Do I have to host the bot myself?",
+  "faq.a1": "No. The bot is already hosted: you only invite it. The panel just configures it — you can close the site, nothing stops.",
+  "faq.q2": "What permissions do I need to install it?",
+  "faq.a2": "The « Manage Server » permission on the server you pick. The panel only lists servers where you are the owner or a manager.",
+  "faq.q3": "How many teams and players per queue?",
+  "faq.a3": "From 2 to 6 teams, 1 to 6 players each, every team with its own name and colour. Up to ten presets keep your usual formats.",
+  "faq.q4": "Does the bot speak several languages?",
+  "faq.a4": "Five: French, English, Spanish, German, Korean. The language also renames the channels and roles the bot creates, so set it before you launch anything.",
+  "faq.q5": "What does the panel read from my account?",
+  "faq.a5": "Discord only passes it identify and guilds: enough to list your servers and check your rights. Nothing that can read a message.",
+  "faq.q6": "I found a bug, how do I report it?",
+  "faq.a6": "On the Discord server, or through the form on the Support page. The panel diagnostic checks permissions channel by channel first: it explains a good share of the surprises.",
+
+  "cta.title": "Ready to open your first queue?",
+  "cta.lead": "Two minutes and the bot is on your server, with its first queue open.",
+
     "h.title": "Set up, customise and create your queues in under 5 minutes.",
   "h.lead": "Every bot setting on one screen. The bot still works through commands; this panel only configures it.",
   "h.invite": "Add the bot to a server",
