@@ -8,8 +8,27 @@
    --film, --accent, --r-*, --sp-*, --e-*, --sans) viennent de home.css.
    Aucune valeur de couleur nouvelle, aucune seconde couleur.
 
-   Le cuivre a UN seul emploi : l'indicateur de la section active dans le
-   menu. Il n'apparaît nulle part ailleurs, à aucun moment.
+   LE CUIVRE, ET CE QUI A CHANGÉ LE 30 OCTOBRE 2026.
+
+   Il n'avait ici qu'un seul emploi, l'indicateur de la section active. La
+   règle venait de la vitrine, où elle tient toujours : là-bas, un écran
+   n'a qu'une action principale, et le cuivre la désigne.
+
+   Un panneau de réglages ne marche pas comme ça. Soixante rangées, et la
+   question qu'on se pose à chaque fois est « où en est CELLE-CI ». La
+   réponse était lue à la position d'un bouton et à la luminosité d'une
+   piste — deux signaux fins, à chercher ligne par ligne. Le cuivre y
+   devient donc FONCTIONNEL : il dit l'état actif, et rien d'autre.
+
+   Trois emplois, et la liste est fermée :
+     · l'indicateur de la section active dans le menu ;
+     · l'interrupteur allumé ;
+     · la valeur retenue d'un contrôle segmenté.
+
+   Il ne décore jamais : pas de titre cuivré, pas de filet cuivré, pas de
+   fond cuivré sur autre chose qu'un état. Et il ne porte JAMAIS l'état à
+   lui seul — la position du bouton, le `aria-pressed` et le `role=switch`
+   disent la même chose sans couleur, pour qui ne la voit pas.
 
    La question de la page tient dans une brique : la rangée de réglage.
    Elle est répétée une soixantaine de fois, donc chaque pixel de hauteur
@@ -540,10 +559,15 @@ label.row__label { cursor: pointer; }
 
 /* ============================ l'interrupteur ========================== */
 
-/* Quatorze occurrences, un seul dessin. L'état se lit à la POSITION du
-   bouton (gauche, droite) et à la luminosité de la piste — jamais à une
-   couleur. Deux couches superposées plutôt qu'une couleur de fond qui
-   change : seules l'opacité et la translation bougent. */
+/* Quatorze occurrences, un seul dessin. L'état se lit d'abord à la
+   POSITION du bouton (gauche, droite) : c'est le signal qui ne dépend
+   d'aucune couleur, et il reste le premier. Le cuivre de la piste allumée
+   s'ajoute par-dessus depuis la refonte du 30 octobre — il rend l'état
+   repérable d'un coup d'œil sur une section de quinze rangées, sans
+   jamais le porter tout seul.
+
+   Deux couches superposées plutôt qu'une couleur de fond qui change :
+   seules l'opacité et la translation bougent. */
 .switch {
   position: relative;
   display: inline-flex; flex: 0 0 auto;
@@ -566,7 +590,7 @@ label.row__label { cursor: pointer; }
   content: '';
   position: absolute; inset: 0;
   border-radius: inherit;
-  background: var(--ink);
+  background: var(--accent);
   opacity: 0;
   transition: opacity 180ms var(--e-soft);
 }
@@ -770,9 +794,16 @@ label.row__label { cursor: pointer; }
 /* ============================== le segmenté =========================== */
 
 /* Deux occurrences : le nombre d'équipes, le nombre de joueurs. Tous les
-   choix visibles d'un coup ; celui qui est pris est le seul aplat crème
-   de la rangée. Pas de pastille qui glisse : changer de format arrive
-   une fois par saison, pas de quoi chorégraphier. */
+   choix visibles d'un coup ; celui qui est pris est le seul à porter un
+   fond. Pas de pastille qui glisse : changer de format arrive une fois
+   par saison, pas de quoi chorégraphier.
+
+   Le fond est cuivré depuis la refonte du 30 octobre, mais le texte reste
+   crème. Le cuivre sur cuivre de la maquette tombait à 4,6:1 — au-dessus
+   du minimum, et trop près du bord pour un chiffre de 13 px qu'on lit en
+   diagonale. La teinte désigne, l'encre se lit : les deux travaux sont
+   séparés. Le filet intérieur est une ombre et non une bordure, sinon le
+   bouton retenu grandirait d'un pixel et toute la rangée bougerait. */
 .segmented {
   display: inline-flex; gap: 2px;
   padding: 3px;
@@ -788,7 +819,10 @@ label.row__label { cursor: pointer; }
   cursor: pointer;
 }
 .segmented button:hover { color: var(--ink); }
-.segmented button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.segmented button[aria-pressed="true"] {
+  background: rgba(192,138,90,.18); color: var(--ink);
+  box-shadow: inset 0 0 0 1px rgba(192,138,90,.35);
+}
 .segmented button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* ============================== la langue ============================= */
