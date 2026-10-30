@@ -162,6 +162,12 @@ case "$verbe" in
     "$PY" "$OUTILS/serveur_local.py"
     ;;
 
+  verifier)
+    # Il ne corrige rien : il dit ce qui a dérivé et quelle commande le
+    # répare. Le code de sortie vaut le nombre de relevés en faute.
+    "$PY" "$OUTILS/verifier.py" "$@"
+    ;;
+
   *)
     aide
     ;;
