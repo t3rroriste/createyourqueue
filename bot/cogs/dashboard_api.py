@@ -1480,13 +1480,16 @@ class DashboardAPI(commands.Cog):
             # une connexion coupée et ne sait pas distinguer un redémarrage
             # accepté d'un bot qui vient de tomber.
             time.sleep(0.5)
-            # `-u` est remis s'il y était : Pterodactyl affiche sa console en
-            # direct grâce à lui, et une relance qui l'oublie rend un bot
-            # dont les journaux n'arrivent plus qu'au compte-gouttes.
-            argv = [sys.executable]
-            if sys.flags.unbuffered:
-                argv.append("-u")
-            os.execv(sys.executable, argv + sys.argv)
+            # PYTHONUNBUFFERED par l'environnement, et SURTOUT pas en
+            # relisant un drapeau de l'interpréteur. La première version
+            # testait `sys.flags.unbuffered`, qui n'existe pas : le fil
+            # mourait sur un AttributeError juste avant `execv`, après que la
+            # passerelle avait déjà été fermée. C'est ce qui a éteint le bot
+            # le 30 octobre 2026. L'environnement est hérité par le nouveau
+            # processus, donc la console du panneau reste en direct, et il
+            # n'y a plus rien à deviner.
+            os.environ["PYTHONUNBUFFERED"] = "1"
+            os.execv(sys.executable, [sys.executable] + sys.argv)
 
         threading.Thread(target=courir, name="relance-bot", daemon=False).start()
 
