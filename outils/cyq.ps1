@@ -21,8 +21,8 @@
 
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('amorcer', 'veille', 'arret', 'synchro', 'publier', 'etat',
-               'pause', 'reprendre', 'local', 'aide')]
+  [ValidateSet('amorcer', 'veille', 'arret', 'synchro', 'publier', 'redemarrer',
+               'etat', 'pause', 'reprendre', 'local', 'aide')]
   [string]$Verbe = 'aide',
 
   # Repassés tels quels au script appelé : -Cible app, -DryRun, --intervalle 120…
@@ -111,6 +111,12 @@ switch ($Verbe) {
     & python (Join-Path $outils 'publier_bot.py')
   }
 
+  'redemarrer' {
+    # Le bot se relance lui-même par son API : rien à faire dans le panneau
+    # AdKyNet. Il refuse pendant une queue en cours, et --force passe outre.
+    & python (Join-Path $outils 'redemarrer_bot.py') @Reste
+  }
+
   'etat' {
     Write-Host "--- dépôt ---"
     & git -C $racine status --short --branch
@@ -166,7 +172,10 @@ switch ($Verbe) {
   }
 
   default {
-    Get-Content (Join-Path $outils 'cyq.ps1') | Select-Object -First 17 |
+    # 20 et non 17 : l'aide est l'en-tête de ce fichier, et ce nombre doit
+    # suivre quand une ligne s'y ajoute. À 17, le verbe `redemarrer` a fait
+    # disparaître la note sur le jumeau macOS, en bas.
+    Get-Content (Join-Path $outils 'cyq.ps1') | Select-Object -First 20 |
       ForEach-Object { $_ -replace '^# ?', '' } | Where-Object { $_ -notmatch '^=+$' }
   }
 }

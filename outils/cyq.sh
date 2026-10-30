@@ -7,6 +7,7 @@
 #   ./cyq arret        arrête la veille
 #   ./cyq synchro      un passage tout de suite
 #   ./cyq publier      met en ligne : site sur LWS, bot sur AdKyNet
+#   ./cyq redemarrer   relance le bot sur le code publié (jamais pendant une queue)
 #   ./cyq etat         où en est tout
 #   ./cyq pause        la synchro continue, la mise en ligne attend
 #   ./cyq reprendre    lève la pause, et lève un conflit réglé
@@ -101,6 +102,12 @@ case "$verbe" in
     echo
     echo "=== le bot vers AdKyNet ==="
     "$PY" "$OUTILS/publier_bot.py"
+    ;;
+
+  redemarrer)
+    # Le bot se relance lui-même par son API : rien à faire dans le panneau
+    # AdKyNet. Il refuse pendant une queue en cours, et --force passe outre.
+    "$PY" "$OUTILS/redemarrer_bot.py" "$@"
     ;;
 
   etat)
