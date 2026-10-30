@@ -1,0 +1,52 @@
+<!-- Le pied de page, pour TOUTES les pages de la vitrine.
+     Source unique : outils/fragments.py la recopie dans chaque page entre
+     ses deux repères. Ne pas modifier le résultat dans une page — il sera
+     réécrit au prochain passage, et la correction sera perdue.
+
+     Deux paramètres :
+       origine   site (la vitrine) · externe (status, sur son sous-domaine)
+       statut    oui · non (la pastille « État du service »)
+
+     `statut=non` sur la page d'état elle-même : un lien vers soi-même, au
+     pied de la page vers laquelle il mène, n'est pas un raccourci. -->
+<footer class="foot">
+  <div class="foot__grid">
+
+    <div class="foot__brand">
+      <a class="foot__mark" href="index"{{si origine=externe}} data-site="index"{{/si}}>
+        <img src="assets/img/logo.png" alt="" width="26" height="26">
+        <span>CreateYourQueue</span>
+      </a>
+      <p class="foot__pitch" data-i18n="f.pitch">Le bot Discord qui organise vos files d'attente et compose les équipes.</p>
+{{si statut=oui}}
+      <a class="foot__status" href="#" data-cfg-link="STATUS_URL">
+        <span class="dot" aria-hidden="true"></span>
+        <span data-i18n="n.status">État du service</span>
+      </a>
+{{/si}}
+    </div>
+
+    <nav class="foot__col" aria-labelledby="pied-produit">
+      <h2 class="foot__title" id="pied-produit" data-i18n="f.product">Produit</h2>
+      <a href="modules"{{si origine=externe}} data-site="modules"{{/si}} data-i18n="m.nav">Modules</a>
+      <!-- href="guide" et non "#" : voir le fragment de la nav, même
+           raison — le lien doit mener quelque part sans DOCS_URL. -->
+      <a href="guide"{{si origine=externe}} data-site="guide"{{/si}} data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
+      <a href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
+    </nav>
+
+    <nav class="foot__col" aria-labelledby="pied-communaute">
+      <h2 class="foot__title" id="pied-communaute" data-i18n="f.community">Communauté</h2>
+      <a href="#" data-cfg-link="SUPPORT_URL" data-i18n="f.discord">Serveur Discord</a>
+      <a href="support"{{si origine=externe}} data-site="support"{{/si}} data-i18n="n.support">Support</a>
+    </nav>
+
+  </div>
+
+  <div class="foot__bar">
+    <span class="foot__fine">© 2026 CreateYourQueue</span>
+    <!-- PRIVACY_URL vaut « # » tant qu'il n'y a pas de page : app.js ne
+         récrit alors rien, et le lien ne prétend pas mener ailleurs. -->
+    <a href="#" data-cfg-link="PRIVACY_URL" data-i18n="n.privacy">Confidentialité</a>
+  </div>
+</footer>

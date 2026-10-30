@@ -1,0 +1,54 @@
+<!-- La barre de navigation, pour TOUTES les pages qui en portent une.
+     Source unique : outils/fragments.py la recopie dans chaque page entre
+     ses deux repères. Ne pas modifier le résultat dans une page — il sera
+     réécrit au prochain passage, et la correction sera perdue.
+
+     Deux paramètres :
+       courant   index · modules · guide · support · aucun
+       origine   site (la vitrine) · app (login, servers, le panneau)
+
+     `origine=app` ajoute les data-site : depuis le panneau, un lien vers
+     la vitrine change de domaine, et c'est app.js qui le rend absolu. -->
+<nav class="nav" aria-label="Principale" data-nav>
+  <a class="nav__mark" href="index"{{si origine=app}} data-site="index"{{/si}}>
+    <img src="assets/img/logo.png" alt="" width="22" height="22">
+    <span>CreateYourQueue</span>
+  </a>
+  <div class="nav__links">
+    <!-- href="guide" et non "#" : DOCS_URL vaut « guide » aujourd'hui,
+         mais un lien de la vitrine ne doit pas dépendre d'un réglage pour
+         mener quelque part. app.js récrit par-dessus quand DOCS_URL est
+         posé, et ne touche à rien quand il est vide. -->
+    <a href="guide"{{si origine=app}} data-site="guide"{{/si}} data-cfg-link="DOCS_URL"{{si courant=guide}} aria-current="page"{{/si}} data-i18n="n.docs">Documentation</a>
+    <a href="modules"{{si origine=app}} data-site="modules"{{/si}}{{si courant=modules}} aria-current="page"{{/si}} data-i18n="m.nav">Modules</a>
+    <!-- Pas de data-cfg-link ici, contrairement aux autres entrées :
+         SUPPORT_URL désigne le serveur Discord, et app.js récrivait ce
+         lien avec. L'onglet Support ne menait donc jamais à la page
+         Support — il sautait sur Discord. Le serveur garde sa carte dans
+         la page, où il a sa place. -->
+    <a href="support"{{si origine=app}} data-site="support"{{/si}}{{si courant=support}} aria-current="page"{{/si}} data-i18n="n.support">Support</a>
+  </div>
+  <div class="langmenu">
+    <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
+            aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.lang">
+      <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="fr" aria-checked="true">Français<span class="code">fr</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="en" aria-checked="false">English<span class="code">en</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="es" aria-checked="false">Español<span class="code">es</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="de" aria-checked="false">Deutsch<span class="code">de</span></button>
+      <button class="langmenu__opt" type="button" role="menuitemradio" data-lang-pick="ko" aria-checked="false" lang="ko">한국어<span class="code">ko</span></button>
+    </div>
+  </div>
+{{si origine=app}}
+  <a class="pill pill--ghost pill--sm" href="index" data-site="index" data-i18n="c.back">Retour</a>
+{{sinon}}
+  <!-- data-login : app.js y pose l'URL de connexion. Sans cet attribut,
+       le bouton se contentait d'emmener sur la page de choix de serveur. -->
+  <a class="pill" href="servers" data-login>
+    <span data-i18n="n.login">Se connecter</span>
+    <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+  </a>
+{{/si}}
+</nav>
