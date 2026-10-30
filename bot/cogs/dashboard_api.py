@@ -22,8 +22,10 @@ utilisateurs, elle ne connaît que la clé.
 import asyncio
 import json
 import logging
+import os
 import re
 import secrets
+import sys
 import time
 from collections import deque
 from typing import Any
@@ -241,6 +243,11 @@ class DashboardAPI(commands.Cog):
         # ramasse-miettes peut l'emporter en plein milieu, et le renommage
         # s'arrête sans la moindre trace.
         self._retraductions: set[asyncio.Task] = set()
+        # La relance en cours, gardée pour la même raison. Un jeu à part et
+        # non celui des retraductions : deux choses sans rapport dans le même
+        # ensemble, c'est la prochaine personne qui en vide un et casse
+        # l'autre.
+        self._relances: set[asyncio.Task] = set()
 
     # ------------------------------------------------------------------
     # Démarrage et arrêt
@@ -260,6 +267,12 @@ class DashboardAPI(commands.Cog):
             web.patch("/api/guilds/{guild_id}", self.patch_guild),
             web.post("/api/guilds/{guild_id}/queue/open", self.open_queue),
             web.post("/api/guilds/{guild_id}/queue/close", self.close_queue),
+            # Le redémarrage. Volontairement ABSENTE du relais PHP
+            # (site/api/index.php ne recopie que les routes qu'il connaît) :
+            # c'est un geste d'exploitation, demandé par les outils depuis un
+            # PC, pas une action que le panneau web doit offrir à un admin de
+            # serveur Discord.
+            web.post("/api/restart", self.restart),
             # Les routes de LECTURE seule : l'historique, les fiches de
             # joueur, le relevé d'activité et le journal. Hors de
             # `/guilds/{id}` parce qu'elles sont volumineuses et paginées —
