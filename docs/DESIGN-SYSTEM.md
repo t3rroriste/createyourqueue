@@ -43,11 +43,40 @@ réservé au wordmark géant et aux numéros de liste de 11 px, qui sont du
 décor ou de la redondance. Cette contrainte est écrite en commentaire dans
 le CSS pour qu'on ne la perde pas.
 
-**L'accent, trois emplois et pas un de plus.** `--accent` n'apparaît que sur
-la flèche `↗` dans le disque du CTA, et sur le code de langue actif dans le
-menu. Jamais un fond, jamais un dégradé, jamais deux fois dans le même
-écran. Il est échantillonné dans le caramel de la référence ; faute de
-photo sur ce site, il est le seul rappel de sa chaleur.
+**L'accent — et la règle a changé le 30 octobre 2026.**
+
+Elle était unique : `--accent` n'apparaissait que sur la flèche `↗` du
+disque du CTA et sur le code de langue actif, jamais un fond, jamais un
+dégradé, **jamais deux fois dans le même écran**.
+
+La maquette de refonte l'employait dix fois par planche. Les deux ne
+pouvaient pas être vraies à la fois, et l'arbitrage est celui-ci :
+
+- **Sur la vitrine, la règle ne bouge pas.** Un écran de vitrine a une
+  action principale et une seule ; le cuivre la désigne. Accueil, modules,
+  guide, support, pied de page : un emploi par regard. L'aperçu de la carte
+  « File d'attente » dans la grille des six modules en est un, et c'est
+  pour cela qu'il est le seul aperçu coloré de la grille.
+- **Dans le panneau, le cuivre devient fonctionnel.** Un écran de réglages
+  ne pose pas la question « que faire ici » mais « où en est cette
+  rangée-ci », soixante fois de suite. Le cuivre y répond, et la liste de
+  ses emplois est fermée : l'indicateur de la section active, l'interrupteur
+  allumé, la valeur retenue d'un contrôle segmenté. Rien d'autre — pas de
+  titre cuivré, pas de filet cuivré.
+
+Dans les deux cas il ne porte **jamais** un état à lui seul : la position
+du bouton d'un interrupteur, `aria-pressed`, `role="switch"` et le libellé
+disent la même chose sans couleur. Sur le segmenté, le fond est cuivré mais
+l'encre reste crème — du cuivre sur cuivre tombait à 4,6:1, trop près du
+bord pour un chiffre de 13 px.
+
+Il est échantillonné dans le caramel de la référence ; faute de photo sur
+ce site, il est le seul rappel de sa chaleur.
+
+**Le bleu de Discord n'est pas un accent.** `--discord: #5865F2` est la
+couleur d'une marque tierce. Un seul emploi légitime : un bouton qui mène
+littéralement sur Discord — aujourd'hui, celui de la section Communauté de
+l'accueil. Jamais un fond, jamais un filet, jamais un état.
 
 ## 2. Typographie
 
