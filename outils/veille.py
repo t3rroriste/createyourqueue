@@ -210,6 +210,13 @@ def publier(exe: str) -> None:
 
 # ----------------------------------------------------------- redémarrage ---
 
+# Après un échec de redémarrage, on laisse passer ce délai avant de
+# réessayer. Sans lui, un bot qui refuse de repartir ferait écrire une ligne
+# d'échec toutes les trente secondes : au bout d'une nuit, le journal ne
+# contient plus que ça et la ligne utile est introuvable.
+ECHEC_ATTENTE = 300
+
+
 def redemarrage_du() -> None:
     """Relance le bot s'il a reçu des fichiers neufs.
 
@@ -221,6 +228,17 @@ def redemarrage_du() -> None:
     attend », et un redémarrage est le dernier geste de la mise en ligne.
     """
     if not os.path.exists(REDEMARRAGE) or os.path.exists(PAUSE):
+        return
+
+    # La marque porte le commit publié, et sur une deuxième ligne l'heure du
+    # dernier échec s'il y en a eu un.
+    lignes = (lire_marque(REDEMARRAGE) or "").splitlines()
+    tete = lignes[0] if lignes else ""
+    try:
+        dernier_echec = float(lignes[1]) if len(lignes) > 1 else 0.0
+    except ValueError:
+        dernier_echec = 0.0
+    if dernier_echec and time.time() - dernier_echec < ECHEC_ATTENTE:
         return
 
     res = subprocess.run(
@@ -238,14 +256,18 @@ def redemarrage_du() -> None:
 
     if res.returncode == 2:
         # Une queue est en cours : ce n'est pas un échec, c'est une attente.
-        # Pas dans le journal : à trente secondes d'intervalle, une partie
-        # d'une heure y écrirait cent vingt lignes identiques.
+        # Pas dans le journal, et pas de délai non plus — dès que la partie
+        # se termine, le passage suivant relance. Mais à trente secondes
+        # d'intervalle, une partie d'une heure écrirait cent vingt lignes
+        # identiques, d'où le silence côté fichier.
         dire("Redémarrage du bot en attente — une queue est en cours.",
              journal=False)
         return
 
     derniere = (res.stdout or res.stderr).strip().splitlines()
-    dire("Bot NON redémarré — " + (derniere[-1] if derniere else "cause inconnue"))
+    ecrire_marque(REDEMARRAGE, tete + "\n" + str(time.time()))
+    dire("Bot NON redémarré — " + (derniere[-1] if derniere else "cause inconnue")
+         + f" (nouvel essai dans {ECHEC_ATTENTE // 60} min)")
 
 
 # ------------------------------------------------------------------ passage ---
