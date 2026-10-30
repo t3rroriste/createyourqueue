@@ -31,6 +31,9 @@ import sys
 OUTILS_DIR = os.path.dirname(os.path.abspath(__file__))
 REGLAGES = os.path.join(OUTILS_DIR, "reglages")
 
+sys.path.insert(0, OUTILS_DIR)
+import sans_fenetre  # noqa: E402
+
 # clé interne -> (variable d'environnement, nom dans le coffre, fichier DPAPI)
 SECRETS = {
     "lws": ("LWS_FTP_PASS", "cyq-lws-ftp", os.path.join(REGLAGES, "lws.pass")),
@@ -53,6 +56,10 @@ def _powershell(script: str, entree: str | None = None) -> str | None:
             ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
             input=entree, capture_output=True, text=True,
             encoding="utf-8", errors="replace",
+            # Lu à chaque publication, depuis une veille sans console :
+            # sans ce drapeau, une fenêtre PowerShell s'ouvrait à chaque
+            # mot de passe relu.
+            creationflags=sans_fenetre.DRAPEAU,
         )
     except OSError:
         return None

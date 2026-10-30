@@ -55,6 +55,7 @@ CONFIG_ANCIENNE = os.path.join(REGLAGES, "lws.config.ps1")
 
 sys.path.insert(0, OUTILS_DIR)
 import fichiers_du_site  # noqa: E402
+import sans_fenetre  # noqa: E402
 import secrets_locaux  # noqa: E402
 
 # Les codes de sortie de curl, traduits. Sans ça, un échec de connexion
@@ -91,6 +92,7 @@ def _migrer_depuis_powershell() -> dict | None:
             ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command",
              f"& '{CONFIG_ANCIENNE}' | ConvertTo-Json -Compress"],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
+            creationflags=sans_fenetre.DRAPEAU,
         )
     except OSError:
         return None
@@ -179,6 +181,11 @@ class Curl:
                 ["curl", "--silent", "--show-error", "--stderr", "-",
                  "--connect-timeout", "20", "--config", chemin, *arguments],
                 capture_output=True, text=True, encoding="utf-8", errors="replace",
+                # Un appel de curl PAR FICHIER, et la veille tourne sous
+                # `pythonw`, qui n'a pas de console : sans ce drapeau,
+                # Windows ouvrait une fenêtre pour chacun. Une publication
+                # du site en faisait clignoter soixante-treize.
+                creationflags=sans_fenetre.DRAPEAU,
             )
             return res.returncode, (res.stdout or "").strip()
         finally:
