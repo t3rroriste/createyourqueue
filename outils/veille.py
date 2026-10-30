@@ -51,6 +51,11 @@ JOURNAL = os.path.join(ETAT, "journal.log")
 DERNIER_PUBLIE = os.path.join(ETAT, "dernier-publie.txt")
 CONFLIT = os.path.join(ETAT, "conflit")
 PAUSE = os.path.join(ETAT, "pause")
+# Un redémarrage du bot est dû. Une marque sur le disque et non une variable :
+# une queue en cours fait attendre le redémarrage, et cette attente doit
+# survivre à l'arrêt de la veille. Sinon un bot redémarré « plus tard » ne
+# l'est jamais, et personne ne s'en aperçoit — il tourne.
+REDEMARRAGE = os.path.join(ETAT, "redemarrage-du")
 
 
 # ----------------------------------------------------------------- état ---
