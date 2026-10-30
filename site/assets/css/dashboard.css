@@ -237,6 +237,39 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
 /* ============================ le compte =============================== */
 
 /* À l'identique du choix du serveur : mêmes mesures, même discrétion. */
+
+/* L'etat du bot, juste au-dessus du compte.
+
+   `margin-top: auto` passe ICI et non plus sur `.dbme` : c'est desormais
+   cette ligne qui est le premier element colle en bas, et laisser la
+   poussee sur `.dbme` aurait decolle les deux l'un de l'autre.
+
+   Le filet, lui, reste sur `.dbme` : il separe le compte du reste, pas
+   l'etat du compte. Quand la ligne est cachee — API muette, ou API plus
+   ancienne qui ne renvoie pas le champ — `.dbme:first-child` ne s'applique
+   pas pour autant, donc la regle de poussee est repetee la-bas en secours.
+
+   Aucune couleur : l'etat est dans le TEXTE. La pastille suit l'encre, et
+   s'allume seulement quand tout va bien — un point plein ne doit pas etre
+   ce qui alerte, sinon il faut le comparer a quelque chose pour le lire. */
+.dbstate {
+  margin: 0 0 var(--sp-1);
+  margin-top: auto;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--ink-60);
+}
+
+.dbstate__dot {
+  flex: 0 0 auto;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor; opacity: .55;
+}
+
+/* Bot injoignable : l'encre passe au plein, comme le message d'echec de la
+   barre d'enregistrement. C'est le seul changement — on ne colore pas. */
+.dbstate[data-on="0"] { color: var(--ink); }
+.dbstate[data-on="0"] .dbstate__dot { opacity: 1; }
+
 .dbme {
   margin-top: auto;
   padding-top: var(--sp-2);
