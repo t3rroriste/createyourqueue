@@ -193,7 +193,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     ap.add_argument("--verifier", action="store_true",
                     help="n'écrit rien ; sort en erreur si une page a dérivé")
+    # La veille l'appelle à chaque passage : sans ce drapeau, son journal
+    # n'aurait plus que ça dedans. Les erreurs, elles, parlent toujours —
+    # elles passent par SystemExit, et --verifier n'est jamais silencieux
+    # puisque c'est précisément pour lire sa réponse qu'on le lance.
+    ap.add_argument("--silencieux", action="store_true",
+                    help="ne dit rien quand tout va bien (la veille)")
     args = ap.parse_args()
+
+    def dire(*bouts):
+        if not args.silencieux or args.verifier:
+            print(*bouts)
 
     total, bouge = 0, []
     for page in pages(SITE):
@@ -203,22 +213,22 @@ def main() -> int:
             bouge.append(os.path.basename(page))
 
     if not total:
-        print("Aucun repère cyq: dans les pages — rien à faire.")
+        dire("Aucun repère cyq: dans les pages — rien à faire.")
         return 0
 
     if args.verifier:
         if bouge:
-            print("Ces pages ne correspondent plus à leur fragment :")
+            dire("Ces pages ne correspondent plus à leur fragment :")
             for n in bouge:
-                print("  -", n)
-            print("\n  python outils/fragments.py")
+                dire("  -", n)
+            dire("\n  python outils/fragments.py")
             return 1
-        print(f"{total} blocs, tous à jour.")
+        dire(f"{total} blocs, tous à jour.")
         return 0
 
     for n in bouge:
-        print("  mis à jour :", n)
-    print(f"\n{total} blocs communs, {len(bouge)} page(s) réécrite(s).")
+        dire("  mis à jour :", n)
+    dire(f"\n{total} blocs communs, {len(bouge)} page(s) réécrite(s).")
     return 0
 
 

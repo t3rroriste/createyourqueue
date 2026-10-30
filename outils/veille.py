@@ -109,6 +109,21 @@ def numeroter() -> None:
     )
 
 
+def recopier_communs() -> None:
+    """La nav et le pied, recopiés depuis `outils/communs` dans les pages.
+
+    Lancé à CHAQUE passage, et non derrière `site_touche()` : ce qu'on
+    modifie, c'est le fragment, qui vit dans `outils` — la condition ne
+    l'aurait jamais vu, et la correction ne serait partie sur aucune page.
+    Le script n'écrit que si quelque chose a bougé, donc un passage à vide
+    ne coûte rien et ne fait pas de commit.
+    """
+    subprocess.run(
+        [sys.executable, os.path.join(OUTILS_DIR, "fragments.py"), "--silencieux"],
+        cwd=RACINE, capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+
+
 # -------------------------------------------------------------- publication ---
 
 def changements_a_publier(exe: str) -> list[str]:
@@ -296,6 +311,12 @@ def un_passage(exe: str, avec_publication: bool) -> None:
              "  git pull --rebase, règle les conflits, puis : cyq reprendre",
              journal=False)
         return
+
+    # Dans cet ordre : la recopie réécrit des pages, et ces pages réécrites
+    # doivent être vues par `site_touche()` pour que les `?v=` suivent. Le
+    # contraire renumérotait l'état d'avant, et le navigateur aurait servi
+    # l'ancienne nav depuis son cache jusqu'au passage suivant.
+    recopier_communs()
 
     if site_touche(exe):
         numeroter()

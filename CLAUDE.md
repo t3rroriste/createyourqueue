@@ -88,6 +88,34 @@ Une page, une feuille ou un script absent de cette liste ne part pas —
 non déclaré ; il ne connaît pas les pages elles-mêmes, qu'il faut ajouter
 à la main.
 
+### La nav et le pied ne s'écrivent qu'une fois
+
+Ils vivent dans `outils/communs/nav.html` et `outils/communs/pied.html`,
+hors du dossier `site` — un fragment n'est pas une page et ne part jamais
+en ligne. `outils/fragments.py` les recopie dans les pages, entre deux
+repères :
+
+```html
+<!-- cyq:nav courant=modules origine=site -->
+<!-- cyq:/nav -->
+```
+
+**Ne jamais corriger une nav ou un pied dans une page** : la correction
+sera écrasée au passage suivant. On modifie le fragment, puis :
+
+```
+python outils/fragments.py
+```
+
+La veille le lance à chaque passage, avant de renuméroter. Une page neuve
+hérite des deux blocs en collant les repères ; c'est la page qui dit ce
+qu'elle veut (`courant`, `origine`, `statut`), le script ne tient aucune
+liste. `--verifier` dit ce qui a dérivé sans rien écrire.
+
+Pourquoi : le lien « Documentation » s'écrivait de cinq façons sur les
+sept pages, dont une qui ne menait nulle part sans `DOCS_URL`. Personne
+ne l'avait vu — les cinq avaient l'air de marcher.
+
 ### Après chaque modification de CSS ou de JS
 
 ```
