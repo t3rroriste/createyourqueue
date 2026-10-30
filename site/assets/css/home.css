@@ -526,6 +526,296 @@ html::-webkit-scrollbar { display: none; }
 .setup__hint { margin: 0; color: var(--ink-60); }
 .setup__hint[data-etat="ok"] { color: var(--ink); }
 
+/* ===================== les sections posées en creux =================== */
+
+/* La maquette alterne deux fonds : la coque en `--panel`, et des sections
+   en `--raised` dont les deux coins du haut sont arrondis et qui se
+   collent au bas de la précédente. C'est ce qui donne le rythme de la page
+   sans y poser une seule ligne de séparation — trois sections s'en
+   servent, d'où une classe et non trois règles. */
+.bloc {
+  position: relative; z-index: 2;
+  margin: 0 var(--sp-3);
+  padding: var(--sp-5) var(--sp-4);
+  background: var(--raised);
+  border-radius: var(--r-shell) var(--r-shell) 0 0;
+}
+
+/* Le titre de section : une seule taille pour les six, parce que ce sont
+   six pairs. Bas de casse en CSS et non dans la clé : la clé garde sa
+   casse normale, sinon l'allemand et le coréen héritent d'une règle de
+   casse française qui ne veut rien dire chez eux. */
+.sect__title {
+  font-size: clamp(1.75rem, 3.2vw, 3rem);
+  line-height: 1.08; letter-spacing: -0.025em; font-weight: 500;
+  text-transform: lowercase;
+}
+.sect__head { text-align: center; margin-bottom: var(--sp-4); }
+.sect__head .lead { max-width: 52ch; margin: var(--sp-2) auto 0; }
+.sect__head .label { margin-bottom: var(--sp-2); }
+
+/* ====================== la maquette du héros ========================== */
+
+/* Deux calques superposés, et c'est volontaire : le halo est flouté par
+   l'ouverture (`filter`), la carte ne doit jamais l'être. Les séparer est
+   la seule façon de garder l'un net pendant que l'autre fond. */
+.hero__stage {
+  position: relative; z-index: 1;
+  display: grid; place-items: center;
+  min-width: 0;
+}
+.hero__stage .matter {
+  position: absolute; inset: auto; z-index: 1;
+  width: 118%; max-width: 620px; margin: 0;
+  justify-self: center;
+}
+.hero__embed { position: relative; z-index: 2; width: 100%; min-width: 0; }
+
+/* La rotation vit sur un enfant, et pas sur l'élément animé : anime.js
+   écrit `transform` en style inline pendant l'ouverture, et il écraserait
+   une rotation posée au même endroit. Deux éléments, deux transforms qui
+   ne se disputent rien. */
+.hero__embed-card {
+  transform: rotate(-3deg);
+  filter: drop-shadow(0 60px 120px rgba(0,0,0,.9));
+}
+/* Droite sur petit écran : à 390 px, trois degrés d'inclinaison font
+   dépasser la carte de la coque. */
+@media (max-width: 1100px) {
+  .hero__embed-card { transform: none; }
+}
+
+/* La pilule fantôme du héros se tient à la hauteur de la pilule claire :
+   40 px à côté de 44 px se lit comme une erreur d'alignement. */
+.hero__actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.hero__actions .pill--ghost { height: 44px; font-size: 14px; }
+
+/* ====================== trois repères vérifiables ===================== */
+
+/* La maquette affichait ici 142 serveurs, 7 files actives et 99,8 % de
+   disponibilité. Cette page est statique : elle n'appelle aucune API et ne
+   peut rien savoir de tout cela. Restent les deux chiffres que le dépôt
+   prouve — six modules, cinq langues — et l'état du service, qui redevient
+   ce qu'il est : un lien, pas une affirmation. */
+.stats { padding: var(--sp-4) var(--sp-4) var(--sp-5); }
+.stats__in {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: clamp(var(--sp-3), 5vw, var(--sp-4));
+  flex-wrap: wrap;
+}
+.stat { text-align: center; }
+.stat .label { margin-bottom: var(--sp-1); }
+.stat__n {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1; letter-spacing: -0.03em; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.stat__link {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 44px; padding: 0 18px; border-radius: var(--r-pill);
+  background: var(--film); border: 1px solid var(--hair);
+  font-size: 13px; color: var(--ink-60);
+  transition: background 200ms var(--e-soft);
+}
+.stat__link:hover { background: rgba(255,255,255,.1); color: var(--ink); }
+.stats__bar {
+  width: 1px; height: 72px; margin-top: 22px;
+  background: var(--hair); flex: 0 0 auto;
+}
+
+/* ======================= prêt en trois étapes ========================= */
+
+.etapes__list {
+  position: relative;
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+/* Le trait qui relie les trois icônes passe DERRIÈRE elles, à la hauteur
+   de leur centre : 32 px, la moitié du carré. Il s'arrête à 15 % de chaque
+   bord pour ne pas sortir sous la première et la dernière. */
+.etapes__list::before {
+  content: ""; position: absolute; z-index: 0;
+  top: 32px; left: 15%; right: 15%; height: 1px;
+  background: var(--hair);
+}
+.etape { position: relative; z-index: 1; text-align: center; }
+.etape__ico {
+  width: 64px; height: 64px; margin: 0 auto var(--sp-3);
+  display: grid; place-items: center;
+  border-radius: var(--r-media);
+  background: var(--raised-2); border: 1px solid var(--hair);
+  color: var(--ink-60);
+}
+.etape__t { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+.etape__p {
+  margin: var(--sp-1) auto 0; max-width: 30ch;
+  font-size: 14px; line-height: 1.6; color: var(--ink-60);
+}
+
+/* ============================== la démo =============================== */
+
+.demo { padding: var(--sp-5) var(--sp-4); }
+.demo__in {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: var(--sp-4); align-items: center;
+}
+.demo__copy .label { margin-bottom: var(--sp-2); }
+.demo__copy .lead { max-width: 40ch; margin-top: var(--sp-2); }
+.demo__visual { display: flex; justify-content: center; min-width: 0; }
+/* La maquette de la démo est la plus grande de la page : elle montre deux
+   messages et dix noms, et le plafond de 520 px de `.mock` les écrase. */
+.demo__visual .mock { max-width: 580px; }
+
+/* ===================== la grille des six modules ====================== */
+
+/* Six cartes et non la page Modules reprise en entier. La carte de la file
+   d'attente tient deux colonnes : c'est le module qu'on vient chercher, et
+   le seul dont l'aperçu a besoin de largeur pour se lire. */
+.mgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+.mcard {
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--raised-2); border-radius: var(--r-card);
+  overflow: hidden;
+  transition: transform 260ms var(--e-out);
+}
+.mcard--wide { grid-column: span 2; }
+.mcard:hover { transform: translateY(-3px); }
+@media (prefers-reduced-motion: reduce) { .mcard:hover { transform: none; } }
+
+/* L'aperçu est plus sombre que la carte : c'est un creux dans un bloc,
+   la même grammaire que le reste du site. */
+.mcard__view {
+  flex: 1; min-height: 180px; padding: var(--sp-3);
+  display: grid; place-items: center;
+  background: var(--raised);
+  border-bottom: 1px solid var(--hair);
+}
+.mcard--wide .mcard__view { min-height: 200px; }
+.mcard__body { padding: var(--sp-3); }
+.mcard__t { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+.mcard__p { margin-top: var(--sp-1); font-size: 14px; line-height: 1.6; color: var(--ink-60); }
+
+/* ---- les aperçus, tous en CSS : aucune image à charger --------------- */
+
+/* La file : l'embed en miniature, avec sa barre de remplissage. C'est le
+   seul aperçu qui porte l'accent, et c'est le sujet de la carte. */
+.ap-queue {
+  width: 100%; max-width: 260px; padding: 14px 18px;
+  background: var(--raised-2); border: 1px solid var(--hair);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+}
+.ap-queue__t { font-size: 13px; font-weight: 500; }
+.ap-queue__n { margin-top: 2px; font-size: 12px; color: var(--ink-60); }
+.ap-bar { margin-top: 12px; height: 4px; border-radius: var(--r-pill); background: var(--film); overflow: hidden; }
+.ap-bar > span { display: block; height: 100%; border-radius: var(--r-pill); background: var(--accent); }
+
+/* Le MMR : sept barres, dont une seule ressort — la médiane autour de
+   laquelle le bot équilibre. */
+.ap-mmr { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+.ap-mmr > i { width: 16px; border-radius: 4px 4px 0 0; background: rgba(244,241,236,.08); }
+.ap-mmr > i.is-mid { background: rgba(192,138,90,.35); }
+
+/* Le duel : deux disques et un VS. */
+.ap-duel { display: flex; align-items: center; gap: var(--sp-3); color: var(--ink-60); }
+.ap-duel__d {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--raised-2); display: grid; place-items: center;
+}
+.ap-duel__vs { font-size: 18px; font-weight: 500; color: var(--ink-40); }
+
+/* Les clans : une pile d'avatars. Le chevauchement de 8 px est ce qui dit
+   « un groupe » plutôt que « quatre ronds ». */
+.ap-stack { display: flex; }
+.ap-stack > span {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 13px; color: var(--ink-60);
+  background: var(--raised-2); border: 2px solid var(--raised);
+}
+.ap-stack > span + span { margin-left: -8px; }
+.ap-stack > span:last-child { background: rgba(192,138,90,.18); color: var(--accent); }
+
+/* Les options : trois interrupteurs, deux allumés. Ils ne sont pas
+   cliquables — c'est un aperçu, et un faux interrupteur qui ne répond pas
+   serait pire qu'un dessin. D'où les `<span>` et le `aria-hidden` du
+   conteneur. */
+.ap-opts { display: flex; flex-direction: column; gap: 10px; width: 140px; }
+.ap-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ap-opt span { font-size: 12px; color: var(--ink-60); }
+.ap-sw {
+  width: 32px; height: 18px; border-radius: var(--r-pill);
+  background: var(--film); position: relative; flex: 0 0 auto;
+}
+.ap-sw::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%; background: var(--ink-40);
+}
+.ap-sw.is-on { background: var(--accent); }
+.ap-sw.is-on::after { left: auto; right: 2px; background: var(--bg); }
+
+/* ============================ communauté ============================== */
+
+.commu { position: relative; z-index: 2; padding: var(--sp-5) var(--sp-4); overflow: clip; }
+/* La mosaïque de la maquette : six rectangles fantômes, posés au pourcent
+   et inclinés de quelques degrés. Purement décoratifs, donc en
+   pseudo-contenu d'un calque `aria-hidden`. */
+.commu__mosaic { position: absolute; inset: 0; opacity: .04; pointer-events: none; }
+.commu__mosaic > i {
+  position: absolute; display: block;
+  background: var(--ink); border-radius: var(--r-media);
+}
+.commu__in { position: relative; z-index: 2; max-width: 560px; margin: 0 auto; text-align: center; }
+.commu__in .lead { margin: var(--sp-2) auto var(--sp-3); }
+.commu__actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); justify-content: center; }
+
+/* Le bleu de Discord. Ce n'est pas un accent du site mais la couleur d'une
+   marque, et elle n'a qu'un emploi légitime : le bouton qui mène
+   littéralement sur Discord. Nulle part ailleurs. */
+.pill--discord { background: var(--discord); color: var(--ink); padding: 0 24px; }
+.pill--discord:hover { background: #6b76f5; }
+.pill--discord svg { flex: 0 0 auto; }
+
+/* ================================ FAQ ================================= */
+
+.faq__list { max-width: 720px; margin: 0 auto; }
+.faq__item { border-top: 1px solid var(--hair); }
+.faq__item:last-child { border-bottom: 1px solid var(--hair); }
+
+/* Un vrai bouton, et non le `<div cursor:pointer>` de la maquette : sans
+   lui, la tabulation saute la question et un lecteur d'écran n'annonce
+   jamais qu'elle s'ouvre. */
+.faq__q {
+  width: 100%; min-height: 72px; padding: var(--sp-2) 0;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
+  background: none; border: none; color: var(--ink);
+  font: 500 15px/1.4 var(--sans); letter-spacing: -0.01em; text-align: left;
+  cursor: pointer;
+}
+.faq__q:hover { color: #fff; }
+/* Le signe suit l'état, et il est dessiné en CSS : deux barres, dont la
+   verticale disparaît quand la réponse est ouverte. Rien à remplacer dans
+   le DOM, donc rien à désynchroniser. */
+.faq__sign { position: relative; width: 20px; height: 20px; flex: 0 0 auto; }
+.faq__sign::before, .faq__sign::after {
+  content: ""; position: absolute; inset: 50% 0 auto;
+  height: 1.5px; margin-top: -0.75px; border-radius: 2px;
+  background: var(--ink-60);
+}
+.faq__sign::after {
+  inset: 0 50% auto; width: 1.5px; height: 100%; margin: 0 0 0 -0.75px;
+  transition: opacity 180ms var(--e-soft);
+}
+.faq__q[aria-expanded="true"] .faq__sign::after { opacity: 0; }
+.faq__a { padding: 0 0 var(--sp-3); max-width: 62ch; }
+.faq__a p { font-size: 14px; line-height: 1.65; color: var(--ink-60); }
+
+/* ========================== l'appel final ============================= */
+
+.ctafin { position: relative; z-index: 2; padding: var(--sp-5) var(--sp-4); text-align: center; }
+.ctafin .lead { max-width: 44ch; margin: var(--sp-2) auto var(--sp-3); }
+
 /* =========================== responsive =============================== */
 
 @media (max-width: 1100px) {
