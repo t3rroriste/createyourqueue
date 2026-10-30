@@ -150,19 +150,38 @@ def reglages_lws() -> None:
     else:
         note("Réglages FTP de LWS. Panneau client LWS -> ton hébergement -> rubrique FTP.")
         conf = conf or {}
-        publier_site.ecrire_config({
+        conf = {
             "serveur": demander("Serveur FTP (sans ftp:// devant)", conf.get("serveur", "")),
             "utilisateur": demander("Identifiant FTP", conf.get("utilisateur", "")),
             "racine_site": demander("Dossier de la vitrine cyqbot.eu",
                                     conf.get("racine_site", "/cyqbot.eu")),
             "racine_app": demander("Dossier du panneau dashboard.cyqbot.eu",
                                    conf.get("racine_app", "/dashboard.cyqbot.eu")),
+            "racine_status": demander("Dossier de l'état status.cyqbot.eu",
+                                      conf.get("racine_status", "/status.cyqbot.eu")),
             "ftps": True,
             # Le certificat de LWS est valide mais émis pour *.lwspanel.com :
             # sans ça, curl s'arrête sur le nom qui ne correspond pas.
             "certificat_non_verifie": True,
-        })
+        }
+        publier_site.ecrire_config(conf)
         bien("outils/reglages/lws.json écrit")
+
+    # `racine_status` est arrivée avec le sous-domaine d'état, après les deux
+    # autres racines. `verifier_config` ne l'exige volontairement pas, pour
+    # qu'une installation d'avant son existence continue de publier ses deux
+    # sites : conséquence, cette installation est jugée « déjà en place » et
+    # la clé neuve ne lui est JAMAIS demandée. Et quand elle est vide,
+    # `publier_site --cible tout` saute status.cyqbot.eu sans rien dire.
+    # On la réclame donc à part, sinon la deuxième machine publie deux
+    # sous-domaines sur trois et personne ne s'en aperçoit.
+    if not str((conf or {}).get("racine_status", "")).strip():
+        note("Dossier du sous-domaine status.cyqbot.eu — même rubrique FTP.")
+        conf = conf or {}
+        conf["racine_status"] = demander("Dossier de l'état status.cyqbot.eu",
+                                         "/status.cyqbot.eu")
+        publier_site.ecrire_config(conf)
+        bien("« racine_status » ajoutée : status.cyqbot.eu sera publié lui aussi")
 
     for cle, quoi, ou_le_trouver in (
         ("lws", "Mot de passe FTP de LWS", "panneau client LWS -> FTP"),
