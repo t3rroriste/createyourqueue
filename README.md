@@ -107,7 +107,7 @@ GitHub est la référence, pas l'hébergeur. Rien ne part en ligne sans être
 d'abord enregistré — en septembre, cinq jours de travail n'ont existé que
 sur AdKyNet parce que le code y partait sans passer par git.
 
-Quatre garde-fous, et une chose qui ne se fait pas toute seule :
+Quatre garde-fous :
 
 - **un conflit suspend tout.** Si les deux PC ont modifié les mêmes lignes,
   le rebase est annulé, rien n'est publié, et `.\cyq etat` le dit. On règle
@@ -119,7 +119,9 @@ Quatre garde-fous, et une chose qui ne se fait pas toute seule :
   entier si l'un échoue ;
 - **une queue en cours bloque le redémarrage.** Les sessions de queue
   vivent en mémoire : relancer pendant une partie perdrait les équipes, les
-  accès aux salons et le lien de l'annonce. Le bot répond alors 409.
+  accès aux salons et le lien de l'annonce. Le bot répond alors 409, la
+  veille réessaie au passage suivant, et `.\cyq etat` affiche
+  « redémarrage du bot en attente ».
 
 ### Le redémarrage du bot
 
