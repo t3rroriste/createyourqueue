@@ -129,6 +129,11 @@ switch ($Verbe) {
       Get-Content (Join-Path $etat 'conflit') -Encoding UTF8 | ForEach-Object { Write-Host ("    " + $_) }
     }
     if (Test-Path (Join-Path $etat 'pause')) { Write-Host "  publication en pause" -ForegroundColor Yellow }
+    # Un redémarrage dû et jamais fait est invisible autrement : le bot
+    # tourne, il a juste l'ancien code. Il faut donc que `etat` le dise.
+    if (Test-Path (Join-Path $etat 'redemarrage-du')) {
+      Write-Host "  redémarrage du bot en attente" -ForegroundColor Yellow
+    }
     $dp = Join-Path $etat 'dernier-publie.txt'
     if (Test-Path $dp) {
       $sha = (Get-Content $dp -Raw).Trim()

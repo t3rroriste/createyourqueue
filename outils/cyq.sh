@@ -122,6 +122,9 @@ case "$verbe" in
       sed 's/^/    /' "$ETAT/conflit"
     fi
     [ -f "$ETAT/pause" ] && echo "  publication en pause"
+    # Un redémarrage dû et jamais fait est invisible autrement : le bot
+    # tourne, il a juste l'ancien code. Il faut donc que `etat` le dise.
+    [ -f "$ETAT/redemarrage-du" ] && echo "  redémarrage du bot en attente"
     if [ -f "$ETAT/dernier-publie.txt" ]; then
       sha=$(cat "$ETAT/dernier-publie.txt")
       titre=$(git -C "$RACINE" log -1 --format='%h %s' "$sha" 2>/dev/null || echo "$sha")
