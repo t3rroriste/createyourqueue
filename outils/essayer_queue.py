@@ -139,15 +139,37 @@ def lister(base: str, cle: str) -> int:
 
 
 def montrer(base: str, cle: str, gid: str) -> int:
-    """Lecture seule : ce que le bot sait de ce serveur. Rien n'est touché."""
+    """Lecture seule : ce que le bot sait de ce serveur. Rien n'est touché.
+
+    On s'intéresse à deux champs seulement, et c'est délibéré : ce sont
+    ceux dont dépend l'ouverture. Sans eux, `--ouvrir` répond 409 et ne
+    publie rien — autant le savoir avant d'essayer que l'apprendre en
+    POSTant au hasard sur les serveurs de quelqu'un."""
     code, rep = appeler(base, cle, "GET", "/api/guilds/" + gid)
     if code != 200:
         print(f"\nHTTP {code} — {rep}", file=sys.stderr)
         return 1
-    nom = rep.get("name") if isinstance(rep, dict) else None
-    print(f"\n{nom or gid}")
-    print("\nRien n'a été touché. Pour agir :")
-    print(f"  python outils/essayer_queue.py --guilde {gid} --ouvrir")
+    if not isinstance(rep, dict):
+        print(f"\nRéponse inattendue : {str(rep)[:200]}", file=sys.stderr)
+        return 1
+
+    print("\n" + str(rep.get("name") or gid))
+    # L'assistant de configuration a-t-il tourné : salons et rôle staff.
+    print("  assistant terminé  : "
+          + ("oui" if rep.get("setup_complete") else "NON"))
+    # Un format de queue enregistré. Vide, le bot refuse plutôt que
+    # d'inventer un format par défaut.
+    queue = rep.get("queue")
+    garnie = bool(queue) if not isinstance(queue, dict) else bool(
+        [v for v in queue.values() if v not in (None, "", [], {})])
+    print("  queue configurée   : " + ("oui" if garnie else "NON"))
+
+    print("\nRien n'a été touché.")
+    if rep.get("setup_complete") and garnie:
+        print("Ce serveur peut ouvrir une queue :")
+        print(f"  python outils/essayer_queue.py --guilde {gid} --ouvrir")
+    else:
+        print("`--ouvrir` répondrait 409 ici, sans rien publier.")
     return 0
 
 
