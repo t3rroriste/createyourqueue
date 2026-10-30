@@ -40,6 +40,7 @@ Le même verbe des deux côtés. Sur le PC fixe `.\cyq`, sur le MacBook
 | `cyq pause` | La synchro continue, la mise en ligne attend. |
 | `cyq reprendre` | Lève la pause — et lève un conflit réglé. |
 | `cyq local` | Sert le site sur `http://localhost:8765`. |
+| `cyq verifier` | Les trois relevés : blocs communs, cinq langues, pont des réglages. Ne corrige rien, dit quoi lancer. |
 
 Les deux portes d'entrée (`outils/cyq.ps1` et `outils/cyq.sh`) appellent
 les **mêmes** scripts Python. Il n'y a qu'une implémentation de chaque

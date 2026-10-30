@@ -150,6 +150,25 @@ Puis `http://localhost:8765/welcome.html?guild=test&motion=on` par exemple.
 `.claude/launch.json` déclare `cyq-site` (8765), `cyq-api` (3000) et
 `cyq-archive` (8766, l'instantané de septembre pour comparer).
 
+### Les trois relevés d'un coup
+
+```
+.\cyq verifier     (sur le MacBook : ./cyq verifier)
+```
+
+Il enchaîne `fragments.py --verifier`, `verifier_langues.py` et
+`verifier_api.py` : les trois endroits où la même chose s'écrit à deux
+places et où rien ne proteste quand les deux divergent. Séparés, ils ne
+servent qu'à qui se souvient qu'ils existent — c'est précisément ce qu'on
+ne fait pas avant de mettre en ligne.
+
+Il ne corrige rien, et c'est voulu : les deux gestes qui réparent
+réécrivent des fichiers, et une commande qui s'appelle « vérifier » n'a
+pas à toucher au dépôt. Elle dit quelle commande lancer. Le code de
+sortie vaut le nombre de relevés en faute, pour qu'un enchaînement
+puisse s'arrêter dessus. `publier_site.py` lance les mêmes contrôles de
+son côté, mais avertit sans bloquer.
+
 ## bot/ — le bot Discord
 
 Python, `bot.py` à la racine, les commandes dans `bot/cogs/`, les cinq
