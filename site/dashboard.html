@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610302230">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302230">
+<link rel="stylesheet" href="assets/css/home.css?v=202610302232">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610302232">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -432,8 +432,7 @@
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-match" aria-describedby="fn-match-d" data-setting="feature.match" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
-            <!-- Le récapitulatif de fin de partie : le MVP en description, le MMR de
-                 chacun en champ pleine largeur, le délai de fermeture en pied. -->
+
             <div class="optprev" id="dp-match" hidden>
               <div class="dprev" aria-hidden="true">
                 <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
@@ -469,8 +468,7 @@
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-clans" aria-describedby="fn-clans-d" data-setting="feature.clans"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
-            <!-- Le classement des clans, publié comme celui des joueurs : chef,
-                 effectif, bilan et ratio sur une ligne. -->
+
             <div class="optprev" id="dp-clans" hidden>
               <div class="dprev" aria-hidden="true">
                 <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
@@ -500,8 +498,7 @@
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-join" aria-describedby="fn-join-d" data-setting="feature.joinAnnounce"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
-            <!-- La demande d'adhésion, annoncée dans le salon du clan avec le chef
-                 mentionné au-dessus du cadre — c'est lui qui répond. -->
+
             <div class="optprev" id="dp-adhesion" hidden>
               <div class="dprev" aria-hidden="true">
                 <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
@@ -530,9 +527,7 @@
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-status" aria-describedby="fn-status-d" data-setting="feature.statusPanel" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
-            <!-- Le panneau permanent : un gros titre hors du cadre, puis une colonne
-                 de lignes. Le bot ne met pas ces chiffres en grille de champs,
-                 justement pour qu'ils se lisent sur un téléphone. -->
+
             <div class="optprev" id="dp-statut" hidden>
               <div class="dprev" aria-hidden="true">
                 <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
@@ -607,11 +602,7 @@
         </div>
       </section>
 
-      <!-- ========================== CLASSEMENT =========================== -->
-      <!-- La configuration de l'option « Classement ». Elle ne contient que
-           ce qui lui appartient vraiment : le salon où le classement est
-           publié, déplacé depuis la section Salons. Rien n'a été inventé —
-           s'il n'y avait eu aucun réglage, il n'y aurait pas de section. -->
+
       <section class="sec" data-section="classement" aria-labelledby="h-classement" hidden>
         <header class="sec__head">
           <h1 class="sec__title" id="h-classement" data-i18n="fn.leaderboard">Classement</h1>
@@ -1778,16 +1769,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610302230"></script>
-<script src="assets/js/config.js?v=202610302230"></script>
-<script src="assets/js/lang/fr.js?v=202610302230"></script>
-<script src="assets/js/lang/en.js?v=202610302230"></script>
-<script src="assets/js/lang/es.js?v=202610302230"></script>
-<script src="assets/js/lang/de.js?v=202610302230"></script>
-<script src="assets/js/lang/ko.js?v=202610302230"></script>
-<script src="assets/js/app.js?v=202610302230"></script>
-<script src="assets/js/page-dashboard.js?v=202610302230"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610302230"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610302230"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610302232"></script>
+<script src="assets/js/config.js?v=202610302232"></script>
+<script src="assets/js/lang/fr.js?v=202610302232"></script>
+<script src="assets/js/lang/en.js?v=202610302232"></script>
+<script src="assets/js/lang/es.js?v=202610302232"></script>
+<script src="assets/js/lang/de.js?v=202610302232"></script>
+<script src="assets/js/lang/ko.js?v=202610302232"></script>
+<script src="assets/js/app.js?v=202610302232"></script>
+<script src="assets/js/page-dashboard.js?v=202610302232"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610302232"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610302232"></script>
 </body>
 </html>
