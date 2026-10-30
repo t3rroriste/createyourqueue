@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610300036">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610300036">
+<link rel="stylesheet" href="assets/css/home.css?v=202610300435">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610300435">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -102,6 +102,14 @@
              entrée à l'autre, et reste invisible tant qu'il n'a pas été
              mesuré une première fois. -->
         <span class="dbnav__mark" data-mark aria-hidden="true"></span>
+
+        <!-- Seule entrée sans famille, et c'est voulu : elle n'est pas une
+             catégorie de réglages, c'est l'écran d'arrivée. Lui coller un
+             titre de famille au-dessus la ferait passer pour la première
+             d'une liste, alors qu'elle est au-dessus de toutes. -->
+        <div class="dbnav__grp">
+          <a class="navlink" href="#apercu" data-goto="apercu"><span class="navlink-label" data-i18n="s.overview">Vue d'ensemble</span></a>
+        </div>
 
         <div class="dbnav__grp">
           <p class="dbnav__cat" data-i18n="cat.bot">Le bot</p>
@@ -195,6 +203,121 @@
            « Classement — Enregistré » une fois, et se tait. -->
       <p class="sr-only" data-live aria-live="polite"></p>
       <span class="sr-only" id="lbl-log-channel" data-i18n="lo.channel">Salon du journal</span>
+
+      <!-- ======================== VUE D'ENSEMBLE ======================== -->
+
+      <!-- PREMIÈRE section du DOM, et c'est exactement ce qui la rend
+           prioritaire : app.js ouvre `sections[0]` quand l'adresse ne
+           nomme rien. Avant elle, on choisissait un serveur et on tombait
+           dans « Configurations » — un réglage, sans avoir rien appris de
+           l'état du serveur.
+
+           Elle ne règle RIEN. Pas un seul `data-setting` ici : tout y est
+           en lecture, et chaque ligne renvoie vers la section qui règle.
+           C'est ce qui lui permet de ne jamais porter de barre
+           d'enregistrement. -->
+      <section class="sec" data-section="apercu" aria-labelledby="h-apercu" hidden>
+        <header class="sec__head">
+          <h1 class="sec__title" id="h-apercu" data-i18n="s.overview">Vue d'ensemble</h1>
+          <p class="lead sec__lead" data-i18n="s.overviewD"></p>
+        </header>
+
+        <!-- `ovbody` et non `sec__body` : au-dessus de 1240 px,
+             sec__body réserve une colonne de 272 px à l'aperçu
+             d'annonce, collé au défilement à côté des réglages. Cette
+             section n'a pas d'aperçu à y mettre, et la colonne vide
+             écrasait tout le reste sur la moitié de la largeur. -->
+        <div class="ovbody">
+
+          <!-- Les quatre chiffres. Aucun n'est calculé ici : ils viennent
+               de l'API. Sans elle, ils gardent leur tiret cadratin — un
+               zéro se lirait comme une mesure, et ce serait faux. -->
+          <div class="ovstats">
+            <div class="ovstat">
+              <p class="ovstat__lab" data-i18n="ov.members">Membres</p>
+              <p class="ovstat__val" data-ov="members">—</p>
+            </div>
+            <div class="ovstat">
+              <p class="ovstat__lab" data-i18n="ov.matches">Queues en mémoire</p>
+              <p class="ovstat__val" data-ov="matches">—</p>
+              <p class="ovstat__meta" data-ov="matchesMeta"></p>
+            </div>
+            <div class="ovstat">
+              <p class="ovstat__lab" data-i18n="ov.last">Dernière queue</p>
+              <p class="ovstat__val ovstat__val--sm" data-ov="last">—</p>
+            </div>
+            <div class="ovstat">
+              <p class="ovstat__lab" data-i18n="ov.bot">Le bot</p>
+              <p class="ovstat__val ovstat__val--sm" data-ov="bot">—</p>
+            </div>
+          </div>
+
+          <!-- La progression, et c'est le cœur de l'écran.
+
+               Ce ne sont pas des étapes décoratives : ce sont les QUATRE
+               contrôles que le bot fait avant d'ouvrir une queue, dans son
+               ordre à lui (cogs/dashboard_api.py, open_queue). Barre
+               pleine = « Ouvrir la queue » répond 200. Barre incomplète =
+               elle nomme ce qui manque, et y mène en un clic.
+
+               Quatre et non cinq : un cinquième palier « premier
+               lancement » aurait été du décor, puisqu'il ne conditionne
+               rien et que la charge de l'API ne le porte pas. -->
+          <div class="ovprog" data-ov-prog>
+            <div class="ovprog__head">
+              <h2 class="ovprog__title" data-i18n="ov.setup">Prêt à lancer</h2>
+              <p class="ovprog__count" data-ov="steps"></p>
+            </div>
+            <ol class="ovrail" data-ov-rail></ol>
+            <p class="ovprog__word" data-ov-word></p>
+          </div>
+
+          <div class="ovcols">
+
+            <!-- Les écrans de lecture, groupés. Ils existent déjà comme
+                 sections ; ce qui manquait, c'était une porte vers eux qui
+                 dise à quoi ils servent. -->
+            <div class="ovcol">
+              <h2 class="grp__title" data-i18n="ov.manage">Gérer ce serveur</h2>
+              <div class="grp__card">
+                <a class="ovline" href="#diagnostic" data-ov-goto="diagnostic">
+                  <span class="ovline__t"><span class="ovline__n" data-i18n="d.diagnostic">Diagnostic</span><span class="ovline__d" data-i18n="ov.diagD"></span></span>
+                  <span class="ovline__go" aria-hidden="true">→</span>
+                </a>
+                <a class="ovline" href="#journal" data-ov-goto="journal">
+                  <span class="ovline__t"><span class="ovline__n" data-i18n="s.journal">Journal</span><span class="ovline__d" data-i18n="ov.journalD"></span></span>
+                  <span class="ovline__go" aria-hidden="true">→</span>
+                </a>
+                <a class="ovline" href="#stats" data-ov-goto="stats">
+                  <span class="ovline__t"><span class="ovline__n" data-i18n="s.stats">Statistiques</span><span class="ovline__d" data-i18n="ov.statsD"></span></span>
+                  <span class="ovline__go" aria-hidden="true">→</span>
+                </a>
+                <a class="ovline" href="#historique" data-ov-goto="historique">
+                  <span class="ovline__t"><span class="ovline__n" data-i18n="s.history">Historique</span><span class="ovline__d" data-i18n="ov.historyD"></span></span>
+                  <span class="ovline__go" aria-hidden="true">→</span>
+                </a>
+                <a class="ovline" href="#blacklist" data-ov-goto="blacklist">
+                  <span class="ovline__t"><span class="ovline__n" data-i18n="s.blacklist">Blacklist</span><span class="ovline__d" data-i18n="ov.blacklistD"></span></span>
+                  <span class="ovline__go" aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Quatre raccourcis, pas dix : une grille de raccourcis qui
+                 reprend tout le menu ne raccourcit rien. -->
+            <div class="ovcol">
+              <h2 class="grp__title" data-i18n="ov.quick">Aller droit au but</h2>
+              <div class="ovquick">
+                <a class="ovtile" href="#lanceur" data-ov-goto="lanceur"><span data-i18n="s.launcher">Lanceur de queue</span></a>
+                <a class="ovtile" href="#presets" data-ov-goto="presets"><span data-i18n="s.presets">Presets</span></a>
+                <a class="ovtile" href="#classement" data-ov-goto="classement"><span data-i18n="fn.leaderboard">Classement</span></a>
+                <a class="ovtile" href="#salons" data-ov-goto="salons"><span data-i18n="s.channels">Salons</span></a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       <!-- ============================ LANGUE ============================ -->
       <section class="sec" data-section="configurations" aria-labelledby="h-configurations" hidden>
@@ -1672,15 +1795,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610300036"></script>
-<script src="assets/js/config.js?v=202610300036"></script>
-<script src="assets/js/lang/fr.js?v=202610300036"></script>
-<script src="assets/js/lang/en.js?v=202610300036"></script>
-<script src="assets/js/lang/es.js?v=202610300036"></script>
-<script src="assets/js/lang/de.js?v=202610300036"></script>
-<script src="assets/js/lang/ko.js?v=202610300036"></script>
-<script src="assets/js/app.js?v=202610300036"></script>
-<script src="assets/js/page-dashboard.js?v=202610300036"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610300036"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610300435"></script>
+<script src="assets/js/config.js?v=202610300435"></script>
+<script src="assets/js/lang/fr.js?v=202610300435"></script>
+<script src="assets/js/lang/en.js?v=202610300435"></script>
+<script src="assets/js/lang/es.js?v=202610300435"></script>
+<script src="assets/js/lang/de.js?v=202610300435"></script>
+<script src="assets/js/lang/ko.js?v=202610300435"></script>
+<script src="assets/js/app.js?v=202610300435"></script>
+<script src="assets/js/page-dashboard.js?v=202610300435"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610300435"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610300435"></script>
 </body>
 </html>

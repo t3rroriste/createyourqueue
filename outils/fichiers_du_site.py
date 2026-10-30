@@ -69,6 +69,10 @@ APPLICATION = COMMUN + [
     # palmarès. À part de page-dashboard.js, qui ne partage ni son
     # état ni son mécanisme d'enregistrement.
     "assets/js/page-dashboard-memoire.js",
+    # L'écran d'arrivée du panneau. À part pour la même raison : il ne
+    # règle rien, donc il n'emprunte ni la rangée de réglage, ni sa
+    # validation, ni sa barre d'enregistrement.
+    "assets/js/page-dashboard-apercu.js",
     # L'API elle-même. secrets.php n'y figure pas : il se dépose à la main
     # sur le serveur et ne doit jamais partir d'ici.
     "api/index.php", "api/.htaccess", "api/secrets.exemple.php",
