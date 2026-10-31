@@ -579,6 +579,8 @@ window.CYQ_I18N.fr = {
   "rl.deleted": "Rôle supprimé",
   "ch.pickCategory": "Choisir une catégorie",
   "d.loadErr": "Impossible de charger ce serveur",
+  "d.rate": "Discord limite les requêtes",
+  "d.rateBody": "Trop de demandes coup sur coup. Discord rouvre tout seul au bout de quelques secondes : rien n'est cassé, et rien n'a été modifié.",
   /* la page d'état (status.cyqbot.eu) */
   "stt.eyebrow": "État du service",
   "stt.title": "Est-ce que ça marche ?",

@@ -334,6 +334,16 @@
       elCount.textContent = '';
       return;
     }
+    /* 429 : Discord limite, ce n'est pas une panne. La page de choix tape
+       la même route que le panneau et se heurte donc au même mur — la
+       traiter comme une erreur de chargement envoyait chercher ailleurs. */
+    if (etat === 'rate') {
+      poser(vide(t('d.rate'), t('d.rateBody'), t('c.retry'), '#', true));
+      var rr = $('.svempty .pill', elList);
+      if (rr) rr.addEventListener('click', function (ev) { ev.preventDefault(); charger(); });
+      elCount.textContent = '';
+      return;
+    }
     if (etat === 'error') {
       poser(vide(t('sv.loadErr'), t('sv.loadErrBody'), t('c.retry'), '#', true));
       var r = $('.svempty .pill', elList);
@@ -417,6 +427,7 @@
     }).catch(function (err) {
       etat = err.code === 'NO_API'       ? 'noapi'
            : err.code === 'UNAUTHORIZED' ? 'auth'
+           : err.status === 429          ? 'rate'
                                          : 'error';
       guilds = null;
       rendreCats();

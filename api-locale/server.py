@@ -198,6 +198,53 @@ def lire_session(sid: str | None) -> dict | None:
         return s
 
 
+# Combien de temps la liste des serveurs reste valable. Même valeur que
+# CACHE_GUILDES dans site/api/index.php : les deux implémentations doivent
+# se tromper de la même façon, sinon ce qu'on corrige ici ne se voit pas là.
+CACHE_GUILDES = 30
+
+
+def mes_guildes(s: dict) -> tuple[list | None, tuple[int, dict] | None]:
+    """La liste des serveurs de la personne, gardée quelques secondes.
+
+    Rend (liste, None) ou (None, (code, charge)) — à l'appelant de servir
+    l'erreur, parce que lui seul sait s'il répond à /guilds ou à une route
+    de guilde.
+
+    POURQUOI CE CACHE. Presque toutes les routes commencent par demander
+    cette liste à Discord, et ouvrir le panneau d'un serveur enchaîne
+    quatre routes — la fiche, le journal, les matchs, l'activité. Cinq
+    appels à `/users/@me/guilds` pour une seule page, et deux
+    rechargements nerveux suffisent à ce que Discord réponde 429. Le
+    panneau annonçait alors « L'API n'a pas répondu » : l'API répondait
+    très bien, c'est nous qui comptions mal.
+
+    Le cache vit DANS la session, donc par personne et côté serveur. 30
+    secondes, parce que cette liste n'est pas un confort d'affichage :
+    c'est elle qui décide, via `peut_gerer`, qui a le droit de régler
+    quoi. La garder longtemps serait un contrôle d'accès périmé.
+    """
+    cache = s.get("guildes")
+    if cache and (time.time() - cache[0]) < CACHE_GUILDES:
+        return cache[1], None
+    try:
+        liste = appel_discord("/users/@me/guilds", s["access_token"])
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            return None, (401, {"error": "UNAUTHORIZED"})
+        # 429 se dit, il ne se déguise pas en panne : le PHP le renvoie tel
+        # quel, et le panneau a un message pour lui. Le traduire en 502
+        # ici, c'était faire mentir l'API de développement sur un cas que
+        # la production connaît.
+        if e.code == 429:
+            return None, (429, {"error": "RATE"})
+        return None, (502, {"error": "DISCORD_UNAVAILABLE"})
+    except Exception:
+        return None, (502, {"error": "DISCORD_UNAVAILABLE"})
+    s["guildes"] = (time.time(), liste)
+    return liste, None
+
+
 def menage() -> None:
     """Sans ça le dictionnaire grossit indéfiniment sur un serveur qui tourne."""
     while True:
@@ -637,14 +684,9 @@ class Handler(BaseHTTPRequestHandler):
         s = self.session()
         if not s:
             return self.json_out(401, {"error": "UNAUTHORIZED"})
-        try:
-            brut = appel_discord("/users/@me/guilds", s["access_token"])
-        except urllib.error.HTTPError as e:
-            if e.code == 401:
-                return self.json_out(401, {"error": "UNAUTHORIZED"})
-            return self.json_out(502, {"error": "DISCORD_UNAVAILABLE"})
-        except Exception:
-            return self.json_out(502, {"error": "DISCORD_UNAVAILABLE"})
+        brut, erreur = mes_guildes(s)
+        if erreur:
+            return self.json_out(*erreur)
 
         reglages = lire_reglages()
 
@@ -682,14 +724,9 @@ class Handler(BaseHTTPRequestHandler):
         if not s:
             self.json_out(401, {"error": "UNAUTHORIZED"})
             return None, None
-        try:
-            mes = appel_discord("/users/@me/guilds", s["access_token"])
-        except urllib.error.HTTPError as e:
-            self.json_out(401 if e.code == 401 else 502,
-                          {"error": "UNAUTHORIZED" if e.code == 401 else "DISCORD_UNAVAILABLE"})
-            return None, None
-        except Exception:
-            self.json_out(502, {"error": "DISCORD_UNAVAILABLE"})
+        mes, erreur = mes_guildes(s)
+        if erreur:
+            self.json_out(*erreur)
             return None, None
 
         g = next((x for x in mes if x["id"] == gid), None)

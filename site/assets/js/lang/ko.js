@@ -560,6 +560,8 @@ window.CYQ_I18N.ko = {
   "rl.deleted": "삭제된 역할",
   "ch.pickCategory": "카테고리 선택",
   "d.loadErr": "이 서버를 불러올 수 없습니다",
+  "d.rate": "Discord가 요청을 제한하고 있습니다",
+  "d.rateBody": "짧은 시간에 요청이 너무 많았습니다. 몇 초 뒤 Discord가 스스로 해제합니다. 고장난 것은 없으며, 아무것도 변경되지 않았습니다.",
   /* la page d'état (status.cyqbot.eu) */
   "stt.eyebrow": "서비스 상태",
   "stt.title": "지금 작동하나요?",

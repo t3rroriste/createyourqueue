@@ -560,6 +560,8 @@ window.CYQ_I18N.en = {
   "rl.deleted": "Role deleted",
   "ch.pickCategory": "Pick a category",
   "d.loadErr": "Could not load this server",
+  "d.rate": "Discord is rate-limiting",
+  "d.rateBody": "Too many requests in a row. Discord lifts it by itself after a few seconds: nothing is broken, and nothing was changed.",
   /* la page d'état (status.cyqbot.eu) */
   "stt.eyebrow": "Service status",
   "stt.title": "Is it working?",

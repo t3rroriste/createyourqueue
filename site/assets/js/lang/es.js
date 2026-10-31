@@ -560,6 +560,8 @@ window.CYQ_I18N.es = {
   "rl.deleted": "Rol eliminado",
   "ch.pickCategory": "Elegir una categoría",
   "d.loadErr": "No se ha podido cargar este servidor",
+  "d.rate": "Discord está limitando las peticiones",
+  "d.rateBody": "Demasiadas peticiones seguidas. Discord lo levanta solo al cabo de unos segundos: nada está roto y nada se ha modificado.",
   /* la page d'état (status.cyqbot.eu) */
   "stt.eyebrow": "Estado del servicio",
   "stt.title": "¿Funciona?",

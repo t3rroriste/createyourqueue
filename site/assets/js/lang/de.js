@@ -560,6 +560,8 @@ window.CYQ_I18N.de = {
   "rl.deleted": "Rolle gelöscht",
   "ch.pickCategory": "Kategorie wählen",
   "d.loadErr": "Dieser Server konnte nicht geladen werden",
+  "d.rate": "Discord drosselt die Anfragen",
+  "d.rateBody": "Zu viele Anfragen hintereinander. Discord hebt das nach ein paar Sekunden von selbst auf: nichts ist kaputt, und nichts wurde geändert.",
   /* la page d'état (status.cyqbot.eu) */
   "stt.eyebrow": "Dienststatus",
   "stt.title": "Läuft es?",
