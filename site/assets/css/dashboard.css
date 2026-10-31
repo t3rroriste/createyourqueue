@@ -2054,12 +2054,18 @@ label.row__label { cursor: pointer; }
 
 /* ---------------------------- les chiffres ---------------------------- */
 
-/* auto-fit et non quatre colonnes fixes : à 1100 px la colonne de menu
-   mange assez de largeur pour que quatre cartes deviennent quatre
-   colonnes de 180 px, où un nombre à cinq chiffres passe à la ligne. */
+/* auto-fit et non un nombre fixe de colonnes : à 1100 px la colonne de
+   menu mange assez de largeur pour que les cartes tombent à 180 px, où un
+   nombre à cinq chiffres passe à la ligne.
+
+   168 px et non 190 depuis qu'elles sont CINQ : cinq cartes à 190 px
+   réclament 990 px, que le contenu n'a pas menu déplié, et la cinquième
+   tombait seule sur une deuxième rangée — une carte orpheline à côté de
+   quatre, qui se lit comme un oubli. 168 px les font tenir à partir de
+   880 px, et la chasse fixe des nombres les garde alignées. */
 .ovstats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
   gap: 10px;
 }
 
@@ -2094,6 +2100,100 @@ label.row__label { cursor: pointer; }
   margin: 6px 0 0;
   font-size: 12px; color: var(--ink-40);
   font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------- la semaine ----------------------------- */
+
+/* Deux chiffres, sept jours, et deux marques par jour qui ne disent pas
+   la même chose : le nombre de files LANCÉES à gauche, l'encoche de ce
+   qui est PRÉVU à droite. Elles ne se ressemblent donc pas — un chiffre
+   d'un côté, un trait de l'autre. Les dessiner pareil aurait fait passer
+   une file lancée à la main pour une file programmée. */
+
+.ovsem { display: grid; gap: 12px; }
+
+.ovsem__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sp-2);
+}
+/* La date du jour est un repère, pas une mesure : elle situe la semaine
+   qu'on regarde, et --ink-60 est le plancher du texte courant. */
+.ovsem__date {
+  margin: 0;
+  font-size: 12.5px; color: var(--ink-60);
+  font-variant-numeric: tabular-nums;
+}
+
+.ovsem__chiffres {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+}
+.ovsem__n { min-width: 0; }
+
+/* Le filet sépare les deux totaux de la semaine du détail jour par jour :
+   ce sont deux lectures, et sans lui la liste avait l'air d'être la
+   justification des deux chiffres, ce qu'elle n'est pas — `opened` compte
+   les files OUVERTES, `byDay` celles qui ont été LANCÉES. */
+.ovsem__jours {
+  list-style: none;
+  margin: 20px 0 0; padding: 18px 0 0;
+  display: grid; gap: 1px;
+  border-top: 1px solid var(--hair);
+}
+
+/* Trois colonnes : le jour, son compte, l'encoche. La troisième fait une
+   largeur fixe pour que les encoches s'alignent en colonne — une encoche
+   qui glisse avec la longueur du nombre ne se lit plus comme une
+   colonne. */
+.ovjour {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 3px;
+  align-items: center; gap: 14px;
+  padding: 9px 0;
+  border-radius: 6px;
+}
+.ovjour + .ovjour { box-shadow: inset 0 1px 0 var(--hair); }
+
+.ovjour__nom {
+  font-size: 13.5px; color: var(--ink-60);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Aujourd'hui est le seul jour de la liste qu'on cherche du regard :
+   c'est la graisse qui le dit, et non une couleur — la D.A. du panneau
+   garde le cuivre pour les trois états de réglage, et ceci n'en est pas
+   un. */
+.ovjour.is-today .ovjour__nom { color: var(--ink); font-weight: 500; }
+
+/* Un jour sans file garde son zéro en --ink-60 : c'est une mesure, elle
+   se lit, donc jamais --ink-40 qui est réservé au décor. */
+.ovjour__n {
+  font-size: 13.5px; color: var(--ink-60);
+  font-variant-numeric: tabular-nums;
+}
+.ovjour.is-plein .ovjour__n { color: var(--ink); font-weight: 500; }
+
+/* L'encoche. Elle existe sur les sept lignes, en --hair quand le jour
+   n'est pas prévu : la colonne reste lisible comme colonne, et l'absence
+   de programmation se voit au lieu de se déduire d'un vide. */
+.ovjour__coche {
+  justify-self: end;
+  width: 3px; height: 16px; border-radius: 2px;
+  background: var(--hair);
+}
+.ovjour.is-prevu .ovjour__coche { background: var(--ink); }
+
+/* La légende, parce que deux marques sur la même ligne ne se devinent
+   pas. Elle est en petit et en bas : on la lit une fois. */
+.ovsem__leg {
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  margin: 16px 0 0;
+  font-size: 12px; color: var(--ink-60);
+}
+.ovsem__leglab { display: inline-flex; align-items: center; gap: 7px; }
+.ovsem__coche {
+  display: inline-block;
+  width: 3px; height: 11px; border-radius: 2px;
+  background: var(--ink);
 }
 
 /* --------------------------- la progression --------------------------- */
@@ -2297,5 +2397,9 @@ html.motion-force .ovtile { transition: background .18s var(--e-soft), color .18
   .ovtile { min-height: 0; align-items: center; }
   .ovstat { padding: 16px; }
   .ovprog { padding: 16px; }
+  /* Deux totaux côte à côte dans 343 px moins les marges : « Places
+     jouées » y passait sur deux lignes et poussait son chiffre d'autant.
+     L'un sous l'autre, les deux libellés redeviennent des mots. */
+  .ovsem__chiffres { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .ovline { padding: 12px 14px; }
 }
