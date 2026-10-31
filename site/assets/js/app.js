@@ -399,7 +399,8 @@
     panel.className = 'combo__panel';
     panel.innerHTML =
       '<div class="combo__search">' + icon('search', 13) +
-        '<input type="search" autocomplete="off" aria-label="' + esc(t('c.search')) + '">' +
+        '<input type="search" autocomplete="off" aria-label="' + esc(t('c.search')) + '"' +
+          ' placeholder="' + esc(t('c.searchPlaceholder')) + '">' +
         '<span class="combo__count"></span></div>' +
       '<div class="combo__list" role="listbox"></div>';
     combo.appendChild(panel);
@@ -412,10 +413,19 @@
 
     function all() { return ((CYQ.data && CYQ.data[srcName]) || []); }
 
+    /* Le pliage de comparaison : minuscules ET sans accents. Les salons
+       Discord sont pleins de « ・arrivé », « annoncé-jeux » ; chercher
+       « arrive » doit les trouver, sinon le champ a l'air cassé. */
+    function plie(v) {
+      v = String(v == null ? '' : v).toLowerCase();
+      try { return v.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+      catch (e) { return v; }
+    }
+
     function render() {
-      var q = input.value.trim().toLowerCase();
+      var q = plie(input.value.trim());
       var items = all().filter(function (o) {
-        return !q || (o.name || '').toLowerCase().indexOf(q) !== -1;
+        return !q || plie(o.name).indexOf(q) !== -1;
       });
       shown = items;
       /* Le compteur « 7/16 » porte seul l'information du filtre : il dit
@@ -456,7 +466,7 @@
         }
         var label = esc(o.name);
         if (q) {
-          var idx = (o.name || '').toLowerCase().indexOf(q);
+          var idx = plie(o.name).indexOf(q);
           if (idx !== -1) {
             label = esc(o.name.slice(0, idx)) + '<mark>' + esc(o.name.slice(idx, idx + q.length)) +
                     '</mark>' + esc(o.name.slice(idx + q.length));

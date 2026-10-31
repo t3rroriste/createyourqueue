@@ -90,8 +90,6 @@ window.CYQ_I18N.de = {
   "ov.last": "Letzte Queue",
   "ov.lastNone": "noch keine",
   "ov.bot": "Der Bot",
-  "ov.botOn": "online",
-  "ov.botOff": "nicht erreichbar",
   "ov.setup": "Startbereit",
   "ov.steps": "{n} von {total}",
   "ov.stepChannels": "Kanäle",

@@ -90,8 +90,6 @@ window.CYQ_I18N.en = {
   "ov.last": "Last queue",
   "ov.lastNone": "none yet",
   "ov.bot": "The bot",
-  "ov.botOn": "online",
-  "ov.botOff": "unreachable",
   "ov.setup": "Ready to launch",
   "ov.steps": "{n} of {total}",
   "ov.stepChannels": "Channels",

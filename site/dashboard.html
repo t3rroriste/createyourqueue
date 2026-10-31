@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310541">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310541">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310543">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310543">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -508,216 +508,47 @@
       <section class="sec" data-section="options" aria-labelledby="h-options" hidden>
         <header class="sec__head">
           <h1 class="sec__title" id="h-options" data-i18n="s.options">Options</h1>
-          <p class="lead sec__lead" data-i18n="fn.lead"></p>
         </header>
 
         <div class="grp">
           <div class="grp__card">
             <div class="row">
               <p class="row__text"><label class="row__label" for="fn-leaderboard" data-i18n="fn.leaderboard">Classement</label> <span class="row__desc" id="fn-leaderboard-d" data-i18n="fn.leaderboardD"></span></p>
-              <button class="pill pill--ghost pill--sm optprev__btn" type="button"
-                  data-optprev="dp-board" aria-controls="dp-board" aria-expanded="false"
-                  data-i18n="fn.seeInDiscord">Voir dans Discord</button>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-leaderboard" aria-describedby="fn-leaderboard-d" data-setting="feature.leaderboard" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
 
-            <div class="optprev secprev" id="dp-board" data-secprev="options" hidden>
-              <div class="dprev" aria-hidden="true">
-                <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
-                <div class="dprev__main">
-                  <div class="dprev__head">
-                    <span class="dprev__name">CreateYourQueue</span>
-                    <span class="dprev__app">APP</span>
-                    <span class="dprev__time">14:02</span>
-                  </div>
-                  <div class="dprev__embed">
-                    <p class="dprev__title">🏆 Classement Joueur</p>
-                    <div class="dprev__lines">
-                      <p class="secprev__arrive">🥇 <span class="dprev__ment">@Nova</span> · <i>12V 3D</i> · 🔥5</p>
-                      <p class="secprev__arrive">🥈 <span class="dprev__ment">@Kaori</span> · <i>9V 5D</i></p>
-                      <p class="secprev__arrive">🥉 <span class="dprev__ment">@Milo</span> · <i>7V 6D</i></p>
-                      <p class="secprev__arrive"><code>4</code> <span class="dprev__ment">@Sora</span> · <i>5V 7D</i></p>
-                    </div>
-                    <p class="dprev__foot">7 joueur(s) classé(s)</p>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="row">
               <p class="row__text"><label class="row__label" for="fn-match" data-i18n="fn.match">Match &amp; MMR</label> <span class="row__desc" id="fn-match-d" data-i18n="fn.matchD"></span></p>
-              <button class="pill pill--ghost pill--sm optprev__btn" type="button"
-                  data-optprev="dp-match" aria-controls="dp-match" aria-expanded="false"
-                  data-i18n="fn.seeInDiscord">Voir dans Discord</button>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-match" aria-describedby="fn-match-d" data-setting="feature.match" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
 
-            <div class="optprev secprev" id="dp-match" data-secprev="options" hidden>
-              <div class="dprev" aria-hidden="true">
-                <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
-                <div class="dprev__main">
-                  <div class="dprev__head">
-                    <span class="dprev__name">CreateYourQueue</span>
-                    <span class="dprev__app">APP</span>
-                    <span class="dprev__time">21:47</span>
-                  </div>
-                  <div class="dprev__embed">
-                    <p class="dprev__title">📊 Résultats de la partie</p>
-                    <p class="dprev__line">🏅 MVP : <span class="dprev__ment">@Nova</span> · <b>3</b> vote(s) · <b>+5 MMR</b></p>
-                    <div class="dprev__fields">
-                      <div class="dprev__field dprev__field--large">
-                        <span class="dprev__fname">📈 MMR</span>
-                        <div class="dprev__lines">
-                          <p class="secprev__arrive"><span class="dprev__ment">@Nova</span> 👑 — <b>1 240</b> <code>+15</code></p>
-                          <p class="secprev__arrive"><span class="dprev__ment">@Kaori</span> — <b>1 180</b> <code>+15</code></p>
-                          <p class="secprev__arrive"><span class="dprev__ment">@Milo</span> — <b>1 052</b> <code>-12</code></p>
-                        </div>
-                      </div>
-                    </div>
-                    <p class="dprev__foot">Le salon et les rôles seront supprimés dans 5 min</p>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="row">
               <p class="row__text"><label class="row__label" for="fn-clans" data-i18n="fn.clans">Clans</label> <span class="row__desc" id="fn-clans-d" data-i18n="fn.clansD"></span></p>
-              <button class="pill pill--ghost pill--sm optprev__btn" type="button"
-                  data-optprev="dp-clans" aria-controls="dp-clans" aria-expanded="false"
-                  data-i18n="fn.seeInDiscord">Voir dans Discord</button>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-clans" aria-describedby="fn-clans-d" data-setting="feature.clans"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
 
-            <div class="optprev secprev" id="dp-clans" data-secprev="options" hidden>
-              <div class="dprev" aria-hidden="true">
-                <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
-                <div class="dprev__main">
-                  <div class="dprev__head">
-                    <span class="dprev__name">CreateYourQueue</span>
-                    <span class="dprev__app">APP</span>
-                    <span class="dprev__time">14:02</span>
-                  </div>
-                  <div class="dprev__embed">
-                    <p class="dprev__title">🏆 Classement Clan</p>
-                    <div class="dprev__lines">
-                      <p class="secprev__arrive"><code>🥇</code> <b>114 Gang</b> - <span class="dprev__ment">@Kaori</span> | 5 | 24V 9D KD 2.67</p>
-                      <p class="secprev__arrive"><code>🥈</code> <b>Kasuya</b> - <span class="dprev__ment">@Milo</span> | 4 | 17V 11D KD 1.55</p>
-                      <p class="secprev__arrive"><code>🥉</code> <b>Aurora</b> - <span class="dprev__ment">@Sora</span> | 6 | 12V 14D KD 0.86</p>
-                    </div>
-                    <p class="dprev__foot">3 clan(s)</p>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="row">
               <p class="row__text"><label class="row__label" for="fn-join" data-i18n="fn.joinAnnounce">Annonce des adhésions</label> <span class="row__desc" id="fn-join-d" data-i18n="fn.joinAnnounceD"></span></p>
-              <button class="pill pill--ghost pill--sm optprev__btn" type="button"
-                  data-optprev="dp-adhesion" aria-controls="dp-adhesion" aria-expanded="false"
-                  data-i18n="fn.seeInDiscord">Voir dans Discord</button>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-join" aria-describedby="fn-join-d" data-setting="feature.joinAnnounce"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
 
-            <div class="optprev secprev" id="dp-adhesion" data-secprev="options" hidden>
-              <div class="dprev" aria-hidden="true">
-                <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
-                <div class="dprev__main">
-                  <div class="dprev__head">
-                    <span class="dprev__name">CreateYourQueue</span>
-                    <span class="dprev__app">APP</span>
-                    <span class="dprev__time">18:30</span>
-                  </div>
-                  <p class="dprev__ping"><span class="dprev__ment">@Kaori</span></p>
-                  <div class="dprev__embed">
-                    <p class="dprev__title">✉️ Demandes d'adhésion</p>
-                    <div class="dprev__lines">
-                      <p class="secprev__arrive"><span class="dprev__ment">@Milo</span> demande à rejoindre le clan.</p>
-                      <p class="secprev__arrive">Réponds avec le bouton <b>Invites</b>, sous la fiche.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="row">
               <p class="row__text"><label class="row__label" for="fn-status" data-i18n="fn.statusPanel">Panneau d'état</label> <span class="row__desc" id="fn-status-d" data-i18n="fn.statusPanelD"></span></p>
-              <button class="pill pill--ghost pill--sm optprev__btn" type="button"
-                  data-optprev="dp-statut" aria-controls="dp-statut" aria-expanded="false"
-                  data-i18n="fn.seeInDiscord">Voir dans Discord</button>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-status" aria-describedby="fn-status-d" data-setting="feature.statusPanel" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
 
-            <div class="optprev secprev" id="dp-statut" data-secprev="options" hidden>
-              <div class="dprev" aria-hidden="true">
-                <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
-                <div class="dprev__main">
-                  <div class="dprev__head">
-                    <span class="dprev__name">CreateYourQueue</span>
-                    <span class="dprev__app">APP</span>
-                    <span class="dprev__time">03:00</span>
-                  </div>
-                  <p class="dprev__h2">🟢 Statut du Bot ⚙️</p>
-                  <div class="dprev__embed">
-                    <div class="dprev__lines">
-                      <p class="secprev__arrive"><b>CreateYourQueue</b>  ›  🟢 <b>Opérationnel</b></p>
-                      <p class="dprev__vide"></p>
-                      <p class="secprev__arrive">⏳ <b>En ligne depuis</b> : <b>4j 6h 12min</b></p>
-                      <p class="secprev__arrive">・ <b>Latence</b> : <code>48 ms</code> · 🟢 Excellent</p>
-                      <p class="secprev__arrive">📢 <b>Serveurs</b> : <code>12</code></p>
-                      <p class="secprev__arrive">👥 <b>Membres</b> : <code>4 318</code></p>
-                      <p class="secprev__arrive">🎮 <b>Queues en cours</b> : <code>2</code></p>
-                      <p class="dprev__vide"></p>
-                      <p class="secprev__arrive">Prochaine mise à jour dans 30 secondes</p>
-                    </div>
-                    <p class="dprev__foot">Actualisé toutes les 30 s</p>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="row">
               <p class="row__text"><label class="row__label" for="fn-qpass" data-i18n="fn.queuePassword">Mot de passe des queues</label> <span class="row__desc" id="fn-qpass-d" data-i18n="fn.queuePasswordD"></span></p>
-              <button class="pill pill--ghost pill--sm optprev__btn" type="button"
-                  data-optprev="dp-mdp" aria-controls="dp-mdp" aria-expanded="false"
-                  data-i18n="fn.seeInDiscord">Voir dans Discord</button>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="fn-qpass" aria-describedby="fn-qpass-d" data-setting="feature.queuePassword" data-reveal="#q-passval-row"><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
             </div>
             <!-- L'annonce quand la queue est sous mot de passe : la consigne change,
                  le pied change, et deux boutons remplacent la réaction ✅. -->
-            <div class="optprev secprev" id="dp-mdp" data-secprev="options" hidden>
-              <div class="dprev secprev__arrive" aria-hidden="true">
-                <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
-                <div class="dprev__main">
-                  <div class="dprev__head">
-                    <span class="dprev__name">CreateYourQueue</span>
-                    <span class="dprev__app">APP</span>
-                    <span class="dprev__time">20:15</span>
-                  </div>
-                  <p class="dprev__ping"><span class="dprev__ment">@everyone</span></p>
-                  <div class="dprev__embed">
-                    <p class="dprev__title">Nouveau 5v5</p>
-                    <p class="dprev__by">Organisé par <span class="dprev__ment">@Nova</span></p>
-                    <p class="dprev__line dprev__cta">🔒 Queue sous mot de passe : clique sur <b>Rejoindre</b>, entre le mot de passe, puis rejoins le vocal <b>Attente</b> !</p>
-                    <div class="dprev__fields">
-                      <div class="dprev__field">
-                        <span class="dprev__fname">Heure</span>
-                        <span class="dprev__fval">21:00</span>
-                      </div>
-                      <div class="dprev__field">
-                        <span class="dprev__fname">Type</span>
-                        <span class="dprev__fval">Ranked</span>
-                      </div>
-                    </div>
-                    <p class="dprev__foot">🔒 Mot de passe requis pour participer</p>
-                  </div>
-                  <p class="dprev__btns">
-                    <span class="dprev__btn dprev__btn--ok">🔒 Rejoindre</span>
-                    <span class="dprev__btn">🚪 Quitter</span>
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -2127,16 +1958,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310541"></script>
-<script src="assets/js/config.js?v=202610310541"></script>
-<script src="assets/js/lang/fr.js?v=202610310541"></script>
-<script src="assets/js/lang/en.js?v=202610310541"></script>
-<script src="assets/js/lang/es.js?v=202610310541"></script>
-<script src="assets/js/lang/de.js?v=202610310541"></script>
-<script src="assets/js/lang/ko.js?v=202610310541"></script>
-<script src="assets/js/app.js?v=202610310541"></script>
-<script src="assets/js/page-dashboard.js?v=202610310541"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610310541"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610310541"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310543"></script>
+<script src="assets/js/config.js?v=202610310543"></script>
+<script src="assets/js/lang/fr.js?v=202610310543"></script>
+<script src="assets/js/lang/en.js?v=202610310543"></script>
+<script src="assets/js/lang/es.js?v=202610310543"></script>
+<script src="assets/js/lang/de.js?v=202610310543"></script>
+<script src="assets/js/lang/ko.js?v=202610310543"></script>
+<script src="assets/js/app.js?v=202610310543"></script>
+<script src="assets/js/page-dashboard.js?v=202610310543"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610310543"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610310543"></script>
 </body>
 </html>

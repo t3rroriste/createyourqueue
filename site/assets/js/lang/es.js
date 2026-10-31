@@ -90,8 +90,6 @@ window.CYQ_I18N.es = {
   "ov.last": "Última cola",
   "ov.lastNone": "ninguna todavía",
   "ov.bot": "El bot",
-  "ov.botOn": "en línea",
-  "ov.botOff": "inalcanzable",
   "ov.setup": "Listo para lanzar",
   "ov.steps": "{n} de {total}",
   "ov.stepChannels": "Canales",

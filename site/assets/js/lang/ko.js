@@ -90,8 +90,6 @@ window.CYQ_I18N.ko = {
   "ov.last": "마지막 큐",
   "ov.lastNone": "아직 없음",
   "ov.bot": "봇",
-  "ov.botOn": "온라인",
-  "ov.botOff": "연결 불가",
   "ov.setup": "실행 준비",
   "ov.steps": "{total}개 중 {n}개",
   "ov.stepChannels": "채널",

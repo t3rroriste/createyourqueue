@@ -104,8 +104,6 @@ window.CYQ_I18N.fr = {
   "ov.last": "Dernière queue",
   "ov.lastNone": "aucune pour l'instant",
   "ov.bot": "Le bot",
-  "ov.botOn": "en ligne",
-  "ov.botOff": "injoignable",
   "ov.setup": "Prêt à lancer",
   "ov.steps": "{n} sur {total}",
   "ov.stepChannels": "Salons",
