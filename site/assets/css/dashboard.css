@@ -2388,6 +2388,11 @@ html.motion-force .ovtile { transition: background .18s var(--e-soft), color .18
      343 px — et abaisser ce minimum donnerait trois colonnes sur une
      tablette, où quatre est le bon compte. */
   .ovstats { grid-template-columns: 1fr 1fr; }
+  /* Cinq cartes deux par deux laissent la cinquième seule sur sa rangée,
+     à moitié de largeur, et le vide à sa droite se lit comme une carte
+     qui manque. Elle prend donc les deux colonnes : « il y a 2 h » n'a
+     pas besoin de plus de place, mais la rangée a besoin d'être pleine. */
+  .ovstats > .ovstat:last-child { grid-column: 1 / -1; }
   /* :not(--sm) : à spécificité égale la dernière règle l'emporte, et
      sans cette exclusion « en ligne » repassait au corps des nombres. */
   .ovstat__val:not(.ovstat__val--sm) { font-size: 1.45rem; }
