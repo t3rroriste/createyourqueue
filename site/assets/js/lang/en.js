@@ -5,17 +5,17 @@ window.CYQ_I18N.en = {
   "c.save": "Save", "c.cancel": "Cancel", "c.saving": "Saving…",
   "c.saved": "Saved", "c.retry": "Try again", "c.close": "Close",
   "c.back": "Back", "c.search": "Search", "c.clear": "Clear",
-  "c.searchPlaceholder": "Rechercher un nom",  /* À TRADUIRE */
+  "c.searchPlaceholder": "Search by name",
   "c.enabled": "On", "c.disabled": "Off", "c.inactive": "Inactive",
   "c.loading": "Loading…", "c.members": "members", "c.default": "default",
   "c.reset": "Restore defaults", "c.copy": "Copy report",
   "c.refresh": "Refresh", "c.themeLight": "Switch to light theme",
   "c.themeDark": "Switch to dark theme", "c.lang": "Language",
-  "c.theme": "Thème",  /* À TRADUIRE */
-  "c.themeSystem": "Système",  /* À TRADUIRE */
-  "c.themeLightName": "Clair",  /* À TRADUIRE */
-  "c.themeDarkName": "Sombre",  /* À TRADUIRE */
-  "c.prefs": "Thème et langue",  /* À TRADUIRE */
+  "c.theme": "Theme",
+  "c.themeSystem": "System",
+  "c.themeLightName": "Light",
+  "c.themeDarkName": "Dark",
+  "c.prefs": "Theme and language",
   "c.account": "Account", "c.changes": "{n} unsaved changes", "c.change": "1 unsaved change",
   "c.sectionChanges": "{n} changes in this section",
   "c.menu": "Open sections", "c.skip": "Skip to content",
@@ -53,13 +53,12 @@ window.CYQ_I18N.en = {
   "mg.clan": "Permanent teams, their channels created for you, and wars that count towards the ranking.",
   "mg.sec": "Link filter, automatic cleanup, anti-raid, and ten independent logs.",
   "mg.opt": "Five languages, the channels, the roles, and a status panel showing what is running.",
-  "mm.queue": "Tu lances la file, le bot s'occupe du reste. Les joueurs rejoignent avec un bouton, les capitaines sont élus, les équipes se composent et tout le monde se retrouve dans le vocal d'attente. Dix presets pour ne jamais régler deux fois la même soirée.",  /* À TRADUIRE */
-  "mm.mmr": "Chaque match déplace le classement, et personne n'a de tableur à tenir. Points de départ, gains et pertes, bonus de série, MVP de la semaine : le bot publie le classement à jour dans le salon que tu lui donnes.",  /* À TRADUIRE */
-  "mm.duel": "Deux joueurs, un défi, pas de file. Le perdant confirme le score au vote, le classement suit, et un litige se tranche sans toi. C'est le format des soirs où personne n'a envie d'organiser quoi que ce soit.",  /* À TRADUIRE */
-  "mm.clan": "Des équipes qui durent, avec leur chef, leurs transferts et leur salon créé tout seul à la fondation. Les guerres de clans comptent dans le classement général : une saison a enfin un enjeu entre deux scrims.",  /* À TRADUIRE */
-  "mm.sec": "Anti-lien, anti-raid, nettoyage automatique des salons de queue : le serveur tient tout seul pendant que tu joues. Dix journaux indépendants disent qui a fait quoi, et seulement ce que tu as demandé à voir.",  /* À TRADUIRE */
-  "mm.opt": "Tout se coupe et tout se rallume. Chaque fonction a son interrupteur, chaque salon et chaque rôle se choisissent dans une liste, et cinq langues renomment jusqu'aux salons que le bot crée.",  /* À TRADUIRE */
-
+  "mm.queue": "You open the queue, the bot does the rest. Players join with a button, captains are elected, teams are drafted and everyone lands in the waiting voice channel. Ten presets, so you never set up the same night twice.",
+  "mm.mmr": "Every match moves the leaderboard, and nobody keeps a spreadsheet. Starting points, gains and losses, streak bonus, MVP of the week: the bot posts the updated standings in the channel you give it.",
+  "mm.duel": "Two players, one challenge, no queue. The loser confirms the score by vote, the leaderboard follows, and a dispute settles itself without you. It is the format for nights when nobody feels like organising anything.",
+  "mm.clan": "Teams that last, with their leader, their transfers and their channel created on their own at founding. Clan wars count towards the overall standings: a season finally has something at stake between two scrims.",
+  "mm.sec": "Anti-link, anti-raid, automatic cleanup of queue channels: the server holds together while you play. Ten independent logs say who did what, and only what you asked to see.",
+  "mm.opt": "Everything switches off and back on. Each feature has its toggle, each channel and each role is picked from a list, and five languages rename even the channels the bot creates.",
   "commu.title": "Join the community",
   "commu.lead": "The official Discord server: support, ideas, and what is new before anyone else.",
   "commu.join": "Join the Discord",
@@ -82,9 +81,9 @@ window.CYQ_I18N.en = {
   "cta.lead": "Two minutes and the bot is on your server, with its first queue open.",
 
     "h.title": "Set up, customise and create your queues in under 5 minutes.",
-  "h.lead": "Every bot setting on one screen. The bot still works through commands; this panel only configures it.",
-  "h.invite": "Add the bot to a server",
-  "h.seeFeatures": "Voir les fonctionnalités",  /* À TRADUIRE */
+  "h.lead": "A Discord bot that opens your queues, builds the teams and keeps the leaderboard. Players join with one click, the rest takes care of itself.",
+  "h.invite": "Add to Discord",
+  "h.seeFeatures": "See the features",
   "h.inviteNote": "Opens Discord's authorisation screen. You need the Manage Server permission on the server you pick.",
     "h.loginBtn": "Sign in with Discord",
   "s.language": "Language",

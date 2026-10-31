@@ -5,17 +5,17 @@ window.CYQ_I18N.es = {
   "c.save": "Guardar", "c.cancel": "Cancelar", "c.saving": "Guardando…",
   "c.saved": "Guardado", "c.retry": "Reintentar", "c.close": "Cerrar",
   "c.back": "Volver", "c.search": "Buscar", "c.clear": "Borrar",
-  "c.searchPlaceholder": "Rechercher un nom",  /* À TRADUIRE */
+  "c.searchPlaceholder": "Buscar un nombre",
   "c.enabled": "Activado", "c.disabled": "Desactivado", "c.inactive": "Inactivo",
   "c.loading": "Cargando…", "c.members": "miembros", "c.default": "predeterminado",
   "c.reset": "Restaurar valores predeterminados", "c.copy": "Copiar informe",
   "c.refresh": "Actualizar", "c.themeLight": "Cambiar al tema claro",
   "c.themeDark": "Cambiar al tema oscuro", "c.lang": "Idioma",
-  "c.theme": "Thème",  /* À TRADUIRE */
-  "c.themeSystem": "Système",  /* À TRADUIRE */
-  "c.themeLightName": "Clair",  /* À TRADUIRE */
-  "c.themeDarkName": "Sombre",  /* À TRADUIRE */
-  "c.prefs": "Thème et langue",  /* À TRADUIRE */
+  "c.theme": "Tema",
+  "c.themeSystem": "Sistema",
+  "c.themeLightName": "Claro",
+  "c.themeDarkName": "Oscuro",
+  "c.prefs": "Tema e idioma",
   "c.account": "Cuenta", "c.changes": "{n} cambios sin guardar", "c.change": "1 cambio sin guardar",
   "c.sectionChanges": "{n} cambios en esta sección",
   "c.menu": "Abrir las secciones", "c.skip": "Ir al contenido",
@@ -53,13 +53,12 @@ window.CYQ_I18N.es = {
   "mg.clan": "Los equipos permanentes, sus canales creados solos, y guerras que cuentan para la clasificación.",
   "mg.sec": "Antienlaces, limpieza automática, antirraid y diez registros independientes.",
   "mg.opt": "Cinco idiomas, los canales, los roles y un panel de estado que muestra lo que funciona.",
-  "mm.queue": "Tu lances la file, le bot s'occupe du reste. Les joueurs rejoignent avec un bouton, les capitaines sont élus, les équipes se composent et tout le monde se retrouve dans le vocal d'attente. Dix presets pour ne jamais régler deux fois la même soirée.",  /* À TRADUIRE */
-  "mm.mmr": "Chaque match déplace le classement, et personne n'a de tableur à tenir. Points de départ, gains et pertes, bonus de série, MVP de la semaine : le bot publie le classement à jour dans le salon que tu lui donnes.",  /* À TRADUIRE */
-  "mm.duel": "Deux joueurs, un défi, pas de file. Le perdant confirme le score au vote, le classement suit, et un litige se tranche sans toi. C'est le format des soirs où personne n'a envie d'organiser quoi que ce soit.",  /* À TRADUIRE */
-  "mm.clan": "Des équipes qui durent, avec leur chef, leurs transferts et leur salon créé tout seul à la fondation. Les guerres de clans comptent dans le classement général : une saison a enfin un enjeu entre deux scrims.",  /* À TRADUIRE */
-  "mm.sec": "Anti-lien, anti-raid, nettoyage automatique des salons de queue : le serveur tient tout seul pendant que tu joues. Dix journaux indépendants disent qui a fait quoi, et seulement ce que tu as demandé à voir.",  /* À TRADUIRE */
-  "mm.opt": "Tout se coupe et tout se rallume. Chaque fonction a son interrupteur, chaque salon et chaque rôle se choisissent dans une liste, et cinq langues renomment jusqu'aux salons que le bot crée.",  /* À TRADUIRE */
-
+  "mm.queue": "Tú abres la cola, el bot se encarga del resto. Los jugadores entran con un botón, se eligen los capitanes, se forman los equipos y todo el mundo acaba en el canal de voz de espera. Diez presets para no configurar dos veces la misma noche.",
+  "mm.mmr": "Cada partida mueve la clasificación, y nadie lleva una hoja de cálculo. Puntos de salida, ganancias y pérdidas, bonus de racha, MVP de la semana: el bot publica la clasificación al día en el canal que le indiques.",
+  "mm.duel": "Dos jugadores, un reto, sin cola. El perdedor confirma el marcador por votación, la clasificación lo sigue, y una disputa se resuelve sin ti. Es el formato de las noches en que nadie tiene ganas de organizar nada.",
+  "mm.clan": "Equipos que duran, con su líder, sus traspasos y su canal creado solo al fundarse. Las guerras de clanes cuentan en la clasificación general: una temporada por fin tiene algo en juego entre dos scrims.",
+  "mm.sec": "Antienlaces, antirraid, limpieza automática de los canales de cola: el servidor se sostiene solo mientras juegas. Diez registros independientes dicen quién hizo qué, y solo lo que has pedido ver.",
+  "mm.opt": "Todo se apaga y todo se vuelve a encender. Cada función tiene su interruptor, cada canal y cada rol se eligen de una lista, y cinco idiomas renombran hasta los canales que crea el bot.",
   "commu.title": "Únete a la comunidad",
   "commu.lead": "El servidor de Discord oficial: soporte, ideas y las novedades antes que nadie.",
   "commu.join": "Entrar en el Discord",
@@ -82,9 +81,9 @@ window.CYQ_I18N.es = {
   "cta.lead": "En dos minutos, el bot está en tu servidor y tu primera cola está abierta.",
 
     "h.title": "Configura, personaliza y crea tus colas en menos de 5 minutos.",
-  "h.lead": "Toda la configuración del bot en una sola pantalla. El bot sigue funcionando por comandos; el panel solo lo configura.",
-  "h.invite": "Añade el bot a un servidor",
-  "h.seeFeatures": "Voir les fonctionnalités",  /* À TRADUIRE */
+  "h.lead": "Un bot de Discord que abre tus colas, forma los equipos y lleva la clasificación. Los jugadores entran con un clic, el resto se hace solo.",
+  "h.invite": "Añadir a Discord",
+  "h.seeFeatures": "Ver las funciones",
   "h.inviteNote": "Abre la pantalla de autorización de Discord. Necesitas el permiso Gestionar servidor en el servidor elegido.",
     "h.loginBtn": "Iniciar sesión con Discord",
   "s.language": "Idioma",

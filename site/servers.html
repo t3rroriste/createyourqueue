@@ -13,8 +13,8 @@
 <!-- Geist seule. Le monospace est ce qui faisait « back-office » sur la
      version précédente ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310707">
-<link rel="stylesheet" href="assets/css/servers.css?v=202610310707">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310709">
+<link rel="stylesheet" href="assets/css/servers.css?v=202610310709">
 <script>
 // Même garde que la connexion : le contenu reste masqué le temps que le
 // script pose les états de départ, et se découvre tout seul après 1,8 s si
@@ -60,8 +60,10 @@
     <a href="support" data-site="support" data-i18n="n.support">Support</a>
   </div>
   <div class="langmenu">
+    <!-- Le menu porte maintenant DEUX réglages : son nom ne peut plus
+         être « Langue ». `c.prefs` dit les deux. -->
     <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
-            aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.lang">
+            aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.prefs">
       <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
     <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
@@ -165,14 +167,14 @@
   </div>
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310707"></script>
-<script src="assets/js/config.js?v=202610310707"></script>
-<script src="assets/js/lang/fr.js?v=202610310707"></script>
-<script src="assets/js/lang/en.js?v=202610310707"></script>
-<script src="assets/js/lang/es.js?v=202610310707"></script>
-<script src="assets/js/lang/de.js?v=202610310707"></script>
-<script src="assets/js/lang/ko.js?v=202610310707"></script>
-<script src="assets/js/app.js?v=202610310707"></script>
-<script src="assets/js/page-servers.js?v=202610310707"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310709"></script>
+<script src="assets/js/config.js?v=202610310709"></script>
+<script src="assets/js/lang/fr.js?v=202610310709"></script>
+<script src="assets/js/lang/en.js?v=202610310709"></script>
+<script src="assets/js/lang/es.js?v=202610310709"></script>
+<script src="assets/js/lang/de.js?v=202610310709"></script>
+<script src="assets/js/lang/ko.js?v=202610310709"></script>
+<script src="assets/js/app.js?v=202610310709"></script>
+<script src="assets/js/page-servers.js?v=202610310709"></script>
 </body>
 </html>

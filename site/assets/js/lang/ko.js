@@ -5,17 +5,17 @@ window.CYQ_I18N.ko = {
   "c.save": "저장", "c.cancel": "취소", "c.saving": "저장 중…",
   "c.saved": "저장됨", "c.retry": "다시 시도", "c.close": "닫기",
   "c.back": "뒤로", "c.search": "검색", "c.clear": "지우기",
-  "c.searchPlaceholder": "Rechercher un nom",  /* À TRADUIRE */
+  "c.searchPlaceholder": "이름으로 검색",
   "c.enabled": "켜짐", "c.disabled": "꺼짐", "c.inactive": "비활성",
   "c.loading": "불러오는 중…", "c.members": "명", "c.default": "기본값",
   "c.reset": "기본값으로 되돌리기", "c.copy": "보고서 복사",
   "c.refresh": "새로 고침", "c.themeLight": "밝은 테마로 전환",
   "c.themeDark": "어두운 테마로 전환", "c.lang": "언어",
-  "c.theme": "Thème",  /* À TRADUIRE */
-  "c.themeSystem": "Système",  /* À TRADUIRE */
-  "c.themeLightName": "Clair",  /* À TRADUIRE */
-  "c.themeDarkName": "Sombre",  /* À TRADUIRE */
-  "c.prefs": "Thème et langue",  /* À TRADUIRE */
+  "c.theme": "테마",
+  "c.themeSystem": "시스템",
+  "c.themeLightName": "밝게",
+  "c.themeDarkName": "어둡게",
+  "c.prefs": "테마와 언어",
   "c.account": "계정", "c.changes": "저장하지 않은 변경 {n}건", "c.change": "저장하지 않은 변경 1건",
   "c.sectionChanges": "이 섹션에서 변경 {n}건",
   "c.menu": "섹션 열기", "c.skip": "본문으로 이동",
@@ -53,13 +53,12 @@ window.CYQ_I18N.ko = {
   "mg.clan": "상설 팀과 자동으로 만들어지는 채널, 그리고 랭킹에 반영되는 클랜전.",
   "mg.sec": "링크 차단, 자동 정리, 안티레이드, 그리고 독립된 로그 열 개.",
   "mg.opt": "다섯 개 언어, 채널과 역할, 그리고 무엇이 돌아가는지 보여주는 상태 패널.",
-  "mm.queue": "Tu lances la file, le bot s'occupe du reste. Les joueurs rejoignent avec un bouton, les capitaines sont élus, les équipes se composent et tout le monde se retrouve dans le vocal d'attente. Dix presets pour ne jamais régler deux fois la même soirée.",  /* À TRADUIRE */
-  "mm.mmr": "Chaque match déplace le classement, et personne n'a de tableur à tenir. Points de départ, gains et pertes, bonus de série, MVP de la semaine : le bot publie le classement à jour dans le salon que tu lui donnes.",  /* À TRADUIRE */
-  "mm.duel": "Deux joueurs, un défi, pas de file. Le perdant confirme le score au vote, le classement suit, et un litige se tranche sans toi. C'est le format des soirs où personne n'a envie d'organiser quoi que ce soit.",  /* À TRADUIRE */
-  "mm.clan": "Des équipes qui durent, avec leur chef, leurs transferts et leur salon créé tout seul à la fondation. Les guerres de clans comptent dans le classement général : une saison a enfin un enjeu entre deux scrims.",  /* À TRADUIRE */
-  "mm.sec": "Anti-lien, anti-raid, nettoyage automatique des salons de queue : le serveur tient tout seul pendant que tu joues. Dix journaux indépendants disent qui a fait quoi, et seulement ce que tu as demandé à voir.",  /* À TRADUIRE */
-  "mm.opt": "Tout se coupe et tout se rallume. Chaque fonction a son interrupteur, chaque salon et chaque rôle se choisissent dans une liste, et cinq langues renomment jusqu'aux salons que le bot crée.",  /* À TRADUIRE */
-
+  "mm.queue": "대기열만 열면 나머지는 봇이 맡습니다. 버튼으로 참가하고, 주장을 뽑고, 팀이 짜이고, 모두가 대기 음성 채널로 모입니다. 프리셋 열 개로 같은 저녁을 두 번 설정할 일이 없습니다.",
+  "mm.mmr": "경기마다 순위가 움직이고, 아무도 표를 관리하지 않습니다. 시작 점수, 획득과 차감, 연승 보너스, 주간 MVP까지 — 봇이 지정한 채널에 최신 순위표를 올립니다.",
+  "mm.duel": "두 사람, 한 번의 도전, 대기열 없음. 진 쪽이 투표로 점수를 확정하고 순위가 따라오며, 분쟁도 당신 없이 정리됩니다. 아무도 뭔가를 준비하고 싶지 않은 저녁을 위한 형식입니다.",
+  "mm.clan": "리더와 이적, 그리고 창단과 동시에 저절로 만들어지는 채널까지 갖춘 지속되는 팀. 클랜전은 전체 순위에 반영되므로, 스크림 사이의 시즌에도 마침내 걸린 것이 생깁니다.",
+  "mm.sec": "링크 차단, 레이드 차단, 대기열 채널 자동 정리 — 당신이 플레이하는 동안 서버는 스스로 버팁니다. 독립된 로그 열 개가 누가 무엇을 했는지, 당신이 보기로 한 것만 알려줍니다.",
+  "mm.opt": "모두 끄고 다시 켤 수 있습니다. 기능마다 스위치가 있고, 채널과 역할은 목록에서 고르며, 다섯 개 언어가 봇이 만드는 채널 이름까지 바꿉니다.",
   "commu.title": "커뮤니티에 참여하세요",
   "commu.lead": "공식 디스코드 서버 — 지원, 아이디어, 그리고 새 소식을 가장 먼저.",
   "commu.join": "디스코드 참여하기",
@@ -82,9 +81,9 @@ window.CYQ_I18N.ko = {
   "cta.lead": "2분이면 봇이 서버에 들어가고 첫 대기열이 열립니다.",
 
     "h.title": "대기열을 5분 안에 설정하고, 꾸미고, 만드세요.",
-  "h.lead": "봇의 모든 설정을 한 화면에서. 봇은 계속 명령어로 동작하고, 이 패널은 설정만 합니다.",
-  "h.invite": "서버에 봇 추가",
-  "h.seeFeatures": "Voir les fonctionnalités",  /* À TRADUIRE */
+  "h.lead": "대기열을 열고, 팀을 짜고, 순위표를 관리하는 디스코드 봇입니다. 플레이어는 클릭 한 번으로 참가하고, 나머지는 알아서 돌아갑니다.",
+  "h.invite": "디스코드에 추가",
+  "h.seeFeatures": "기능 보기",
   "h.inviteNote": "디스코드 권한 승인 화면을 엽니다. 선택한 서버에서 「서버 관리」 권한이 필요합니다.",
     "h.loginBtn": "디스코드로 로그인",
   "s.language": "언어",
