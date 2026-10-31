@@ -944,13 +944,6 @@
       var neuf = $('.flag', el);
       if (neuf) neuf.setAttribute('data-lg', lg);
     });
-    $$('[data-lang-menu]').forEach(function (btn) {
-      var d = $('.flag', btn);
-      if (d) { if (d.getAttribute('data-lg') === code) return; d.remove(); }
-      btn.insertAdjacentHTML('afterbegin', CYQ.drapeau(code));
-      var neuf = $('.flag', btn);
-      if (neuf) neuf.setAttribute('data-lg', code);
-    });
   }
 
   function wireLangMenu() {
