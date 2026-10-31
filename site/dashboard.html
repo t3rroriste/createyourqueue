@@ -73,7 +73,7 @@
          et ses trois enfants deviennent des cases de la grille — serveur,
          rangée de sections, contenu, compte. L'ordre du DOM ne bouge
          jamais, donc l'ordre de tabulation suit l'ordre visuel.        -->
-    <div class="db__side">
+    <div class="db__side" id="dbside">
 
       <div class="dbguild" data-guild-card data-sortie>
         <span class="dbguild__icon" data-g-icon aria-hidden="true"></span>
@@ -96,6 +96,26 @@
            ne replie rien. Sous 900 px la nav passe en rangée défilante et
            les étiquettes disparaissent — là, chaque pixel horizontal est
            une entrée qu'on ne voit pas. -->
+      <!-- CHERCHER UNE SECTION.
+
+           Vingt-huit entrees sur six familles : le menu est devenu une
+           liste qu'on parcourt des yeux. Le champ ne remplace pas le
+           menu, il le filtre — ce qui ne correspond pas disparait, les
+           familles vides avec, et un mot suffit a tomber sur la section.
+
+           Ctrl+K (Cmd+K) y amene le curseur depuis n'importe ou dans la
+           page, Echap le vide et rend le menu entier. Le raccourci est
+           ecrit a cote parce qu'un raccourci qu'on ne voit pas n'existe
+           pas. -->
+      <div class="dbfind">
+        <svg class="dbfind__loupe" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="dbfind__champ" type="search" data-nav-find autocomplete="off"
+               data-i18n-attr="placeholder:d.find, aria-label:d.find">
+        <kbd class="dbfind__kbd" data-find-kbd aria-hidden="true">Ctrl K</kbd>
+      </div>
+
+      <p class="dbfind__vide" data-find-empty hidden data-i18n="d.findNone">Aucune section</p>
+
       <nav class="dbnav" data-dbnav data-sortie data-i18n-attr="aria-label:d.navLabel">
         <!-- L'indicateur unique. Il n'est jamais recréé : il glisse d'une
              entrée à l'autre, et reste invisible tant qu'il n'a pas été
@@ -111,7 +131,12 @@
         </div>
 
         <div class="dbnav__grp">
-          <p class="dbnav__cat" data-i18n="cat.bot">Général</p>
+          <button class="dbnav__cat" type="button" data-grp="bot" aria-expanded="true"
+                  aria-controls="grp-bot">
+            <span data-i18n="cat.bot">Général</span>
+            <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dbnav__items" id="grp-bot">
           <a class="navlink" href="#configurations" data-goto="configurations"><span class="navlink-label" data-i18n="s.config">Configurations</span></a>
           <a class="navlink" href="#options" data-goto="options"><span class="navlink-label" data-i18n="s.options">Options</span></a>
 
@@ -131,12 +156,18 @@
           <div class="dbnav__sub" data-sub="feature.clans" hidden>
             <a class="navlink navlink--sub" href="#clans" data-goto="clans"><span class="navlink-label" data-i18n="fn.clans">Clans</span></a>
           </div>
+          </div>
         </div>
         <!-- Queue est au-dessus de Salons et non dans les options : c'est
              le réglage qu'on vient modifier le plus souvent, et il ne
              dépend d'aucune fonction qu'on pourrait couper. -->
         <div class="dbnav__grp">
-          <p class="dbnav__cat" data-i18n="cat.queue">Queue</p>
+          <button class="dbnav__cat" type="button" data-grp="queue" aria-expanded="true"
+                  aria-controls="grp-queue">
+            <span data-i18n="cat.queue">Queue</span>
+            <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dbnav__items" id="grp-queue">
           <a class="navlink" href="#queue" data-goto="queue"><span class="navlink-label" data-i18n="s.queue">Queue</span></a>
           <a class="navlink" href="#programmation" data-goto="programmation"><span class="navlink-label" data-i18n="s.schedule">Programmation</span></a>
           <!-- Les presets quittent « Match & MMR » : ce sont des
@@ -145,32 +176,57 @@
                `data-nav-count` ne changent pas, plusieurs scripts les
                cherchent. -->
           <a class="navlink" href="#presets" data-goto="presets"><span class="navlink-label" data-i18n="s.presets">Presets</span><span class="navlink__n" data-nav-count="presets"></span></a>
+          </div>
         </div>
 
         <div class="dbnav__grp">
-          <p class="dbnav__cat" data-i18n="cat.server">Le serveur</p>
+          <button class="dbnav__cat" type="button" data-grp="server" aria-expanded="true"
+                  aria-controls="grp-server">
+            <span data-i18n="cat.server">Le serveur</span>
+            <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dbnav__items" id="grp-server">
           <a class="navlink" href="#salons" data-goto="salons"><span class="navlink-label" data-i18n="s.channels">Salons</span></a>
           <a class="navlink" href="#roles" data-goto="roles"><span class="navlink-label" data-i18n="s.roles">Rôles</span></a>
+          </div>
         </div>
 
         <div class="dbnav__grp">
-          <p class="dbnav__cat" data-i18n="cat.access">Accès</p>
+          <button class="dbnav__cat" type="button" data-grp="access" aria-expanded="true"
+                  aria-controls="grp-access">
+            <span data-i18n="cat.access">Accès</span>
+            <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dbnav__items" id="grp-access">
           <a class="navlink" href="#blacklist" data-goto="blacklist"><span class="navlink-label" data-i18n="s.blacklist">Blacklist</span><span class="navlink__n" data-nav-count="blacklist"></span></a>
+          </div>
         </div>
 
         <div class="dbnav__grp">
-          <p class="dbnav__cat" data-i18n="cat.security">Sécurité</p>
+          <button class="dbnav__cat" type="button" data-grp="security" aria-expanded="true"
+                  aria-controls="grp-security">
+            <span data-i18n="cat.security">Sécurité</span>
+            <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dbnav__items" id="grp-security">
           <a class="navlink" href="#logs" data-goto="logs"><span class="navlink-label" data-i18n="s.logs">Logs</span><span class="navlink__n" data-nav-count="logs"></span></a>
           <a class="navlink" href="#antiraid" data-goto="antiraid"><span class="navlink-label" data-i18n="se.grpRaid">Anti-raid</span></a>
           <a class="navlink" href="#nettoyage" data-goto="nettoyage"><span class="navlink-label" data-i18n="se.grpClean">Nettoyage automatique</span></a>
           <a class="navlink" href="#antilien" data-goto="antilien"><span class="navlink-label" data-i18n="se.grpAntilink">Anti-lien</span></a>
+          </div>
         </div>
 
         <div class="dbnav__grp">
-          <p class="dbnav__cat" data-i18n="cat.monitor">Suivi</p>
+          <button class="dbnav__cat" type="button" data-grp="monitor" aria-expanded="true"
+                  aria-controls="grp-monitor">
+            <span data-i18n="cat.monitor">Suivi</span>
+            <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dbnav__items" id="grp-monitor">
           <a class="navlink" href="#stats" data-goto="stats"><span class="navlink-label" data-i18n="s.stats">Statistiques</span></a>
           <a class="navlink" href="#journal" data-goto="journal"><span class="navlink-label" data-i18n="s.journal">Journal</span></a>
           <a class="navlink" href="#diagnostic" data-goto="diagnostic"><span class="navlink-label" data-i18n="d.diagnostic">Diagnostic</span><span class="navlink__warn" data-nav-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span class="sr-only" data-i18n="d.navWarn">Droits manquants</span></span></a>
+          </div>
         </div>
       </nav>
 
@@ -213,6 +269,21 @@
 
       <!-- Un seul emplacement pour les avis de page : pas d'API, session
            expirée, accès perdu, chargement échoué. Vide le reste du temps. -->
+      <!-- REPLIER LA COLONNE.
+
+           Il reste au meme endroit replie ou deplie : c'est la meme
+           commande, et une commande qui se deplace est une commande qu'on
+           cherche. Son etat se garde dans ce navigateur, parce qu'on
+           replie pour la seance, pas pour une page.
+
+           aria-expanded porte l'etat, le titre dit lequel des deux gestes
+           le clic va faire. -->
+      <button class="dbfold" type="button" data-fold aria-expanded="true"
+              aria-controls="dbside"
+              data-i18n-attr="aria-label:d.foldHide, title:d.foldHide">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg>
+      </button>
+
       <div class="dbnote" data-note hidden></div>
 
       <!-- Une seule région annoncée pour toute la page. Soixante régions
