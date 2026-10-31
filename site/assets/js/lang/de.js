@@ -5,11 +5,17 @@ window.CYQ_I18N.de = {
   "c.save": "Speichern", "c.cancel": "Abbrechen", "c.saving": "Wird gespeichert…",
   "c.saved": "Gespeichert", "c.retry": "Erneut versuchen", "c.close": "Schließen",
   "c.back": "Zurück", "c.search": "Suchen", "c.clear": "Leeren",
+  "c.searchPlaceholder": "Rechercher un nom",  /* À TRADUIRE */
   "c.enabled": "Ein", "c.disabled": "Aus", "c.inactive": "Inaktiv",
   "c.loading": "Wird geladen…", "c.members": "Mitglieder", "c.default": "Standard",
   "c.reset": "Standardwerte wiederherstellen", "c.copy": "Bericht kopieren",
   "c.refresh": "Aktualisieren", "c.themeLight": "Zum hellen Design wechseln",
   "c.themeDark": "Zum dunklen Design wechseln", "c.lang": "Sprache",
+  "c.theme": "Thème",  /* À TRADUIRE */
+  "c.themeSystem": "Système",  /* À TRADUIRE */
+  "c.themeLightName": "Clair",  /* À TRADUIRE */
+  "c.themeDarkName": "Sombre",  /* À TRADUIRE */
+  "c.prefs": "Thème et langue",  /* À TRADUIRE */
   "c.account": "Konto", "c.changes": "{n} nicht gespeicherte Änderungen", "c.change": "1 nicht gespeicherte Änderung",
   "c.sectionChanges": "{n} Änderungen in diesem Abschnitt",
   "c.menu": "Abschnitte öffnen", "c.skip": "Zum Inhalt springen",
@@ -47,6 +53,12 @@ window.CYQ_I18N.de = {
   "mg.clan": "Feste Teams, ihre Kanäle von selbst erstellt, und Kriege, die für die Rangliste zählen.",
   "mg.sec": "Linkfilter, automatisches Aufräumen, Anti-Raid und zehn unabhängige Protokolle.",
   "mg.opt": "Fünf Sprachen, die Kanäle, die Rollen und ein Statuspanel, das zeigt, was läuft.",
+  "mm.queue": "Tu lances la file, le bot s'occupe du reste. Les joueurs rejoignent avec un bouton, les capitaines sont élus, les équipes se composent et tout le monde se retrouve dans le vocal d'attente. Dix presets pour ne jamais régler deux fois la même soirée.",  /* À TRADUIRE */
+  "mm.mmr": "Chaque match déplace le classement, et personne n'a de tableur à tenir. Points de départ, gains et pertes, bonus de série, MVP de la semaine : le bot publie le classement à jour dans le salon que tu lui donnes.",  /* À TRADUIRE */
+  "mm.duel": "Deux joueurs, un défi, pas de file. Le perdant confirme le score au vote, le classement suit, et un litige se tranche sans toi. C'est le format des soirs où personne n'a envie d'organiser quoi que ce soit.",  /* À TRADUIRE */
+  "mm.clan": "Des équipes qui durent, avec leur chef, leurs transferts et leur salon créé tout seul à la fondation. Les guerres de clans comptent dans le classement général : une saison a enfin un enjeu entre deux scrims.",  /* À TRADUIRE */
+  "mm.sec": "Anti-lien, anti-raid, nettoyage automatique des salons de queue : le serveur tient tout seul pendant que tu joues. Dix journaux indépendants disent qui a fait quoi, et seulement ce que tu as demandé à voir.",  /* À TRADUIRE */
+  "mm.opt": "Tout se coupe et tout se rallume. Chaque fonction a son interrupteur, chaque salon et chaque rôle se choisissent dans une liste, et cinq langues renomment jusqu'aux salons que le bot crée.",  /* À TRADUIRE */
 
   "commu.title": "Komm in die Community",
   "commu.lead": "Der offizielle Discord-Server: Support, Ideen und Neuigkeiten als Erster.",
@@ -72,6 +84,7 @@ window.CYQ_I18N.de = {
     "h.title": "Richte deine Warteschlangen ein, passe sie an und erstelle sie in unter 5 Minuten.",
   "h.lead": "Die komplette Bot-Konfiguration auf einem Bildschirm. Der Bot läuft weiter über Befehle; das Panel stellt ihn nur ein.",
   "h.invite": "Füge den Bot zu einem Server hinzu",
+  "h.seeFeatures": "Voir les fonctionnalités",  /* À TRADUIRE */
   "h.inviteNote": "Öffnet die Autorisierungsseite von Discord. Du brauchst die Berechtigung „Server verwalten“ auf dem gewählten Server.",
     "h.loginBtn": "Mit Discord anmelden",
   "s.language": "Sprache",
