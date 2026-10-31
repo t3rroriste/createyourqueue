@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
@@ -48,12 +49,50 @@ PAGES = ("index", "login", "welcome", "servers", "dashboard",
 VERS_FORME_COURTE = tuple(p for p in PAGES if p != "login")
 
 
+def dossier_app() -> str:
+    """Le sous-dossier sous lequel app.js range les pages du panneau.
+
+    Hors des vrais domaines, `versOrigine` (app.js) ne part pas en absolu
+    — un clic enverrait le testeur sur la production. Il reproduit à la
+    place la DISPOSITION DU DÉPÔT, où le panneau occupe un sous-dossier de
+    la vitrine nommé d'après son sous-domaine. Un lien d'une page du
+    panneau vers une autre devient donc « dashboard.cyqbot.eu/servers ».
+
+    Le serveur local, lui, sert `site/` à la racine : ces adresses-là
+    tombaient toutes en 404, et c'est le bouton Retour du panneau qui l'a
+    révélé. On accepte donc ce préfixe et on le retire — la page servie
+    est la même, et on essaie en local exactement ce qui part en ligne.
+
+    Le nom se lit dans config.js, qui est la seule définition d'APP_ORIGIN.
+    L'écrire ici en ferait une seconde, qui dériverait le jour où le
+    sous-domaine change.
+    """
+    cfg = os.path.join(RACINE, "site", "assets", "js", "config.js")
+    try:
+        with open(cfg, encoding="utf-8") as f:
+            m = re.search(r"APP_ORIGIN\s*:\s*['\"]([^'\"]+)['\"]", f.read())
+    except OSError:
+        return ""
+    if not m:
+        return ""
+    return re.sub(r"^[a-z]+://", "", m.group(1), flags=re.I).split("/")[0].split(":")[0]
+
+
+PREFIXE_APP = dossier_app()
+
+
 class Handler(SimpleHTTPRequestHandler):
 
     def send_head(self):
         chemin, _, requete = self.path.partition("?")
         nom = urlsplit(chemin).path.strip("/")
         suffixe = ("?" + requete) if requete else ""
+
+        # 0. le préfixe que les liens du panneau portent en local
+        if PREFIXE_APP and (nom == PREFIXE_APP or nom.startswith(PREFIXE_APP + "/")):
+            nom = nom[len(PREFIXE_APP):].strip("/")
+            chemin = "/" + nom
+            self.path = chemin + suffixe
 
         # 1. la barre finale
         if nom.endswith("/"):
