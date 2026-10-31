@@ -1416,6 +1416,15 @@ if (preg_match('#^/guilds/(\d{5,25})(/settings)?$#', $chemin, $m)) {
             'name'               => $laGuilde['name'],
             'iconUrl'            => url_icone($gid, $laGuilde['icon'] ?? null, 128),
             'memberCount'        => $laGuilde['approximate_member_count'] ?? null,
+            /* Les boosts et la date d'arrivée du bot viennent du BOT, et
+               non de l'API Discord qu'on interroge ici : `premium_subscription_count`
+               n'est pas dans ce que renvoie /users/@me/guilds, et la date
+               d'arrivée n'existe que du point de vue du bot lui-même. Les
+               deux sont donc nuls quand le bot dort — et le panneau
+               n'affiche alors rien plutôt qu'un zéro, qui se lirait comme
+               « aucun boost ». */
+            'boosts'             => $duBot['boosts'] ?? null,
+            'botSince'           => $duBot['joined'] ?? null,
             'me'                 => ['name' => $session['user_name']],
             /* Le bot a le dernier mot sur ce qu'il tient : c'est lui qui
                publiera et créera, pas nous. Injoignable, on sert la copie

@@ -531,6 +531,15 @@ class DashboardAPI(commands.Cog):
             "name": guild.name,
             "icon": _icon(guild),
             "members": guild.member_count,
+            # Les boosts, et la date d'arrivée du bot. Discord les donne
+            # tous les deux sur l'objet guilde, mais ils ne traversaient
+            # pas : le panneau n'avait donc aucun moyen de dire depuis
+            # quand le bot est là, ce qui est la première chose qu'on
+            # regarde en ouvrant un serveur qu'on n'a pas ouvert depuis
+            # longtemps. `joined` est déjà rendu par la LISTE des serveurs
+            # (même fonction) ; il manquait sur la fiche.
+            "boosts": guild.premium_subscription_count,
+            "joined": _joined_at(guild),
             # Le surnom du bot SUR CE SERVEUR. Le panneau l'écrivait déjà
             # (PATCH /members/@me côté PHP) mais le relisait depuis sa propre
             # copie : renommé à la main sur Discord, il montrait l'ancien.

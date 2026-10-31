@@ -298,6 +298,17 @@ def stats(guild_id: int, *, days: int = 30) -> dict:
         "abandonRate": (round(100 * len(annulees) / len(ouvertes)) if ouvertes else None),
         "avgWait": moyenne,
         "matches": len(parties),
+        # Le total de PLACES jouées sur la période : les deux équipes de
+        # chaque partie, additionnées. Ce n'est pas un compte de personnes
+        # distinctes, et c'est voulu — quelqu'un qui joue dix soirées
+        # compte dix fois, parce que la question posée est « combien de
+        # joueurs ont traversé les queues », pas « combien de personnes
+        # différentes ». Le panneau l'écrit avec ce mot-là.
+        "playerSlots": sum(
+            len(ids)
+            for m in parties
+            for ids in (m.get("teams") or {}).values()
+        ),
         "byDay": [{"day": j, "n": n} for j, n in sorted(par_jour.items())],
         "byHour": par_heure,
     }
