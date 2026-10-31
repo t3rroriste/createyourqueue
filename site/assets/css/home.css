@@ -566,12 +566,31 @@ html::-webkit-scrollbar { display: none; }
    barre de navigation, à côté de boutons de 34. */
 .langmenu__btn { width: 38px; height: 38px; }
 
-/* L'écrou qui se visse à l'ouverture. Le ressort léger — il dépasse un
-   peu avant de se poser — est ce qui fait la différence entre « ça a
-   tourné » et « ça s'est vissé ». */
+/* L'ÉCROU QUI SE VISSE À L'OUVERTURE.
+
+   `transform-box` et `transform-origin` sont écrits plutôt que laissés
+   au défaut : sur un `<svg>` le point de pivot dépend du moteur, et
+   celui qu'on veut — le centre du dessin — est le seul qui ne donne pas
+   un écrou qui part en biais hors de son bouton. Ici le défaut tombait
+   déjà juste ; l'écrire coûte deux lignes et retire la question.
+
+   Un huitième de tour, pas un tour complet : un écrou qui fait 360°
+   revient exactement là où il était, et le geste ne se lit qu'à
+   condition de l'avoir regardé en entier. Quarante-cinq degrés se
+   voient d'un coup d'œil et gardent le dessin reconnaissable.
+
+   La règle est accrochée à l'état du menu et non à un clic : on
+   referme aussi par Échap, par Tab et en cliquant à côté, et l'écrou
+   se dévisse dans les quatre cas sans que personne ait à y penser.
+
+   Le ressort léger — il dépasse un peu avant de se poser — est ce qui
+   fait la différence entre « ça a tourné » et « ça s'est vissé ». */
 .langmenu__ecrou {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
   transition: transform 320ms cubic-bezier(.34, 1.56, .64, 1);
 }
+.langmenu[data-open="true"] .langmenu__ecrou { transform: rotate(45deg); }
 
 /* Le titre d'un groupe du menu. Pas un `<h>` : il ne structure pas la
    page, il nomme trois boutons côte à côte. */

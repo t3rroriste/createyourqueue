@@ -1021,14 +1021,11 @@
      été écrite en JavaScript, qui posait puis effaçait un
      `style.transform` ; deux défauts, et le second n'est pas un détail :
 
-       · il fallait penser à la défaire dans CHAQUE chemin de fermeture
-         — le bouton, Échap, Tab, le clic à côté — et un oubli laissait
-         l'écrou vissé sur un menu fermé ;
-       · effacer un `transform` en ligne sur un SVG ne le ramène pas
-         toujours à `none` de façon fiable selon le moteur.
-
-     La règle CSS ne peut pas se désynchroniser : il n'y a qu'un état,
-     celui du menu, et c'est déjà lui qui ouvre le panneau. */
+     il fallait penser à la défaire dans CHAQUE chemin de fermeture — le
+     bouton, Échap, Tab, le clic à côté — et un oubli laissait l'écrou
+     vissé sur un menu fermé. La règle CSS ne peut pas se
+     désynchroniser : il n'y a qu'un état, celui du menu, et c'est déjà
+     lui qui ouvre et ferme le panneau. */
 
   /* 2 — LA PAGE QUI SE REGÉNÈRE.
 
