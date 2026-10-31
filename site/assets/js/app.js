@@ -964,17 +964,12 @@
       function open() {
         wrap.setAttribute('data-open', 'true');
         btn.setAttribute('aria-expanded', 'true');
-        faireTournerLEcrou(btn, true);
         var cur = $('.langmenu__opt[aria-checked="true"]', panel) || opts()[0];
         if (cur) cur.focus();
       }
       function close(back) {
         wrap.removeAttribute('data-open');
         btn.setAttribute('aria-expanded', 'false');
-        /* Accroché à la FERMETURE et non au clic : on referme aussi par
-           Échap, par Tab et en cliquant à côté, et l'écrou resterait
-           vissé dans ces trois cas. */
-        faireTournerLEcrou(btn, false);
         if (back) btn.focus();
       }
 
@@ -1019,27 +1014,21 @@
     return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
-  /* 1 — L'ÉCROU QUI TOURNE.
+  /* 1 — L'ÉCROU QUI TOURNE : il n'y a rien ici, et c'est le but.
 
-     Un quart de tour au clic, dans un sens puis dans l'autre : à
-     l'ouverture il se visse, à la fermeture il se dévisse. Le menu dit
-     déjà qu'il s'est ouvert ; ce que l'écrou ajoute, c'est que le clic a
-     été PRIS — sur un bouton rond sans libellé, c'est la seule chose
-     qui le dise.
+     La rotation est une règle CSS accrochée à `[data-open]` sur le
+     conteneur — voir `.langmenu__ecrou` dans home.css. Elle a d'abord
+     été écrite en JavaScript, qui posait puis effaçait un
+     `style.transform` ; deux défauts, et le second n'est pas un détail :
 
-     Un quart de tour et pas un tour complet : un écrou qui fait 360°
-     revient là où il était, et le geste ne se lit qu'à condition de
-     l'avoir regardé en entier. Quarante-cinq degrés se voient d'un coup
-     d'œil et laissent le dessin reconnaissable.
+       · il fallait penser à la défaire dans CHAQUE chemin de fermeture
+         — le bouton, Échap, Tab, le clic à côté — et un oubli laissait
+         l'écrou vissé sur un menu fermé ;
+       · effacer un `transform` en ligne sur un SVG ne le ramène pas
+         toujours à `none` de façon fiable selon le moteur.
 
-     `transform` seul, et une transition CSS plutôt qu'un minuteur :
-     rien à annuler si on reclique en plein mouvement, le navigateur
-     reprend la rotation là où elle en est. */
-  function faireTournerLEcrou(btn, ouvre) {
-    var ecrou = $('[data-ecrou]', btn);
-    if (!ecrou || !mouvementAutorise()) return;
-    ecrou.style.transform = ouvre ? 'rotate(45deg)' : '';
-  }
+     La règle CSS ne peut pas se désynchroniser : il n'y a qu'un état,
+     celui du menu, et c'est déjà lui qui ouvre le panneau. */
 
   /* 2 — LA PAGE QUI SE REGÉNÈRE.
 
