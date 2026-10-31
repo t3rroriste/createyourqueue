@@ -15,7 +15,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202610311755"></script>
+<script src="assets/js/theme-tot.js?v=202610311936"></script>
 <link rel="icon" href="assets/img/logo.png">
 <!-- L'ADRESSE CANONIQUE ET LES CINQ LANGUES.
 
@@ -41,13 +41,13 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610311755">
+<link rel="stylesheet" href="assets/css/home.css?v=202610311936">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610311755">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610311936">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -316,37 +316,41 @@
     </div>
   </section>
 
-  <!-- ============== SECTION 3 · prêt en trois étapes ============== -->
-  <section class="bloc etapes" data-mod>
+  <!-- ============== SECTION 3 · la présentation en vidéo ==============
+       Elle remplace la frise « prêt en trois étapes ». Trois pictos et
+       trois phrases disaient le parcours sans jamais le montrer, et on
+       les avait oubliés en arrivant à la démo.
+
+       L'affiche est une IMAGE, pas une vidéo : rien du média n'est
+       téléchargé tant qu'on n'a pas cliqué. Un accueil qui tire vingt
+       mégaoctets avant le premier clic est un accueil cassé. -->
+  <section class="bloc video" data-mod>
     <div class="sect__head">
-      <h2 class="sect__title" data-reveal-text data-i18n="step.title">Prêt en trois étapes</h2>
+      <h2 class="sect__title" data-reveal-text data-i18n="video.title">La présentation, en vidéo</h2>
+      <p class="lead" data-reveal-text data-i18n="video.lead">Ce que fait le bot, à quoi il sert, et comment on le règle — montré de bout en bout.</p>
     </div>
 
-    <ol class="etapes__list">
-      <li class="etape" data-reveal-text>
-        <span class="etape__ico" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <div class="video__coque" data-reveal-text data-video-coque>
+      <!-- Le bouton EST l'affiche, et non un bouton posé par-dessus : une
+           zone cliquable plus petite que ce qu'on voit est la première
+           chose qu'on reproche à un lecteur. -->
+      <button class="video__ouvrir" type="button" data-video-open>
+        <img class="video__affiche" src="assets/video/affiche.jpg" alt=""
+             width="1920" height="1080" loading="lazy" decoding="async"
+             data-video-affiche>
+        <span class="video__disque" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>
         </span>
-        <h3 class="etape__t" data-i18n="step.1t">Invite le bot</h3>
-        <p class="etape__p" data-i18n="step.1l">Un lien, deux clics, le bot rejoint ton serveur.</p>
-      </li>
-
-      <li class="etape" data-reveal-text>
-        <span class="etape__ico" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="video__legende">
+          <span class="video__cta" data-i18n="video.play">Voir la présentation</span>
+          <!-- La durée n'est pas écrite à la main : elle est lue sur le
+               fichier dès qu'il a donné ses métadonnées, et reste cachée
+               tant qu'on ne la connaît pas. Une durée en dur ment au
+               premier remontage. -->
+          <span class="video__duree" data-video-duree hidden></span>
         </span>
-        <h3 class="etape__t" data-i18n="step.2t">Règle ta file</h3>
-        <p class="etape__p" data-i18n="step.2l">Format, salons, rôles, langue — tout depuis le panneau.</p>
-      </li>
-
-      <li class="etape" data-reveal-text>
-        <span class="etape__ico" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </span>
-        <h3 class="etape__t" data-i18n="step.3t">Ouvre la queue</h3>
-        <p class="etape__p" data-i18n="step.3l">Les joueurs rejoignent, le bot compose les équipes et ouvre les vocaux.</p>
-      </li>
-    </ol>
+      </button>
+    </div>
   </section>
 
   <!-- ============== SECTION 4 · la démo ==============
@@ -748,14 +752,126 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610311755"></script>
-<script src="assets/js/config.js?v=202610311755"></script>
-<script src="assets/js/lang/fr.js?v=202610311755"></script>
-<script src="assets/js/lang/en.js?v=202610311755"></script>
-<script src="assets/js/lang/es.js?v=202610311755"></script>
-<script src="assets/js/lang/de.js?v=202610311755"></script>
-<script src="assets/js/lang/ko.js?v=202610311755"></script>
-<script src="assets/js/app.js?v=202610311755"></script>
-<script src="assets/js/page-home.js?v=202610311755"></script>
+<!-- ====================== LA FENÊTRE DU LECTEUR ======================
+     Pas d'iframe, pas de YouTube : le fichier est servi par Apache comme
+     le reste du site, et le lecteur est écrit ici. Les contrôles natifs
+     sont désactivés — ceux de Chrome ne connaissent pas cette D.A., et
+     ils ne savent pas reculer de dix secondes.
+
+     L'ordre de la rangée est voulu et ne se réarrange pas : reculer,
+     lire, avancer, PUIS la barre. Les trois boutons de transport sont à
+     gauche de la progression, là où la main les cherche.
+
+     Le <video> n'a ni `src` ni `preload` : il ne charge rien tant que la
+     fenêtre n'a pas été ouverte une fois. C'est le script qui lève le
+     `preload` au premier clic. -->
+<div class="lecteur" data-lecteur hidden>
+  <div class="lecteur__fond" data-lecteur-fond aria-hidden="true"></div>
+  <div class="lecteur__boite" role="dialog" aria-modal="true"
+       aria-labelledby="lecteur-t" data-lecteur-boite>
+
+    <h2 class="sr-only" id="lecteur-t" data-i18n="video.title">La présentation, en vidéo</h2>
+
+    <button class="lecteur__fermer" type="button" data-lecteur-close
+            data-i18n-attr="aria-label:lec.close" aria-label="Fermer la vidéo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+
+    <div class="lecteur__scene">
+      <!-- `playsinline` : sans lui, Safari iOS prend la vidéo en plein
+           écran tout seul et la fenêtre ne sert plus à rien. -->
+      <video class="lecteur__video" data-lecteur-video playsinline preload="none"
+             poster="assets/video/affiche.jpg">
+        <source src="assets/video/presentation.webm" type="video/webm">
+        <source src="assets/video/presentation.mp4" type="video/mp4">
+        <track kind="subtitles" srclang="fr" label="Français" src="assets/video/sous-titres.fr.vtt" default>
+        <track kind="subtitles" srclang="en" label="English"  src="assets/video/sous-titres.en.vtt">
+        <track kind="subtitles" srclang="es" label="Español"  src="assets/video/sous-titres.es.vtt">
+        <track kind="subtitles" srclang="de" label="Deutsch"  src="assets/video/sous-titres.de.vtt">
+        <track kind="subtitles" srclang="ko" label="한국어"    src="assets/video/sous-titres.ko.vtt">
+      </video>
+
+      <!-- Le navigateur ne sait lire ni le WebM ni le MP4, ou le fichier
+           n'est pas là : on le dit, avec le lien direct. Un écran noir
+           muet laisse croire à un plantage du site. -->
+      <div class="lecteur__erreur" data-lecteur-erreur hidden>
+        <p data-i18n="lec.error">Cette vidéo ne peut pas être lue dans ce navigateur.</p>
+        <a class="pill pill--ghost" href="assets/video/presentation.mp4" download
+           data-i18n="lec.download">Télécharger la vidéo</a>
+      </div>
+    </div>
+
+    <div class="lecteur__barre">
+      <button class="lecteur__b" type="button" data-lecteur-back
+              data-i18n-attr="aria-label:lec.back10, title:lec.back10" aria-label="Reculer de dix secondes">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/></svg>
+        <span class="lecteur__pas" aria-hidden="true">10</span>
+      </button>
+
+      <button class="lecteur__b lecteur__b--play" type="button" data-lecteur-play
+              data-i18n-attr="aria-label:lec.play, title:lec.play" aria-label="Lire">
+        <svg class="lecteur__ico-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>
+        <svg class="lecteur__ico-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><path d="M7 5h3.2v14H7zM13.8 5H17v14h-3.2z"/></svg>
+      </button>
+
+      <button class="lecteur__b" type="button" data-lecteur-fwd
+              data-i18n-attr="aria-label:lec.fwd10, title:lec.fwd10" aria-label="Avancer de dix secondes">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 4v4h-4"/></svg>
+        <span class="lecteur__pas" aria-hidden="true">10</span>
+      </button>
+
+      <!-- La barre. `role="slider"` et les flèches au clavier : sans ça,
+           seule la souris sait se déplacer dans la vidéo. -->
+      <div class="lecteur__piste" data-lecteur-piste tabindex="0" role="slider"
+           aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"
+           data-i18n-attr="aria-label:lec.seek" aria-label="Position dans la vidéo">
+        <span class="lecteur__rail" aria-hidden="true"></span>
+        <span class="lecteur__rail lecteur__tampon" data-lecteur-tampon aria-hidden="true"></span>
+        <span class="lecteur__rail lecteur__lu" data-lecteur-lu aria-hidden="true"></span>
+        <span class="lecteur__tete" data-lecteur-tete aria-hidden="true"></span>
+      </div>
+
+      <span class="lecteur__temps" aria-hidden="true">
+        <span data-lecteur-t>0:00</span><span class="lecteur__sep">/</span><span data-lecteur-d>0:00</span>
+      </span>
+
+      <button class="lecteur__b" type="button" data-lecteur-muet
+              data-i18n-attr="aria-label:lec.mute, title:lec.mute" aria-label="Couper le son">
+        <svg class="lecteur__ico-son" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+        <svg class="lecteur__ico-muet" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>
+      </button>
+
+      <input class="lecteur__volume" type="range" min="0" max="1" step="0.05" value="1"
+             data-lecteur-vol data-i18n-attr="aria-label:lec.volume" aria-label="Volume">
+
+      <button class="lecteur__b lecteur__b--cc" type="button" data-lecteur-cc
+              aria-pressed="false"
+              data-i18n-attr="aria-label:lec.cc, title:lec.cc" aria-label="Sous-titres">CC</button>
+
+      <button class="lecteur__b" type="button" data-lecteur-plein
+              data-i18n-attr="aria-label:lec.full, title:lec.full" aria-label="Plein écran">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+    </div>
+
+    <!-- Les raccourcis sont écrits quelque part, sinon ils n'existent que
+         pour celui qui les a codés. Repliés : ils ne volent pas la place
+         de la vidéo. -->
+    <details class="lecteur__aide">
+      <summary data-i18n="lec.help">Raccourcis clavier</summary>
+      <p data-i18n="lec.helpList">Espace ou K : lire et mettre en pause · ← et → : dix secondes · M : couper le son · F : plein écran · Échap : fermer.</p>
+    </details>
+  </div>
+</div>
+
+<script src="assets/js/vendor/anime.umd.min.js?v=202610311936"></script>
+<script src="assets/js/config.js?v=202610311936"></script>
+<script src="assets/js/lang/fr.js?v=202610311936"></script>
+<script src="assets/js/lang/en.js?v=202610311936"></script>
+<script src="assets/js/lang/es.js?v=202610311936"></script>
+<script src="assets/js/lang/de.js?v=202610311936"></script>
+<script src="assets/js/lang/ko.js?v=202610311936"></script>
+<script src="assets/js/app.js?v=202610311936"></script>
+<script src="assets/js/page-home.js?v=202610311936"></script>
 </body>
 </html>
