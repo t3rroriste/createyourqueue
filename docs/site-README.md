@@ -82,6 +82,27 @@ session, pas un jeton dans le navigateur). **L'échange du code OAuth contre un
 jeton doit se faire côté serveur** : c'est la seule étape qui touche au
 `CLIENT_SECRET`.
 
+### Les codes de refus
+
+Toutes les routes parlent la même langue : `401 UNAUTHORIZED` (pas de
+session, ou session expirée), `403 FORBIDDEN` (la personne ne gère pas ce
+serveur), `429 RATE` (**Discord** limite, pas nous), `502
+DISCORD_UNAVAILABLE` (Discord muet ou en panne).
+
+`429` mérite sa ligne. Ce n'est ni une panne ni un refus : c'est
+temporaire, et le seul geste utile est d'attendre. Le panneau le dit
+maintenant avec ses propres mots — il l'affichait comme « l'API n'a pas
+répondu », ce qui a envoyé chercher une panne pendant une heure le
+31 octobre 2026 alors que tout fonctionnait. Les deux implémentations
+doivent donc le renvoyer tel quel, sans le traduire en `502`.
+
+La liste des serveurs est mise en cache **30 secondes par session**, des
+deux côtés. Sans ça, ouvrir un panneau déclenche cinq appels à
+`/users/@me/guilds` — la liste, puis la fiche, le journal, les matchs et
+l'activité — et deux rechargements suffisent à déclencher le `429`. Pas
+plus de 30 secondes : cette liste décide qui a le droit de régler quoi,
+et un cache long serait un contrôle d'accès périmé.
+
 ### `GET /guilds`
 
 Les serveurs où la personne connectée est propriétaire ou a « Gérer le
