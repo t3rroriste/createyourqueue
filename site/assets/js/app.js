@@ -960,6 +960,84 @@
 
   /* ------------------------------------------------------------- démarrage */
 
+  /* ================== LE RETOUR, JOUÉ À L'ENVERS ======================
+
+     Trois écrans portent un bouton Retour — le panneau, le choix du
+     serveur, la connexion — et ils reculent tous les trois d'un cran dans
+     le même parcours. L'effet est donc ici et pas dans l'un des trois
+     `page-*.js` : écrit là, il aurait manqué aux deux autres, et c'est
+     exactement comme ça que le lien « Documentation » avait fini par
+     s'écrire de cinq façons.
+
+     Ce qu'on joue est L'OUVERTURE DE LA PAGE À L'ENVERS. Les blocs s'en
+     vont du dernier vers le premier — l'ordre du DOM remonté, donc
+     l'ordre de lecture pris à rebours — et ils redescendent vers le bas
+     d'où ils étaient venus. La barre du haut remonte par où elle est
+     descendue, et la page recule d'un pour cent et demi : le `.985` du
+     départ, repris en sens inverse. C'est ce rembobinage qui le fait lire
+     comme un retour en arrière ; une sortie qui glisserait vers l'avant
+     annoncerait une page de plus, pas la précédente.
+
+     260 ms, et pas davantage : au-delà, ce n'est plus une transition,
+     c'est une attente avant de naviguer. La navigation part de toute
+     façon au bout de 320 ms même si l'animation ne rend pas la main —
+     un bouton Retour qui ne revient pas est un cul-de-sac.
+
+     Sans anime.js, ou si la personne demande moins de mouvement, cette
+     fonction ne câble RIEN : le lien reste un lien ordinaire et navigue
+     tout seul. C'est la variante calme, et c'est aussi ce qui se passe si
+     le script ne tourne pas du tout. */
+  function wireRetour() {
+    var liens = $$('[data-retour]');
+    if (!liens.length) return;
+
+    var A = window.anime;
+    var force = document.documentElement.classList.contains('motion-force');
+    var calme = !force && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!A || calme) return;
+
+    /* La page dit elle-même ce qui s'en va, en marquant ses blocs. Sans
+       marque — la connexion, dont les étapes s'échangent déjà toutes
+       seules — c'est la page entière qui recule, ce qui suffit. */
+    var blocs = $$('[data-sortie]');
+    var barre = $('[data-nav]');
+    var shell = $('.shell');
+
+    function remonter(apres) {
+      var parti = false;
+      function partir() { if (!parti) { parti = true; apres(); } }
+      setTimeout(partir, 320);
+
+      var tl = A.createTimeline({
+        defaults: { ease: A.cubicBezier(.4, 0, 1, 1) },
+        onComplete: partir
+      });
+      if (shell) tl.add(shell, { scale: .985, duration: 260 }, 0);
+      if (blocs.length) {
+        /* `from: 'last'` : le dernier bloc arrivé est le premier à
+           repartir. C'est toute la différence entre « ça s'en va » et
+           « ça revient en arrière ». */
+        tl.add(blocs, { opacity: 0, y: 12, duration: 200,
+                        delay: A.stagger(40, { from: 'last' }) }, 0);
+      }
+      if (barre) tl.add(barre, { opacity: 0, y: -24, duration: 220 }, 60);
+      return tl;
+    }
+
+    liens.forEach(function (lien) {
+      lien.addEventListener('click', function (e) {
+        /* Clic du milieu, Ctrl, Cmd, Maj : la page courante ne s'en va
+           pas, elle reste ouverte sous un nouvel onglet. Rien à jouer. */
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey ||
+            e.ctrlKey || e.shiftKey || e.altKey) return;
+        var ou = lien.getAttribute('href');
+        if (!ou || ou === '#') return;
+        e.preventDefault();
+        remonter(function () { location.href = ou; });
+      });
+    });
+  }
+
   function boot() {
     document.documentElement.setAttribute('data-theme', store('theme') || CFG.DEFAULT_THEME || 'dark');
 
@@ -1065,6 +1143,7 @@
     wireLangMenu();
     wireDrawer();
     wireRouter();
+    wireRetour();
 
     document.addEventListener('cyq:lang', function () {
       wireSwitches(document);
