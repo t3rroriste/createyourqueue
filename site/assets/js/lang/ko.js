@@ -25,7 +25,6 @@ window.CYQ_I18N.ko = {
 
   /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
 
-  "h.seeDemo": "대기열 작동 보기",
 
   "st.modules": "모듈", "st.langs": "언어", "st.service": "서비스",
 

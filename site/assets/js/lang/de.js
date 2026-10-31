@@ -25,7 +25,6 @@ window.CYQ_I18N.de = {
 
   /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
 
-  "h.seeDemo": "Eine Queue in Aktion sehen",
 
   "st.modules": "Module", "st.langs": "Sprachen", "st.service": "Dienst",
 

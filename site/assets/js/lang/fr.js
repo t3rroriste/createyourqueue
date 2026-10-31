@@ -40,7 +40,6 @@ window.CYQ_I18N.fr = {
      aucune page de ce site ne parle de prix, et une réponse inventée sur un
      sujet pareil se paierait cher. */
 
-  "h.seeDemo": "Voir une file en action",
 
   "st.modules": "Modules", "st.langs": "Langues", "st.service": "Service",
 
@@ -86,8 +85,9 @@ window.CYQ_I18N.fr = {
   "cta.lead": "En deux minutes, le bot est sur ton serveur et ta première file d'attente est ouverte.",
 
     "h.title": "Configure, customise et crée tes queues en moins de 5 minutes.",
-  "h.lead": "Toute la configuration du bot sur un seul écran. Le bot continue de fonctionner par commande, le panneau ne fait que le régler.",
-  "h.invite": "Invite le bot sur un serveur",
+  "h.lead": "Un bot Discord qui ouvre tes files d'attente, compose les équipes et tient le classement. Les joueurs rejoignent en un clic, le reste se fait tout seul.",
+  "h.invite": "Ajouter à Discord",
+  "h.seeFeatures": "Voir les fonctionnalités",
   "h.inviteNote": "Ouvre l'écran d'autorisation Discord. Il te faut la permission « Gérer le serveur » sur le serveur choisi.",
     "h.loginBtn": "Se connecter avec Discord",
   "s.language": "Langue",

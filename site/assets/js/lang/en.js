@@ -25,7 +25,6 @@ window.CYQ_I18N.en = {
 
   /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
 
-  "h.seeDemo": "See a queue in action",
 
   "st.modules": "Modules", "st.langs": "Languages", "st.service": "Service",
 

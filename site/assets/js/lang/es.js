@@ -25,7 +25,6 @@ window.CYQ_I18N.es = {
 
   /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
 
-  "h.seeDemo": "Ver una cola en acción",
 
   "st.modules": "Módulos", "st.langs": "Idiomas", "st.service": "Servicio",
 
