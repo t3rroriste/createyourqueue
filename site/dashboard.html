@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310314">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310314">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310317">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310317">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -317,13 +317,36 @@
              écrasait tout le reste sur la moitié de la largeur. -->
         <div class="ovbody">
 
-          <!-- Les quatre chiffres. Aucun n'est calculé ici : ils viennent
-               de l'API. Sans elle, ils gardent leur tiret cadratin — un
-               zéro se lirait comme une mesure, et ce serait faux. -->
+          <!-- LES CINQ CHIFFRES DU SERVEUR.
+
+               Aucun n'est calculé ici : ils viennent de l'API. Sans elle,
+               ils gardent leur tiret cadratin — un zéro se lirait comme
+               une mesure, et ce serait faux.
+
+               « Le bot » a quitté cette rangée : son état est dit au pied
+               du menu, depuis n'importe quelle section, et non plus
+               seulement ici. Deux boosts et une date d'arrivée ont pris
+               sa place — ce sont les deux choses qu'on regarde en
+               rouvrant un serveur qu'on n'avait pas ouvert depuis
+               longtemps.
+
+               Boosts et ancienneté viennent du BOT et de lui seul : ils
+               valent `null` quand il dort, et la carte garde alors son
+               tiret. Un « 0 boost » affiché parce que le bot ne répond
+               pas serait un chiffre faux présenté comme une mesure. -->
           <div class="ovstats">
             <div class="ovstat">
               <p class="ovstat__lab" data-i18n="ov.members">Membres</p>
               <p class="ovstat__val" data-ov="members">—</p>
+            </div>
+            <div class="ovstat">
+              <p class="ovstat__lab" data-i18n="ov.boosts">Boosts</p>
+              <p class="ovstat__val" data-ov="boosts">—</p>
+            </div>
+            <div class="ovstat">
+              <p class="ovstat__lab" data-i18n="ov.since">Le bot est là depuis</p>
+              <p class="ovstat__val ovstat__val--sm" data-ov="since">—</p>
+              <p class="ovstat__meta" data-ov="sinceMeta"></p>
             </div>
             <div class="ovstat">
               <p class="ovstat__lab" data-i18n="ov.matches">Queues en mémoire</p>
@@ -333,10 +356,6 @@
             <div class="ovstat">
               <p class="ovstat__lab" data-i18n="ov.last">Dernière queue</p>
               <p class="ovstat__val ovstat__val--sm" data-ov="last">—</p>
-            </div>
-            <div class="ovstat">
-              <p class="ovstat__lab" data-i18n="ov.bot">Général</p>
-              <p class="ovstat__val ovstat__val--sm" data-ov="bot">—</p>
             </div>
           </div>
 
@@ -356,6 +375,57 @@
                  data-i18n="ov.seeAll">Tout voir</a>
             </div>
             <div class="grp__card" data-ov-journal></div>
+          </div>
+
+          <!-- LA SEMAINE.
+
+               Deux chiffres et sept jours, et rien d'autre. Les chiffres
+               viennent de `GET /guilds/{id}/activity?days=7` : `opened`,
+               les files ouvertes, et `playerSlots`, le total des places
+               jouées — des PLACES et non des personnes, quelqu'un qui
+               joue trois soirs y compte trois fois, et le libellé le dit.
+
+               Les sept jours portent DEUX marques, qui ne disent pas la
+               même chose et ne doivent donc pas se ressembler :
+
+                 · à gauche, ce qui a eu lieu — le nombre de files
+                   lancées ce jour-là, lu dans `byDay` ;
+                 · à droite, l'encoche de ce qui est PRÉVU — les jours
+                   que `schedule.days` coche, quand l'ouverture
+                   automatique est allumée.
+
+               Un jour peut donc être prévu sans rien, ou plein sans être
+               prévu : ce sont deux informations indépendantes, et les
+               confondre en une seule colonne aurait fait croire qu'une
+               file lancée à la main était une file programmée.
+
+               Tout est écrit par le script : les noms des jours changent
+               avec la langue, et la semaine ne commence pas le même jour
+               partout. Sans API, la liste reste vide et le dit. -->
+          <div class="ovsem">
+            <div class="ovsem__head">
+              <h2 class="grp__title" data-i18n="ov.week">La semaine</h2>
+              <p class="ovsem__date" data-ov-today></p>
+            </div>
+            <div class="grp__card grp__card--pad">
+              <div class="ovsem__chiffres">
+                <div class="ovsem__n">
+                  <p class="ovstat__lab" data-i18n="ov.opened">Queues ouvertes</p>
+                  <p class="ovstat__val" data-ov="opened">—</p>
+                </div>
+                <div class="ovsem__n">
+                  <p class="ovstat__lab" data-i18n="ov.slots">Places jouées</p>
+                  <p class="ovstat__val" data-ov="slots">—</p>
+                </div>
+              </div>
+
+              <ol class="ovsem__jours" data-ov-week></ol>
+
+              <p class="ovsem__leg">
+                <span class="ovsem__leglab"><span class="ovsem__coche" aria-hidden="true"></span><span data-i18n="ov.legPlanned">Programmée</span></span>
+                <span class="ovsem__leglab" data-i18n="ov.legRun">Chiffre : files lancées</span>
+              </p>
+            </div>
           </div>
 
           <div class="ovcols">
@@ -2076,16 +2146,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310314"></script>
-<script src="assets/js/config.js?v=202610310314"></script>
-<script src="assets/js/lang/fr.js?v=202610310314"></script>
-<script src="assets/js/lang/en.js?v=202610310314"></script>
-<script src="assets/js/lang/es.js?v=202610310314"></script>
-<script src="assets/js/lang/de.js?v=202610310314"></script>
-<script src="assets/js/lang/ko.js?v=202610310314"></script>
-<script src="assets/js/app.js?v=202610310314"></script>
-<script src="assets/js/page-dashboard.js?v=202610310314"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610310314"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610310314"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310317"></script>
+<script src="assets/js/config.js?v=202610310317"></script>
+<script src="assets/js/lang/fr.js?v=202610310317"></script>
+<script src="assets/js/lang/en.js?v=202610310317"></script>
+<script src="assets/js/lang/es.js?v=202610310317"></script>
+<script src="assets/js/lang/de.js?v=202610310317"></script>
+<script src="assets/js/lang/ko.js?v=202610310317"></script>
+<script src="assets/js/app.js?v=202610310317"></script>
+<script src="assets/js/page-dashboard.js?v=202610310317"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610310317"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610310317"></script>
 </body>
 </html>
