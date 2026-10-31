@@ -448,7 +448,13 @@ function mes_guildes(array $session): array
     }
 
     try {
-        $liste = appel_discord('/users/@me/guilds', $session['access_token']);
+        /* `with_counts=true` et non l'adresse nue : sans ce paramètre,
+           Discord ne met PAS `approximate_member_count` dans sa réponse, et
+           les deux écrans qui affichent un nombre de membres — la liste des
+           serveurs et la carte du panneau — gardaient leur tiret sans que
+           rien ne proteste. Le champ était lu correctement ; il n'avait
+           simplement jamais été demandé. */
+        $liste = appel_discord('/users/@me/guilds?with_counts=true', $session['access_token']);
         $_SESSION['cyq']['guildes'] = ['a' => time(), 'liste' => $liste];
         return $liste;
     } catch (RuntimeException $e) {

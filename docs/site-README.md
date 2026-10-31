@@ -129,6 +129,13 @@ Les cinq états de la liste se déduisent de ces champs : `canManage: false`
 `botPresent: false` → bot absent, `configured: false` → assistant, sinon
 configuré.
 
+`memberCount` vient d'`approximate_member_count`, que Discord ne met dans
+sa réponse QUE si on appelle `/users/@me/guilds?with_counts=true`. Sans ce
+paramètre le champ est simplement absent, l'API renvoie `null` et les deux
+écrans qui comptent des membres gardent leur tiret — sans que rien ne
+proteste, puisque `null` est une valeur légitime pour ce champ. C'est resté
+ainsi jusqu'au 31 octobre 2026.
+
 ### `GET /guilds/{id}`
 
 ```json

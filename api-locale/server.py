@@ -228,7 +228,11 @@ def mes_guildes(s: dict) -> tuple[list | None, tuple[int, dict] | None]:
     if cache and (time.time() - cache[0]) < CACHE_GUILDES:
         return cache[1], None
     try:
-        liste = appel_discord("/users/@me/guilds", s["access_token"])
+        # with_counts=true : sans lui Discord omet `approximate_member_count`,
+        # et les deux écrans qui comptent des membres restent au tiret. Même
+        # adresse que le PHP — c'est le genre de paramètre qu'on ajoute d'un
+        # seul côté et qui fait diverger les deux API en silence.
+        liste = appel_discord("/users/@me/guilds?with_counts=true", s["access_token"])
     except urllib.error.HTTPError as e:
         if e.code == 401:
             return None, (401, {"error": "UNAUTHORIZED"})
