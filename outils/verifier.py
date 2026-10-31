@@ -29,6 +29,17 @@ import sys
 OUTILS_DIR = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(OUTILS_DIR)
 
+# Les filets `──` et les accents ne passent pas en cp1252, et c'est en
+# cp1252 que Python écrit dès que sa sortie part ailleurs que sur la
+# console — un tuyau, un `> fichier`, un journal. La commande mourait donc
+# exactement là où on l'enchaîne, ce qui est précisément ce pour quoi elle
+# rend un code de sortie. Les trois enfants écrivent sur la même sortie :
+# ils reçoivent la même consigne par l'environnement.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+ENV = dict(os.environ, PYTHONIOENCODING="utf-8:replace")
+
 # Dans cet ordre : du plus mécanique au plus réfléchi. Un bloc commun qui
 # a dérivé se répare par une commande, une clé de langue par une commande
 # aussi, mais un réglage qui n'atteint pas le bot demande de décider
@@ -62,7 +73,7 @@ def main() -> int:
         sortie = subprocess.run(
             [sys.executable, os.path.join(OUTILS_DIR, script)]
             + options + (["--silencieux"] if args.silencieux else []),
-            cwd=RACINE,
+            cwd=RACINE, env=ENV,
         )
         if sortie.returncode:
             fautifs.append((titre, reparer))
