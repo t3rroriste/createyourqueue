@@ -127,8 +127,6 @@ window.CYQ_I18N.en = {
   "s.mmrD": "3 switches and 8 values: starting score, win, loss, MVP, streak, vote durations.",
   "s.queue": "Queue",
   "s.queueD": "2 to 6 teams, 1 to 6 players, a name and a colour per team, session, time, type, captain vote.",
-  "s.launcher": "Queue launcher",
-  "s.launcherD": "The announcement exactly as it will go out, and the two actions that open and close it.",
   "s.presets": "Presets",
   "s.presetsD": "Up to 10 saved queue configurations you can reload.",
   "s.logs": "Logs",

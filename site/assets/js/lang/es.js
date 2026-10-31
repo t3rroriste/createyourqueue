@@ -127,8 +127,6 @@ window.CYQ_I18N.es = {
   "s.mmrD": "3 interruptores y 8 valores: inicial, victoria, derrota, MVP, racha, duración de votos.",
   "s.queue": "Cola",
   "s.queueD": "De 2 a 6 equipos, de 1 a 6 jugadores, nombre y color por equipo, sesión, hora, tipo, voto de capitanes.",
-  "s.launcher": "Lanzador de cola",
-  "s.launcherD": "El anuncio tal y como se publicará, y los dos gestos que la abren y la cierran.",
   "s.presets": "Ajustes guardados",
   "s.presetsD": "Hasta 10 configuraciones de cola guardadas y recargables.",
   "s.logs": "Registros",

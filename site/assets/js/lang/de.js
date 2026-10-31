@@ -127,8 +127,6 @@ window.CYQ_I18N.de = {
   "s.mmrD": "3 Schalter und 8 Werte: Startwert, Sieg, Niederlage, MVP, Serie, Abstimmungsdauern.",
   "s.queue": "Queue",
   "s.queueD": "2 bis 6 Teams, 1 bis 6 Spieler, Name und Farbe pro Team, Sitzung, Uhrzeit, Typ, Kapitänswahl.",
-  "s.launcher": "Queue-Starter",
-  "s.launcherD": "Die Ankündigung genau so, wie sie rausgeht, und die beiden Aktionen, die sie öffnen und schließen.",
   "s.presets": "Vorlagen",
   "s.presetsD": "Bis zu 10 gespeicherte Warteschlangen-Konfigurationen zum Laden.",
   "s.logs": "Protokolle",

@@ -1130,7 +1130,7 @@
           .then(function (rep) {
             // L'aperçu part vers Discord : c'est le message qu'on vient
             // d'envoyer, et il revient vide pour la prochaine queue.
-            anime($('[data-section="lanceur"] [data-qprev]'), 'is-envoi');
+            anime($('[data-section="queue"] [data-qprev]'), 'is-envoi');
             issue('q.launchOk', { channel: nomSalon((rep && rep.channelId) || salon) });
           })
           .catch(function (e) {
@@ -1204,7 +1204,7 @@
 
           CYQ.api.post('/guilds/' + encodeURIComponent(guildId) + '/queue/close', {})
             .then(function (rep) {
-              anime($('[data-section="lanceur"] [data-qprev]'), 'is-retrait');
+              anime($('[data-section="queue"] [data-qprev]'), 'is-retrait');
               issue('q.stopOk', { n: (rep && rep.players) || 0 });
             })
             .catch(function (e) {

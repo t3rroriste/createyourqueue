@@ -146,8 +146,6 @@ window.CYQ_I18N.fr = {
   "s.mmrD": "3 interrupteurs et 8 valeurs : départ, victoire, défaite, MVP, série, durées de vote.",
   "s.queue": "Queue",
   "s.queueD": "2 à 6 équipes, 1 à 6 joueurs, nom et couleur par équipe, session, heure, type, vote des capitaines.",
-  "s.launcher": "Lanceur de queue",
-  "s.launcherD": "L'annonce telle qu'elle partira, et les deux gestes qui l'ouvrent et la ferment.",
   "s.presets": "Presets",
   "s.presetsD": "Jusqu'à 10 configurations de queue enregistrées et rechargeables.",
   "s.logs": "Logs",

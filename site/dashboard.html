@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310215">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310215">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310217">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310217">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -137,7 +137,6 @@
              dépend d'aucune fonction qu'on pourrait couper. -->
         <div class="dbnav__grp">
           <p class="dbnav__cat" data-i18n="cat.queue">Queue</p>
-          <a class="navlink" href="#lanceur" data-goto="lanceur"><span class="navlink-label" data-i18n="s.launcher">Lanceur de queue</span></a>
           <a class="navlink" href="#queue" data-goto="queue"><span class="navlink-label" data-i18n="s.queue">Queue</span></a>
           <a class="navlink" href="#programmation" data-goto="programmation"><span class="navlink-label" data-i18n="s.schedule">Programmation</span></a>
           <!-- Les presets quittent « Match & MMR » : ce sont des
@@ -320,7 +319,6 @@
             <div class="ovcol">
               <h2 class="grp__title" data-i18n="ov.quick">Aller droit au but</h2>
               <div class="ovquick">
-                <a class="ovtile" href="#lanceur" data-ov-goto="lanceur"><span data-i18n="s.launcher">Lanceur de queue</span></a>
                 <a class="ovtile" href="#presets" data-ov-goto="presets"><span data-i18n="s.presets">Presets</span></a>
                 <a class="ovtile" href="#classement" data-ov-goto="classement"><span data-i18n="fn.leaderboard">Classement</span></a>
                 <a class="ovtile" href="#salons" data-ov-goto="salons"><span data-i18n="s.channels">Salons</span></a>
@@ -845,217 +843,217 @@
         </div>
       </section>
 
-      <!-- =========================== LANCEUR ============================ -->
-      <!-- Elle ne règle rien : elle montre et elle lance. L'aperçu vient de
-           la section Queue, où il vivait dans un aside — un seul aperçu,
-           alimenté par `apercuQueue()`, qui écrit maintenant dans TOUS les
-           [data-qprev] de la page puisque la Programmation en porte un
-           second. -->
-      <section class="sec" data-section="lanceur" aria-labelledby="h-lanceur" hidden>
-        <header class="sec__head">
-          <h1 class="sec__title" id="h-lanceur" data-i18n="s.launcher">Lanceur de queue</h1>
-          <p class="lead sec__lead" data-i18n="s.launcherD"></p>
-        </header>
-
-        <div class="grp">
-          <h2 class="grp__title" data-i18n="q.previewTitle">Aperçu de l'annonce</h2>
-          <div class="grp__card grp__card--pad">
-            <!-- Le message tel que le bot le publie : même titre, mêmes
-                 lignes, mêmes champs, même pied. Les textes viennent des
-                 fichiers de langue du bot, recopiés — une maquette qui
-                 dirait autre chose que le vrai message ne servirait à
-                 rien. Décorative : aria-hidden, et les réglages qu'elle
-                 montre sont déjà lisibles dans le formulaire. -->
-            <div class="dprev" data-qprev aria-hidden="true">
-              <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
-              <div class="dprev__main">
-                <div class="dprev__head">
-                  <span class="dprev__name">CreateYourQueue</span>
-                  <span class="dprev__app">APP</span>
-                  <span class="dprev__time" data-qprev-clock></span>
-                </div>
-                <p class="dprev__ping"><span class="dprev__ment">@everyone</span></p>
-                <div class="dprev__embed">
-                  <p class="dprev__title" data-qprev-title></p>
-                  <p class="dprev__by" data-qprev-by></p>
-                  <div class="dprev__teams" data-qprev-teams></div>
-                  <p class="dprev__line" data-qprev-session></p>
-                  <p class="dprev__line dprev__cta" data-qprev-cta></p>
-                  <div class="dprev__fields">
-                    <div class="dprev__field">
-                      <span class="dprev__fname" data-qprev-ftime></span>
-                      <span class="dprev__fval" data-qprev-vtime></span>
-                    </div>
-                    <div class="dprev__field">
-                      <span class="dprev__fname" data-qprev-ftype></span>
-                      <span class="dprev__fval" data-qprev-vtype></span>
-                    </div>
-                  </div>
-                  <p class="dprev__foot" data-qprev-foot></p>
-                </div>
-                <p class="dprev__react"><span>✅</span>1</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Ouvrir une queue sans passer par Discord. Le bouton n'ouvre
-             rien tant que l'API ne répond pas : pas de faux succès, et
-             la ligne d'état dit toujours ce qui s'est réellement passé. -->
-        <div class="grp grp--ecart">
-          <div class="grp__card grp__card--pad">
-            <button class="pill launch__btn" type="button" data-launch disabled>
-              <span data-launch-label data-i18n="q.launch">Ouvrir la queue maintenant</span>
-            </button>
-            <!-- Fermer supprime l'annonce et purge le salon de commande :
-                 c'est définitif, d'où le second clic de confirmation. -->
-            <button class="pill pill--ghost launch__stop" type="button" data-stop disabled>
-              <span data-stop-label data-i18n="q.stop">Fermer la queue en cours</span>
-            </button>
-            <p class="launch__state" data-launch-state role="status" aria-live="polite"></p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ======================== QUEUE PAR DÉFAUT ======================== -->
-      <section class="sec" data-section="queue" aria-labelledby="h-queue" hidden>
+      <!-- ======================== QUEUE PAR DÉFAUT ========================
+           L'aperçu de l'annonce et les deux boutons sont revenus dans la
+           colonne de droite, d'où ils étaient partis le 29 octobre pour
+           une section « Lanceur » à eux. Une section de plus pour deux
+           boutons séparait ce qu'on règle de ce qu'on obtient : on
+           choisissait le format d'un côté, on allait voir le message de
+           l'autre. Ils tiennent côte à côte, et c'est là qu'ils servent.
+                                                                      -->
+      <section class="sec sec--aside" data-section="queue" aria-labelledby="h-queue" hidden>
         <header class="sec__head">
           <h1 class="sec__title" id="h-queue" data-i18n="s.queue">Queue par défaut</h1>
           <p class="lead sec__lead" data-i18n="q.lead"></p>
         </header>
 
-        <div class="grp">
-          <h2 class="grp__title" data-i18n="q.grpIdentity">Identité</h2>
-          <div class="grp__card">
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="q-name" data-i18n="q.name">Nom de la queue</label></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><input class="text" id="q-name" type="text" maxlength="64" autocomplete="off" value="Scrim 5v5" data-setting="queue.name" data-required></div>
-            </div>
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="q-type" data-i18n="q.type">Type</label></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <!-- Champ libre, et non plus quatre types imposés : le mot
-                   qui décrit une partie appartient au serveur, pas au bot.
-                   Il part tel quel dans l'annonce. -->
-              <div class="row__ctl"><input class="text" id="q-type" type="text" maxlength="32"
-                autocomplete="off" value="Scrim" data-setting="queue.type"
-                data-i18n-attr="placeholder:q.typePlaceholder"></div>
-            </div>
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="q-session" data-i18n="q.session">Session</label></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="select"><select id="q-session" data-setting="queue.session">
-                <option value="ondemand" data-i18n="q.sessionOnDemand">À la demande</option>
-                <option value="scheduled" data-i18n="q.sessionScheduled">Programmée</option>
-              </select><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
-            </div>
-            <div class="row row--sub" id="q-time-row" hidden>
-              <p class="row__text"><label class="row__label" for="q-time" data-i18n="q.time">Heure d'ouverture</label> <span class="row__desc" id="q-time-d" data-i18n="q.timeD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><input class="text text--time" id="q-time" type="time" value="21:00" aria-describedby="q-time-d" data-setting="queue.time"></div>
-            </div>
-          </div>
-        </div>
+        <div class="sec__body">
+          <div class="sec__main">
 
-        <div class="grp">
-          <div class="grp__head">
-            <h2 class="grp__title" data-i18n="q.grpFormat">Format</h2>
-          </div>
-          <div class="grp__card">
-            <div class="row">
-              <p class="row__text"><span class="row__label" id="lbl-teams" data-i18n="q.teams">Nombre d'équipes</span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl">
-                <div class="segmented" role="group" aria-labelledby="lbl-teams" id="seg-teams">
-                  <button type="button" aria-pressed="true">2</button>
-                  <button type="button" aria-pressed="false">3</button>
-                  <button type="button" aria-pressed="false">4</button>
-                  <button type="button" aria-pressed="false">5</button>
-                  <button type="button" aria-pressed="false">6</button>
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpIdentity">Identité</h2>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-name" data-i18n="q.name">Nom de la queue</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><input class="text" id="q-name" type="text" maxlength="64" autocomplete="off" value="Scrim 5v5" data-setting="queue.name" data-required></div>
                 </div>
-                <input type="hidden" id="q-teams" value="2" data-type="int" data-setting="queue.teams">
-              </div>
-            </div>
-            <div class="row">
-              <p class="row__text"><span class="row__label" id="lbl-players" data-i18n="q.players">Joueurs par équipe</span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl">
-                <div class="segmented" role="group" aria-labelledby="lbl-players" id="seg-players">
-                  <button type="button" aria-pressed="false">1</button>
-                  <button type="button" aria-pressed="false">2</button>
-                  <button type="button" aria-pressed="false">3</button>
-                  <button type="button" aria-pressed="false">4</button>
-                  <button type="button" aria-pressed="true">5</button>
-                  <button type="button" aria-pressed="false">6</button>
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-type" data-i18n="q.type">Type</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <!-- Champ libre, et non plus quatre types imposés : le mot
+                       qui décrit une partie appartient au serveur, pas au bot.
+                       Il part tel quel dans l'annonce. -->
+                  <div class="row__ctl"><input class="text" id="q-type" type="text" maxlength="32"
+                    autocomplete="off" value="Scrim" data-setting="queue.type"
+                    data-i18n-attr="placeholder:q.typePlaceholder"></div>
                 </div>
-                <input type="hidden" id="q-players" value="5" data-type="int" data-setting="queue.players">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-session" data-i18n="q.session">Session</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="select"><select id="q-session" data-setting="queue.session">
+                    <option value="ondemand" data-i18n="q.sessionOnDemand">À la demande</option>
+                    <option value="scheduled" data-i18n="q.sessionScheduled">Programmée</option>
+                  </select><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></div>
+                </div>
+                <div class="row row--sub" id="q-time-row" hidden>
+                  <p class="row__text"><label class="row__label" for="q-time" data-i18n="q.time">Heure d'ouverture</label> <span class="row__desc" id="q-time-d" data-i18n="q.timeD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><input class="text text--time" id="q-time" type="time" value="21:00" aria-describedby="q-time-d" data-setting="queue.time"></div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="grp">
-          <h2 class="grp__title" data-i18n="q.grpTeams">Équipes</h2>
-          <!-- Les six rangées d'équipe sont écrites par le script avant
-               que app.js ne câble la page ; seules les N premières sont
-               visibles, N étant le nombre d'équipes choisi plus haut. -->
-          <div class="grp__card" data-teams></div>
-        </div>
-
-        <div class="grp">
-          <h2 class="grp__title" data-i18n="q.grpRules">Règles</h2>
-          <div class="grp__card">
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="q-cvote" data-i18n="q.captainVote">Vote des capitaines</label> <span class="row__desc" id="q-cvote-d" data-i18n="q.captainVoteD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="q-cvote" aria-describedby="q-cvote-d" data-setting="queue.captainVote" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
-            </div>
-            <!-- L'interrupteur du mot de passe était ici EN DOUBLE :
-                 il existait aussi dans Fonctions, sous le nom que le bot
-                 connaît (`password`). Celui-ci écrivait `queue.password`,
-                 que rien ne lisait. C'est l'autre qui découvre maintenant
-                 le champ ci-dessous. -->
-            <div class="row">
-              <p class="row__text"><label class="row__label" for="q-embedcolor" data-i18n="q.embedColor">Couleur de l'annonce</label> <span class="row__desc" id="q-embedcolor-d" data-i18n="q.embedColorD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <!-- Une couleur libre, ici : c'est la barre de l'embed,
-                   que Discord rend telle quelle — pas un rond pris
-                   dans une liste de douze. -->
-              <div class="row__ctl"><input class="couleur" id="q-embedcolor" type="color"
-                value="#000000" aria-describedby="q-embedcolor-d"
-                data-setting="queue.embedColor"></div>
-            </div>
-            <div class="row row--sub" id="q-passval-row" hidden>
-              <p class="row__text"><label class="row__label" for="q-passval" data-i18n="q.passwordValue">Le mot de passe</label></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <!-- Masqué par défaut : un panneau s'ouvre souvent devant
-                   quelqu'un. L'œil le montre, et ce choix se garde d'une
-                   page à l'autre dans ce navigateur. -->
-              <div class="row__ctl mdp">
-                <input class="text mdp__champ" id="q-passval" type="password" maxlength="32"
-                  autocomplete="off" spellcheck="false"
-                  data-setting="queue.passwordValue">
-                <button class="mdp__oeil" type="button" data-mdp-oeil aria-pressed="false"
-                  data-i18n-attr="aria-label:q.passwordShow"></button>
+            <div class="grp">
+              <div class="grp__head">
+                <h2 class="grp__title" data-i18n="q.grpFormat">Format</h2>
+              </div>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><span class="row__label" id="lbl-teams" data-i18n="q.teams">Nombre d'équipes</span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl">
+                    <div class="segmented" role="group" aria-labelledby="lbl-teams" id="seg-teams">
+                      <button type="button" aria-pressed="true">2</button>
+                      <button type="button" aria-pressed="false">3</button>
+                      <button type="button" aria-pressed="false">4</button>
+                      <button type="button" aria-pressed="false">5</button>
+                      <button type="button" aria-pressed="false">6</button>
+                    </div>
+                    <input type="hidden" id="q-teams" value="2" data-type="int" data-setting="queue.teams">
+                  </div>
+                </div>
+                <div class="row">
+                  <p class="row__text"><span class="row__label" id="lbl-players" data-i18n="q.players">Joueurs par équipe</span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl">
+                    <div class="segmented" role="group" aria-labelledby="lbl-players" id="seg-players">
+                      <button type="button" aria-pressed="false">1</button>
+                      <button type="button" aria-pressed="false">2</button>
+                      <button type="button" aria-pressed="false">3</button>
+                      <button type="button" aria-pressed="false">4</button>
+                      <button type="button" aria-pressed="true">5</button>
+                      <button type="button" aria-pressed="false">6</button>
+                    </div>
+                    <input type="hidden" id="q-players" value="5" data-type="int" data-setting="queue.players">
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="grp">
-          <h2 class="grp__title" data-i18n="q.grpNotif">Message privé</h2>
-          <div class="grp__card">
-            <div class="row row--haute">
-              <p class="row__text"><label class="row__label" for="q-notif" data-i18n="q.notifMessage">Message à envoyer</label> <span class="row__desc" id="q-notif-d" data-i18n="q.notifMessageD"></span></p>
-              <span class="row__state" data-state aria-hidden="true"></span>
-              <div class="row__ctl"><textarea class="text zone" id="q-notif" rows="3" maxlength="1500"
-                aria-describedby="q-notif-d" data-setting="queue.notifMessage"></textarea></div>
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpTeams">Équipes</h2>
+              <!-- Les six rangées d'équipe sont écrites par le script avant
+                   que app.js ne câble la page ; seules les N premières sont
+                   visibles, N étant le nombre d'équipes choisi plus haut. -->
+              <div class="grp__card" data-teams></div>
             </div>
-          </div>
-        </div>
-      </div>
 
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpRules">Règles</h2>
+              <div class="grp__card">
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-cvote" data-i18n="q.captainVote">Vote des capitaines</label> <span class="row__desc" id="q-cvote-d" data-i18n="q.captainVoteD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><span class="switch"><input type="checkbox" role="switch" id="q-cvote" aria-describedby="q-cvote-d" data-setting="queue.captainVote" checked><span class="switch__track" aria-hidden="true"><span class="switch__knob"></span></span></span></div>
+                </div>
+                <!-- L'interrupteur du mot de passe était ici EN DOUBLE :
+                     il existait aussi dans Fonctions, sous le nom que le bot
+                     connaît (`password`). Celui-ci écrivait `queue.password`,
+                     que rien ne lisait. C'est l'autre qui découvre maintenant
+                     le champ ci-dessous. -->
+                <div class="row">
+                  <p class="row__text"><label class="row__label" for="q-embedcolor" data-i18n="q.embedColor">Couleur de l'annonce</label> <span class="row__desc" id="q-embedcolor-d" data-i18n="q.embedColorD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <!-- Une couleur libre, ici : c'est la barre de l'embed,
+                       que Discord rend telle quelle — pas un rond pris
+                       dans une liste de douze. -->
+                  <div class="row__ctl"><input class="couleur" id="q-embedcolor" type="color"
+                    value="#000000" aria-describedby="q-embedcolor-d"
+                    data-setting="queue.embedColor"></div>
+                </div>
+                <div class="row row--sub" id="q-passval-row" hidden>
+                  <p class="row__text"><label class="row__label" for="q-passval" data-i18n="q.passwordValue">Le mot de passe</label></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <!-- Masqué par défaut : un panneau s'ouvre souvent devant
+                       quelqu'un. L'œil le montre, et ce choix se garde d'une
+                       page à l'autre dans ce navigateur. -->
+                  <div class="row__ctl mdp">
+                    <input class="text mdp__champ" id="q-passval" type="password" maxlength="32"
+                      autocomplete="off" spellcheck="false"
+                      data-setting="queue.passwordValue">
+                    <button class="mdp__oeil" type="button" data-mdp-oeil aria-pressed="false"
+                      data-i18n-attr="aria-label:q.passwordShow"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.grpNotif">Message privé</h2>
+              <div class="grp__card">
+                <div class="row row--haute">
+                  <p class="row__text"><label class="row__label" for="q-notif" data-i18n="q.notifMessage">Message à envoyer</label> <span class="row__desc" id="q-notif-d" data-i18n="q.notifMessageD"></span></p>
+                  <span class="row__state" data-state aria-hidden="true"></span>
+                  <div class="row__ctl"><textarea class="text zone" id="q-notif" rows="3" maxlength="1500"
+                    aria-describedby="q-notif-d" data-setting="queue.notifMessage"></textarea></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <aside class="sec__aside">
+            <div class="grp">
+              <h2 class="grp__title" data-i18n="q.previewTitle">Aperçu de l'annonce</h2>
+              <div class="grp__card grp__card--pad">
+                <!-- Le message tel que le bot le publie : même titre, mêmes
+                     lignes, mêmes champs, même pied. Les textes viennent des
+                     fichiers de langue du bot, recopiés — une maquette qui
+                     dirait autre chose que le vrai message ne servirait à
+                     rien. Décorative : aria-hidden, et les réglages qu'elle
+                     montre sont déjà lisibles dans le formulaire. -->
+                <div class="dprev" data-qprev aria-hidden="true">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time" data-qprev-clock></span>
+                    </div>
+                    <p class="dprev__ping"><span class="dprev__ment">@everyone</span></p>
+                    <div class="dprev__embed">
+                      <p class="dprev__title" data-qprev-title></p>
+                      <p class="dprev__by" data-qprev-by></p>
+                      <div class="dprev__teams" data-qprev-teams></div>
+                      <p class="dprev__line" data-qprev-session></p>
+                      <p class="dprev__line dprev__cta" data-qprev-cta></p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field">
+                          <span class="dprev__fname" data-qprev-ftime></span>
+                          <span class="dprev__fval" data-qprev-vtime></span>
+                        </div>
+                        <div class="dprev__field">
+                          <span class="dprev__fname" data-qprev-ftype></span>
+                          <span class="dprev__fval" data-qprev-vtype></span>
+                        </div>
+                      </div>
+                      <p class="dprev__foot" data-qprev-foot></p>
+                    </div>
+                    <p class="dprev__react"><span>✅</span>1</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ouvrir une queue sans passer par Discord. Le bouton n'ouvre
+                 rien tant que l'API ne répond pas : pas de faux succès, et
+                 la ligne d'état dit toujours ce qui s'est réellement passé. -->
+            <div class="grp">
+              <div class="grp__card grp__card--pad">
+                <button class="pill launch__btn" type="button" data-launch disabled>
+                  <span data-launch-label data-i18n="q.launch">Ouvrir la queue maintenant</span>
+                </button>
+                <!-- Fermer supprime l'annonce et purge le salon de commande :
+                     c'est définitif, d'où le second clic de confirmation. -->
+                <button class="pill pill--ghost launch__stop" type="button" data-stop disabled>
+                  <span data-stop-label data-i18n="q.stop">Fermer la queue en cours</span>
+                </button>
+                <p class="launch__state" data-launch-state role="status" aria-live="polite"></p>
+              </div>
+            </div>
+          </aside>
+        </div>
       </section>
 
       <!-- ============================ PRESETS ============================ -->
@@ -1769,16 +1767,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310215"></script>
-<script src="assets/js/config.js?v=202610310215"></script>
-<script src="assets/js/lang/fr.js?v=202610310215"></script>
-<script src="assets/js/lang/en.js?v=202610310215"></script>
-<script src="assets/js/lang/es.js?v=202610310215"></script>
-<script src="assets/js/lang/de.js?v=202610310215"></script>
-<script src="assets/js/lang/ko.js?v=202610310215"></script>
-<script src="assets/js/app.js?v=202610310215"></script>
-<script src="assets/js/page-dashboard.js?v=202610310215"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610310215"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610310215"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310217"></script>
+<script src="assets/js/config.js?v=202610310217"></script>
+<script src="assets/js/lang/fr.js?v=202610310217"></script>
+<script src="assets/js/lang/en.js?v=202610310217"></script>
+<script src="assets/js/lang/es.js?v=202610310217"></script>
+<script src="assets/js/lang/de.js?v=202610310217"></script>
+<script src="assets/js/lang/ko.js?v=202610310217"></script>
+<script src="assets/js/app.js?v=202610310217"></script>
+<script src="assets/js/page-dashboard.js?v=202610310217"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610310217"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610310217"></script>
 </body>
 </html>
