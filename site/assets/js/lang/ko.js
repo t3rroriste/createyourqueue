@@ -33,14 +33,25 @@ window.CYQ_I18N.ko = {
 
 
   "st.modules": "모듈", "st.langs": "언어", "st.service": "서비스",
+  "video.title": "La présentation, en vidéo",  /* À TRADUIRE */
+  "video.lead": "Ce que fait le bot, à quoi il sert, et comment on le règle — montré de bout en bout.",  /* À TRADUIRE */
+  "video.play": "Voir la présentation",  /* À TRADUIRE */
+  "lec.play": "Lire",  /* À TRADUIRE */
+  "lec.pause": "Mettre en pause",  /* À TRADUIRE */
+  "lec.back10": "Reculer de dix secondes",  /* À TRADUIRE */
+  "lec.fwd10": "Avancer de dix secondes",  /* À TRADUIRE */
+  "lec.seek": "Position dans la vidéo",  /* À TRADUIRE */
+  "lec.mute": "Couper le son",  /* À TRADUIRE */
+  "lec.unmute": "Rétablir le son",  /* À TRADUIRE */
+  "lec.volume": "Volume",  /* À TRADUIRE */
+  "lec.cc": "Sous-titres",  /* À TRADUIRE */
+  "lec.full": "Plein écran",  /* À TRADUIRE */
+  "lec.close": "Fermer la vidéo",  /* À TRADUIRE */
+  "lec.help": "Raccourcis clavier",  /* À TRADUIRE */
+  "lec.helpList": "Espace ou K : lire et mettre en pause · ← et → : dix secondes · M : couper le son · F : plein écran · Échap : fermer.",  /* À TRADUIRE */
+  "lec.error": "Cette vidéo ne peut pas être lue dans ce navigateur.",  /* À TRADUIRE */
+  "lec.download": "Télécharger la vidéo",  /* À TRADUIRE */
 
-  "step.title": "세 단계면 준비 완료",
-  "step.1t": "봇 초대하기",
-  "step.1l": "링크 하나, 클릭 두 번으로 봇이 디스코드 서버에 들어옵니다.",
-  "step.2t": "대기열 설정하기",
-  "step.2l": "형식, 채널, 역할, 언어 — 모두 패널에서 설정합니다.",
-  "step.3t": "대기열 열기",
-  "step.3l": "플레이어가 참가하면 봇이 팀을 구성하고 음성 채널을 엽니다.",
 
   "demo.eyebrow": "대기열, 처음부터 끝까지",
   "demo.title": "대기열이 차고, 팀이 만들어집니다",

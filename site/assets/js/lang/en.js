@@ -33,14 +33,25 @@ window.CYQ_I18N.en = {
 
 
   "st.modules": "Modules", "st.langs": "Languages", "st.service": "Service",
+  "video.title": "La présentation, en vidéo",  /* À TRADUIRE */
+  "video.lead": "Ce que fait le bot, à quoi il sert, et comment on le règle — montré de bout en bout.",  /* À TRADUIRE */
+  "video.play": "Voir la présentation",  /* À TRADUIRE */
+  "lec.play": "Lire",  /* À TRADUIRE */
+  "lec.pause": "Mettre en pause",  /* À TRADUIRE */
+  "lec.back10": "Reculer de dix secondes",  /* À TRADUIRE */
+  "lec.fwd10": "Avancer de dix secondes",  /* À TRADUIRE */
+  "lec.seek": "Position dans la vidéo",  /* À TRADUIRE */
+  "lec.mute": "Couper le son",  /* À TRADUIRE */
+  "lec.unmute": "Rétablir le son",  /* À TRADUIRE */
+  "lec.volume": "Volume",  /* À TRADUIRE */
+  "lec.cc": "Sous-titres",  /* À TRADUIRE */
+  "lec.full": "Plein écran",  /* À TRADUIRE */
+  "lec.close": "Fermer la vidéo",  /* À TRADUIRE */
+  "lec.help": "Raccourcis clavier",  /* À TRADUIRE */
+  "lec.helpList": "Espace ou K : lire et mettre en pause · ← et → : dix secondes · M : couper le son · F : plein écran · Échap : fermer.",  /* À TRADUIRE */
+  "lec.error": "Cette vidéo ne peut pas être lue dans ce navigateur.",  /* À TRADUIRE */
+  "lec.download": "Télécharger la vidéo",  /* À TRADUIRE */
 
-  "step.title": "Ready in three steps",
-  "step.1t": "Invite the bot",
-  "step.1l": "One link, two clicks, and the bot joins your Discord server.",
-  "step.2t": "Set up your queue",
-  "step.2l": "Format, channels, roles, language: it all happens in the panel.",
-  "step.3t": "Open the queue",
-  "step.3l": "Players join, the bot builds the teams and opens the voice channels.",
 
   "demo.eyebrow": "The queue, end to end",
   "demo.title": "The queue fills up, the teams take shape",

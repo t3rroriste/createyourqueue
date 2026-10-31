@@ -46,13 +46,25 @@ window.CYQ_I18N.fr = {
 
   "st.modules": "Modules", "st.langs": "Langues", "st.service": "Service",
 
-  "step.title": "Prêt en trois étapes",
-  "step.1t": "Invite le bot",
-  "step.1l": "Un lien, deux clics, et le bot rejoint ton serveur Discord.",
-  "step.2t": "Règle ta queue",
-  "step.2l": "Format, salons, rôles, langue : tout se règle depuis le panneau.",
-  "step.3t": "Ouvre la queue",
-  "step.3l": "Les joueurs rejoignent, le bot compose les équipes et ouvre les vocaux.",
+  /* La section 3 de l'accueil : l'affiche et la fenêtre du lecteur. Elle
+     a remplacé la frise « prêt en trois étapes », dont les clés step.*
+     sont parties avec elle. */
+  "video.title": "La présentation, en vidéo",
+  "video.lead": "Ce que fait le bot, à quoi il sert, et comment on le règle — montré de bout en bout.",
+  "video.play": "Voir la présentation",
+
+  /* Les commandes du lecteur. Elles ne sont lues qu'à voix haute ou en
+     info-bulle : chacune dit l'action, jamais l'icône. */
+  "lec.play": "Lire", "lec.pause": "Mettre en pause",
+  "lec.back10": "Reculer de dix secondes", "lec.fwd10": "Avancer de dix secondes",
+  "lec.seek": "Position dans la vidéo",
+  "lec.mute": "Couper le son", "lec.unmute": "Rétablir le son",
+  "lec.volume": "Volume", "lec.cc": "Sous-titres",
+  "lec.full": "Plein écran", "lec.close": "Fermer la vidéo",
+  "lec.help": "Raccourcis clavier",
+  "lec.helpList": "Espace ou K : lire et mettre en pause · ← et → : dix secondes · M : couper le son · F : plein écran · Échap : fermer.",
+  "lec.error": "Cette vidéo ne peut pas être lue dans ce navigateur.",
+  "lec.download": "Télécharger la vidéo",
 
   "demo.eyebrow": "La file, de bout en bout",
   "demo.title": "La file se remplit, les équipes se forment",

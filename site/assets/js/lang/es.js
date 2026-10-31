@@ -33,14 +33,25 @@ window.CYQ_I18N.es = {
 
 
   "st.modules": "Módulos", "st.langs": "Idiomas", "st.service": "Servicio",
+  "video.title": "La présentation, en vidéo",  /* À TRADUIRE */
+  "video.lead": "Ce que fait le bot, à quoi il sert, et comment on le règle — montré de bout en bout.",  /* À TRADUIRE */
+  "video.play": "Voir la présentation",  /* À TRADUIRE */
+  "lec.play": "Lire",  /* À TRADUIRE */
+  "lec.pause": "Mettre en pause",  /* À TRADUIRE */
+  "lec.back10": "Reculer de dix secondes",  /* À TRADUIRE */
+  "lec.fwd10": "Avancer de dix secondes",  /* À TRADUIRE */
+  "lec.seek": "Position dans la vidéo",  /* À TRADUIRE */
+  "lec.mute": "Couper le son",  /* À TRADUIRE */
+  "lec.unmute": "Rétablir le son",  /* À TRADUIRE */
+  "lec.volume": "Volume",  /* À TRADUIRE */
+  "lec.cc": "Sous-titres",  /* À TRADUIRE */
+  "lec.full": "Plein écran",  /* À TRADUIRE */
+  "lec.close": "Fermer la vidéo",  /* À TRADUIRE */
+  "lec.help": "Raccourcis clavier",  /* À TRADUIRE */
+  "lec.helpList": "Espace ou K : lire et mettre en pause · ← et → : dix secondes · M : couper le son · F : plein écran · Échap : fermer.",  /* À TRADUIRE */
+  "lec.error": "Cette vidéo ne peut pas être lue dans ce navigateur.",  /* À TRADUIRE */
+  "lec.download": "Télécharger la vidéo",  /* À TRADUIRE */
 
-  "step.title": "Listo en tres pasos",
-  "step.1t": "Invita al bot",
-  "step.1l": "Un enlace, dos clics, y el bot entra en tu servidor de Discord.",
-  "step.2t": "Configura tu cola",
-  "step.2l": "Formato, canales, roles, idioma: todo se ajusta desde el panel.",
-  "step.3t": "Abre la cola",
-  "step.3l": "Los jugadores entran, el bot forma los equipos y abre los canales de voz.",
 
   "demo.eyebrow": "La cola, de principio a fin",
   "demo.title": "La cola se llena, los equipos se forman",

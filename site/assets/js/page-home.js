@@ -721,3 +721,413 @@
     depuisAncre();
   });
 })();
+
+/* =========================================================================
+   LE LECTEUR DE LA PRÉSENTATION.
+
+   Sa propre IIFE, hors de la portée d'anime.js : la fenêtre doit s'ouvrir
+   et la vidéo se lire même si la bibliothèque n'a pas chargé. Rien ici ne
+   lui doit quoi que ce soit — l'ouverture est une animation CSS.
+
+   Trois choix qui ne sont pas évidents à la lecture :
+
+   1. Les contrôles natifs sont coupés. Ceux du navigateur ne savent pas
+      reculer de dix secondes, et ils ne sont pas de cette D.A.
+   2. La barre n'est PAS rafraîchie par `timeupdate` : le navigateur ne
+      l'émet que trois ou quatre fois par seconde, et la tête de lecture
+      avance alors par paliers bien visibles. On tourne en rAF pendant la
+      lecture seulement, et on coupe la boucle à la pause.
+   3. Les deux couches de la barre sont mises à l'ÉCHELLE, jamais
+      redimensionnées : une largeur animée soixante fois par seconde
+      relance la mise en page de toute la rangée.
+   ========================================================================= */
+(function () {
+  'use strict';
+
+  var coque   = document.querySelector('[data-video-coque]');
+  var ouvrirB = document.querySelector('[data-video-open]');
+  var boite   = document.querySelector('[data-lecteur]');
+  if (!coque || !ouvrirB || !boite) return;
+
+  var q = function (s) { return boite.querySelector(s); };
+
+  var video   = q('[data-lecteur-video]'),
+      fond    = q('[data-lecteur-fond]'),
+      cadre   = q('[data-lecteur-boite]'),
+      fermerB = q('[data-lecteur-close]'),
+      erreur  = q('[data-lecteur-erreur]'),
+      bRec    = q('[data-lecteur-back]'),
+      bPlay   = q('[data-lecteur-play]'),
+      bAv     = q('[data-lecteur-fwd]'),
+      piste   = q('[data-lecteur-piste]'),
+      tampon  = q('[data-lecteur-tampon]'),
+      lu      = q('[data-lecteur-lu]'),
+      tete    = q('[data-lecteur-tete]'),
+      champT  = q('[data-lecteur-t]'),
+      champD  = q('[data-lecteur-d]'),
+      bMuet   = q('[data-lecteur-muet]'),
+      vol     = q('[data-lecteur-vol]'),
+      bCC     = q('[data-lecteur-cc]'),
+      bPlein  = q('[data-lecteur-plein]');
+
+  var affiche = document.querySelector('[data-video-affiche]'),
+      champDuree = document.querySelector('[data-video-duree]');
+
+  var icoPlay  = bPlay.querySelector('.lecteur__ico-play'),
+      icoPause = bPlay.querySelector('.lecteur__ico-pause'),
+      icoSon   = bMuet.querySelector('.lecteur__ico-son'),
+      icoMuet  = bMuet.querySelector('.lecteur__ico-muet');
+
+  var PAS = 10;          // les deux boutons de transport, en secondes
+  var PAS_CLAVIER = 5;   // les flèches SUR la barre : plus fin que les boutons
+  var MARGE_RAIL = 10;   // le retrait du rail dans sa zone de touche (home.css)
+
+  var ouvert = false,     // la fenêtre est-elle affichée
+      origine = null,     // qui l'a ouverte, pour lui rendre le focus
+      boucle = 0,         // l'identifiant du rAF en cours
+      saisie = false,     // un doigt ou une souris tient la tête de lecture
+      amorce = false,     // le média a-t-il déjà été demandé une fois
+      ccOn = false,       // les sous-titres sont-ils affichés
+      position = 0,       // là où on en était en fermant
+      railW = 0;          // la course de la tête, mesurée et non relue
+
+  function t(k) { return (window.CYQ && window.CYQ.t) ? window.CYQ.t(k) : ''; }
+
+  /* ---------------------------------------------------------------------
+     L'affiche manquante. Le src pointe sur un fichier qui n'est peut-être
+     pas encore déposé : plutôt qu'une icône d'image cassée au milieu de
+     l'accueil, la coque devient un aplat. */
+  function sansAffiche() { coque.classList.add('video__coque--nue'); }
+  if (affiche) {
+    affiche.addEventListener('error', sansAffiche);
+    if (affiche.complete && affiche.naturalWidth === 0) sansAffiche();
+  }
+
+  /* --------------------------- le temps lu ---------------------------- */
+
+  function mmss(s) {
+    if (!isFinite(s) || s < 0) s = 0;
+    var m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  /* La durée affichée sous le bouton de lecture n'est pas écrite dans la
+     page : elle est lue sur le fichier. Une durée en dur ment au premier
+     remontage, et personne ne pense à la corriger. */
+  function poserDuree() {
+    if (!champDuree || !isFinite(video.duration) || video.duration <= 0) return;
+    champDuree.textContent = mmss(video.duration);
+    champDuree.hidden = false;
+  }
+
+  /* ------------------------- la barre, en rAF ------------------------- */
+
+  function mesurer() {
+    railW = Math.max(0, piste.getBoundingClientRect().width - 2 * MARGE_RAIL);
+  }
+
+  function maj() {
+    var d = video.duration;
+    var p = (isFinite(d) && d > 0) ? Math.min(1, Math.max(0, video.currentTime / d)) : 0;
+
+    lu.style.transform = 'scaleX(' + p + ')';
+    tete.style.transform = 'translateX(' + (p * railW) + 'px)';
+
+    champT.textContent = mmss(video.currentTime);
+    champD.textContent = mmss(d);
+
+    piste.setAttribute('aria-valuemax', isFinite(d) ? Math.round(d) : 0);
+    piste.setAttribute('aria-valuenow', Math.round(video.currentTime || 0));
+    piste.setAttribute('aria-valuetext', mmss(video.currentTime) + ' / ' + mmss(d));
+
+    /* Le tampon : ce qui est déjà téléchargé. Sans lui, une attente de
+       chargement ressemble à un plantage. */
+    try {
+      var b = video.buffered;
+      if (b && b.length && isFinite(d) && d > 0) {
+        tampon.style.transform = 'scaleX(' + Math.min(1, b.end(b.length - 1) / d) + ')';
+      }
+    } catch (e) {}
+  }
+
+  function tourner() { maj(); boucle = requestAnimationFrame(tourner); }
+  function lancerBoucle() { if (!boucle) boucle = requestAnimationFrame(tourner); }
+  function couperBoucle() {
+    if (boucle) { cancelAnimationFrame(boucle); boucle = 0; }
+    maj();   // une dernière fois, pour que la barre s'arrête juste
+  }
+
+  /* ---------------------------- les états ----------------------------- */
+
+  function majLecture() {
+    var joue = !video.paused && !video.ended;
+    icoPlay.hidden = joue;
+    icoPause.hidden = !joue;
+    bPlay.setAttribute('aria-label', t(joue ? 'lec.pause' : 'lec.play'));
+    bPlay.setAttribute('title', t(joue ? 'lec.pause' : 'lec.play'));
+  }
+
+  function majSon() {
+    var muet = video.muted || video.volume === 0;
+    icoSon.hidden = muet;
+    icoMuet.hidden = !muet;
+    bMuet.setAttribute('aria-label', t(muet ? 'lec.unmute' : 'lec.mute'));
+    bMuet.setAttribute('title', t(muet ? 'lec.unmute' : 'lec.mute'));
+  }
+
+  /* Les sous-titres suivent la langue du site, et retombent sur le
+     français si la langue choisie n'a pas de piste. */
+  function pistesLangue() {
+    var lang = (window.CYQ && window.CYQ.lang) || 'fr';
+    var tt = video.textTracks, choisie = null, repli = null, i;
+    if (!tt) return;
+    for (i = 0; i < tt.length; i++) {
+      if (tt[i].language === lang) choisie = tt[i];
+      if (tt[i].language === 'fr') repli = tt[i];
+      tt[i].mode = 'disabled';
+    }
+    var cible = choisie || repli;
+    if (cible && ccOn) cible.mode = 'showing';
+    bCC.setAttribute('aria-pressed', ccOn ? 'true' : 'false');
+  }
+
+  /* --------------------------- le transport --------------------------- */
+
+  function basculer() {
+    if (video.paused || video.ended) {
+      var p = video.play();
+      if (p && p.catch) p.catch(function () {});   // refus d'autoplay : silence
+    } else {
+      video.pause();
+    }
+  }
+
+  function aller(delta) {
+    var d = video.duration;
+    var cible = (video.currentTime || 0) + delta;
+    if (cible < 0) cible = 0;
+    if (isFinite(d) && cible > d) cible = d;
+    video.currentTime = cible;
+    maj();
+  }
+
+  /* --------------------- la barre, souris et doigt --------------------- */
+
+  function partDe(x) {
+    var r = piste.getBoundingClientRect();
+    var course = Math.max(1, r.width - 2 * MARGE_RAIL);
+    return Math.min(1, Math.max(0, (x - r.left - MARGE_RAIL) / course));
+  }
+
+  function deplacer(e) {
+    if (!isFinite(video.duration) || video.duration <= 0) return;
+    video.currentTime = partDe(e.clientX) * video.duration;
+    maj();
+  }
+
+  piste.addEventListener('pointerdown', function (e) {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    saisie = true;
+    piste.setAttribute('data-saisie', '');
+    try { piste.setPointerCapture(e.pointerId); } catch (err) {}
+    deplacer(e);
+  });
+
+  piste.addEventListener('pointermove', function (e) { if (saisie) deplacer(e); });
+
+  function finSaisie(e) {
+    if (!saisie) return;
+    saisie = false;
+    piste.removeAttribute('data-saisie');
+    try { piste.releasePointerCapture(e.pointerId); } catch (err) {}
+  }
+  piste.addEventListener('pointerup', finSaisie);
+  piste.addEventListener('pointercancel', finSaisie);
+
+  /* Les flèches sur la barre elle-même. Sans elles, seule la souris sait
+     se déplacer dans la vidéo. */
+  piste.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'ArrowLeft')       { e.preventDefault(); aller(-PAS_CLAVIER); }
+    else if (k === 'ArrowRight') { e.preventDefault(); aller(PAS_CLAVIER); }
+    else if (k === 'Home')       { e.preventDefault(); video.currentTime = 0; maj(); }
+    else if (k === 'End' && isFinite(video.duration)) { e.preventDefault(); video.currentTime = video.duration; maj(); }
+  });
+
+  /* ---------------------------- le son -------------------------------- */
+
+  bMuet.addEventListener('click', function () {
+    video.muted = !video.muted;
+    /* Rétablir le son alors que le curseur est à zéro ne rendrait rien :
+       on lui redonne un niveau audible. */
+    if (!video.muted && video.volume === 0) { video.volume = 0.6; vol.value = '0.6'; }
+  });
+
+  vol.addEventListener('input', function () {
+    video.volume = parseFloat(vol.value);
+    video.muted = (video.volume === 0);
+  });
+
+  video.addEventListener('volumechange', function () {
+    if (!saisie) vol.value = String(video.muted ? 0 : video.volume);
+    majSon();
+  });
+
+  /* -------------------------- les sous-titres -------------------------- */
+
+  bCC.addEventListener('click', function () { ccOn = !ccOn; pistesLangue(); });
+
+  /* -------------------------- le plein écran --------------------------- */
+
+  function plein() {
+    var d = document;
+    if (d.fullscreenElement || d.webkitFullscreenElement) {
+      if (d.exitFullscreen) d.exitFullscreen();
+      else if (d.webkitExitFullscreen) d.webkitExitFullscreen();
+      return;
+    }
+    if (cadre.requestFullscreen) cadre.requestFullscreen();
+    else if (cadre.webkitRequestFullscreen) cadre.webkitRequestFullscreen();
+    /* iPhone : la boîte ne peut pas passer en plein écran, seule la vidéo
+       le peut. On perd nos contrôles le temps du plein écran, et c'est le
+       seul endroit où ceux du système reprennent la main. */
+    else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+  }
+  bPlein.addEventListener('click', plein);
+  document.addEventListener('fullscreenchange', function () { mesurer(); maj(); });
+
+  /* --------------------------- le média lui-même ----------------------- */
+
+  function montrerErreur() { erreur.hidden = false; }
+  var sources = video.querySelectorAll('source');
+  if (sources.length) sources[sources.length - 1].addEventListener('error', montrerErreur);
+  video.addEventListener('error', montrerErreur);
+  video.addEventListener('loadeddata', function () { erreur.hidden = true; });
+
+  video.addEventListener('loadedmetadata', function () { poserDuree(); mesurer(); maj(); });
+  video.addEventListener('play', function () { majLecture(); lancerBoucle(); });
+  video.addEventListener('pause', function () { majLecture(); couperBoucle(); });
+  video.addEventListener('ended', function () { majLecture(); couperBoucle(); });
+  video.addEventListener('seeked', maj);
+  video.addEventListener('progress', maj);
+
+  /* ------------------------ ouvrir et fermer --------------------------- */
+
+  function focusables() {
+    return Array.prototype.slice.call(cadre.querySelectorAll(
+      'a[href], button:not([disabled]), input, summary, [tabindex]:not([tabindex="-1"])'
+    )).filter(function (el) { return el.offsetParent !== null; });
+  }
+
+  function ouvrir() {
+    if (ouvert) return;
+    ouvert = true;
+    origine = document.activeElement;
+
+    boite.hidden = false;
+    document.documentElement.classList.add('lecteur-ouvert');
+
+    /* Le média n'est demandé qu'ICI, au premier clic. Tant que la fenêtre
+       n'a pas été ouverte, l'accueil n'a téléchargé que l'affiche. */
+    if (!amorce) { amorce = true; video.preload = 'metadata'; video.load(); }
+    else if (position > 0) { video.currentTime = position; }
+
+    mesurer();
+    maj();
+    majLecture();
+    majSon();
+    pistesLangue();
+
+    /* La lecture part sur le clic qui a ouvert la fenêtre — c'est le même
+       geste, et le navigateur l'accepte comme tel. Un refus d'autoplay
+       laisse simplement la vidéo en pause, prête. */
+    var p = video.play();
+    if (p && p.catch) p.catch(function () { majLecture(); });
+
+    bPlay.focus();
+  }
+
+  function fermer() {
+    if (!ouvert) return;
+    ouvert = false;
+
+    /* On retient où on en était : rouvrir la fenêtre dans la même visite
+       ne doit pas tout faire recommencer. En mémoire seulement — rien
+       n'est écrit dans le navigateur pour ça. */
+    position = video.currentTime || 0;
+    video.pause();
+    couperBoucle();
+
+    boite.hidden = true;
+    document.documentElement.classList.remove('lecteur-ouvert');
+
+    if (origine && origine.focus) origine.focus();
+    else ouvrirB.focus();
+    origine = null;
+  }
+
+  ouvrirB.addEventListener('click', ouvrir);
+  fermerB.addEventListener('click', fermer);
+  fond.addEventListener('click', fermer);
+
+  bPlay.addEventListener('click', basculer);
+  bRec.addEventListener('click', function () { aller(-PAS); });
+  bAv.addEventListener('click', function () { aller(PAS); });
+
+  window.addEventListener('resize', function () { if (ouvert) { mesurer(); maj(); } });
+
+  /* --------------------------- le clavier ------------------------------ */
+
+  document.addEventListener('keydown', function (e) {
+    if (!ouvert) return;
+
+    if (e.key === 'Escape') { e.preventDefault(); fermer(); return; }
+
+    if (e.key === 'Tab') {
+      /* Le piège à focus : sans lui, Tab sort de la fenêtre et parcourt
+         la page derrière, que personne ne voit. */
+      var f = focusables();
+      if (!f.length) return;
+      var premier = f[0], dernier = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === premier) { e.preventDefault(); dernier.focus(); }
+      else if (!e.shiftKey && document.activeElement === dernier) { e.preventDefault(); premier.focus(); }
+      return;
+    }
+
+    /* Les raccourcis ne doivent pas doubler la touche d'un bouton qui a
+       le focus : Espace sur un bouton déclenche déjà son clic, et les
+       flèches appartiennent à la barre quand c'est elle qu'on tient. */
+    var cible = document.activeElement;
+    var surCommande = cible && cadre.contains(cible) &&
+                      (cible.tagName === 'BUTTON' || cible.tagName === 'INPUT' ||
+                       cible.tagName === 'SUMMARY' || cible === piste);
+
+    switch (e.key) {
+      case ' ':
+      case 'k':
+      case 'K':
+        if (surCommande && cible.tagName === 'BUTTON') return;
+        e.preventDefault(); basculer(); break;
+      case 'ArrowLeft':
+        if (cible === piste || (cible && cible.type === 'range')) return;
+        e.preventDefault(); aller(-PAS); break;
+      case 'ArrowRight':
+        if (cible === piste || (cible && cible.type === 'range')) return;
+        e.preventDefault(); aller(PAS); break;
+      case 'm':
+      case 'M':
+        e.preventDefault(); bMuet.click(); break;
+      case 'f':
+      case 'F':
+        e.preventDefault(); plein(); break;
+    }
+  });
+
+  /* La langue change pendant que la fenêtre est ouverte : les libellés
+     que CE script pose n'ont pas de `data-i18n`, donc `applyI18n` ne les
+     voit pas et ils resteraient dans l'ancienne langue. */
+  document.addEventListener('cyq:lang', function () {
+    majLecture(); majSon(); pistesLangue();
+  });
+})();
