@@ -77,7 +77,7 @@ window.CYQ_I18N.de = {
     "h.loginBtn": "Mit Discord anmelden",
   "s.language": "Sprache",
   /* La Vue d'ensemble : l'écran d'arrivée du panneau. */
-  "s.overview": "Überblick",
+  "s.overview": "Dashboard",
   "s.overviewD": "Wo dieser Server steht und was noch einzurichten ist.",
   "ov.members": "Mitglieder",
   "ov.matches": "Queues im Speicher",
@@ -176,7 +176,7 @@ window.CYQ_I18N.de = {
   "d.tools": "Werkzeuge", "d.diagnostic": "Diagnose", "d.export": "Konfiguration exportieren",
   "d.openDiscord": "In Discord öffnen", "d.crumbServers": "Server",
   "d.navLabel": "Konfigurationsbereiche",
-  "cat.bot": "Der Bot", "cat.queue": "Queue", "cat.server": "Der Server",
+  "cat.bot": "Allgemein", "cat.queue": "Queue", "cat.server": "Der Server",
   "cat.access": "Zugang", "cat.security": "Sicherheit", "cat.monitor": "Überwachung",
   "d.crumbLabel": "Brotkrümelnavigation",
   "d.diagnosticD": "Prüfung der Bot-Berechtigungen, der konfigurierten Kanäle und der Rollenhierarchie.",

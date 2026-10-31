@@ -77,7 +77,7 @@ window.CYQ_I18N.ko = {
     "h.loginBtn": "디스코드로 로그인",
   "s.language": "언어",
   /* La Vue d'ensemble : l'écran d'arrivée du panneau. */
-  "s.overview": "한눈에 보기",
+  "s.overview": "Dashboard",
   "s.overviewD": "이 서버의 현재 상태와 남은 설정.",
   "ov.members": "멤버",
   "ov.matches": "저장된 큐",
@@ -176,7 +176,7 @@ window.CYQ_I18N.ko = {
   "d.tools": "도구", "d.diagnostic": "진단", "d.export": "설정 내보내기",
   "d.openDiscord": "디스코드에서 열기", "d.crumbServers": "서버",
   "d.navLabel": "설정 섹션",
-  "cat.bot": "봇", "cat.queue": "대기열", "cat.server": "서버",
+  "cat.bot": "일반", "cat.queue": "대기열", "cat.server": "서버",
   "cat.access": "접근", "cat.security": "보안", "cat.monitor": "모니터링",
   "d.crumbLabel": "탐색 경로",
   "d.diagnosticD": "봇 권한, 설정된 채널, 역할 서열을 점검합니다.",
