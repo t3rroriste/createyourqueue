@@ -540,3 +540,184 @@
     });
   });
 })();
+
+
+/* =========================================================================
+   LA FENÊTRE D'UN MODULE
+   =========================================================================
+   Les six cartes de la grille menaient sur /modules et son ancre. Elles
+   ouvrent maintenant une fenêtre, sur place : la lecture de l'accueil
+   n'est pas coupée, et « Ajouter à Discord » est sous la main au moment
+   où le module vient de convaincre.
+
+   Dans sa propre IIFE, et pour la raison qui vaut pour la FAQ : elle ne
+   doit rien à anime.js. Si la bibliothèque manque, la fenêtre s'ouvre
+   quand même, sans l'arrivée en fondu — et si JavaScript manque tout
+   entier, le `href` des cartes mène toujours à /modules#queue.
+
+   CE QU'ELLE MONTRE EST RECOPIÉ DE LA CARTE. La maquette, le titre et le
+   résumé sont clonés depuis la carte cliquée ; seul le texte long lui est
+   propre (`mm.*`). Six maquettes réécrites ici seraient six choses à
+   tenir d'accord avec la grille, et c'est précisément comme ça qu'un
+   second texte finit par mentir.
+   ========================================================================= */
+(function fenetreModule() {
+  'use strict';
+
+  var boite = document.querySelector('[data-modmodal]');
+  var cartes = document.querySelectorAll('[data-mod-open]');
+  if (!boite || !cartes.length) return;
+
+  var dialogue = boite.querySelector('[data-modmodal-boite]');
+  var vue      = boite.querySelector('[data-modmodal-view]');
+  var titre    = boite.querySelector('[data-modmodal-t]');
+  var para     = boite.querySelector('[data-modmodal-p]');
+  var fond     = boite.querySelector('[data-modmodal-fond]');
+  var fermerB  = boite.querySelector('[data-modmodal-close]');
+
+  /* Le module ouvert, et la carte d'où l'on vient : c'est à elle que le
+     focus revient à la fermeture. Sans ça, on se retrouve rejeté en haut
+     de la page, à chercher où on en était. */
+  var ouvert = null;
+  var origine = null;
+
+  /* Le texte long de chaque module. Les clés sont dans les cinq
+     dictionnaires ; le nom du module est celui de l'ancre, qui est déjà
+     écrit sur la carte. */
+  var TEXTES = {
+    queue: 'mm.queue', mmr: 'mm.mmr', duel: 'mm.duel',
+    clan: 'mm.clan', securite: 'mm.sec', options: 'mm.opt'
+  };
+
+  function t(cle) {
+    return (window.CYQ && CYQ.t) ? CYQ.t(cle) : '';
+  }
+
+  /* Tout ce qui peut recevoir le focus dans la fenêtre. Recalculé à
+     chaque Tab plutôt que gardé : le bouton Discord devient inerte quand
+     CLIENT_ID est vide, et une liste figée l'enverrait quand même. */
+  function focusables() {
+    return Array.prototype.filter.call(
+      dialogue.querySelectorAll('a[href], button:not([disabled])'),
+      function (el) { return el.offsetParent !== null; });
+  }
+
+  function remplir(carte) {
+    var nom = carte.getAttribute('data-mod-open');
+    var vignette = carte.querySelector('.mcard__view');
+    var h = carte.querySelector('.mcard__t');
+
+    vue.innerHTML = '';
+    if (vignette) {
+      var copie = vignette.cloneNode(true);
+      copie.removeAttribute('aria-hidden');     // le parent le porte déjà
+      vue.appendChild(copie);
+    }
+    if (h) titre.textContent = h.textContent;
+    para.textContent = t(TEXTES[nom] || '');
+    return nom;
+  }
+
+  function ouvrir(carte) {
+    if (ouvert) return;
+    origine = carte;
+    ouvert = remplir(carte);
+
+    boite.hidden = false;
+    /* Le défilement de la page est bloqué par une classe sur <html> et
+       non par `overflow` posé en style inline : la page Modules et le
+       tiroir mobile se servent du même verrou, et deux verrous qui se
+       croisent en laissent toujours un ouvert. */
+    document.documentElement.classList.add('modmodal-ouvert');
+
+    /* L'ancre dans la barre d'adresse : la fenêtre devient partageable,
+       et surtout /#queue rouvre exactement ce qu'on avait envoyé.
+       `replaceState` et non une vraie ancre — le navigateur sauterait
+       sur la section `#modules` de la page. */
+    if (window.history && history.replaceState) {
+      try { history.replaceState(history.state, '', '#' + ouvert); } catch (e) {}
+    }
+
+    /* Le premier élément de la fenêtre prend le focus, et pas la
+       fenêtre elle-même : on arrive sur le bouton qui sert. */
+    var f = focusables();
+    if (f.length) f[0].focus();
+
+    /* L'effet ballon sur la maquette : la fenêtre n'existait pas au
+       démarrage, app.js ne l'a donc pas encore vue. Une seule fois, la
+       fonction se garde elle-même d'un second branchement. */
+    if (window.CYQ && CYQ.ballon) CYQ.ballon(vue);
+  }
+
+  function fermer() {
+    if (!ouvert) return;
+    ouvert = null;
+    boite.hidden = true;
+    document.documentElement.classList.remove('modmodal-ouvert');
+
+    /* L'ancre est nettoyée : une adresse qui garde `#duel` alors que la
+       fenêtre est fermée rouvrirait le duel au prochain rechargement. */
+    if (window.history && history.replaceState) {
+      try {
+        history.replaceState(history.state, '', location.pathname + location.search);
+      } catch (e) {}
+    }
+
+    if (origine) { origine.focus(); origine = null; }
+  }
+
+  Array.prototype.forEach.call(cartes, function (carte) {
+    carte.addEventListener('click', function (e) {
+      /* Clic du milieu, Ctrl, Cmd, Maj : on laisse le lien faire son
+         travail et ouvrir /modules dans un onglet. C'est la même règle
+         que pour le reste des liens du site. */
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey ||
+          e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      ouvrir(carte);
+    });
+  });
+
+  if (fond) fond.addEventListener('click', fermer);
+  if (fermerB) fermerB.addEventListener('click', fermer);
+
+  document.addEventListener('keydown', function (e) {
+    if (!ouvert) return;
+    if (e.key === 'Escape') { e.preventDefault(); fermer(); return; }
+    if (e.key !== 'Tab') return;
+
+    /* Le piège à focus. Sans lui, Tab sort de la fenêtre et va parcourir
+       la page derrière, que personne ne voit. */
+    var f = focusables();
+    if (!f.length) return;
+    var premier = f[0], dernier = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === premier) {
+      e.preventDefault(); dernier.focus();
+    } else if (!e.shiftKey && document.activeElement === dernier) {
+      e.preventDefault(); premier.focus();
+    }
+  });
+
+  /* La langue change pendant que la fenêtre est ouverte : le texte long
+     n'a pas de `data-i18n` — il est posé par ce script — donc
+     `applyI18n` ne le voit pas et il resterait dans l'ancienne langue. */
+  document.addEventListener('cyq:lang', function () {
+    if (ouvert) para.textContent = t(TEXTES[ouvert] || '');
+  });
+
+  /* ARRIVER DIRECTEMENT SUR UN MODULE.
+     /#duel ouvre le duel. C'est ce que `replaceState` écrit plus haut,
+     donc c'est ce qu'un lien partagé contient — il doit rouvrir la même
+     chose, sans quoi l'adresse ment. */
+  function depuisAncre() {
+    var nom = (location.hash || '').slice(1);
+    if (!nom || !TEXTES[nom]) return;
+    var carte = document.querySelector('[data-mod-open="' + nom + '"]');
+    if (carte) ouvrir(carte);
+  }
+  depuisAncre();
+  window.addEventListener('hashchange', function () {
+    if (ouvert) return;
+    depuisAncre();
+  });
+})();

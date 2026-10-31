@@ -66,6 +66,17 @@ window.CYQ_I18N.fr = {
   "mg.sec": "Anti-lien, nettoyage automatique, anti-raid, et dix journaux indépendants.",
   "mg.opt": "Cinq langues, les salons, les rôles, et un panneau d'état qui montre ce qui tourne.",
 
+  /* Le texte de la fenêtre d'un module : il reprend là où s'arrête celui
+     de la carte. La carte dit ce que le module EST en une ligne, la
+     fenêtre dit ce qu'il CHANGE un soir de scrim — c'est le moment où le
+     bouton « Ajouter à Discord » est juste en dessous. */
+  "mm.queue": "Tu lances la file, le bot s'occupe du reste. Les joueurs rejoignent avec un bouton, les capitaines sont élus, les équipes se composent et tout le monde se retrouve dans le vocal d'attente. Dix presets pour ne jamais régler deux fois la même soirée.",
+  "mm.mmr": "Chaque match déplace le classement, et personne n'a de tableur à tenir. Points de départ, gains et pertes, bonus de série, MVP de la semaine : le bot publie le classement à jour dans le salon que tu lui donnes.",
+  "mm.duel": "Deux joueurs, un défi, pas de file. Le perdant confirme le score au vote, le classement suit, et un litige se tranche sans toi. C'est le format des soirs où personne n'a envie d'organiser quoi que ce soit.",
+  "mm.clan": "Des équipes qui durent, avec leur chef, leurs transferts et leur salon créé tout seul à la fondation. Les guerres de clans comptent dans le classement général : une saison a enfin un enjeu entre deux scrims.",
+  "mm.sec": "Anti-lien, anti-raid, nettoyage automatique des salons de queue : le serveur tient tout seul pendant que tu joues. Dix journaux indépendants disent qui a fait quoi, et seulement ce que tu as demandé à voir.",
+  "mm.opt": "Tout se coupe et tout se rallume. Chaque fonction a son interrupteur, chaque salon et chaque rôle se choisissent dans une liste, et cinq langues renomment jusqu'aux salons que le bot crée.",
+
   "commu.title": "Rejoins la communauté",
   "commu.lead": "Le serveur Discord officiel : le support, les idées, et les nouveautés avant tout le monde.",
   "commu.join": "Rejoindre le Discord",
