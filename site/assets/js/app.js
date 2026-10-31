@@ -139,6 +139,19 @@
     catch (e) { /* fichier local (file://), ou origine refusée : l'adresse reste */ }
   }
 
+  /* Le canonique suit la langue affichée. Il est écrit sur /fr dans le
+     fichier — il faut bien une valeur quand le script ne tourne pas —
+     mais un visiteur qui est passé en espagnol lit la version espagnole,
+     et c'est /es qui est l'adresse de ce qu'il a sous les yeux. Les
+     `hreflang`, eux, ne bougent pas : ils listent les cinq, toujours. */
+  function poserCanonique(code) {
+    if (!pageAAdresseDeLangue()) return;
+    var lien = document.querySelector('link[rel="canonical"]');
+    if (!lien) return;
+    var base = (CFG.SITE_ORIGIN || '').replace(/\/+$/, '');
+    if (base) lien.setAttribute('href', base + '/' + code);
+  }
+
   function setLang(code, silent) {
     if (LANGS.indexOf(code) === -1) code = 'fr';
     CYQ.lang = code;
@@ -154,6 +167,7 @@
       else el.setAttribute('aria-pressed', on);
     });
     poserAdresseDeLangue(code);
+    poserCanonique(code);
     if (!silent) document.dispatchEvent(new CustomEvent('cyq:lang', { detail: code }));
   }
   CYQ.setLang = setLang;
@@ -234,7 +248,18 @@
     return versApp ? dossier + '/' + page : '../' + page;
   }
 
-  CYQ.siteUrl = function (page) { return versOrigine(CFG.SITE_ORIGIN, page); };
+  /* « index » n'est plus une adresse : l'accueil s'atteint par sa langue.
+     La traduction se fait ICI, dans le seul endroit qui fabrique les liens
+     vers la vitrine, plutôt que dans chaque page — sinon le jour où une
+     langue s'ajoute il faut repasser sur sept fichiers.
+
+     La valeur reste « index » dans le HTML : c'est le nom de la page, et
+     il ne change pas quand on change de langue. Seul le lien change. */
+  function pageVitrine(page) {
+    return page === 'index' ? (CYQ.lang || CFG.DEFAULT_LANG || 'fr') : page;
+  }
+
+  CYQ.siteUrl = function (page) { return versOrigine(CFG.SITE_ORIGIN, pageVitrine(page)); };
   CYQ.appUrl  = function (page) { return versOrigine(CFG.APP_ORIGIN,  page); };
 
   /* Tous les « Se connecter » du site mènent au MÊME écran, login.html :
@@ -1188,12 +1213,19 @@
        obliques de tête et préfixe, c'est tout. Seul login garde sa forme
        longue, parce que Discord compare l'adresse de retour OAuth au
        caractère près et que c'est login.html qui est déclarée là-bas. */
-    $$('[data-site]').forEach(function (a) {
-      a.setAttribute('href', CYQ.siteUrl(a.getAttribute('data-site')));
-    });
-    $$('[data-app]').forEach(function (a) {
-      a.setAttribute('href', CYQ.appUrl(a.getAttribute('data-app')));
-    });
+    function poserLiensCroises() {
+      $$('[data-site]').forEach(function (a) {
+        a.setAttribute('href', CYQ.siteUrl(a.getAttribute('data-site')));
+      });
+      $$('[data-app]').forEach(function (a) {
+        a.setAttribute('href', CYQ.appUrl(a.getAttribute('data-app')));
+      });
+    }
+    poserLiensCroises();
+    /* Le lien vers l'accueil porte maintenant une langue : il doit suivre
+       celle qu'on vient de choisir, sinon le logo de la nav ramène à la
+       version qu'on lisait avant de changer. */
+    document.addEventListener('cyq:lang', poserLiensCroises);
 
     $$('[data-cfg-link]').forEach(function (a) {
       var k = a.getAttribute('data-cfg-link');
