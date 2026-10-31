@@ -195,7 +195,12 @@
     CYQ.themeChoice = mode;
     CYQ.theme = mode === 'system' ? themeDuSysteme() : mode;
     document.documentElement.setAttribute('data-theme', CYQ.theme);
-    store('theme', mode);
+    /* On n'enregistre QUE les vrais choix. L'appel du démarrage est
+       silencieux : il ne fait que reprendre ce qui est déjà là, et
+       l'écrire figerait « system » dans le navigateur de quelqu'un qui
+       n'a jamais rien choisi — le jour où DEFAULT_THEME change, il ne le
+       verrait pas. */
+    if (!silencieux) store('theme', mode);
 
     $$('[data-theme-pick]').forEach(function (el) {
       el.setAttribute('aria-checked', String(el.getAttribute('data-theme-pick') === mode));
