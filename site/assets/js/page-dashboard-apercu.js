@@ -11,10 +11,11 @@
    avec la réponse de GET /guilds/{id}. Redemander la même charge serait
    un deuxième aller-retour pour des données déjà là.
 
-   RIEN N'EST INVENTÉ. Sans API, les quatre chiffres gardent leur tiret
+   RIEN N'EST INVENTÉ. Sans API, les chiffres gardent leur tiret
    cadratin et la progression le dit. Un zéro se lirait comme une mesure,
    et ce serait faux — un serveur dont on ne sait rien n'est pas un
-   serveur à zéro membre.
+   serveur à zéro membre, et une semaine dont on ne sait rien n'est pas
+   une semaine sans queue.
    ========================================================================= */
 
 (function () {
@@ -40,6 +41,8 @@
   var guilde = null;
   var matchs = null;
   var matchsDemandes = false;
+  var semaine = null;
+  var semaineDemandee = false;
 
   var TIRET = '—';
 
@@ -142,6 +145,13 @@
 
     poser('members', g && g.memberCount != null ? nombre(g.memberCount) : TIRET);
 
+    /* Les boosts viennent du BOT : `null` quand il dort, et le tiret
+       alors — pas un zéro, qui se lirait comme « ce serveur n'a aucun
+       boost » alors qu'on n'en sait rien. */
+    poser('boosts', g && g.boosts != null ? nombre(g.boosts) : TIRET);
+
+    rendreAnciennete(g);
+
     if (matchs && matchs.total != null) {
       poser('matches', nombre(matchs.total));
       /* `total` dit combien sont CONSERVÉS, pas combien ont été joués :
@@ -169,13 +179,54 @@
     else if (matchs) poser('last', t('ov.lastNone'));
     else poser('last', TIRET);
 
-    /* `=== false` et pas `!` : une API plus ancienne ne renvoie pas du
-       tout ce champ, et son silence ne veut pas dire « bot éteint ».
-       C'est la même précaution que page-dashboard.js prend pour l'avis. */
-    if (!g) poser('bot', TIRET);
-    else if (g.botJoignable === false) poser('bot', t('ov.botOff'));
-    else if (g.botJoignable === true) poser('bot', t('ov.botOn'));
-    else poser('bot', TIRET);
+    /* L'état du bot n'est plus ici : page-dashboard.js l'écrit au pied du
+       menu, où il se lit depuis n'importe quelle section. Le dire deux
+       fois sur le même écran, c'était deux endroits à tenir d'accord. */
+  }
+
+  /* ==================================================================
+     DEPUIS QUAND LE BOT EST LÀ
+
+     `botSince` est la date à laquelle le bot a rejoint le serveur, lue
+     par le bot lui-même (`guild.me.joined_at`). Elle vaut `null` quand
+     il ne répond pas, et la carte garde alors son tiret.
+
+     L'unité change avec la durée — des jours la première semaine, des
+     mois ensuite, des années après — parce que « 743 jours » ne se lit
+     pas. Les mois comptés à 30,44 jours : c'est la longueur moyenne d'un
+     mois, et la carte dit une ancienneté, pas une date d'anniversaire.
+     ================================================================== */
+  function rendreAnciennete(g) {
+    var meta = $('[data-ov="sinceMeta"]');
+    var ms = lireDate(g && g.botSince);
+
+    if (ms === null) {
+      poser('since', TIRET);
+      if (meta) meta.textContent = '';
+      return;
+    }
+
+    var jours = Math.max(0, Math.floor((Date.now() - ms) / 86400000));
+    if (jours < 60) poser('since', t('ov.sinceDays', { n: nombre(jours) }));
+    else if (jours < 730) poser('since', t('ov.sinceMonths', { n: nombre(Math.round(jours / 30.44)) }));
+    else poser('since', t('ov.sinceYears', { n: nombre(Math.floor(jours / 365.25)) }));
+
+    /* La date exacte sous le chiffre : l'ancienneté se lit d'un coup
+       d'œil, la date répond à « depuis quand, au juste ». */
+    if (meta) meta.textContent = dateCourte(ms);
+  }
+
+  /* Les noms de jours et de mois passent par Intl et non par les cinq
+     fichiers de langue : ce sont des noms du calendrier, pas des phrases
+     du site, et chaque langue a déjà les siens — les retraduire à la
+     main, c'était cinq occasions de se tromper d'abréviation. Les
+     PHRASES, elles, restent dans les fichiers de langue. */
+  function dateCourte(ms) {
+    try {
+      return new Date(ms).toLocaleDateString(CYQ.lang, {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+    } catch (e) { return ''; }
   }
 
   function rendreProgression() {
@@ -229,9 +280,124 @@
     }
   }
 
+  /* ==================================================================
+     LA SEMAINE
+
+     Sept lignes, et deux informations par ligne qui ne disent pas la
+     même chose :
+
+       · ce qui a EU LIEU — le nombre de files lancées ce jour-là, lu
+         dans `byDay` du relevé d'activité ;
+       · ce qui est PRÉVU — l'encoche de droite, qui vient de
+         `schedule.days` et ne s'allume que si l'ouverture automatique
+         est allumée.
+
+     Les deux sont indépendantes : un jour prévu peut n'avoir rien
+     donné, et une file lancée à la main tombe un jour qui n'était pas
+     prévu. Les confondre en une seule colonne aurait fait passer la
+     seconde pour la première.
+
+     `schedule.days` compte à partir du LUNDI (0 = lundi, cf.
+     bot/guild_settings.py), là où `getDay()` de JavaScript compte à
+     partir du dimanche. D'où le `+ 6) % 7` : l'oublier décalait toutes
+     les encoches d'un jour, et rien n'aurait protesté.
+     ================================================================== */
+
+  function cleJour(d) {
+    /* `byDay` porte des dates en texte, « 2026-10-01 ». On fabrique la
+       même forme à partir d'une date locale plutôt que d'utiliser
+       toISOString(), qui bascule en UTC et rend la veille pour tout ce
+       qui se passe après minuit à l'ouest de Greenwich. */
+    var m = d.getMonth() + 1, j = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (j < 10 ? '0' : '') + j;
+  }
+
+  function joursPrevus() {
+    var r = guilde && guilde.settings;
+    if (!r) return null;
+    /* Éteinte, la programmation ne prévoit rien : garder les encoches
+       aurait annoncé des ouvertures qui n'auront pas lieu. */
+    var allumee = r['schedule.enabled'];
+    if (allumee === false || allumee === 0 || allumee === '0' || allumee === 'false') return [];
+    var brut = r['schedule.days'];
+    if (brut == null || String(brut).trim() === '') return [];
+    return String(brut).split(',').map(function (n) {
+      return parseInt(String(n).trim(), 10);
+    }).filter(function (n) { return n >= 0 && n <= 6; });
+  }
+
+  function rendreSemaine() {
+    var hote = $('[data-ov-week]');
+    if (!hote) return;
+
+    var aujourdhui = $('[data-ov-today]');
+    if (aujourdhui) aujourdhui.textContent = dateCourte(Date.now());
+
+    poser('opened', semaine && semaine.opened != null ? nombre(semaine.opened) : TIRET);
+    poser('slots', semaine && semaine.playerSlots != null ? nombre(semaine.playerSlots) : TIRET);
+
+    /* Les files lancées, rangées par date pour les retrouver en une
+       lecture au lieu de parcourir la liste sept fois. */
+    var parDate = {};
+    if (semaine && semaine.byDay && semaine.byDay.length) {
+      semaine.byDay.forEach(function (ligne) {
+        if (ligne && ligne.day != null) parDate[String(ligne.day)] = ligne.n;
+      });
+    }
+
+    var prevus = joursPrevus();
+    var html = '';
+    var base = new Date();
+    base.setHours(12, 0, 0, 0); /* midi : un pas de 24 h ne saute alors
+                                   aucun jour au changement d'heure. */
+
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date(base.getTime() - i * 86400000);
+      var cle = cleJour(d);
+      var n = parDate[cle];
+      var indice = (d.getDay() + 6) % 7;
+      var prevu = prevus && prevus.indexOf(indice) !== -1;
+
+      var classes = 'ovjour';
+      if (i === 0) classes += ' is-today';
+      if (n) classes += ' is-plein';
+      if (prevu) classes += ' is-prevu';
+
+      html += '<li class="' + classes + '">'
+            + '<span class="ovjour__nom">' + esc(nomJour(d)) + '</span>'
+            + '<span class="ovjour__n">' + (semaine ? esc(nombre(n || 0)) : TIRET) + '</span>'
+            + '<span class="ovjour__coche" aria-hidden="true"></span>'
+            + '</li>';
+    }
+    hote.innerHTML = html;
+  }
+
+  function nomJour(d) {
+    try {
+      return d.toLocaleDateString(CYQ.lang, { weekday: 'short', day: 'numeric' });
+    } catch (e) { return cleJour(d); }
+  }
+
+  /* Une requête pour les deux chiffres et les sept jours. `days=7`
+     parce que la carte montre une semaine : en demander trente pour
+     n'en dessiner que sept aurait fait porter au bot un calcul que
+     personne ne regarde. */
+  function chargerSemaine() {
+    if (semaineDemandee || !CYQ.api || !CYQ.api.configured || !guildId) return;
+    semaineDemandee = true;
+    CYQ.api.get('/guilds/' + encodeURIComponent(guildId) + '/activity?days=7')
+      .then(function (r) { semaine = r || {}; rendreSemaine(); })
+      .catch(function () {
+        semaine = null;
+        semaineDemandee = false;
+        rendreSemaine();
+      });
+  }
+
   function rendre() {
     rendreChiffres();
     rendreProgression();
+    rendreSemaine();
   }
 
   /* ==================================================================
@@ -285,6 +451,7 @@
     guilde = e.detail || null;
     rendre();
     chargerMatchs();
+    chargerSemaine();
   });
 
   /* La langue change : on repeint avec ce qu'on a déjà. Les libellés des
