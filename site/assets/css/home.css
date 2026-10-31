@@ -539,12 +539,117 @@ html::-webkit-scrollbar { display: none; }
 .langmenu { position: relative; }
 .langmenu__panel {
   position: absolute; z-index: 60; top: calc(100% + 10px); right: 0;
-  min-width: 190px; padding: 6px; display: none;
+  min-width: 212px; padding: 6px; display: none;
   background: var(--raised); border: 1px solid var(--hair);
   border-radius: var(--r-media);
   box-shadow: 0 40px 80px -40px rgba(0,0,0,.9);
 }
 .langmenu[data-open="true"] .langmenu__panel { display: block; }
+
+/* L'OUVERTURE DU PANNEAU. Il apparaissait d'un coup, en `display`, et on
+   ne voyait pas d'où il venait — un menu qui tombe du bouton se lit, un
+   menu qui apparaît se cherche. Transform et opacity seulement, et
+   l'origine en haut à droite, c'est-à-dire sous le bouton. */
+@keyframes langmenu-in {
+  from { opacity: 0; transform: translateY(-6px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+.langmenu[data-open="true"] .langmenu__panel {
+  transform-origin: top right;
+  animation: langmenu-in 170ms var(--e-out);
+}
+
+/* Le libellé qui tourne pendant que les cinq codes défilent. Deux
+   pixels, 60 ms : c'est un battement, pas un saut — les lettres
+   changent déjà, le mouvement n'a qu'à les accompagner. */
+[data-lang-code] {
+  display: inline-block;
+  transition: transform 60ms var(--e-soft);
+}
+
+/* Le titre d'un groupe du menu. Pas un `<h>` : il ne structure pas la
+   page, il nomme trois boutons côte à côte. */
+.langmenu__titre {
+  margin: 8px 10px 6px;
+  font-size: 11px; font-weight: 500; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ink-40);
+}
+.langmenu__titre:first-child { margin-top: 4px; }
+/* Le filet ne sépare que les DEUX groupes : posé sur le titre des
+   langues, il ne peut pas apparaître en haut du menu par accident. */
+.langmenu__themes + .langmenu__titre {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--hair);
+}
+
+/* Les trois thèmes sur une rangée : ce sont trois valeurs d'un même
+   réglage, et une liste verticale les aurait fait lire comme trois
+   actions distinctes. Chacun prend le tiers, quelle que soit la longueur
+   du mot une fois traduit. */
+.langmenu__themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 4px; }
+.langmenu__theme {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 10px 4px;
+  background: none; border: 1px solid transparent; border-radius: 12px;
+  color: var(--ink-60); font: 400 11.5px var(--sans); cursor: pointer;
+  transition: background 160ms var(--e-soft), color 160ms var(--e-soft);
+}
+.langmenu__theme:hover { background: var(--film); color: var(--ink); }
+.langmenu__theme[aria-checked="true"] {
+  background: var(--film); border-color: var(--hair); color: var(--ink);
+}
+.langmenu__theme svg { flex: 0 0 auto; }
+
+/* ================== la page qui se régénère ==========================
+   Un seul balayage, du haut vers le bas, quand le thème change. Il part
+   d'un `div` posé par app.js au-dessus de tout et retiré à la fin de son
+   animation — rien ne reste dans la page entre deux changements.
+
+   `transform` seulement : la bande se déplace, elle ne se redessine pas.
+   Un dégradé animé, ou un `filter`, ferait repeindre tout l'écran à
+   chaque cadre pour le même résultat.
+
+   Le dégradé lui-même est figé dans la bande ; c'est la bande qui glisse.
+   Elle fait deux hauteurs d'écran et part d'une hauteur au-dessus : au
+   premier cadre, rien n'est visible, et au dernier non plus. */
+.regen {
+  position: fixed; inset: 0; z-index: 9000;
+  pointer-events: none;                 /* ne doit jamais avaler un clic */
+  overflow: hidden;
+}
+.regen::before {
+  content: ''; position: absolute; left: 0; right: 0;
+  top: -100vh; height: 200vh;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    var(--film) 38%,
+    var(--lift) 48%,
+    var(--ink-max) 50%,
+    var(--lift) 52%,
+    var(--film) 62%,
+    transparent 100%);
+  opacity: .5;
+  will-change: transform;
+  animation: regen-balayage 420ms var(--e-soft) forwards;
+}
+@keyframes regen-balayage {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, 100vh, 0); }
+}
+/* La ligne vive au milieu du dégradé est à pleine encre : sur clair
+   comme sur sombre, c'est elle qui donne le trait, et `--ink-max`
+   s'inverse avec le thème. Le voile est posé APRÈS le changement de
+   `data-theme`, donc il prend déjà les jetons du thème d'arrivée —
+   c'est voulu : on balaie vers ce qui vient, pas depuis ce qui part. */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Le balayage n'est même pas créé par app.js dans ce cas ; la règle est
+     là pour la variante `?motion=on` retirée, et pour le jour où un autre
+     script poserait le voile sans passer par la même porte. */
+  html:not(.motion-force) .regen { display: none; }
+  html:not(.motion-force) .langmenu[data-open="true"] .langmenu__panel { animation: none; }
+  html:not(.motion-force) [data-lang-code] { transition: none; }
+}
 .langmenu__opt {
   width: 100%; min-height: 40px; display: flex; align-items: center; gap: 12px;
   padding: 0 14px; background: none; border: none; border-radius: var(--r-pill);

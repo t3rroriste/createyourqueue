@@ -1082,6 +1082,63 @@
     setTimeout(fini, 900);
   }
 
+  /* ------------------------------------------- l'effet ballon ---------
+     Une maquette qui se gonfle LÉGÈREMENT vers le curseur quand la souris
+     passe dessus. Elle dit « ceci est une image, pas un écran réel », et
+     elle le dit sans texte.
+
+     Très léger, et le mot compte : 1,8 % de plus et six pixels de
+     déplacement au maximum. Au-delà, la carte se met à suivre la souris
+     comme un jouet et on ne lit plus ce qu'il y a écrit dessus.
+
+     Trois gardes :
+       · `(hover: hover)` — sur un écran tactile, « le curseur » n'existe
+         pas, et le premier appui laisserait la carte figée de travers ;
+       · `prefers-reduced-motion` — rien du tout, pas même au survol ;
+       · `transform` seul, posé dans un `requestAnimationFrame` — un
+         pointermove tire une quarantaine d'événements par seconde, et
+         écrire le style à chaque fois demande autant de calculs de mise
+         en page.
+
+     Le retour est élastique, et il est en CSS : une transition posée à la
+     sortie seulement. Pendant le survol il n'y en a pas, sinon la carte
+     traîne derrière le curseur au lieu de le suivre. */
+  function ballon(el) {
+    if (!el || el._cyqBallon) return;
+    if (!window.matchMedia || !window.matchMedia('(hover: hover)').matches) return;
+    el._cyqBallon = true;
+
+    var AMPLI = 6;        // pixels, au maximum, dans chaque direction
+    var ECHELLE = 1.018;
+    var demande = 0, x = 0, y = 0;
+
+    function peindre() {
+      demande = 0;
+      el.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) +
+                           'px,0) scale(' + ECHELLE + ')';
+    }
+
+    el.addEventListener('pointermove', function (e) {
+      if (!mouvementAutorise()) return;
+      var r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      /* -1 à 1 depuis le centre. Le gonflement suit le curseur : la carte
+         va VERS lui, ce qui est le geste d'un ballon qu'on pousse. */
+      x = ((e.clientX - r.left) / r.width - .5) * 2 * AMPLI;
+      y = ((e.clientY - r.top) / r.height - .5) * 2 * AMPLI;
+      el.style.transition = 'none';
+      if (!demande) demande = requestAnimationFrame(peindre);
+    });
+
+    el.addEventListener('pointerleave', function () {
+      if (demande) { cancelAnimationFrame(demande); demande = 0; }
+      /* Le retour élastique : un ressort court, et seulement au retour. */
+      el.style.transition = 'transform 520ms cubic-bezier(.22,1.4,.36,1)';
+      el.style.transform = '';
+    });
+  }
+  CYQ.ballon = ballon;
+
   /* -------------------------------------------------------- tiroir mobile */
 
   function wireDrawer() {
@@ -1385,6 +1442,10 @@
     wireValidation(document);
     CYQ.initSections(document);
     wireLangMenu();
+    /* `data-ballon` : c'est la page qui désigne ses maquettes, le script
+       n'en tient aucune liste. La page Modules en pose sur chacune des
+       siennes, l'accueil sur celle du héros. */
+    $$('[data-ballon]').forEach(ballon);
     wireDrawer();
     wireRouter();
     wireRetour();
