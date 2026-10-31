@@ -882,10 +882,13 @@ html::-webkit-scrollbar { display: none; }
   display: inline-flex; align-items: center; gap: 10px; white-space: nowrap;
   min-height: 44px; padding: 0 18px;
   border-radius: var(--r-pill);
-  /* Un noir franc et non `--film` : la pilule est posée SUR une image
-     dont on ne sait rien. Un fond à 5 % de blanc disparaît dès que
-     l'affiche est claire, et le libellé avec lui. */
-  background: rgba(10,9,8,.72); border: 1px solid var(--hair);
+  /* Une surface OPAQUE, et les mêmes jetons que le disque : la pilule est
+     posée SUR une image dont on ne sait rien. `--film` (5 % de blanc)
+     disparaissait dès que l'affiche était claire, et un noir écrit en dur
+     devenait du texte sombre sur fond sombre en thème clair, où `--ink`
+     s'inverse mais pas le noir. Deux jetons qui basculent ENSEMBLE sont
+     la seule façon de tenir le contraste dans les deux thèmes. */
+  background: var(--raised); border: 1px solid var(--hair);
   font-size: 13px; color: var(--ink);
 }
 .video__duree { font-variant-numeric: tabular-nums; }
@@ -1422,6 +1425,9 @@ html.lecteur-ouvert, html.lecteur-ouvert body { overflow: hidden; }
      au doigt, et le bouton muet reste. Le plein écran aussi, c'est lui
      qu'on cherche sur un téléphone. */
   .lecteur__volume { display: none; }
+  /* La durée totale part, le temps écoulé reste : à 375 px, « 0:00 / 2:40 »
+     prend trente-quatre pixels à la barre de progression, qui n'en a déjà
+     pas. La durée est sur l'affiche, et dans la vidéo. */
   .lecteur__temps { padding: 0 4px; font-size: 11.5px; }
-  .lecteur__sep { margin: 0 3px; }
+  .lecteur__sep, .lecteur__temps [data-lecteur-d] { display: none; }
 }
