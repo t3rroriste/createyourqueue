@@ -24,6 +24,10 @@ COMMUN = [
     "assets/img/logo.png",
     "assets/js/app.js",
     "assets/js/config.js",
+    # Chargé dans le <head> de TOUTES les pages, avant les feuilles de
+    # style : il pose le thème avant la première peinture. Absent en
+    # ligne, chaque page s'afficherait en sombre puis basculerait.
+    "assets/js/theme-tot.js",
     "assets/js/lang/fr.js", "assets/js/lang/en.js", "assets/js/lang/es.js",
     "assets/js/lang/de.js", "assets/js/lang/ko.js",
     "assets/js/vendor/anime.umd.min.js",

@@ -128,8 +128,16 @@ window.CYQ_CONFIG = {
   /* Langue de repli si celle du navigateur n'est pas gérée. */
   DEFAULT_LANG: 'fr',
 
-  /* Thème au premier chargement : 'dark' ou 'light'. */
-  DEFAULT_THEME: 'dark'
+  /* Thème au premier chargement : 'system', 'dark' ou 'light'.
+     'system' suit `prefers-color-scheme` et reste à l'écoute tant que
+     personne n'a choisi dans le menu.
+
+     CETTE VALEUR EST ÉCRITE À DEUX ENDROITS, et c'est assumé :
+     `assets/js/theme-tot.js` pose le thème dans le `<head>`, avant la
+     première peinture, et il ne peut pas lire ce fichier-ci — config.js
+     est chargé en fin de page. Changer l'un oblige à changer l'autre,
+     sans quoi le site s'affiche d'une couleur puis bascule. */
+  DEFAULT_THEME: 'system'
 };
 
 /* --- Réglage depuis la page ---------------------------------------------
