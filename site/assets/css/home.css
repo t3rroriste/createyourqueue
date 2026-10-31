@@ -559,6 +559,17 @@ html::-webkit-scrollbar { display: none; }
   animation: langmenu-in 170ms var(--e-out);
 }
 
+/* SUR TÉLÉPHONE, LE PANNEAU S'OUVRE VERS LA DROITE. Aligné par la droite
+   sur un bouton qui n'est qu'à 65 px du bord gauche, ses 212 px partaient
+   à -103 px : la moitié du menu était hors de l'écran, sans barre de
+   défilement pour aller la chercher. À droite du bouton il tient (65 +
+   212 = 277 sur 375), et l'origine suit, sinon il se déplie depuis un
+   coin où il n'est pas. */
+@media (max-width: 560px) {
+  .langmenu__panel { left: 0; right: auto; }
+  .langmenu[data-open="true"] .langmenu__panel { transform-origin: top left; }
+}
+
 /* LE BOUTON DU MENU : un disque, comme les autres commandes de la page.
    Il était une pilule, parce qu'il portait un drapeau et deux lettres ;
    il ne porte plus qu'un écrou, et une pilule autour d'une seule icône
