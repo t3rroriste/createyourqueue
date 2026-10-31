@@ -1093,3 +1093,99 @@ html::-webkit-scrollbar { display: none; }
    modules.css reste chargée par l'accueil, et pour une seule raison : ses
    maquettes Discord (`.mock`). Le héros et la démo en affichent une
    chacun, et c'est cette feuille qui sait les dessiner. */
+
+/* ================== la fenêtre d'un module ===========================
+   Ouverte par une carte de la grille. Elle montre la MÊME maquette que
+   la vignette — clonée par page-home.js, pas réécrite — en plus grand,
+   avec le texte long et les deux boutons.
+
+   Elle vit à la fin de la feuille parce qu'elle recouvre tout le reste :
+   écrite plus haut, elle aurait eu besoin d'un z-index de plus en plus
+   grand à chaque chose ajoutée en dessous d'elle. */
+
+.modmodal {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center;
+  padding: var(--gutter);
+}
+/* Le verrou de défilement. Sur <html> et non sur <body> : iOS ignore
+   `overflow: hidden` posé sur le body et continue de faire défiler la
+   page derrière la fenêtre. */
+html.modmodal-ouvert, html.modmodal-ouvert body { overflow: hidden; }
+
+.modmodal__fond {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.72);
+  /* Pas de `backdrop-filter` : il force le navigateur à refloutter tout
+     ce qui est derrière à chaque image, et la page derrière est longue.
+     Un voile opaque dit la même chose pour rien. */
+}
+
+.modmodal__boite {
+  position: relative; z-index: 1;
+  width: min(620px, 100%);
+  max-height: calc(100vh - 2 * var(--gutter));
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-card);
+  box-shadow: 0 60px 120px -40px rgba(0,0,0,.95);
+}
+
+/* La maquette reprend les mesures de la vignette, en plus haut : c'est
+   la même image, regardée de plus près. */
+.modmodal__view {
+  min-height: 240px; padding: var(--sp-3);
+  display: grid; place-items: center;
+  background: var(--raised);
+  border-bottom: 1px solid var(--hair);
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  /* Le ballon de app.js écrit un `transform` ici : sans ça, la maquette
+     déborderait des coins arrondis en se gonflant. */
+  overflow: hidden;
+}
+/* La vignette clonée garde ses règles `.mcard__view` ; on neutralise
+   seulement ce qui n'a plus de sens une fois dedans. */
+.modmodal__view .mcard__view {
+  padding: 0; min-height: 0; background: none; border-bottom: none;
+}
+
+.modmodal__corps { padding: var(--sp-3); }
+.modmodal__t { font-size: 22px; font-weight: 500; letter-spacing: -0.015em; }
+.modmodal__p {
+  margin-top: var(--sp-2);
+  font-size: 15px; line-height: 1.65; color: var(--ink-60);
+}
+.modmodal__actions {
+  display: flex; flex-wrap: wrap; gap: var(--sp-1);
+  margin-top: var(--sp-3);
+}
+.modmodal__actions .pill--ghost { height: 44px; font-size: 14px; }
+
+/* L'ARRIVÉE. Le voile fond, la boîte monte de douze pixels — deux
+   animations CSS, aucune dépendance : la fenêtre s'ouvre même si
+   anime.js n'a pas chargé. */
+@keyframes modmodal-fond-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modmodal-boite-in {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+.modmodal__fond  { animation: modmodal-fond-in  180ms var(--e-soft); }
+.modmodal__boite { animation: modmodal-boite-in 260ms var(--e-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .modmodal__fond,
+  html:not(.motion-force) .modmodal__boite { animation: none; }
+}
+
+/* À 375 px, la fenêtre prend tout l'écran : une boîte centrée avec des
+   marges de chaque côté perd vingt pour cent de la largeur disponible
+   pour ne rien montrer de plus. */
+@media (max-width: 560px) {
+  .modmodal { padding: 0; place-items: stretch; }
+  .modmodal__boite {
+    width: 100%; max-height: 100vh; border: none; border-radius: 0;
+  }
+  .modmodal__view { border-radius: 0; min-height: 200px; }
+  .modmodal__actions .pill { flex: 1 1 100%; justify-content: center; }
+}
