@@ -1533,7 +1533,29 @@ label.row__label { cursor: pointer; }
     padding: 0 var(--sp-3) 2px;
   }
   .dbnav__grp { flex-direction: row; gap: 6px; }
-  .dbnav__grp + .dbnav__grp { margin-top: 0; margin-left: 14px; }
+  /* Le filet était horizontal entre deux familles empilées ; ici elles se
+     suivent à l'horizontale, et c'est donc un filet VERTICAL — sans quoi
+     il se dessinerait en travers de la rangée. */
+  .dbnav__grp + .dbnav__grp {
+    margin-top: 0; margin-left: 14px; padding-top: 0; padding-left: 14px;
+    border-top: 0; border-left: 1px solid var(--hair);
+  }
+  .dbnav__items { flex-direction: row; gap: 6px; }
+
+  /* CE QUI SE REPLIE EN COLONNE NE SE REPLIE PAS EN RANGÉE.
+
+     L'étiquette de famille est cachée ici depuis toujours : à
+     l'horizontale, chaque pixel est une entrée qu'on ne voit pas. Mais
+     elle est devenue le bouton qui replie sa famille — cachée, elle
+     emportait ses entrées avec elle, et plus rien ne pouvait les
+     rouvrir. Une famille repliée sur grand écran faisait donc disparaître
+     quatre sections sur téléphone, sans recours.
+
+     On rend donc toutes les entrées, quoi qu'en dise le `hidden` posé
+     par le script : le repli est un confort de colonne, il n'a pas cours
+     dans une rangée. L'état en mémoire n'est pas touché — il reprendra
+     tel quel au retour sur grand écran. */
+  .dbnav__items[hidden] { display: flex; }
 
   /* En rangée, une étiquette occuperait la place d'une entrée — et on ne
      voit déjà que trois entrées à la fois. L'espacement entre groupes
