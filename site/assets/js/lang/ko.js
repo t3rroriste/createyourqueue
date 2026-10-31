@@ -198,14 +198,12 @@ window.CYQ_I18N.ko = {
   "lg.desc": "이 서버에서 봇이 사용할 언어입니다. 봇이 직접 만든 채널과 역할의 이름도 함께 바뀝니다.",
   "lg.preview": "이름 변경 미리보기",
 
-  "fn.lead": "이 서버에서 봇이 하는 일입니다. 기능을 끄면 해당 명령어가 숨겨지지만 데이터는 지워지지 않습니다.",
   "fn.leaderboard": "순위표", "fn.leaderboardD": "지정한 채널에 갱신된 순위표를 올립니다",
   "fn.match": "매치 및 MMR", "fn.matchD": "매치를 시작하고 점수를 부여합니다",
   "fn.clans": "클랜", "fn.clansD": "클랜전, 클랜장, 이전",
   "fn.joinAnnounce": "입장 알림", "fn.joinAnnounceD": "플레이어가 서버에 들어올 때 보내는 메시지",
   "fn.statusPanel": "상태 패널", "fn.statusPanelD": "대기열 상태를 보여 주는 고정 메시지",
   "fn.queuePassword": "대기열 비밀번호", "fn.queuePasswordD": "대기열에 참가할 때 입력해야 하는 코드",
-  "fn.seeInDiscord": "디스코드에서 보기",
 
   "ch.lead": "봇이 쓰는 곳과 플레이어가 움직이는 곳입니다. 선택한 채널마다 봇에게 「채널 보기」와 「메시지 보내기」가 있어야 하며, 오른쪽 열이 이를 확인합니다.",
   "ch.commands": "명령어", "ch.commandsD": "플레이어가 봇 명령어를 입력하는 곳",

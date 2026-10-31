@@ -218,14 +218,12 @@ window.CYQ_I18N.fr = {
   "lg.desc": "La langue du bot sur ce serveur. Elle change aussi le nom des salons et des rôles que le bot crée lui-même.",
   "lg.preview": "Aperçu du renommage",
 
-  "fn.lead": "Ce que le bot fait sur ce serveur. Couper une fonction masque ses commandes, sans effacer ses données.",
   "fn.leaderboard": "Classement", "fn.leaderboardD": "Publie un classement mis à jour dans le salon dédié",
   "fn.match": "Match & MMR", "fn.matchD": "Lance les matchs et attribue les points",
   "fn.clans": "Clans", "fn.clansD": "Guerres de clans, chefs, transferts",
   "fn.joinAnnounce": "Annonce des adhésions", "fn.joinAnnounceD": "Message quand un joueur rejoint le serveur",
   "fn.statusPanel": "Panneau d'état", "fn.statusPanelD": "Message permanent qui affiche l'état des queues",
   "fn.queuePassword": "Mot de passe des queues", "fn.queuePasswordD": "Un code à saisir pour rejoindre une queue",
-  "fn.seeInDiscord": "Voir dans Discord",
 
   "ch.lead": "Où le bot écrit et où les joueurs agissent. Le bot doit pouvoir Voir et Envoyer des messages dans chaque salon choisi — la colonne de droite le vérifie.",
   "ch.commands": "Commandes", "ch.commandsD": "Où les joueurs tapent les commandes du bot",

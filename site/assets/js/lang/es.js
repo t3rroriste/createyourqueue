@@ -198,14 +198,12 @@ window.CYQ_I18N.es = {
   "lg.desc": "El idioma del bot en este servidor. También renombra los canales y roles que el bot crea él mismo.",
   "lg.preview": "Vista previa del renombrado",
 
-  "fn.lead": "Lo que hace el bot en este servidor. Desactivar una función oculta sus comandos sin borrar sus datos.",
   "fn.leaderboard": "Clasificación", "fn.leaderboardD": "Publica una clasificación actualizada en su canal",
   "fn.match": "Partida y MMR", "fn.matchD": "Inicia las partidas y reparte los puntos",
   "fn.clans": "Clanes", "fn.clansD": "Guerras de clanes, líderes, traspasos",
   "fn.joinAnnounce": "Aviso de entradas", "fn.joinAnnounceD": "Un mensaje cuando un jugador entra en el servidor",
   "fn.statusPanel": "Panel de estado", "fn.statusPanelD": "Un mensaje fijo que muestra el estado de las colas",
   "fn.queuePassword": "Contraseña de colas", "fn.queuePasswordD": "Un código que hay que escribir para entrar en una cola",
-  "fn.seeInDiscord": "Ver en Discord",
 
   "ch.lead": "Dónde escribe el bot y dónde actúan los jugadores. El bot debe poder Ver y Enviar mensajes en cada canal elegido — la columna de la derecha lo comprueba.",
   "ch.commands": "Comandos", "ch.commandsD": "Donde los jugadores escriben los comandos del bot",

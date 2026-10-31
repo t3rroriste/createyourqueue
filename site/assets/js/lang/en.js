@@ -198,14 +198,12 @@ window.CYQ_I18N.en = {
   "lg.desc": "The bot's language on this server. It also renames the channels and roles the bot creates itself.",
   "lg.preview": "Renaming preview",
 
-  "fn.lead": "What the bot does on this server. Turning a feature off hides its commands without deleting its data.",
   "fn.leaderboard": "Leaderboard", "fn.leaderboardD": "Posts an updated leaderboard in its channel",
   "fn.match": "Match & MMR", "fn.matchD": "Runs matches and awards points",
   "fn.clans": "Clans", "fn.clansD": "Clan wars, leaders, transfers",
   "fn.joinAnnounce": "Join announcements", "fn.joinAnnounceD": "A message when a player joins the server",
   "fn.statusPanel": "Status panel", "fn.statusPanelD": "A permanent message showing queue status",
   "fn.queuePassword": "Queue password", "fn.queuePasswordD": "A code players must enter to join a queue",
-  "fn.seeInDiscord": "See it in Discord",
 
   "ch.lead": "Where the bot writes and where players act. The bot must be able to View and Send messages in every channel you pick — the right column checks that.",
   "ch.commands": "Commands", "ch.commandsD": "Where players type the bot's commands",

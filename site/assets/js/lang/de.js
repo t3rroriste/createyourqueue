@@ -198,14 +198,12 @@ window.CYQ_I18N.de = {
   "lg.desc": "Die Sprache des Bots auf diesem Server. Sie benennt auch die Kanäle und Rollen um, die der Bot selbst anlegt.",
   "lg.preview": "Vorschau der Umbenennung",
 
-  "fn.lead": "Was der Bot auf diesem Server tut. Eine Funktion abzuschalten verbirgt ihre Befehle, ohne ihre Daten zu löschen.",
   "fn.leaderboard": "Rangliste", "fn.leaderboardD": "Veröffentlicht eine aktuelle Rangliste im zugehörigen Kanal",
   "fn.match": "Match & MMR", "fn.matchD": "Startet die Matches und verteilt die Punkte",
   "fn.clans": "Clans", "fn.clansD": "Clankriege, Leiter, Übergaben",
   "fn.joinAnnounce": "Beitrittsmeldungen", "fn.joinAnnounceD": "Eine Nachricht, wenn ein Spieler dem Server beitritt",
   "fn.statusPanel": "Statusanzeige", "fn.statusPanelD": "Eine feste Nachricht, die den Stand der Warteschlangen zeigt",
   "fn.queuePassword": "Warteschlangen-Passwort", "fn.queuePasswordD": "Ein Code, den Spieler zum Beitreten eingeben müssen",
-  "fn.seeInDiscord": "In Discord ansehen",
 
   "ch.lead": "Wo der Bot schreibt und wo die Spieler handeln. Der Bot muss in jedem gewählten Kanal Ansehen und Nachrichten senden können — die rechte Spalte prüft das.",
   "ch.commands": "Befehle", "ch.commandsD": "Wo die Spieler die Befehle des Bots eingeben",
