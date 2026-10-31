@@ -158,8 +158,7 @@
     store('lang', code);
     document.documentElement.setAttribute('lang', code);
     applyI18n(document);
-    $$('[data-lang-code]').forEach(function (el) { el.textContent = code.toUpperCase(); });
-    poserDrapeaux(code);
+    poserDrapeaux();
     $$('[data-lang-pick]').forEach(function (el) {
       var on = String(el.getAttribute('data-lang-pick') === code);
       // menuitemradio se coche, un bouton bascule se presse
@@ -923,7 +922,11 @@
   };
 
   /* Idempotent : appele a l'init ET a chaque changement de langue, il ne
-     doit jamais empiler deux pastilles sur le meme bouton. */
+     doit jamais empiler deux pastilles sur le meme bouton.
+
+     Depuis que le bouton du menu porte un écrou et non plus le drapeau du
+     pays, il ne reste que les cinq entrées de la liste à garnir : la
+     fonction ne dépend donc plus de la langue courante. */
   /* Un drapeau posé une fois pour toutes, hors du menu de langue : porter
      `data-flag="fr"` suffit. Le dessin reste celui de DRAPEAUX, donc il n'y a
      jamais deux versions d'un même drapeau dans le site. */
@@ -935,7 +938,7 @@
   }
   CYQ.poserDrapeauxFixes = poserDrapeauxFixes;
 
-  function poserDrapeaux(code) {
+  function poserDrapeaux() {
     $$('[data-lang-pick]').forEach(function (el) {
       var lg = el.getAttribute('data-lang-pick');
       var d = $('.flag', el);
@@ -961,19 +964,23 @@
       function open() {
         wrap.setAttribute('data-open', 'true');
         btn.setAttribute('aria-expanded', 'true');
+        faireTournerLEcrou(btn, true);
         var cur = $('.langmenu__opt[aria-checked="true"]', panel) || opts()[0];
         if (cur) cur.focus();
       }
       function close(back) {
         wrap.removeAttribute('data-open');
         btn.setAttribute('aria-expanded', 'false');
+        /* Accroché à la FERMETURE et non au clic : on referme aussi par
+           Échap, par Tab et en cliquant à côté, et l'écrou resterait
+           vissé dans ces trois cas. */
+        faireTournerLEcrou(btn, false);
         if (back) btn.focus();
       }
 
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         if (wrap.getAttribute('data-open')) { close(true); return; }
-        faireTournerLeCode(btn);
         open();
       });
       btn.addEventListener('keydown', function (e) {
@@ -1012,44 +1019,26 @@
     return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
-  /* 1 — LE LIBELLÉ QUI TOURNE.
+  /* 1 — L'ÉCROU QUI TOURNE.
 
-     Au clic, les cinq codes défilent verticalement dans le bouton et
-     s'arrêtent sur celui qui est actif. Ce n'est pas de la décoration :
-     le bouton n'affiche QUE « FR », et rien n'y disait qu'il y avait
-     quatre autres langues dessous. Le défilé les montre toutes, une
-     demi-seconde, avant que le menu ne s'ouvre.
+     Un quart de tour au clic, dans un sens puis dans l'autre : à
+     l'ouverture il se visse, à la fermeture il se dévisse. Le menu dit
+     déjà qu'il s'est ouvert ; ce que l'écrou ajoute, c'est que le clic a
+     été PRIS — sur un bouton rond sans libellé, c'est la seule chose
+     qui le dise.
 
-     Le texte est remplacé puis remis : on ne touche pas au DOM autour,
-     et si le minuteur meurt en route le bouton garde la bonne valeur
-     parce que c'est `setLang` qui l'écrit, pas cette fonction. */
-  function faireTournerLeCode(btn) {
-    var cible = $('[data-lang-code]', btn);
-    if (!cible || cible._cyqTourne || !mouvementAutorise()) return;
-    cible._cyqTourne = true;
+     Un quart de tour et pas un tour complet : un écrou qui fait 360°
+     revient là où il était, et le geste ne se lit qu'à condition de
+     l'avoir regardé en entier. Quarante-cinq degrés se voient d'un coup
+     d'œil et laissent le dessin reconnaissable.
 
-    var bon = (CYQ.lang || 'fr').toUpperCase();
-    /* On part de la langue suivante et on fait le tour complet : la
-       dernière valeur posée est donc toujours la bonne, même si le
-       dernier cadre est sauté. */
-    var depart = LANGS.indexOf(CYQ.lang);
-    var suite = [];
-    for (var i = 1; i <= LANGS.length; i++) {
-      suite.push(LANGS[(depart + i) % LANGS.length].toUpperCase());
-    }
-
-    var n = 0;
-    var pas = setInterval(function () {
-      cible.textContent = suite[n];
-      cible.style.transform = 'translateY(-2px)';
-      setTimeout(function () { cible.style.transform = ''; }, 60);
-      if (++n >= suite.length) {
-        clearInterval(pas);
-        cible.textContent = bon;
-        cible.style.transform = '';
-        cible._cyqTourne = false;
-      }
-    }, 70);
+     `transform` seul, et une transition CSS plutôt qu'un minuteur :
+     rien à annuler si on reclique en plein mouvement, le navigateur
+     reprend la rotation là où elle en est. */
+  function faireTournerLEcrou(btn, ouvre) {
+    var ecrou = $('[data-ecrou]', btn);
+    if (!ecrou || !mouvementAutorise()) return;
+    ecrou.style.transform = ouvre ? 'rotate(45deg)' : '';
   }
 
   /* 2 — LA PAGE QUI SE REGÉNÈRE.

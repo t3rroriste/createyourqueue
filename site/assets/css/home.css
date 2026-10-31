@@ -559,12 +559,18 @@ html::-webkit-scrollbar { display: none; }
   animation: langmenu-in 170ms var(--e-out);
 }
 
-/* Le libellé qui tourne pendant que les cinq codes défilent. Deux
-   pixels, 60 ms : c'est un battement, pas un saut — les lettres
-   changent déjà, le mouvement n'a qu'à les accompagner. */
-[data-lang-code] {
-  display: inline-block;
-  transition: transform 60ms var(--e-soft);
+/* LE BOUTON DU MENU : un disque, comme les autres commandes de la page.
+   Il était une pilule, parce qu'il portait un drapeau et deux lettres ;
+   il ne porte plus qu'un écrou, et une pilule autour d'une seule icône
+   est une pilule vide de chaque côté. 38 px et non 44 : il est dans la
+   barre de navigation, à côté de boutons de 34. */
+.langmenu__btn { width: 38px; height: 38px; }
+
+/* L'écrou qui se visse à l'ouverture. Le ressort léger — il dépasse un
+   peu avant de se poser — est ce qui fait la différence entre « ça a
+   tourné » et « ça s'est vissé ». */
+.langmenu__ecrou {
+  transition: transform 320ms cubic-bezier(.34, 1.56, .64, 1);
 }
 
 /* Le titre d'un groupe du menu. Pas un `<h>` : il ne structure pas la
@@ -648,7 +654,7 @@ html::-webkit-scrollbar { display: none; }
      script poserait le voile sans passer par la même porte. */
   html:not(.motion-force) .regen { display: none; }
   html:not(.motion-force) .langmenu[data-open="true"] .langmenu__panel { animation: none; }
-  html:not(.motion-force) [data-lang-code] { transition: none; }
+  html:not(.motion-force) .langmenu__ecrou { transition: none; }
 }
 .langmenu__opt {
   width: 100%; min-height: 40px; display: flex; align-items: center; gap: 12px;

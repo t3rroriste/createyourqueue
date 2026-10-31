@@ -15,7 +15,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202610311742"></script>
+<script src="assets/js/theme-tot.js?v=202610311744"></script>
 <link rel="icon" href="assets/img/logo.png">
 <!-- L'ADRESSE CANONIQUE ET LES CINQ LANGUES.
 
@@ -41,13 +41,13 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610311742">
+<link rel="stylesheet" href="assets/css/home.css?v=202610311744">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610311742">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610311744">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -95,11 +95,23 @@
     <a href="support" data-i18n="n.support">Support</a>
   </div>
   <div class="langmenu">
-    <!-- Le menu porte maintenant DEUX réglages : son nom ne peut plus
-         être « Langue ». `c.prefs` dit les deux. -->
-    <button class="pill pill--ghost pill--sm" type="button" data-lang-menu
+    <!-- UN ÉCROU, PAS UN DRAPEAU.
+
+         Le bouton montrait le drapeau du pays et son code — « FR ». Deux
+         défauts : il annonçait la langue courante, que personne ne
+         cherche puisqu'on est en train de la lire, et il ne disait rien
+         du thème, qui est l'autre moitié du menu. Un écrou ne nomme
+         aucun des deux et les contient tous les deux : c'est le signe
+         des réglages, et il est lu comme tel partout.
+
+         Il tourne d'un quart de tour au clic — voir `faireTournerLEcrou`
+         dans app.js. Les drapeaux restent dans la liste, où ils servent :
+         c'est là qu'on choisit.
+
+         `c.prefs` et non `c.lang` : le menu porte deux réglages. -->
+    <button class="disc langmenu__btn" type="button" data-lang-menu
             aria-haspopup="menu" aria-expanded="false" data-i18n-attr="aria-label:c.prefs">
-      <span data-lang-code>FR</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      <svg class="langmenu__ecrou" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ecrou><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/><circle cx="12" cy="12" r="3"/></svg>
     </button>
     <div class="langmenu__panel" role="menu" data-i18n-attr="aria-label:c.lang">
       <!-- LE THÈME, AU-DESSUS DES LANGUES.
@@ -736,14 +748,14 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610311742"></script>
-<script src="assets/js/config.js?v=202610311742"></script>
-<script src="assets/js/lang/fr.js?v=202610311742"></script>
-<script src="assets/js/lang/en.js?v=202610311742"></script>
-<script src="assets/js/lang/es.js?v=202610311742"></script>
-<script src="assets/js/lang/de.js?v=202610311742"></script>
-<script src="assets/js/lang/ko.js?v=202610311742"></script>
-<script src="assets/js/app.js?v=202610311742"></script>
-<script src="assets/js/page-home.js?v=202610311742"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610311744"></script>
+<script src="assets/js/config.js?v=202610311744"></script>
+<script src="assets/js/lang/fr.js?v=202610311744"></script>
+<script src="assets/js/lang/en.js?v=202610311744"></script>
+<script src="assets/js/lang/es.js?v=202610311744"></script>
+<script src="assets/js/lang/de.js?v=202610311744"></script>
+<script src="assets/js/lang/ko.js?v=202610311744"></script>
+<script src="assets/js/app.js?v=202610311744"></script>
+<script src="assets/js/page-home.js?v=202610311744"></script>
 </body>
 </html>
