@@ -22,6 +22,16 @@
                                            réservé au décor */
   --hair:   rgba(244,241,236,.08);
   --film:   rgba(244,241,236,.05);      /* fond des pilules fantômes */
+  /* Le survol d'une surface fantôme, et l'encre poussée à fond. Huit
+     valeurs étaient écrites en dur — `#fff`, `rgba(255,255,255,.1)` —
+     et elles étaient justes tant que le fond était noir. Elles ne le
+     sont plus dès qu'il y a un thème clair : un survol qui éclaircit
+     une surface déjà claire ne se voit pas. */
+  --lift:    rgba(255,255,255,.10);
+  --lift-2:  rgba(255,255,255,.05);
+  --lift-3:  rgba(255,255,255,.07);
+  --lift-4:  rgba(255,255,255,.12);
+  --ink-max: #fff;
 
   /* --- l'unique accent, tenu en laisse ---
      Trois emplois autorisés : la flèche d'un CTA, le point de pagination
@@ -53,6 +63,47 @@
   --sans: 'Geist', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   color-scheme: dark;
+}
+
+/* ====================== le même écran, en clair ======================
+   Les mêmes jetons, et RIEN D'AUTRE : la feuille n'a pas une règle qui
+   nomme une couleur, tout passe par ces quinze lignes. C'est la seule
+   raison pour laquelle un thème clair tient en un bloc ici.
+
+   Le blanc est chaud comme le noir l'est — #F7F5F1 et non #FFFFFF : la
+   D.A. est « noir chaud, jamais bleuté », et son envers doit l'être
+   aussi, sinon ce sont deux pages différentes.
+
+   Le cuivre descend à #8A5A2E. Le #C08A5A du thème sombre tombe à 2,4:1
+   sur un fond clair, c'est-à-dire illisible ; assombri il remonte à
+   6,1:1. C'est la MÊME couleur, posée pour le même rôle, à la
+   luminosité que son fond exige — pas un second accent.
+
+   `--discord` ne bouge pas : c'est la couleur d'une marque tierce, elle
+   n'est pas à nous. */
+html[data-theme="light"] {
+  --bg:       #F7F5F1;
+  --panel:    #FFFDFA;
+  --raised:   #ECE7DF;
+  --raised-2: #E1DBD1;
+
+  --ink:    #17150F;                    /* 16.9:1 sur --panel */
+  --ink-60: rgba(23,21,15,.62);         /*  6.6:1 */
+  --ink-40: rgba(23,21,15,.42);         /*  3.6:1 — décor seulement */
+  --hair:   rgba(23,21,15,.11);
+  --film:   rgba(23,21,15,.05);
+
+  /* Sur clair, un survol ASSOMBRIT. Les quatre valeurs gardent leurs
+     rôles et leurs forces relatives, elles changent seulement de sens. */
+  --lift:    rgba(23,21,15,.09);
+  --lift-2:  rgba(23,21,15,.04);
+  --lift-3:  rgba(23,21,15,.06);
+  --lift-4:  rgba(23,21,15,.12);
+  --ink-max: #000;
+
+  --accent: #8A5A2E;
+
+  color-scheme: light;
 }
 
 /* ============================== base ================================== */
@@ -206,7 +257,7 @@ html::-webkit-scrollbar { display: none; }
   display: flex; align-items: center; gap: 28px;
   padding: 7px 7px 7px 20px;
   border-radius: var(--r-pill);
-  background: rgba(255,255,255,.05);
+  background: var(--lift-2);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--hair);
   max-width: calc(100% - 32px);
@@ -233,7 +284,7 @@ html::-webkit-scrollbar { display: none; }
   cursor: pointer; white-space: nowrap;
   transition: transform 260ms var(--e-out), background 200ms var(--e-soft);
 }
-.pill:hover { background: #fff; }
+.pill:hover { background: var(--ink-max); }
 .pill:active { transform: scale(.97); }
 .pill__arrow {
   width: 30px; height: 30px; border-radius: 50%; flex: 0 0 auto;
@@ -277,18 +328,18 @@ html::-webkit-scrollbar { display: none; }
   border: 1px solid var(--hair);
   padding: 0 20px; height: 40px; font-size: 13px;
 }
-.pill--ghost:hover { background: rgba(255,255,255,.1); }
+.pill--ghost:hover { background: var(--lift); }
 .pill--sm { height: 34px; padding: 0 16px; font-size: 12.5px; }
 
 /* 3 — disque : les contrôles */
 .disc {
   width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto;
   display: grid; place-items: center;
-  background: rgba(255,255,255,.07); border: none; color: var(--ink);
+  background: var(--lift-3); border: none; color: var(--ink);
   cursor: pointer;
   transition: transform 260ms var(--e-out), background 200ms var(--e-soft);
 }
-.disc:hover { background: rgba(255,255,255,.12); }
+.disc:hover { background: var(--lift-4); }
 .disc:active { transform: scale(.97); }
 
 /* 4 — texte souligné : le tertiaire */
@@ -445,7 +496,7 @@ html::-webkit-scrollbar { display: none; }
   background: var(--film); border: 1px solid var(--hair);
   transition: background 200ms var(--e-soft);
 }
-.foot__status:hover { background: rgba(255,255,255,.1); }
+.foot__status:hover { background: var(--lift); }
 
 /* Le point. Il sert ici et dans la rangée de repères de l'accueil, d'où un
    nom qui n'appartient à aucune des deux. Il reste du décor tant que
@@ -629,7 +680,7 @@ html::-webkit-scrollbar { display: none; }
   font-size: 13px; color: var(--ink-60);
   transition: background 200ms var(--e-soft);
 }
-.stat__link:hover { background: rgba(255,255,255,.1); color: var(--ink); }
+.stat__link:hover { background: var(--lift); color: var(--ink); }
 .stats__bar {
   width: 1px; height: 72px; margin-top: 22px;
   background: var(--hair); flex: 0 0 auto;
@@ -810,7 +861,7 @@ html::-webkit-scrollbar { display: none; }
   font: 500 15px/1.4 var(--sans); letter-spacing: -0.01em; text-align: left;
   cursor: pointer;
 }
-.faq__q:hover { color: #fff; }
+.faq__q:hover { color: var(--ink-max); }
 /* Le signe suit l'état, et il est dessiné en CSS : deux barres, dont la
    verticale disparaît quand la réponse est ouverte. Rien à remplacer dans
    le DOM, donc rien à désynchroniser. */
