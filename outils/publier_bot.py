@@ -199,7 +199,15 @@ def verifier_syntaxe(relatifs: list[str]) -> bool:
             continue
         chemin = os.path.join(PROJECT_DIR, rel.replace("/", os.sep))
         try:
-            with open(chemin, encoding="utf-8") as f:
+            # utf-8-SIG et non utf-8 : quinze fichiers du bot commencent
+            # par un BOM, posé par l'éditeur qui les a écrits le 28 octobre.
+            # CPython le retire lui-même quand il compile UN FICHIER, donc
+            # ces quinze-là tournent depuis ce jour-là sans que rien ne
+            # proteste. Mais compile() reçoit ici une CHAÎNE, où le BOM
+            # n'est plus un en-tête : c'est un caractère, et il le refuse.
+            # Le contrôle criait donc « ces fichiers ne compilent pas » sur
+            # du code qui compile, et il bloquait toute publication du bot.
+            with open(chemin, encoding="utf-8-sig") as f:
                 compile(f.read(), rel, "exec")
         except SyntaxError as e:
             mauvais.append(f"{rel}, ligne {e.lineno} : {e.msg}")
