@@ -1495,15 +1495,28 @@ label.row__label { cursor: pointer; }
        deux rangées, et il faut la laisser passer. */
     --db-top: 112px;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "guild" "nav" "main" "me";
+    grid-template-areas: "guild" "find" "nav" "main" "me";
     gap: var(--sp-3);
     padding: var(--db-top) var(--sp-3) var(--sp-3);
   }
   .db__side { display: contents; }
   .dbguild { grid-area: guild; margin-bottom: 0; }
+  .dbfind { grid-area: find; margin-bottom: 0; }
+  /* Elle n'a pas de case à elle : elle se range avec le champ, juste en
+     dessous, et ne pousse donc rien quand elle est vide. */
+  .dbfind__vide { grid-area: find; align-self: end; margin: 0; padding-top: 44px; }
   .dbnav { grid-area: nav; }
   .db__main { grid-area: main; }
   .dbme { grid-area: me; margin-top: 0; }
+
+  /* Replier n'a pas de sens ici : la colonne n'est plus une colonne, elle
+     est une rangée de sections au-dessus du contenu, et elle ne prend pas
+     de largeur à qui que ce soit. Le bouton part, et la règle de repli
+     avec lui — sans quoi un repli laissé actif sur grand écran ferait
+     disparaître le menu sur téléphone. */
+  .dbfold { display: none; }
+  .db.is-replie { grid-template-columns: minmax(0, 1fr); }
+  .db.is-replie .db__side { display: contents; }
 
   .dbguild { grid-template-columns: 38px minmax(0, 1fr) auto; grid-template-rows: auto; }
 

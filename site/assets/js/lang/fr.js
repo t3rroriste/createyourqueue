@@ -193,6 +193,8 @@ window.CYQ_I18N.fr = {
   "d.tools": "Outils", "d.diagnostic": "Diagnostic", "d.export": "Exporter la config",
   "d.openDiscord": "Ouvrir dans Discord", "d.crumbServers": "Serveurs",
   "d.navLabel": "Sections de configuration",
+  "d.find": "Chercher une section", "d.findNone": "Aucune section",
+  "d.foldHide": "Replier le menu", "d.foldShow": "Déplier le menu",
   "cat.bot": "Général", "cat.queue": "Queue", "cat.server": "Le serveur",
   "cat.access": "Accès", "cat.security": "Sécurité", "cat.monitor": "Suivi",
   "d.crumbLabel": "Fil d'Ariane",

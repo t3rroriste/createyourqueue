@@ -174,6 +174,8 @@ window.CYQ_I18N.de = {
   "d.tools": "Werkzeuge", "d.diagnostic": "Diagnose", "d.export": "Konfiguration exportieren",
   "d.openDiscord": "In Discord öffnen", "d.crumbServers": "Server",
   "d.navLabel": "Konfigurationsbereiche",
+  "d.find": "Abschnitt suchen", "d.findNone": "Kein Abschnitt",
+  "d.foldHide": "Menü einklappen", "d.foldShow": "Menü ausklappen",
   "cat.bot": "Allgemein", "cat.queue": "Queue", "cat.server": "Der Server",
   "cat.access": "Zugang", "cat.security": "Sicherheit", "cat.monitor": "Überwachung",
   "d.crumbLabel": "Brotkrümelnavigation",

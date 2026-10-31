@@ -174,6 +174,8 @@ window.CYQ_I18N.en = {
   "d.tools": "Tools", "d.diagnostic": "Diagnostics", "d.export": "Export config",
   "d.openDiscord": "Open in Discord", "d.crumbServers": "Servers",
   "d.navLabel": "Configuration sections",
+  "d.find": "Search a section", "d.findNone": "No section",
+  "d.foldHide": "Collapse the menu", "d.foldShow": "Expand the menu",
   "cat.bot": "General", "cat.queue": "Queue", "cat.server": "The server",
   "cat.access": "Access", "cat.security": "Security", "cat.monitor": "Monitoring",
   "d.crumbLabel": "Breadcrumb",

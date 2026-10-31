@@ -174,6 +174,8 @@ window.CYQ_I18N.ko = {
   "d.tools": "도구", "d.diagnostic": "진단", "d.export": "설정 내보내기",
   "d.openDiscord": "디스코드에서 열기", "d.crumbServers": "서버",
   "d.navLabel": "설정 섹션",
+  "d.find": "섹션 검색", "d.findNone": "섹션 없음",
+  "d.foldHide": "메뉴 접기", "d.foldShow": "메뉴 펼치기",
   "cat.bot": "일반", "cat.queue": "대기열", "cat.server": "서버",
   "cat.access": "접근", "cat.security": "보안", "cat.monitor": "모니터링",
   "d.crumbLabel": "탐색 경로",

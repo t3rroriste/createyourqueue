@@ -1908,6 +1908,197 @@
     });
 
     /* ==================================================================
+       LE MENU : FAMILLES DÉPLIABLES, RECHERCHE, COLONNE REPLIABLE
+       ================================================================== */
+
+    /* Ce que la personne a replié se garde dans CE navigateur, et
+       seulement là : c'est un confort de lecture, pas un réglage du
+       serveur. Rien de tout ça ne part au bot, et rien ne doit tomber si
+       le stockage est refusé — navigation privée, cookies coupés. */
+    function memoire(cle, val) {
+      try {
+        if (val === undefined) return localStorage.getItem('cyq:nav:' + cle);
+        if (val === null) localStorage.removeItem('cyq:nav:' + cle);
+        else localStorage.setItem('cyq:nav:' + cle, val);
+      } catch (e) { /* on continue sans mémoire */ }
+      return null;
+    }
+
+    /* ---- les familles se replient -------------------------------------
+       Vingt-huit entrées sur six familles, et personne n'en règle
+       vingt-huit dans la même séance : on vient pour la queue, ou pour la
+       sécurité. Replier les autres rend la colonne lisible d'un coup
+       d'œil — et c'est ce qui paie les deux points de corps repris sur
+       les entrées.
+
+       La famille qui contient la section ouverte se déplie TOUJOURS, quoi
+       qu'en dise la mémoire : un menu qui cache l'endroit où l'on est
+       laisse croire qu'on l'a quitté. */
+    function famillesDepliables() {
+      var boutons = $$('.dbnav__cat[data-grp]');
+      if (!boutons.length) return;
+
+      function poser(bouton, ouvert) {
+        var items = document.getElementById(bouton.getAttribute('aria-controls'));
+        bouton.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+        if (items) items.hidden = !ouvert;
+      }
+
+      boutons.forEach(function (bouton) {
+        var nom = bouton.getAttribute('data-grp');
+        /* Ouvertes par défaut : on ne cache pas à quelqu'un qui arrive ce
+           qu'il n'a pas demandé à cacher. Seul un « 0 » écrit ferme. */
+        poser(bouton, memoire('grp:' + nom) !== '0');
+
+        bouton.addEventListener('click', function () {
+          var ouvert = bouton.getAttribute('aria-expanded') === 'true';
+          poser(bouton, !ouvert);
+          memoire('grp:' + nom, ouvert ? '0' : '1');
+          placerMarque(false);
+        });
+      });
+
+      function ouvrirCelleDeLaSection() {
+        var actif = $('.navlink[aria-current="page"]');
+        if (!actif) return;
+        var items = actif.closest('.dbnav__items');
+        if (!items) return;
+        var bouton = $('.dbnav__cat[aria-controls="' + items.id + '"]');
+        if (bouton && bouton.getAttribute('aria-expanded') === 'false') {
+          poser(bouton, true);
+          placerMarque(false);
+        }
+      }
+      document.addEventListener('cyq:section', ouvrirCelleDeLaSection);
+      ouvrirCelleDeLaSection();
+    }
+
+    /* ---- chercher une section -----------------------------------------
+       Le champ FILTRE, il ne classe pas : ce qui ne correspond pas
+       disparaît, et le reste garde sa place. Une liste qui se réordonne
+       sous les doigts oblige à relire à chaque lettre.
+
+       Pendant une recherche les familles s'ouvrent toutes, y compris
+       celles qu'on avait repliées : on cherche justement ce qu'on ne voit
+       pas. Le champ vidé, chacune retrouve son état. */
+    function chercherDansLeMenu() {
+      var champ = $('[data-nav-find]');
+      if (!champ) return;
+      var vide = $('[data-find-empty]');
+      var groupes = $$('.dbnav__grp');
+
+      /* Le nom du raccourci change avec la machine : ⌘K sur un Mac,
+         Ctrl K ailleurs. L'écrire en dur en aurait fait un mensonge sur
+         l'une des deux. */
+      var pomme = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+      var kbd = $('[data-find-kbd]');
+      if (kbd) kbd.textContent = pomme ? '⌘ K' : 'Ctrl K';
+
+      /* Les accents ne doivent pas faire manquer une section : « rôles »
+         se trouve en tapant « roles ». NFD sépare la lettre de son
+         accent, et on retire les accents restés seuls. */
+      function nu(s) {
+        s = String(s || '').toLowerCase();
+        return s.normalize ? s.normalize('NFD').replace(/[̀-ͯ]/g, '') : s;
+      }
+
+      function filtrer() {
+        var q = nu(champ.value).trim();
+        var trouves = 0;
+
+        groupes.forEach(function (grp) {
+          var liens = $$('.navlink', grp), visibles = 0;
+          liens.forEach(function (l) {
+            var lab = $('.navlink-label', l);
+            var ok = !q || nu(lab ? lab.textContent : l.textContent).indexOf(q) !== -1;
+            l.hidden = !ok;
+            if (ok) visibles++;
+          });
+          trouves += visibles;
+
+          /* Un bloc de sous-entrées dont plus rien ne correspond s'en va
+             avec ses entrées : sinon il ne resterait que son blanc.
+
+             Champ vidé, on ne le remet PAS visible d'office : c'est
+             l'interrupteur de l'option qui commande ce bloc
+             (`syncSousMenus`), et le rouvrir ici afficherait la
+             configuration d'une option éteinte. On relit donc
+             l'interrupteur, exactement comme lui. */
+          $$('.dbnav__sub', grp).forEach(function (sub) {
+            if (!q) {
+              var inter = $('[data-setting="' + sub.getAttribute('data-sub') + '"]');
+              sub.hidden = !(inter && inter.checked);
+              return;
+            }
+            sub.hidden = !$$('.navlink', sub).filter(function (l) { return !l.hidden; }).length;
+          });
+
+          var cat = $('.dbnav__cat', grp);
+          var items = cat && document.getElementById(cat.getAttribute('aria-controls'));
+          if (q) {
+            grp.hidden = !visibles;
+            if (items) items.hidden = false;      // on cherche ce qu'on ne voit pas
+          } else {
+            grp.hidden = false;
+            if (items && cat) items.hidden = cat.getAttribute('aria-expanded') === 'false';
+          }
+        });
+
+        if (vide) vide.hidden = !q || trouves > 0;
+        placerMarque(false);
+      }
+
+      champ.addEventListener('input', filtrer);
+      champ.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { champ.value = ''; filtrer(); champ.blur(); }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+          e.preventDefault();
+          champ.focus();
+          champ.select();
+        }
+      });
+    }
+
+    /* ---- replier la colonne --------------------------------------------
+       Pour gagner la largeur, pas pour cacher : repliée, la grille repasse
+       à une colonne et le contenu prend toute la place. Le bouton reste
+       où il est — une commande qui disparaît avec ce qu'elle replie ne se
+       rouvre jamais. */
+    function colonneRepliable() {
+      var bouton = $('[data-fold]');
+      var db = $('[data-db]');
+      if (!bouton || !db) return;
+
+      function poser(replie) {
+        db.classList.toggle('is-replie', replie);
+        bouton.setAttribute('aria-expanded', replie ? 'false' : 'true');
+        var mot = t(replie ? 'd.foldShow' : 'd.foldHide');
+        bouton.setAttribute('aria-label', mot);
+        bouton.setAttribute('title', mot);
+        /* L'indicateur se mesure dans une colonne qui vient de changer de
+           largeur — ou qui n'est plus affichée du tout. */
+        setTimeout(function () { placerMarque(false); }, 0);
+      }
+
+      poser(memoire('replie') === '1');
+
+      bouton.addEventListener('click', function () {
+        var replie = !db.classList.contains('is-replie');
+        poser(replie);
+        memoire('replie', replie ? '1' : '0');
+      });
+
+      /* Le mot du titre est traduit : il change avec la langue, comme le
+         reste de la page. */
+      document.addEventListener('cyq:lang', function () {
+        poser(db.classList.contains('is-replie'));
+      });
+    }
+
+    /* ==================================================================
        L'OUVERTURE
        ================================================================== */
 
@@ -2052,6 +2243,9 @@
     maquettesOptions();
     maquettesSecurite();
     verrouProgrammation();
+    famillesDepliables();
+    chercherDansLeMenu();
+    colonneRepliable();
     placerMarque(false);
     ouverture();
     chargerCompte();
