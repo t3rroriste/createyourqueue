@@ -410,10 +410,47 @@ if ($chemin === '/me' && $methode === 'GET') {
 /* Les serveurs de la personne, filtrés sur « Gérer le serveur ». Discord est
    la seule source de vérité ici : on ne se fie jamais à ce que le navigateur
    affirme. */
+/* Combien de temps la liste des serveurs reste valable dans la session.
+
+   30 secondes, et le chiffre n'est pas arbitraire : c'est la durée d'une
+   ouverture de page. En deçà, la rafale repasse ; au delà, un droit
+   retiré sur Discord mettrait trop longtemps à se voir ici — et cette
+   liste n'est pas un confort d'affichage, c'est elle qui décide, par
+   `peut_gerer()`, qui a le droit de régler quoi. Un cache long serait un
+   contrôle d'accès périmé. */
+const CACHE_GUILDES = 30;
+
 function mes_guildes(array $session): array
 {
+    /* LA RAFALE, ET POURQUOI CE CACHE EXISTE.
+
+       Presque toutes les routes commencent par appeler cette fonction, et
+       chacune refaisait un aller-retour chez Discord. Ouvrir le panneau
+       d'un serveur en déclenche quatre coup sur coup — la fiche, le
+       journal, les matchs, l'activité — auxquels s'ajoute la liste des
+       serveurs juste avant. Cinq appels à `/users/@me/guilds` pour une
+       seule page, et deux rechargements un peu nerveux suffisaient à ce
+       que Discord réponde 429.
+
+       Le panneau affichait alors « L'API n'a pas répondu », ce qui
+       désignait le mauvais coupable : l'API répondait parfaitement, et
+       le bot aussi. C'est nous qui comptions mal.
+
+       Le cache vit dans la session PHP, donc côté serveur et par
+       personne : rien n'en sort vers le navigateur, et le voisin n'hérite
+       pas de la liste de serveurs de quelqu'un d'autre. */
+    demarrer_session();
+    $cache = $_SESSION['cyq']['guildes'] ?? null;
+    if (is_array($cache) && isset($cache['a'], $cache['liste'])
+        && is_array($cache['liste'])
+        && (time() - (int)$cache['a']) < CACHE_GUILDES) {
+        return $cache['liste'];
+    }
+
     try {
-        return appel_discord('/users/@me/guilds', $session['access_token']);
+        $liste = appel_discord('/users/@me/guilds', $session['access_token']);
+        $_SESSION['cyq']['guildes'] = ['a' => time(), 'liste' => $liste];
+        return $liste;
     } catch (RuntimeException $e) {
         if ($e->getCode() === 401) {
             repondre(401, ['error' => 'UNAUTHORIZED']);

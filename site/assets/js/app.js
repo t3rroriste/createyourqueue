@@ -260,7 +260,23 @@
         credentials: 'include',
         body: opts.body ? JSON.stringify(opts.body) : undefined
       }).then(function (r) {
-        if (r.ok) return r.status === 204 ? null : r.json();
+        /* Le corps d'une réponse réussie n'est pas forcément du JSON : un
+           avertissement PHP imprimé avant la charge, une page d'erreur
+           glissée par un cache ou un proxy, et `r.json()` rejette avec une
+           SyntaxError — un objet sans `.code` ni `.status`, que l'appelant
+           range donc dans « erreur inconnue » et annonce comme « l'API n'a
+           pas répondu ». Elle avait répondu, et c'est le genre de phrase
+           qui envoie chercher une panne ailleurs pendant une heure. On
+           nomme donc le cas. */
+        if (r.ok) {
+          if (r.status === 204) return null;
+          return r.json().catch(function () {
+            var e = new Error('BAD_JSON');
+            e.code = 'BAD_JSON';
+            e.status = r.status;
+            throw e;
+          });
+        }
         /* Le corps d'une erreur porte souvent le MOTIF ({"error":"…"}), et
            c'est lui qui permet une phrase juste plutôt qu'un « erreur ».
            On le lit donc avant de rejeter, et son absence n'est pas une

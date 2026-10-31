@@ -1568,6 +1568,14 @@
            l'apprenait, une fois le formulaire rempli. */
         titre = t('d.botOff'); texte = t('d.botOffBody');
         action = '<button class="pill pill--sm" type="button" data-reload>' + esc(t('c.retry')) + '</button>';
+      } else if (genre === 'rate') {
+        /* 429. Discord compte les requêtes, et il vient de dire stop.
+           Ce n'est ni une panne ni un refus : c'est temporaire, et le
+           seul geste utile est d'attendre quelques secondes. Le dire
+           évite de chercher une panne là où il n'y en a pas — ce qui
+           est exactement ce qui s'est passé le 31 octobre. */
+        titre = t('d.rate'); texte = t('d.rateBody');
+        action = '<button class="pill pill--sm" type="button" data-reload>' + esc(t('c.retry')) + '</button>';
       } else if (genre === 'forbidden') {
         titre = t('sv.stRevoked'); texte = t('sv.revokedHelp');
         action = '<a class="pill pill--ghost pill--sm" href="' + esc(CYQ.appUrl ? CYQ.appUrl('servers.html') : 'servers.html') + '">' + esc(t('d.changeServer')) + '</a>';
@@ -1817,6 +1825,7 @@
         rendreTout();
         if (err && err.code === 'UNAUTHORIZED') avis('session');
         else if (err && err.status === 403) avis('forbidden');
+        else if (err && err.status === 429) avis('rate');
         else avis('error');
       });
     }
