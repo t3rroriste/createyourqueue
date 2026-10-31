@@ -35,13 +35,13 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310602">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310703">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610310602">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610310703">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -423,7 +423,7 @@
 
       <!-- 01 — queue. Deux colonnes : c'est le module qu'on vient
            chercher, et le seul dont l'aperçu a besoin de largeur. -->
-      <a class="mcard mcard--wide" data-reveal-text href="modules#queue">
+      <a class="mcard mcard--wide" data-reveal-text href="modules#queue" data-mod-open="queue">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-queue">
             <p class="ap-queue__t">Scrim du soir</p>
@@ -438,7 +438,7 @@
       </a>
 
       <!-- 02 — match & mmr -->
-      <a class="mcard" data-reveal-text href="modules#mmr">
+      <a class="mcard" data-reveal-text href="modules#mmr" data-mod-open="mmr">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-mmr">
             <i style="height:30%"></i><i style="height:50%"></i><i style="height:70%"></i>
@@ -453,7 +453,7 @@
       </a>
 
       <!-- 03 — duel -->
-      <a class="mcard" data-reveal-text href="modules#duel">
+      <a class="mcard" data-reveal-text href="modules#duel" data-mod-open="duel">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-duel">
             <span class="ap-duel__d">
@@ -472,7 +472,7 @@
       </a>
 
       <!-- 04 — clans -->
-      <a class="mcard" data-reveal-text href="modules#clan">
+      <a class="mcard" data-reveal-text href="modules#clan" data-mod-open="clan">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-stack">
             <span>A</span><span>B</span><span>C</span><span>+4</span>
@@ -485,7 +485,7 @@
       </a>
 
       <!-- 05 — modération & sécurité -->
-      <a class="mcard" data-reveal-text href="modules#securite">
+      <a class="mcard" data-reveal-text href="modules#securite" data-mod-open="securite">
         <div class="mcard__view" aria-hidden="true">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,236,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4" stroke="rgba(244,241,236,.4)"/></svg>
         </div>
@@ -496,7 +496,7 @@
       </a>
 
       <!-- 06 — options -->
-      <a class="mcard" data-reveal-text href="modules#options">
+      <a class="mcard" data-reveal-text href="modules#options" data-mod-open="options">
         <div class="mcard__view" aria-hidden="true">
           <div class="ap-opts">
             <span class="ap-opt"><span>Classement</span><span class="ap-sw is-on"></span></span>
@@ -688,14 +688,14 @@
   <!-- cyq:/pied -->
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310602"></script>
-<script src="assets/js/config.js?v=202610310602"></script>
-<script src="assets/js/lang/fr.js?v=202610310602"></script>
-<script src="assets/js/lang/en.js?v=202610310602"></script>
-<script src="assets/js/lang/es.js?v=202610310602"></script>
-<script src="assets/js/lang/de.js?v=202610310602"></script>
-<script src="assets/js/lang/ko.js?v=202610310602"></script>
-<script src="assets/js/app.js?v=202610310602"></script>
-<script src="assets/js/page-home.js?v=202610310602"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310703"></script>
+<script src="assets/js/config.js?v=202610310703"></script>
+<script src="assets/js/lang/fr.js?v=202610310703"></script>
+<script src="assets/js/lang/en.js?v=202610310703"></script>
+<script src="assets/js/lang/es.js?v=202610310703"></script>
+<script src="assets/js/lang/de.js?v=202610310703"></script>
+<script src="assets/js/lang/ko.js?v=202610310703"></script>
+<script src="assets/js/app.js?v=202610310703"></script>
+<script src="assets/js/page-home.js?v=202610310703"></script>
 </body>
 </html>
