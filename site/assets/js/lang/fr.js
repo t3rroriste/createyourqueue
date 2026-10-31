@@ -5,6 +5,7 @@ window.CYQ_I18N.fr = {
   "c.save": "Enregistrer", "c.cancel": "Annuler", "c.saving": "Enregistrement…",
   "c.saved": "Enregistré", "c.retry": "Réessayer", "c.close": "Fermer",
   "c.back": "Retour", "c.search": "Rechercher", "c.clear": "Effacer",
+  "c.searchPlaceholder": "Rechercher un nom",
   "c.enabled": "Activé", "c.disabled": "Désactivé", "c.inactive": "Inactif",
   "c.loading": "Chargement…", "c.members": "membres", "c.default": "défaut",
   "c.reset": "Rétablir les valeurs par défaut", "c.copy": "Copier le rapport",

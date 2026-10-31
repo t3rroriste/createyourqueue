@@ -551,7 +551,6 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
    n'étant plus une rangée. Un voisin `hidden` compte quand même, donc le
    filet ne clignote pas à l'ouverture. */
 .row + .row,
-.optprev + .row { border-top: 1px solid var(--hair); }
 
 .row__text {
   flex: 1 1 200px; min-width: 0;
@@ -1245,11 +1244,9 @@ label.row__label { cursor: pointer; }
    s'aligne sur le libellé au-dessus ; en bas, de quoi la détacher de la
    rangée suivante. Pas de hauteur animée : l'ouverture se joue dans la
    carte, par `.dprev.is-envoi`, qui ne touche que transform et opacity. */
-.optprev { padding: 2px 20px 18px; }
 /* Le révélateur est un enfant direct de la rangée, et non de sa commande :
    dans la commande, il aurait partagé la largeur de l'interrupteur et, sur
    téléphone, réduit la phrase à un mot par ligne. Ici il se replie seul. */
-.optprev__btn { flex: 0 0 auto; }
 
 /* Un titre `## ` hors du cadre : Discord le rend plus gros que le texte du
    message, et c'est ce que le panneau d'état publie au-dessus du sien. */
@@ -1337,7 +1334,25 @@ label.row__label { cursor: pointer; }
   28%, 88% { opacity: 1; transform: none; }
   100%     { opacity: 0; transform: translate3d(0, -6px, 0); }
 }
+/* Le message qui SUIT le premier. Le premier est posé à 5 % du tour, soit
+   0,4 s ; celui-ci part à 30 % — 2,4 s — et est donc entièrement là deux
+   secondes après lui. C'était quatre secondes, et le temps d'attente
+   dépassait celui qu'on passe à regarder la maquette : on voyait un
+   message seul, on remontait, et le second n'était jamais lu.
+
+   Le délai est dans les pourcentages et non dans `animation-delay` : un
+   délai décalerait la fin hors du tour de 8 s, et la maquette repartirait
+   avec un message encore à l'écran. */
 @keyframes secprev-apres {
+  0%, 30%  { opacity: 0; transform: translate3d(0, 8px, 0); }
+  36%, 88% { opacity: 1; transform: none; }
+  100%     { opacity: 0; transform: translate3d(0, -6px, 0); }
+}
+/* Sauf le journal, seul endroit à porter TROIS temps : arrivée, alerte à
+   22 %, puis suite. Avancer la suite à 30 % la collerait à l'alerte et les
+   deux se liraient comme un seul message en deux morceaux. Elle garde donc
+   son ancienne place, qui est celle qui laisse voir l'enchaînement. */
+@keyframes secprev-apres-3 {
   0%, 56%  { opacity: 0; transform: translate3d(0, 8px, 0); }
   62%, 88% { opacity: 1; transform: none; }
   100%     { opacity: 0; transform: translate3d(0, -6px, 0); }
@@ -1354,6 +1369,7 @@ label.row__label { cursor: pointer; }
 .secprev.is-anime .secprev__alerte { animation: secprev-alerte 8s var(--e-out) infinite both; }
 .secprev.is-anime .secprev__apres  { animation: secprev-apres  8s var(--e-out) infinite both; }
 .secprev.is-anime .secprev__efface { animation: secprev-efface 8s var(--e-soft) infinite both; }
+[data-secprev="logs"].is-anime .secprev__apres { animation-name: secprev-apres-3; }
 
 /* Les trois arrivées de l'anti-raid tombent coup sur coup : un décalage
    court, qui ne sort pas du tour de 8 s. */
@@ -1365,28 +1381,6 @@ label.row__label { cursor: pointer; }
 [data-secprev="nettoyage"].is-anime .secprev__efface:nth-child(3) { animation-delay: .16s; }
 [data-secprev="nettoyage"].is-anime .secprev__efface:nth-child(4) { animation-delay: .24s; }
 
-/* ---- les maquettes repliées de la page Options -----------------------
-   Même boucle que la Sécurité, et volontairement la même : ce sont les
-   mêmes messages, montrés au même endroit, et deux grammaires de
-   mouvement sur une page en feraient deux pages.
-
-   Mais ici ce n'est pas la CARTE qui arrive, ce sont ses LIGNES. Une
-   carte seule qui s'efface et revient toutes les huit secondes sous les
-   yeux de quelqu'un en train de la lire, c'est du clignotement ; ses
-   lignes qui se posent l'une après l'autre montrent précisément ce que
-   la maquette est là pour montrer — le bot en train d'écrire son
-   message. Les cinq maquettes qui portent une liste s'animent ligne à
-   ligne ; celle du mot de passe n'en a pas, et c'est sa carte qui arrive.
-
-   .optprev est déjà replié par `hidden` : les cinq fermées sont en
-   display:none, où aucune animation ne tourne. Une seule boucle vit à la
-   fois, celle qu'on vient d'ouvrir, et le reste du temps aucune. */
-.optprev.is-anime .secprev__arrive:nth-child(2) { animation-delay: .08s; }
-.optprev.is-anime .secprev__arrive:nth-child(3) { animation-delay: .16s; }
-.optprev.is-anime .secprev__arrive:nth-child(4) { animation-delay: .24s; }
-.optprev.is-anime .secprev__arrive:nth-child(5) { animation-delay: .32s; }
-.optprev.is-anime .secprev__arrive:nth-child(6) { animation-delay: .40s; }
-.optprev.is-anime .secprev__arrive:nth-child(7) { animation-delay: .48s; }
 
 .qprev__note { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.5; color: var(--ink-60); }
 
@@ -1581,7 +1575,6 @@ label.row__label { cursor: pointer; }
      ligne. Il passe donc sur sa propre ligne, sous la rangée — juste
      au-dessus de la maquette qu'il ouvre. `order` seulement ici : au-delà
      de 560 px il reste à gauche de l'interrupteur, qui garde sa colonne. */
-  .optprev__btn { order: 1; flex: 1 0 100%; justify-content: center; }
 
   /* À cette largeur, l'emplacement d'état ne garde que son glyphe — le mot
      est annoncé par la région vocale de la page. « Réessayer » reste écrit :
@@ -1785,12 +1778,44 @@ label.row__label { cursor: pointer; }
 .dbnav__sub:not([hidden]) + .dbnav__sub:not([hidden]) { margin-top: -10px; }
 
 .navlink--sub {
-  padding-left: 28px;
+  padding-left: 16px;
+  /* Moins que les 10 px de `.navlink` : le ↳ et le nom qu'il désigne sont
+     une seule unité de lecture, dix pixels les auraient séparés. */
+  gap: 7px;
   font-size: 14px;
   color: var(--ink-60);
 }
 .navlink--sub:hover { color: var(--ink); }
 .navlink--sub[aria-current="page"] { color: var(--ink); }
+
+/* LE GLYPHE DE RETOUR À LA LIGNE, devant chaque sous-entrée.
+
+   Le décalage seul se lisait mal une fois la colonne repliée ou sur un
+   écran étroit, où il disparaît : rien ne disait plus que « Classement »
+   était la configuration d'« Options ». Le ↳ le dit sans dépendre de la
+   place disponible — c'est la même convention que les salons de Discord,
+   d'où elle est reprise.
+
+   Il est posé en HTML et non en ::before : le contenu généré est annoncé
+   par plusieurs lecteurs d'écran, qui liraient « flèche vers le bas et
+   vers la droite Classement ». Dans un span `aria-hidden`, il est
+   purement vu.
+
+   `font-size` fixe et non héritée : le glyphe est dessiné plus haut que
+   les lettres dans la plupart des polices, et à 14 px il dépassait de la
+   ligne. L'opacité le met un cran sous le texte — il accompagne le nom,
+   il ne le concurrence pas. */
+.navlink__sigil {
+  flex: 0 0 auto;
+  font-size: 11px;
+  line-height: 1;
+  opacity: .5;
+  /* Le ↳ n'est pas dans Geist : sans pile de secours, le navigateur va le
+     chercher lui-même et change de police d'une machine à l'autre. */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.navlink--sub:hover .navlink__sigil,
+.navlink--sub[aria-current="page"] .navlink__sigil { opacity: .75; }
 
 /* ------------------------------- petit écran --------------------------- */
 
@@ -1799,7 +1824,9 @@ label.row__label { cursor: pointer; }
      il pousserait l'entrée sans rien hiérarchiser. On garde la seule
      distinction qui survit à l'horizontale, la taille du texte. */
   .dbnav__sub { flex-direction: row; }
-  .navlink--sub { padding-left: 14px; }
+  /* Le glyphe porte seul la hiérarchie ici : le décalage à gauche ne veut
+     plus rien dire en rangée, on le rend au texte. */
+  .navlink--sub { padding-left: 10px; }
 }
 
 

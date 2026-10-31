@@ -2118,44 +2118,6 @@
         .add(blocs, { opacity: 1, y: 0, duration: 480, delay: A.stagger(60) }, 160);
     }
 
-    /* ---- les maquettes Discord des options ---------------------------
-       Six interrupteurs secs ne disent pas ce qu'ils font. Sous chacun, le
-       message que le bot publie quand l'option est allumée — replié, parce
-       que six cartes ouvertes feraient un mur, et une seule à la fois,
-       parce que deux ouvertes font perdre le fil.
-
-       La maquette ne regarde PAS l'état de l'interrupteur : on l'ouvre
-       justement pour voir ce que l'option ferait avant de la cocher. */
-    function maquettesOptions() {
-      var boutons = $$('[data-optprev]');
-      if (!boutons.length) return;
-
-      function cible(b) { return document.getElementById(b.getAttribute('data-optprev')); }
-
-      function fermer(b) {
-        var c = cible(b);
-        b.setAttribute('aria-expanded', 'false');
-        if (c) c.hidden = true;
-      }
-
-      boutons.forEach(function (b) {
-        b.addEventListener('click', function () {
-          var ouvert = b.getAttribute('aria-expanded') === 'true';
-          boutons.forEach(fermer);
-          if (ouvert) return;          // le second clic referme, et c'est tout
-          var c = cible(b);
-          if (!c) return;
-          b.setAttribute('aria-expanded', 'true');
-          c.hidden = false;
-          /* Rien à jouer ici depuis que la maquette porte la boucle de la
-             Sécurité (`[data-secprev="options"]`) : elle était en
-             display:none, elle revient, et ses lignes repartent donc de
-             zéro d'elles-mêmes. Un coup unique posé par-dessus aurait
-             joué la même arrivée deux fois, décalée d'un cadre. */
-        });
-      });
-    }
-
     /* ---- la programmation ne part pas sans preset ---------------------
        Une ouverture programmée applique une configuration : sans preset,
        elle n'en a aucune à appliquer. L'interrupteur reste donc verrouillé
@@ -2234,7 +2196,6 @@
     simuler();
     compterJournaux();
     apercuQueue();
-    maquettesOptions();
     maquettesSecurite();
     verrouProgrammation();
     famillesDepliables();
