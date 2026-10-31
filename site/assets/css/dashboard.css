@@ -1719,7 +1719,7 @@ label.row__label { cursor: pointer; }
   background: var(--ink); border: 0; color: var(--bg);
   font-weight: 500;
 }
-.savebar__ok:hover { background: #fff; }
+.savebar__ok:hover { background: var(--ink-max); }
 .savebar__ok:disabled { opacity: .55; cursor: default; }
 
 .savebar__cancel:focus-visible, .savebar__ok:focus-visible {

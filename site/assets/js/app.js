@@ -974,7 +974,9 @@
 
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        wrap.getAttribute('data-open') ? close(true) : open();
+        if (wrap.getAttribute('data-open')) { close(true); return; }
+        faireTournerLeCode(btn);
+        open();
       });
       btn.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); open(); }
@@ -998,6 +1000,86 @@
         if (!wrap.contains(e.target)) close(false);
       });
     });
+  }
+
+  /* ------------------------------------ les deux mouvements du menu ----
+
+     Tous deux sont en `transform` et `opacity`, et tous deux s'effacent
+     sous `prefers-reduced-motion`. `?motion=on` les rejoue quand même,
+     parce qu'un effet qu'on ne peut pas revoir est un effet qu'on ne
+     peut pas corriger. */
+  function mouvementAutorise() {
+    if (document.documentElement.classList.contains('motion-force')) return true;
+    if (!window.matchMedia) return true;
+    return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /* 1 — LE LIBELLÉ QUI TOURNE.
+
+     Au clic, les cinq codes défilent verticalement dans le bouton et
+     s'arrêtent sur celui qui est actif. Ce n'est pas de la décoration :
+     le bouton n'affiche QUE « FR », et rien n'y disait qu'il y avait
+     quatre autres langues dessous. Le défilé les montre toutes, une
+     demi-seconde, avant que le menu ne s'ouvre.
+
+     Le texte est remplacé puis remis : on ne touche pas au DOM autour,
+     et si le minuteur meurt en route le bouton garde la bonne valeur
+     parce que c'est `setLang` qui l'écrit, pas cette fonction. */
+  function faireTournerLeCode(btn) {
+    var cible = $('[data-lang-code]', btn);
+    if (!cible || cible._cyqTourne || !mouvementAutorise()) return;
+    cible._cyqTourne = true;
+
+    var bon = (CYQ.lang || 'fr').toUpperCase();
+    /* On part de la langue suivante et on fait le tour complet : la
+       dernière valeur posée est donc toujours la bonne, même si le
+       dernier cadre est sauté. */
+    var depart = LANGS.indexOf(CYQ.lang);
+    var suite = [];
+    for (var i = 1; i <= LANGS.length; i++) {
+      suite.push(LANGS[(depart + i) % LANGS.length].toUpperCase());
+    }
+
+    var n = 0;
+    var pas = setInterval(function () {
+      cible.textContent = suite[n];
+      cible.style.transform = 'translateY(-2px)';
+      setTimeout(function () { cible.style.transform = ''; }, 60);
+      if (++n >= suite.length) {
+        clearInterval(pas);
+        cible.textContent = bon;
+        cible.style.transform = '';
+        cible._cyqTourne = false;
+      }
+    }, 70);
+  }
+
+  /* 2 — LA PAGE QUI SE REGÉNÈRE.
+
+     Au changement de thème, un balayage unique descend sur la page. Une
+     seule passe, 420 ms, et rien d'autre : l'effet est là pour dire
+     « ce que tu regardes vient d'être repeint », pas pour faire un
+     écran de chargement. Deux passes ou une seconde de plus, et on
+     attend la fin au lieu de lire.
+
+     Un `div` posé au-dessus de tout, en `transform` seulement, retiré à
+     la fin de son animation. Pas de `filter`, pas de `box-shadow` : le
+     voile couvre l'écran entier, et les deux feraient repeindre toute
+     la page à chaque cadre. */
+  function regenererLaPage() {
+    if (!mouvementAutorise()) return;
+    var vieux = $('.regen');
+    if (vieux) vieux.remove();
+    var voile = document.createElement('div');
+    voile.className = 'regen';
+    voile.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(voile);
+    var fini = function () { if (voile.parentNode) voile.remove(); };
+    voile.addEventListener('animationend', fini);
+    /* Ceinture et bretelles : si l'animation ne démarre pas — onglet en
+       arrière-plan, feuille pas encore là — le voile doit partir quand
+       même, sinon il reste par-dessus la page et avale les clics. */
+    setTimeout(fini, 900);
   }
 
   /* -------------------------------------------------------- tiroir mobile */
@@ -1196,8 +1278,15 @@
       b.addEventListener('click', function () { setTheme(CYQ.theme === 'dark' ? 'light' : 'dark'); });
     });
     $$('[data-theme-pick]').forEach(function (b) {
-      b.addEventListener('click', function () { setTheme(b.getAttribute('data-theme-pick')); });
+      b.addEventListener('click', function () {
+        if (b.getAttribute('data-theme-pick') === CYQ.themeChoice) return;
+        setTheme(b.getAttribute('data-theme-pick'));
+      });
     });
+    /* Le balayage est accroché à l'ÉVÉNEMENT et non au bouton : la
+       bascule du panneau, le suivi du système, et tout ce qui appellera
+       setTheme demain le déclenchent de la même façon. */
+    document.addEventListener('cyq:theme', regenererLaPage);
     $$('[data-lang-pick]').forEach(function (b) {
       b.addEventListener('click', function () { setLang(b.getAttribute('data-lang-pick')); });
     });
