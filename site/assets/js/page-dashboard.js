@@ -1962,16 +1962,11 @@
           if (!c) return;
           b.setAttribute('aria-expanded', 'true');
           c.hidden = false;
-          /* Elle arrive comme le message arrive dans Discord. La classe
-             existe déjà pour l'aperçu de la queue, elle ne touche que
-             transform et opacity, et elle est muette sous
-             `prefers-reduced-motion`. */
-          var carte = $('.dprev', c);
-          if (!carte) return;
-          carte.classList.remove('is-envoi');
-          void carte.offsetWidth;      // sans relecture, pas de redémarrage
-          carte.classList.add('is-envoi');
-          setTimeout(function () { carte.classList.remove('is-envoi'); }, 900);
+          /* Rien à jouer ici depuis que la maquette porte la boucle de la
+             Sécurité (`[data-secprev="options"]`) : elle était en
+             display:none, elle revient, et ses lignes repartent donc de
+             zéro d'elles-mêmes. Un coup unique posé par-dessus aurait
+             joué la même arrivée deux fois, décalée d'un cadre. */
         });
       });
     }

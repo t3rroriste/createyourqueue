@@ -1277,6 +1277,29 @@ label.row__label { cursor: pointer; }
 [data-secprev="nettoyage"].is-anime .secprev__efface:nth-child(3) { animation-delay: .16s; }
 [data-secprev="nettoyage"].is-anime .secprev__efface:nth-child(4) { animation-delay: .24s; }
 
+/* ---- les maquettes repliées de la page Options -----------------------
+   Même boucle que la Sécurité, et volontairement la même : ce sont les
+   mêmes messages, montrés au même endroit, et deux grammaires de
+   mouvement sur une page en feraient deux pages.
+
+   Mais ici ce n'est pas la CARTE qui arrive, ce sont ses LIGNES. Une
+   carte seule qui s'efface et revient toutes les huit secondes sous les
+   yeux de quelqu'un en train de la lire, c'est du clignotement ; ses
+   lignes qui se posent l'une après l'autre montrent précisément ce que
+   la maquette est là pour montrer — le bot en train d'écrire son
+   message. Les cinq maquettes qui portent une liste s'animent ligne à
+   ligne ; celle du mot de passe n'en a pas, et c'est sa carte qui arrive.
+
+   .optprev est déjà replié par `hidden` : les cinq fermées sont en
+   display:none, où aucune animation ne tourne. Une seule boucle vit à la
+   fois, celle qu'on vient d'ouvrir, et le reste du temps aucune. */
+.optprev.is-anime .secprev__arrive:nth-child(2) { animation-delay: .08s; }
+.optprev.is-anime .secprev__arrive:nth-child(3) { animation-delay: .16s; }
+.optprev.is-anime .secprev__arrive:nth-child(4) { animation-delay: .24s; }
+.optprev.is-anime .secprev__arrive:nth-child(5) { animation-delay: .32s; }
+.optprev.is-anime .secprev__arrive:nth-child(6) { animation-delay: .40s; }
+.optprev.is-anime .secprev__arrive:nth-child(7) { animation-delay: .48s; }
+
 .qprev__note { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.5; color: var(--ink-60); }
 
 /* ============================ diagnostic ============================== */
