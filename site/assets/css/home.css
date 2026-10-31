@@ -882,8 +882,11 @@ html::-webkit-scrollbar { display: none; }
   display: inline-flex; align-items: center; gap: 10px; white-space: nowrap;
   min-height: 44px; padding: 0 18px;
   border-radius: var(--r-pill);
-  background: var(--film); border: 1px solid var(--hair);
-  font-size: 13px; color: var(--ink-60);
+  /* Un noir franc et non `--film` : la pilule est posée SUR une image
+     dont on ne sait rien. Un fond à 5 % de blanc disparaît dès que
+     l'affiche est claire, et le libellé avec lui. */
+  background: rgba(10,9,8,.72); border: 1px solid var(--hair);
+  font-size: 13px; color: var(--ink);
 }
 .video__duree { font-variant-numeric: tabular-nums; }
 .video__duree::before { content: "·"; margin-right: 10px; }

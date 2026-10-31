@@ -1062,7 +1062,10 @@
     boite.hidden = true;
     document.documentElement.classList.remove('lecteur-ouvert');
 
-    if (origine && origine.focus) origine.focus();
+    /* Le focus revient d'où il venait — et sur le bouton de l'affiche si
+       la fenêtre a été ouverte autrement que par un clic au clavier
+       (body n'est pas un point de retour, il annule la navigation). */
+    if (origine && origine.focus && origine !== document.body) origine.focus();
     else ouvrirB.focus();
     origine = null;
   }
