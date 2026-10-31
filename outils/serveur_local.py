@@ -29,9 +29,11 @@ même geste : `cyq.ps1` et `cyq.sh` l'appellent toutes les deux.
 from __future__ import annotations
 
 import argparse
+import io
 import os
 import re
 import sys
+
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
@@ -136,7 +138,72 @@ class Handler(SimpleHTTPRequestHandler):
             if os.path.isfile(fichier):
                 self.path = "/" + nom + ".html" + suffixe
 
+        # 4. une plage demandée sur un fichier : on la sert nous-mêmes.
+        plage = self.headers.get("Range")
+        if plage:
+            reponse = self._servir_plage(plage)
+            if reponse is not None:
+                return reponse
+
         return super().send_head()
+
+    # ---- les requêtes de plage, pour la vidéo -------------------------
+    #
+    # SimpleHTTPRequestHandler ne connaît pas l'en-tête `Range` : il renvoie
+    # le fichier entier, avec un 200. Chrome en conclut que la ressource
+    # n'est pas déplaçable — `video.seekable` reste à [0,0] — et la barre de
+    # progression du lecteur devient décorative : on peut la glisser, rien
+    # ne bouge. En ligne, Apache répond aux plages et le problème n'existe
+    # pas ; c'est donc un bogue qu'on n'aurait vu qu'en production.
+    #
+    # La tranche est lue en mémoire : c'est un serveur de développement, les
+    # fichiers se comptent en mégaoctets, et un objet-fichier limité à N
+    # octets demanderait de réécrire `copyfile` pour rien.
+
+    def _servir_plage(self, plage: str):
+        chemin = self.translate_path(self.path)
+        if os.path.isdir(chemin) or not os.path.isfile(chemin):
+            return None
+
+        m = re.match(r"bytes=(\d*)-(\d*)$", plage.strip())
+        if not m:
+            return None
+
+        taille = os.path.getsize(chemin)
+        deb, fin = m.group(1), m.group(2)
+        if deb == "":
+            # « bytes=-500 » : les cinq cents derniers octets.
+            if fin == "":
+                return None
+            longueur = min(int(fin), taille)
+            deb, fin = taille - longueur, taille - 1
+        else:
+            deb = int(deb)
+            fin = int(fin) if fin != "" else taille - 1
+        fin = min(fin, taille - 1)
+
+        if deb > fin or deb >= taille:
+            self.send_response(416)
+            self.send_header("Content-Range", f"bytes */{taille}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+
+        with open(chemin, "rb") as f:
+            f.seek(deb)
+            morceau = f.read(fin - deb + 1)
+
+        self.send_response(206)
+        self.send_header("Content-type", self.guess_type(chemin))
+        self.send_header("Content-Range", f"bytes {deb}-{fin}/{taille}")
+        self.send_header("Content-Length", str(len(morceau)))
+        self.end_headers()
+        return io.BytesIO(morceau)
+
+    def end_headers(self):
+        # Sans cet en-tête, le navigateur ne DEMANDE même pas de plage.
+        self.send_header("Accept-Ranges", "bytes")
+        super().end_headers()
 
     def _rediriger(self, vers: str):
         self.send_response(301)
