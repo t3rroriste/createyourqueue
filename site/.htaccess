@@ -162,6 +162,34 @@ DirectoryIndex index.html login.html status.html
   # existait depuis le 16, et /support ne répondait pas.
   RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide|support)/$ /$1 [R=301,L,QSA]
 
+  # ------------------------------------- la vitrine, une adresse par langue --
+  # /fr, /en, /es, /de, /ko servent index.html. RÉÉCRITURE INTERNE : la
+  # barre d'adresse garde « /fr », et c'est tout l'intérêt — l'accueil
+  # existait sous « / » et « /index », deux adresses qui ne disaient rien
+  # de la langue qu'on allait lire. Un lien partagé dit maintenant dans
+  # quelle langue il a été partagé, et les moteurs peuvent indexer les
+  # cinq versions séparément (voir les `hreflang` dans index.html).
+  #
+  # La barre finale part AVANT, par une vraie redirection, et pour la
+  # même raison que les autres pages : sous « /fr/ », le navigateur
+  # résoudrait « assets/css/… » dans un dossier « /fr/ » qui n'existe
+  # pas, et servirait la page sans style ni script. Sans barre, le
+  # dossier de base reste « / » et les chemins relatifs tombent juste.
+  #
+  # La condition sur index.html tient lieu de condition d'hôte : le
+  # fichier n'est déployé que sur la vitrine, donc /fr sur le panneau ou
+  # sur le sous-domaine d'état donne le 404 d'Apache, qui est la réponse
+  # exacte.
+  RewriteRule ^(fr|en|es|de|ko)/$ /$1 [R=301,L,QSA]
+  RewriteCond %{DOCUMENT_ROOT}/index.html -f
+  RewriteRule ^(fr|en|es|de|ko)$ index.html [L,QSA]
+
+  # « /index » n'a plus lieu d'être : l'accueil est à « / », qui pose
+  # ensuite l'adresse de langue lui-même. Il répondait 200 jusqu'ici, ce
+  # qui faisait une TROISIÈME adresse pour la même page. Redirigé, et non
+  # supprimé : des liens et des favoris le portent encore.
+  RewriteRule ^index$ / [R=301,L,QSA]
+
   # ---- la forme longue renvoie vers la forme courte ----------------------
   # Sans cette règle, /guide.html restait /guide.html dans la barre
   # d'adresse : deux adresses pour une page, et c'est la plus laide des
@@ -208,5 +236,5 @@ DirectoryIndex index.html login.html status.html
   # page absente de l'hôte — /guide sur le panneau — donne le 404
   # d'Apache avec ou sans elle, et la liste explicite ci-dessus est le
   # vrai garde-fou : /api n'y figure pas, donc n'y passe pas.
-  RewriteRule ^(index|login|welcome|servers|dashboard|modules|guide|support)$ $1.html [L,QSA]
+  RewriteRule ^(login|welcome|servers|dashboard|modules|guide|support)$ $1.html [L,QSA]
 </IfModule>
