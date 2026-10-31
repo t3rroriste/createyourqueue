@@ -827,35 +827,66 @@ html::-webkit-scrollbar { display: none; }
   background: var(--hair); flex: 0 0 auto;
 }
 
-/* ======================= prêt en trois étapes ========================= */
+/* ==================== la présentation en vidéo ========================
+   Le bloc qui a remplacé la frise des trois étapes. Une affiche dans une
+   coque `--r-shell`, un disque de lecture, une pilule de légende. Rien
+   d'autre : ce qu'il y a à dire est dans la vidéo. */
 
-.etapes__list {
+.video__coque {
   position: relative;
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+  border-radius: var(--r-shell);
+  border: 1px solid var(--hair);
+  background: var(--panel);
+  overflow: hidden;
+  transition: transform 320ms var(--e-out);
 }
-/* Le trait qui relie les trois icônes passe DERRIÈRE elles, à la hauteur
-   de leur centre : 32 px, la moitié du carré. Il s'arrête à 15 % de chaque
-   bord pour ne pas sortir sous la première et la dernière. */
-.etapes__list::before {
-  content: ""; position: absolute; z-index: 0;
-  top: 32px; left: 15%; right: 15%; height: 1px;
-  background: var(--hair);
+/* Deux pixels, pas plus : la coque fait 1100 px de large, une élévation
+   franche la ferait sauter. */
+.video__coque:hover { transform: translateY(-2px); }
+
+.video__ouvrir {
+  position: relative; display: block; width: 100%; padding: 0;
+  background: none; border: 0; color: var(--ink); cursor: pointer;
+  /* Le ratio vit ici et pas seulement sur l'image : l'affiche peut
+     manquer, et la coque doit garder sa place dans la page. */
+  aspect-ratio: 16 / 9;
 }
-.etape { position: relative; z-index: 1; text-align: center; }
-.etape__ico {
-  width: 64px; height: 64px; margin: 0 auto var(--sp-3);
+.video__affiche {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover;
+}
+/* L'affiche n'a pas chargé : le script pose cette classe et on montre un
+   aplat. Une image cassée au milieu de l'accueil se voit bien plus
+   qu'une surface vide. */
+.video__coque--nue { background: var(--raised); }
+.video__coque--nue .video__affiche { display: none; }
+
+.video__disque {
+  position: absolute; left: 50%; top: 50%;
+  width: 76px; height: 76px; margin: -38px 0 0 -38px;
   display: grid; place-items: center;
-  border-radius: var(--r-media);
-  background: var(--raised-2); border: 1px solid var(--hair);
-  color: var(--ink-60);
+  border-radius: var(--r-pill);
+  background: var(--raised); border: 1px solid var(--hair);
+  color: var(--ink);
+  transition: background 200ms var(--e-soft), transform 320ms var(--e-out);
 }
-.etape__t { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
-.etape__p {
-  margin: var(--sp-1) auto 0; max-width: 30ch;
-  font-size: 14px; line-height: 1.6; color: var(--ink-60);
+/* Le triangle est optiquement décalé : centré au pixel, il paraît collé
+   à gauche. Trois pixels suffisent. */
+.video__disque svg { transform: translateX(3px); }
+.video__ouvrir:hover .video__disque { background: var(--raised-2); transform: scale(1.06); }
+.video__ouvrir:focus-visible .video__disque { background: var(--raised-2); }
+
+.video__legende {
+  position: absolute; left: 50%; bottom: var(--sp-3); transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 10px; white-space: nowrap;
+  min-height: 44px; padding: 0 18px;
+  border-radius: var(--r-pill);
+  background: var(--film); border: 1px solid var(--hair);
+  font-size: 13px; color: var(--ink-60);
 }
+.video__duree { font-variant-numeric: tabular-nums; }
+.video__duree::before { content: "·"; margin-right: 10px; }
 
 /* ============================== la démo =============================== */
 
@@ -1072,11 +1103,11 @@ html::-webkit-scrollbar { display: none; }
   .stats { padding: var(--sp-3) var(--sp-3) var(--sp-4); }
   .demo, .commu, .ctafin { padding: var(--sp-5) var(--sp-3); }
 
-  /* Une colonne partout. Le trait qui relie les trois étapes disparaît :
-     empilées, elles ne sont plus sur une ligne, et un filet horizontal
-     derrière la première icône ne relie plus rien. */
-  .etapes__list { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
-  .etapes__list::before { display: none; }
+  /* L'affiche perd ses coins les plus ronds : `--r-shell` sur une image
+     large de 343 px mange un bon morceau du cadre. */
+  .video__coque { border-radius: var(--r-card); }
+  .video__disque { width: 60px; height: 60px; margin: -30px 0 0 -30px; }
+  .video__legende { bottom: var(--sp-2); font-size: 12px; padding: 0 14px; }
   .mgrid { grid-template-columns: minmax(0, 1fr); }
   .mcard--wide { grid-column: span 1; }
   .mcard__view, .mcard--wide .mcard__view { min-height: 140px; }
@@ -1224,4 +1255,170 @@ html.modmodal-ouvert, html.modmodal-ouvert body { overflow: hidden; }
   }
   .modmodal__view { border-radius: 0; min-height: 200px; }
   .modmodal__actions .pill { flex: 1 1 100%; justify-content: center; }
+}
+
+
+/* ========================= LA FENÊTRE DU LECTEUR ======================
+   Même grammaire que `.modmodal` — voile opaque, boîte centrée, verrou
+   de défilement sur <html> — mais une boîte beaucoup plus large : ici
+   c'est l'image qu'on vient voir, pas un paragraphe.
+
+   Les contrôles sont écrits à la main. Ceux du navigateur ne savent pas
+   reculer de dix secondes, et ils ne sont pas de cette D.A. */
+
+.lecteur {
+  position: fixed; inset: 0; z-index: 210;
+  display: grid; place-items: center;
+  padding: var(--gutter);
+}
+html.lecteur-ouvert, html.lecteur-ouvert body { overflow: hidden; }
+
+.lecteur__fond { position: absolute; inset: 0; background: rgba(10,9,8,.88); }
+
+.lecteur__boite {
+  position: relative; z-index: 1;
+  width: min(1120px, 100%);
+  max-height: calc(100vh - 2 * var(--gutter));
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-shell);
+  box-shadow: 0 60px 120px -40px rgba(0,0,0,.95);
+}
+
+.lecteur__fermer {
+  position: absolute; right: 12px; top: 12px; z-index: 2;
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border-radius: var(--r-pill);
+  background: rgba(10,9,8,.55); border: 1px solid var(--hair);
+  color: var(--ink); cursor: pointer;
+  transition: background 200ms var(--e-soft);
+}
+.lecteur__fermer:hover { background: var(--raised-2); }
+
+.lecteur__scene { position: relative; aspect-ratio: 16 / 9; background: #000; }
+.lecteur__video { display: block; width: 100%; height: 100%; }
+
+.lecteur__erreur {
+  position: absolute; inset: 0;
+  display: grid; place-content: center; justify-items: center; gap: var(--sp-2);
+  padding: var(--sp-3); text-align: center;
+  font-size: 14px; color: var(--ink-60);
+}
+
+/* ------------------------------ la rangée ---------------------------- */
+
+.lecteur__barre {
+  display: flex; align-items: center; gap: 4px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--hair);
+}
+
+.lecteur__b {
+  position: relative; flex: 0 0 auto;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  background: none; border: 0; border-radius: var(--r-pill);
+  color: var(--ink-60); cursor: pointer;
+  transition: background 200ms var(--e-soft), color 200ms var(--e-soft);
+}
+.lecteur__b:hover { background: var(--lift-2); color: var(--ink); }
+.lecteur__b--play { color: var(--ink); }
+.lecteur__b--cc { font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+.lecteur__b--cc[aria-pressed="true"] { color: var(--ink); background: var(--lift-2); }
+
+/* Le « 10 » dans la flèche de rembobinage : l'icône seule ne dit pas de
+   combien on recule, et l'info-bulle n'existe pas au doigt. */
+.lecteur__pas {
+  position: absolute; left: 0; right: 0; top: 50%;
+  transform: translateY(-45%);
+  font-size: 8.5px; font-weight: 700; text-align: center;
+  font-variant-numeric: tabular-nums; pointer-events: none;
+}
+
+/* ---------------------------- la progression ------------------------- */
+
+.lecteur__piste {
+  position: relative; flex: 1 1 auto; min-width: 60px;
+  height: 44px; cursor: pointer;
+  /* Le glissement au doigt doit déplacer la tête de lecture, pas faire
+     défiler la page sous la fenêtre. */
+  touch-action: none;
+}
+/* Trois pixels de trait dans quarante-quatre pixels de zone de touche :
+   on vise la barre avec le pouce, on ne vise pas un cheveu. */
+.lecteur__rail {
+  position: absolute; left: 10px; right: 10px; top: 50%;
+  height: 3px; margin-top: -1.5px; border-radius: var(--r-pill);
+  background: var(--hair);
+}
+/* Les deux couches qui bougent sont mises à l'échelle, jamais
+   redimensionnées : une largeur animée soixante fois par seconde relance
+   la mise en page de la rangée entière. */
+.lecteur__tampon, .lecteur__lu {
+  transform-origin: left center; transform: scaleX(0);
+}
+.lecteur__tampon { background: var(--lift-2); }
+.lecteur__lu { background: var(--ink); }
+
+.lecteur__tete {
+  position: absolute; left: 10px; top: 50%;
+  width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: var(--r-pill);
+  background: var(--accent);   /* l'unique emploi du cuivre dans la fenêtre */
+  transform: translateX(0);
+}
+.lecteur__piste:hover .lecteur__tete,
+.lecteur__piste:focus-visible .lecteur__tete,
+.lecteur__piste[data-saisie] .lecteur__tete { box-shadow: 0 0 0 5px rgba(192,138,90,.22); }
+
+.lecteur__temps {
+  flex: 0 0 auto; padding: 0 8px;
+  font-size: 12.5px; color: var(--ink-60);
+  font-variant-numeric: tabular-nums;
+}
+.lecteur__sep { margin: 0 5px; }
+
+.lecteur__volume {
+  flex: 0 0 auto; width: 84px; height: 44px;
+  accent-color: var(--ink); background: none; cursor: pointer;
+}
+
+.lecteur__aide {
+  padding: 0 var(--sp-2) var(--sp-2);
+  font-size: 12.5px; color: var(--ink-60);
+}
+.lecteur__aide summary { cursor: pointer; padding: 8px 4px; min-height: 32px; }
+.lecteur__aide p { padding: 0 4px 4px; line-height: 1.6; }
+
+/* L'ARRIVÉE — deux animations CSS, aucune dépendance : la fenêtre
+   s'ouvre même si anime.js n'a pas chargé. */
+@keyframes lecteur-fond-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lecteur-boite-in {
+  from { opacity: 0; transform: scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+.lecteur__fond  { animation: lecteur-fond-in  180ms var(--e-soft); }
+.lecteur__boite { animation: lecteur-boite-in 240ms var(--e-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .lecteur__boite { animation-name: lecteur-fond-in; animation-duration: 120ms; }
+  html:not(.motion-force) .video__coque:hover { transform: none; }
+  html:not(.motion-force) .video__ouvrir:hover .video__disque { transform: none; }
+}
+
+@media (max-width: 560px) {
+  /* Pleine fenêtre : une boîte centrée perdrait vingt pour cent de la
+     largeur pour ne rien montrer de plus, et la vidéo est le contenu. */
+  .lecteur { padding: 0; place-items: stretch; }
+  .lecteur__boite { width: 100%; max-height: 100vh; border: none; border-radius: 0; }
+  .lecteur__barre { gap: 0; padding: 6px 4px; }
+  .lecteur__b { width: 40px; }
+  /* Le curseur de volume part : il demande une précision qu'on n'a pas
+     au doigt, et le bouton muet reste. Le plein écran aussi, c'est lui
+     qu'on cherche sur un téléphone. */
+  .lecteur__volume { display: none; }
+  .lecteur__temps { padding: 0 4px; font-size: 11.5px; }
+  .lecteur__sep { margin: 0 3px; }
 }
