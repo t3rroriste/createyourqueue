@@ -49,7 +49,7 @@ window.CYQ_I18N.es = {
   "lec.close": "Fermer la vidéo",  /* À TRADUIRE */
   "lec.help": "Raccourcis clavier",  /* À TRADUIRE */
   "lec.helpList": "Espace ou K : lire et mettre en pause · ← et → : dix secondes · M : couper le son · F : plein écran · Échap : fermer.",  /* À TRADUIRE */
-  "lec.error": "Cette vidéo ne peut pas être lue dans ce navigateur.",  /* À TRADUIRE */
+  "lec.error": "La vidéo n'a pas pu être chargée.",  /* À TRADUIRE */
   "lec.download": "Télécharger la vidéo",  /* À TRADUIRE */
 
 

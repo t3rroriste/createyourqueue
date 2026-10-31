@@ -63,7 +63,7 @@ window.CYQ_I18N.fr = {
   "lec.full": "Plein écran", "lec.close": "Fermer la vidéo",
   "lec.help": "Raccourcis clavier",
   "lec.helpList": "Espace ou K : lire et mettre en pause · ← et → : dix secondes · M : couper le son · F : plein écran · Échap : fermer.",
-  "lec.error": "Cette vidéo ne peut pas être lue dans ce navigateur.",
+  "lec.error": "La vidéo n'a pas pu être chargée.",
   "lec.download": "Télécharger la vidéo",
 
   "demo.eyebrow": "La file, de bout en bout",
