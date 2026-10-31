@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310225">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310225">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310307">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310307">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -137,15 +137,15 @@
             <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="dbnav__items" id="grp-bot">
-          <a class="navlink" href="#configurations" data-goto="configurations"><span class="navlink-label" data-i18n="s.config">Configurations</span></a>
-          <a class="navlink" href="#options" data-goto="options"><span class="navlink-label" data-i18n="s.options">Options</span></a>
+            <a class="navlink" href="#configurations" data-goto="configurations"><span class="navlink-label" data-i18n="s.config">Configurations</span></a>
+            <a class="navlink" href="#options" data-goto="options"><span class="navlink-label" data-i18n="s.options">Options</span></a>
 
-          <!-- La configuration de « Match & MMR ». Elle n'apparaît que
-               lorsque l'option est allumée : c'est elle qui ouvre ces trois
-               écrans, et les montrer éteinte promettrait des réglages sans
-               effet. `hidden` est posé ici et piloté par le script. -->
-          <div class="dbnav__sub" data-sub="feature.leaderboard" hidden>
-            <a class="navlink navlink--sub" href="#classement" data-goto="classement"><span class="navlink-label" data-i18n="fn.leaderboard">Classement</span></a>
+            <!-- La configuration de « Match & MMR ». Elle n'apparaît que
+                 lorsque l'option est allumée : c'est elle qui ouvre ces trois
+                 écrans, et les montrer éteinte promettrait des réglages sans
+                 effet. `hidden` est posé ici et piloté par le script. -->
+            <div class="dbnav__sub" data-sub="feature.leaderboard" hidden>
+              <a class="navlink navlink--sub" href="#classement" data-goto="classement"><span class="navlink-label" data-i18n="fn.leaderboard">Classement</span></a>
           </div>
           <div class="dbnav__sub" data-sub="feature.match" hidden>
             <a class="navlink navlink--sub" href="#rangs" data-goto="rangs"><span class="navlink-label" data-i18n="s.ranks">Rangs</span></a>
@@ -168,14 +168,14 @@
             <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="dbnav__items" id="grp-queue">
-          <a class="navlink" href="#queue" data-goto="queue"><span class="navlink-label" data-i18n="s.queue">Queue</span></a>
-          <a class="navlink" href="#programmation" data-goto="programmation"><span class="navlink-label" data-i18n="s.schedule">Programmation</span></a>
-          <!-- Les presets quittent « Match & MMR » : ce sont des
-               configurations de QUEUE, et elles n'avaient rien à faire
-               derrière un interrupteur de classement. `data-goto` et
-               `data-nav-count` ne changent pas, plusieurs scripts les
-               cherchent. -->
-          <a class="navlink" href="#presets" data-goto="presets"><span class="navlink-label" data-i18n="s.presets">Presets</span><span class="navlink__n" data-nav-count="presets"></span></a>
+            <a class="navlink" href="#queue" data-goto="queue"><span class="navlink-label" data-i18n="s.queue">Queue</span></a>
+            <a class="navlink" href="#programmation" data-goto="programmation"><span class="navlink-label" data-i18n="s.schedule">Programmation</span></a>
+            <!-- Les presets quittent « Match & MMR » : ce sont des
+                 configurations de QUEUE, et elles n'avaient rien à faire
+                 derrière un interrupteur de classement. `data-goto` et
+                 `data-nav-count` ne changent pas, plusieurs scripts les
+                 cherchent. -->
+            <a class="navlink" href="#presets" data-goto="presets"><span class="navlink-label" data-i18n="s.presets">Presets</span><span class="navlink__n" data-nav-count="presets"></span></a>
           </div>
         </div>
 
@@ -186,8 +186,8 @@
             <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="dbnav__items" id="grp-server">
-          <a class="navlink" href="#salons" data-goto="salons"><span class="navlink-label" data-i18n="s.channels">Salons</span></a>
-          <a class="navlink" href="#roles" data-goto="roles"><span class="navlink-label" data-i18n="s.roles">Rôles</span></a>
+            <a class="navlink" href="#salons" data-goto="salons"><span class="navlink-label" data-i18n="s.channels">Salons</span></a>
+            <a class="navlink" href="#roles" data-goto="roles"><span class="navlink-label" data-i18n="s.roles">Rôles</span></a>
           </div>
         </div>
 
@@ -198,7 +198,7 @@
             <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="dbnav__items" id="grp-access">
-          <a class="navlink" href="#blacklist" data-goto="blacklist"><span class="navlink-label" data-i18n="s.blacklist">Blacklist</span><span class="navlink__n" data-nav-count="blacklist"></span></a>
+            <a class="navlink" href="#blacklist" data-goto="blacklist"><span class="navlink-label" data-i18n="s.blacklist">Blacklist</span><span class="navlink__n" data-nav-count="blacklist"></span></a>
           </div>
         </div>
 
@@ -209,10 +209,10 @@
             <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="dbnav__items" id="grp-security">
-          <a class="navlink" href="#logs" data-goto="logs"><span class="navlink-label" data-i18n="s.logs">Logs</span><span class="navlink__n" data-nav-count="logs"></span></a>
-          <a class="navlink" href="#antiraid" data-goto="antiraid"><span class="navlink-label" data-i18n="se.grpRaid">Anti-raid</span></a>
-          <a class="navlink" href="#nettoyage" data-goto="nettoyage"><span class="navlink-label" data-i18n="se.grpClean">Nettoyage automatique</span></a>
-          <a class="navlink" href="#antilien" data-goto="antilien"><span class="navlink-label" data-i18n="se.grpAntilink">Anti-lien</span></a>
+            <a class="navlink" href="#logs" data-goto="logs"><span class="navlink-label" data-i18n="s.logs">Logs</span><span class="navlink__n" data-nav-count="logs"></span></a>
+            <a class="navlink" href="#antiraid" data-goto="antiraid"><span class="navlink-label" data-i18n="se.grpRaid">Anti-raid</span></a>
+            <a class="navlink" href="#nettoyage" data-goto="nettoyage"><span class="navlink-label" data-i18n="se.grpClean">Nettoyage automatique</span></a>
+            <a class="navlink" href="#antilien" data-goto="antilien"><span class="navlink-label" data-i18n="se.grpAntilink">Anti-lien</span></a>
           </div>
         </div>
 
@@ -223,9 +223,9 @@
             <svg class="dbnav__chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="dbnav__items" id="grp-monitor">
-          <a class="navlink" href="#stats" data-goto="stats"><span class="navlink-label" data-i18n="s.stats">Statistiques</span></a>
-          <a class="navlink" href="#journal" data-goto="journal"><span class="navlink-label" data-i18n="s.journal">Journal</span></a>
-          <a class="navlink" href="#diagnostic" data-goto="diagnostic"><span class="navlink-label" data-i18n="d.diagnostic">Diagnostic</span><span class="navlink__warn" data-nav-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span class="sr-only" data-i18n="d.navWarn">Droits manquants</span></span></a>
+            <a class="navlink" href="#stats" data-goto="stats"><span class="navlink-label" data-i18n="s.stats">Statistiques</span></a>
+            <a class="navlink" href="#journal" data-goto="journal"><span class="navlink-label" data-i18n="s.journal">Journal</span></a>
+            <a class="navlink" href="#diagnostic" data-goto="diagnostic"><span class="navlink-label" data-i18n="d.diagnostic">Diagnostic</span><span class="navlink__warn" data-nav-warn hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17.5v.01"/></svg><span class="sr-only" data-i18n="d.navWarn">Droits manquants</span></span></a>
           </div>
         </div>
       </nav>
@@ -2076,16 +2076,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310225"></script>
-<script src="assets/js/config.js?v=202610310225"></script>
-<script src="assets/js/lang/fr.js?v=202610310225"></script>
-<script src="assets/js/lang/en.js?v=202610310225"></script>
-<script src="assets/js/lang/es.js?v=202610310225"></script>
-<script src="assets/js/lang/de.js?v=202610310225"></script>
-<script src="assets/js/lang/ko.js?v=202610310225"></script>
-<script src="assets/js/app.js?v=202610310225"></script>
-<script src="assets/js/page-dashboard.js?v=202610310225"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610310225"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610310225"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310307"></script>
+<script src="assets/js/config.js?v=202610310307"></script>
+<script src="assets/js/lang/fr.js?v=202610310307"></script>
+<script src="assets/js/lang/en.js?v=202610310307"></script>
+<script src="assets/js/lang/es.js?v=202610310307"></script>
+<script src="assets/js/lang/de.js?v=202610310307"></script>
+<script src="assets/js/lang/ko.js?v=202610310307"></script>
+<script src="assets/js/app.js?v=202610310307"></script>
+<script src="assets/js/page-dashboard.js?v=202610310307"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610310307"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610310307"></script>
 </body>
 </html>

@@ -129,6 +129,76 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
    l'icône, et le nom du serveur montait au-dessus de son centre. */
 .dbguild__meta:empty { display: none; }
 
+/* =========================== la recherche ============================ */
+
+/* Elle ne remplace pas le menu, elle le filtre : ce qui ne correspond pas
+   disparaît, les familles vides avec. Rien n'est réordonné — une liste
+   qui se réordonne sous les doigts oblige à relire à chaque lettre.
+
+   Le raccourci est ÉCRIT à droite. Un raccourci qu'on ne voit pas n'est
+   pas un raccourci, c'est un secret ; et comme il change de nom selon la
+   machine, c'est le script qui pose le mot. */
+.dbfind {
+  position: relative;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px; padding: 0 10px 0 12px;
+  min-height: 36px;
+  border: 1px solid var(--hair); border-radius: var(--r-pill);
+  background: var(--raised);
+  transition: border-color 180ms var(--e-soft);
+}
+.dbfind:focus-within { border-color: var(--ink-40); }
+.dbfind__loupe { flex: 0 0 auto; color: var(--ink-40); }
+.dbfind__champ {
+  flex: 1 1 auto; min-width: 0;
+  border: 0; background: none; outline: none;
+  color: var(--ink);
+  font: inherit; font-size: 14px;
+}
+.dbfind__champ::placeholder { color: var(--ink-40); }
+/* La croix que Safari et Chrome ajoutent d'eux-mêmes à un type=search :
+   elle double Échap, et elle est dessinée par le navigateur, donc hors
+   de cette feuille et de son thème. */
+.dbfind__champ::-webkit-search-cancel-button { display: none; }
+
+.dbfind__kbd {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid var(--hair); border-radius: 5px;
+  color: var(--ink-40);
+  font-family: inherit; font-size: 11px; letter-spacing: .02em;
+}
+/* Il disparaît dès qu'on tape : la place revient au texte cherché, et le
+   raccourci n'a plus rien à apprendre à qui est déjà dans le champ. */
+.dbfind:focus-within .dbfind__kbd { display: none; }
+
+.dbfind__vide {
+  margin: 0 0 10px; padding: 0 16px;
+  font-size: 13px; color: var(--ink-40);
+}
+
+/* ======================== replier la colonne ========================= */
+
+/* Le bouton vit dans le CONTENU et non dans la colonne : une commande qui
+   disparaît avec ce qu'elle replie ne se rouvre jamais. Il garde donc sa
+   place, repliée ou dépliée. */
+.dbfold {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; margin-bottom: 12px;
+  border: 1px solid var(--hair); border-radius: 9px;
+  background: var(--raised);
+  color: var(--ink-60);
+  cursor: pointer;
+  transition: color 180ms var(--e-soft), background 180ms var(--e-soft);
+}
+.dbfold:hover { color: var(--ink); background: var(--raised-2); }
+
+/* Repliée, la colonne ne laisse PAS un blanc de 236 px : la grille
+   repasse à une seule colonne et le contenu prend toute la largeur. On
+   replie pour gagner de la place, pas pour cacher quelque chose. */
+.db.is-replie { grid-template-columns: minmax(0, 1fr); }
+.db.is-replie .db__side { display: none; }
+
 /* ============================== le menu ============================== */
 
 /* Plus de vingt entrées, six familles. La famille se lisait à l'ESPACE :
@@ -145,36 +215,85 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
 }
 .dbnav::-webkit-scrollbar { display: none; }
 .dbnav__grp { display: flex; flex-direction: column; gap: 2px; }
-.dbnav__grp + .dbnav__grp { margin-top: 14px; }
 
-/* L'étiquette de famille. Elle n'est pas un contrôle : rien à cliquer,
-   rien à replier. --ink-40 est réservé au décor, et c'en est : le nom de
-   la famille ne se lit pas, il se repère.
+/* UN FILET ENTRE DEUX FAMILLES, et plus seulement un espace.
+
+   L'espace seul tenait à dix entrées. À vingt-huit, et maintenant que
+   les familles se replient, il fallait une frontière qu'on voie sans la
+   chercher : repliée, une famille n'est plus qu'une ligne, et deux
+   lignes voisines sans trait entre elles se lisent comme deux entrées
+   d'une même liste.
+
+   `--hair` et pas une couleur neuve : c'est le filet de toute la page. */
+.dbnav__grp + .dbnav__grp {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid var(--hair);
+}
+
+/* Les entrées d'une famille, repliables d'un bloc. Le `hidden` que pose
+   le script suffit à les faire disparaître ; aucune hauteur animée, qui
+   demanderait de mesurer à chaque ouverture. */
+.dbnav__items { display: flex; flex-direction: column; gap: 2px; }
+.dbnav__items[hidden] { display: none; }
+
+/* L'ÉTIQUETTE DE FAMILLE EST DEVENUE UN BOUTON.
+
+   Elle ne l'était pas, et le commentaire d'ici disait pourquoi : rien à
+   replier tant qu'il n'y avait que dix entrées. Il y en a vingt-huit, et
+   personne n'en règle vingt-huit dans la même séance — on vient pour la
+   queue, ou pour la sécurité. Replier les cinq autres familles rend la
+   colonne lisible d'un coup d'œil, et c'est aussi ce qui paie les deux
+   points de corps gagnés sur les entrées.
+
+   Elle reste un repère avant d'être une commande : même retrait, même
+   petit corps, et --ink-40 qui est l'encre du décor. Ce qui en fait un
+   bouton, c'est le chevron et le fait qu'elle s'éclaircit au survol.
 
    PAS de text-transform: uppercase. La chaîne est traduite, et le coréen
    n'a pas de majuscules : la règle ne ferait rien là-bas et donnerait deux
-   menus d'allures différentes selon la langue. Le petit corps et
-   l'interlettrage suffisent à la distinguer d'une entrée.
+   menus d'allures différentes selon la langue.
 
    Le retrait de 16 px est celui du texte des entrées, pas celui de leur
    fond : l'étiquette s'aligne sur les mots, pas sur les pilules. */
 .dbnav__cat {
-  margin: 0 0 4px; padding: 0 12px 0 16px;
-  font-size: 11px; font-weight: 500; letter-spacing: .04em;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%;
+  margin: 0 0 6px; padding: 4px 12px 4px 16px;
+  border: 0; border-radius: var(--r-pill);
+  background: none;
+  font: inherit;
+  font-size: 12.5px; font-weight: 500; letter-spacing: .04em;
   color: var(--ink-40);
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms var(--e-soft);
 }
+.dbnav__cat:hover { color: var(--ink-60); }
 .dbnav__grp + .dbnav__grp .dbnav__cat { margin-top: 0; }
 
-/* L'entrée, à l'identique d'une catégorie du choix du serveur — à ceci
-   près qu'elle mesure 36 px et non 40 : dix entrées, pas cinq. On y vise
-   à la souris ; au doigt, la rangée de petit écran repasse à 44 px. */
+/* Le chevron pointe vers le bas quand la famille est ouverte, vers la
+   droite quand elle est fermée — le sens de lecture de ce qui va se
+   déplier. Il tourne, il ne change pas de dessin : c'est le même objet. */
+.dbnav__chev {
+  flex: 0 0 auto;
+  transform: rotate(0deg);
+  transition: transform 220ms var(--e-out);
+}
+.dbnav__cat[aria-expanded="false"] .dbnav__chev { transform: rotate(-90deg); }
+
+/* L'entrée. Elle mesurait 36 px et 13,5 px de corps, parce qu'il fallait
+   faire tenir vingt-huit entrées dans une colonne sans la faire défiler.
+   C'était un arbitrage perdant : un menu qu'on tient mais qu'on lit mal.
+   Depuis que les familles se replient, la hauteur n'est plus le problème
+   — on n'en garde ouvertes que deux ou trois — et l'entrée reprend les
+   40 px et les 15 px qu'il faut pour se lire sans effort. */
 .navlink {
   position: relative;
   display: flex; align-items: center; gap: 10px;
-  min-height: 36px; padding: 0 12px 0 16px;
+  min-height: 40px; padding: 0 12px 0 16px;
   border-radius: var(--r-pill);
   color: var(--ink-60);
-  font-size: 13.5px; letter-spacing: -0.01em;
+  font-size: 15px; letter-spacing: -0.01em;
   transition: background 180ms var(--e-soft), color 180ms var(--e-soft);
 }
 .navlink:hover { color: var(--ink); background: var(--film); }
@@ -1638,15 +1757,32 @@ label.row__label { cursor: pointer; }
 /* La configuration d'une option, ouverte sous elle. Le décalage est de
    12 px et le texte passe au gris : deux signaux faibles plutôt qu'un
    trait de hiérarchie, parce qu'il n'y a qu'UN niveau de profondeur et
-   qu'un arbre dessiné pour trois entrées est un arbre de trop. */
+   qu'un arbre dessiné pour trois entrées est un arbre de trop.
+
+   UN BLANC AVANT ET APRÈS LE BLOC. Les sous-entrées se collaient à
+   l'entrée du dessus et à celle du dessous, aux mêmes 2 px que deux
+   entrées de même rang : « Options » et « Classement » se lisaient donc
+   comme deux sections voisines, alors que la seconde est la
+   configuration de la première. Dix pixels ne dessinent rien, ils
+   détachent — et c'est tout ce qu'on demande ici. */
 .dbnav__sub {
-  display: flex; flex-direction: column;
+  display: flex; flex-direction: column; gap: 2px;
+  margin: 10px 0;
 }
 .dbnav__sub[hidden] { display: none; }
+/* Deux blocs de sous-entrées qui se suivent — Match & MMR puis Clans —
+   n'ont pas besoin de vingt pixels entre eux : la gouttière du flex
+   ne fait pas fusionner les marges, on reprend donc la moitié.
+
+   `:not([hidden])` des deux côtés, et c'est le point : ces blocs sont
+   cachés tant que leur option est éteinte. Un simple `+` aurait repris
+   dix pixels à un bloc visible dont le voisin du dessus n'existe pas à
+   l'écran, et il se serait collé à l'entrée au-dessus de lui. */
+.dbnav__sub:not([hidden]) + .dbnav__sub:not([hidden]) { margin-top: -10px; }
 
 .navlink--sub {
   padding-left: 28px;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--ink-60);
 }
 .navlink--sub:hover { color: var(--ink); }
