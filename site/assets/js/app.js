@@ -103,6 +103,42 @@
   }
   CYQ.applyI18n = applyI18n;
 
+  /* ---- l'adresse porte la langue, sur la vitrine ---------------------
+     L'accueil répondait sous « / » et « /index » : deux adresses pour une
+     page, et aucune des deux ne disait dans quelle langue on allait la
+     lire. Un lien partagé arrivait donc dans la langue du navigateur de
+     celui qui l'ouvrait, et non dans celle qu'on avait voulu montrer.
+
+     Seules les pages qui le demandent par `data-lang-url` sont
+     concernées — c'est la page qui dit ce qu'elle veut, comme pour les
+     fragments de nav, et le script ne tient aucune liste. Les pages du
+     panneau ont des adresses qui veulent dire autre chose. */
+  function pageAAdresseDeLangue() {
+    return document.documentElement.hasAttribute('data-lang-url');
+  }
+
+  /* La langue lue dans le chemin : « /fr », et rien d'autre. Deux
+     segments, une extension, un sous-dossier : ce n'est pas une adresse
+     de langue, on ne devine pas. */
+  function langueDeLAdresse() {
+    var seg = location.pathname.replace(/^\/+|\/+$/g, '');
+    return LANGS.indexOf(seg) !== -1 ? seg : null;
+  }
+
+  /* `replaceState` et non `pushState` : changer de langue n'est pas une
+     navigation, et le bouton Retour doit ramener d'où l'on vient, pas à
+     la version précédente de la même page. La requête et l'ancre
+     suivent — « ?motion=on » sert justement à revoir l'ouverture, et il
+     serait perdu au premier changement de langue. */
+  function poserAdresseDeLangue(code) {
+    if (!pageAAdresseDeLangue()) return;
+    if (!window.history || !history.replaceState) return;
+    var voulu = '/' + code + location.search + location.hash;
+    if (location.pathname + location.search + location.hash === voulu) return;
+    try { history.replaceState(history.state, '', voulu); }
+    catch (e) { /* fichier local (file://), ou origine refusée : l'adresse reste */ }
+  }
+
   function setLang(code, silent) {
     if (LANGS.indexOf(code) === -1) code = 'fr';
     CYQ.lang = code;
@@ -117,6 +153,7 @@
       if (el.getAttribute('role') === 'menuitemradio') el.setAttribute('aria-checked', on);
       else el.setAttribute('aria-pressed', on);
     });
+    poserAdresseDeLangue(code);
     if (!silent) document.dispatchEvent(new CustomEvent('cyq:lang', { detail: code }));
   }
   CYQ.setLang = setLang;
@@ -1067,9 +1104,16 @@
   function boot() {
     document.documentElement.setAttribute('data-theme', store('theme') || CFG.DEFAULT_THEME || 'dark');
 
+    /* L'ADRESSE D'ABORD, avant la langue retenue et avant celle du
+       navigateur. Quelqu'un qui ouvre /es a demandé l'espagnol
+       explicitement ; lui servir le français parce qu'il a lu la page en
+       français la semaine dernière, c'est ignorer ce qu'il vient de
+       taper. Et comme setLang enregistre, son choix est retenu ensuite. */
+    var depuisUrl = langueDeLAdresse();
     var saved = store('lang');
     var nav = (navigator.language || '').slice(0, 2).toLowerCase();
-    setLang(saved || (LANGS.indexOf(nav) !== -1 ? nav : (CFG.DEFAULT_LANG || 'fr')), true);
+    setLang(depuisUrl || saved ||
+            (LANGS.indexOf(nav) !== -1 ? nav : (CFG.DEFAULT_LANG || 'fr')), true);
     poserDrapeauxFixes(document);
     setTheme(store('theme') || CFG.DEFAULT_THEME || 'dark');
 

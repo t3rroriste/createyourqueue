@@ -48,6 +48,13 @@ PAGES = ("index", "login", "welcome", "servers", "dashboard",
 # login n'y est pas : voir l'en-tête du fichier.
 VERS_FORME_COURTE = tuple(p for p in PAGES if p != "login")
 
+# Les cinq adresses de langue de la vitrine : /fr, /en, /es, /de, /ko
+# servent index.html sans bouger la barre d'adresse, comme le .htaccess le
+# fait en production. La liste est écrite ici et non lue dans app.js : ce
+# sont deux fichiers qui doivent dire la même chose, et verifier_api.py
+# n'en sait rien — c'est la raison du contrôle dans numeroter_versions.py.
+LANGUES = ("fr", "en", "es", "de", "ko")
+
 
 def dossier_app() -> str:
     """Le sous-dossier sous lequel app.js range les pages du panneau.
@@ -100,13 +107,28 @@ class Handler(SimpleHTTPRequestHandler):
         if chemin.endswith("/") and nom in PAGES:
             return self._rediriger("/" + nom + suffixe)
 
-        # 2. la forme longue renvoie vers la courte
+        # 1 bis. la barre finale d'une adresse de langue
+        if chemin.endswith("/") and nom in LANGUES:
+            return self._rediriger("/" + nom + suffixe)
+
+        # 2. la forme longue renvoie vers la courte. « /index » n'est plus
+        #    une adresse : l'accueil est à « / », qui pose ensuite son
+        #    adresse de langue lui-même.
         if nom.endswith(".html"):
             base = nom[:-5]
             if base == "index":
                 return self._rediriger("/" + suffixe)
             if base in VERS_FORME_COURTE:
                 return self._rediriger("/" + base + suffixe)
+        if nom == "index":
+            return self._rediriger("/" + suffixe)
+
+        # 2 ter. /fr et ses quatre sœurs servent l'accueil
+        if nom in LANGUES:
+            fichier = os.path.join(self.directory, "index.html")
+            if os.path.isfile(fichier):
+                self.path = "/index.html" + suffixe
+                return super().send_head()
 
         # 3. la forme courte sert la page, sans bouger la barre d'adresse
         if nom in PAGES:

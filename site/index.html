@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="fr" class="no-js">
+<!-- `data-lang-url` : cette page-ci porte sa langue dans son adresse
+     (/fr, /en, /es, /de, /ko). app.js ne tient aucune liste de pages — il
+     regarde cet attribut, et c'est la page qui dit ce qu'elle veut, comme
+     pour les fragments de nav. -->
+<html lang="fr" class="no-js" data-lang-url>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,18 +11,37 @@
 <meta name="description" content="Toute la configuration du bot CreateYourQueue sur un seul écran : salons, rôles, MMR, queues, journaux, anti-raid.">
 <meta name="color-scheme" content="dark">
 <link rel="icon" href="assets/img/logo.png">
+<!-- L'ADRESSE CANONIQUE ET LES CINQ LANGUES.
+
+     L'accueil est une seule page qui se traduit à l'exécution, pas cinq
+     fichiers : les cinq adresses servent donc le même document. Sans
+     `hreflang`, un moteur y voit cinq pages identiques et n'en garde
+     qu'une, au hasard. Avec, il sait que ce sont cinq traductions et
+     sert la bonne selon la langue du visiteur.
+
+     Le canonique est /fr et non « / » : « / » existe toujours, mais
+     app.js y pose aussitôt l'adresse de langue, et deux adresses pour
+     une page est précisément ce qu'on vient de supprimer. `x-default`
+     renvoie à la racine, qui est l'adresse sans langue choisie. -->
+<link rel="canonical" href="https://cyqbot.eu/fr">
+<link rel="alternate" hreflang="fr" href="https://cyqbot.eu/fr">
+<link rel="alternate" hreflang="en" href="https://cyqbot.eu/en">
+<link rel="alternate" hreflang="es" href="https://cyqbot.eu/es">
+<link rel="alternate" hreflang="de" href="https://cyqbot.eu/de">
+<link rel="alternate" hreflang="ko" href="https://cyqbot.eu/ko">
+<link rel="alternate" hreflang="x-default" href="https://cyqbot.eu/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310545">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310549">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202610310545">
+<link rel="stylesheet" href="assets/css/modules.css?v=202610310549">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -47,7 +70,7 @@
 <!-- cyq:nav courant=index origine=site bouton=connexion -->
 <!-- engendré par outils/fragments.py depuis outils/communs/nav.html -->
 <nav class="nav" aria-label="Principale" data-nav>
-  <a class="nav__mark" href="index">
+  <a class="nav__mark" href="index" data-site="index">
     <img src="assets/img/logo.png" alt="" width="22" height="22">
     <span>CreateYourQueue</span>
   </a>
@@ -587,7 +610,7 @@
     <div class="foot__grid">
 
       <div class="foot__brand">
-        <a class="foot__mark" href="index">
+        <a class="foot__mark" href="index" data-site="index">
           <img src="assets/img/logo.png" alt="" width="26" height="26">
           <span>CreateYourQueue</span>
         </a>
@@ -625,14 +648,14 @@
   <!-- cyq:/pied -->
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310545"></script>
-<script src="assets/js/config.js?v=202610310545"></script>
-<script src="assets/js/lang/fr.js?v=202610310545"></script>
-<script src="assets/js/lang/en.js?v=202610310545"></script>
-<script src="assets/js/lang/es.js?v=202610310545"></script>
-<script src="assets/js/lang/de.js?v=202610310545"></script>
-<script src="assets/js/lang/ko.js?v=202610310545"></script>
-<script src="assets/js/app.js?v=202610310545"></script>
-<script src="assets/js/page-home.js?v=202610310545"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310549"></script>
+<script src="assets/js/config.js?v=202610310549"></script>
+<script src="assets/js/lang/fr.js?v=202610310549"></script>
+<script src="assets/js/lang/en.js?v=202610310549"></script>
+<script src="assets/js/lang/es.js?v=202610310549"></script>
+<script src="assets/js/lang/de.js?v=202610310549"></script>
+<script src="assets/js/lang/ko.js?v=202610310549"></script>
+<script src="assets/js/app.js?v=202610310549"></script>
+<script src="assets/js/page-home.js?v=202610310549"></script>
 </body>
 </html>
