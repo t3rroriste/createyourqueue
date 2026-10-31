@@ -174,17 +174,54 @@
 
   /* ----------------------------------------------------------------- thème */
 
-  function setTheme(mode) {
-    CYQ.theme = mode === 'light' ? 'light' : 'dark';
+  /* TROIS CHOIX, DEUX THÈMES.
+
+     `CYQ.themeChoice` est ce que la personne a demandé — 'system',
+     'light' ou 'dark' — et `CYQ.theme` est ce qui est affiché, qui ne
+     peut valoir que 'light' ou 'dark'. Les deux étaient confondus : on
+     enregistrait le thème affiché, donc dès qu'on avait touché au
+     réglage une fois, on ne pouvait plus revenir à celui du système. */
+  var THEMES = ['system', 'light', 'dark'];
+  var mqSombre = null;
+
+  function themeDuSysteme() {
+    if (!window.matchMedia) return 'dark';
+    if (!mqSombre) mqSombre = window.matchMedia('(prefers-color-scheme: dark)');
+    return mqSombre.matches ? 'dark' : 'light';
+  }
+
+  function setTheme(mode, silencieux) {
+    if (THEMES.indexOf(mode) === -1) mode = (mode === 'light' ? 'light' : 'dark');
+    CYQ.themeChoice = mode;
+    CYQ.theme = mode === 'system' ? themeDuSysteme() : mode;
     document.documentElement.setAttribute('data-theme', CYQ.theme);
-    store('theme', CYQ.theme);
-    $$('[data-theme-toggle]').forEach(function (btn) {
-      var toLight = CYQ.theme === 'dark';
-      btn.innerHTML = icon(toLight ? 'sun' : 'moon', 14);
-      btn.setAttribute('aria-label', t(toLight ? 'c.themeLight' : 'c.themeDark'));
+    store('theme', mode);
+
+    $$('[data-theme-pick]').forEach(function (el) {
+      el.setAttribute('aria-checked', String(el.getAttribute('data-theme-pick') === mode));
     });
+    /* L'ancien bouton-bascule, là où il reste : il n'a que deux états et
+       ne sait rien dire de « Système ». Il montre donc le thème AFFICHÉ,
+       qui est la seule chose vraie qu'il puisse montrer. */
+    $$('[data-theme-toggle]').forEach(function (btn) {
+      var versClair = CYQ.theme === 'dark';
+      btn.innerHTML = icon(versClair ? 'sun' : 'moon', 14);
+      btn.setAttribute('aria-label', t(versClair ? 'c.themeLight' : 'c.themeDark'));
+    });
+    if (!silencieux) document.dispatchEvent(new CustomEvent('cyq:theme', { detail: CYQ.theme }));
   }
   CYQ.setTheme = setTheme;
+
+  /* Le système change d'avis en cours de route — coucher de soleil sous
+     macOS, bascule nocturne sous Windows. On ne suit QUE si le choix est
+     resté sur « Système » : sinon on écraserait une décision explicite. */
+  function suivreLeSysteme() {
+    var mq = (themeDuSysteme(), mqSombre);
+    if (!mq) return;
+    var reagir = function () { if (CYQ.themeChoice === 'system') setTheme('system'); };
+    if (mq.addEventListener) mq.addEventListener('change', reagir);
+    else if (mq.addListener) mq.addListener(reagir);
+  }
 
   /* ---------------------------------------------------------------- Discord */
 
@@ -919,7 +956,10 @@
       var panel = $('.langmenu__panel', wrap);
       if (!panel) return;
 
-      function opts() { return $$('.langmenu__opt', panel); }
+      /* Les trois boutons de thème ET les cinq langues : le menu est un
+         seul parcours au clavier, et des flèches qui sautent par-dessus
+         le premier groupe laisseraient trois commandes inatteignables. */
+      function opts() { return $$('.langmenu__theme, .langmenu__opt', panel); }
       function open() {
         wrap.setAttribute('data-open', 'true');
         btn.setAttribute('aria-expanded', 'true');
@@ -949,6 +989,9 @@
         else if (e.key === 'Tab') { close(false); }
       });
       panel.addEventListener('click', function (e) {
+        /* Le thème ne referme PAS : on compare les trois, et on les
+           compare en regardant la page derrière le menu. La langue, si :
+           on n'en choisit qu'une, et la page est déjà retraduite. */
         if (e.target.closest('.langmenu__opt')) close(true);
       });
       document.addEventListener('click', function (e) {
@@ -1127,7 +1170,13 @@
   }
 
   function boot() {
-    document.documentElement.setAttribute('data-theme', store('theme') || CFG.DEFAULT_THEME || 'dark');
+    /* Posé AVANT tout le reste et sans passer par setTheme : la page est
+       déjà peinte à ce moment, et un aller-retour clair/sombre se verrait.
+       `store('theme')` peut valoir « system » depuis qu'il y a trois
+       choix — c'est un choix, pas un thème, d'où la résolution ici. */
+    var choixTheme = store('theme') || CFG.DEFAULT_THEME || 'dark';
+    document.documentElement.setAttribute(
+      'data-theme', choixTheme === 'system' ? themeDuSysteme() : choixTheme);
 
     /* L'ADRESSE D'ABORD, avant la langue retenue et avant celle du
        navigateur. Quelqu'un qui ouvre /es a demandé l'espagnol
@@ -1140,10 +1189,14 @@
     setLang(depuisUrl || saved ||
             (LANGS.indexOf(nav) !== -1 ? nav : (CFG.DEFAULT_LANG || 'fr')), true);
     poserDrapeauxFixes(document);
-    setTheme(store('theme') || CFG.DEFAULT_THEME || 'dark');
+    setTheme(choixTheme, true);
+    suivreLeSysteme();
 
     $$('[data-theme-toggle]').forEach(function (b) {
       b.addEventListener('click', function () { setTheme(CYQ.theme === 'dark' ? 'light' : 'dark'); });
+    });
+    $$('[data-theme-pick]').forEach(function (b) {
+      b.addEventListener('click', function () { setTheme(b.getAttribute('data-theme-pick')); });
     });
     $$('[data-lang-pick]').forEach(function (b) {
       b.addEventListener('click', function () { setLang(b.getAttribute('data-lang-pick')); });
