@@ -12,8 +12,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610310217">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310217">
+<link rel="stylesheet" href="assets/css/home.css?v=202610310218">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202610310218">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -615,6 +615,48 @@
             </div>
           </div>
         </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- `classement.title`, puis `classement.row` quatre fois
+                 — « {rank} {player} · _{wins}V {losses}D_{streak} » — et
+                 `classement.footer_count` en pied. Le second message est
+                 `classement.mvp_announce_*`, publie une fois la semaine. -->
+            <div class="secprev" data-secprev="classement" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">14:02</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#127942; Classement Joueur</p>
+                      <div class="dprev__lines">
+                        <p>&#129351; <span class="dprev__ment">@Nova</span> &#183; <i>12V 3D</i> &#183; &#128293;5</p>
+                        <p>&#129352; <span class="dprev__ment">@Kaori</span> &#183; <i>9V 5D</i></p>
+                        <p>&#129353; <span class="dprev__ment">@Milo</span> &#183; <i>7V 6D</i></p>
+                        <p><code>4</code> <span class="dprev__ment">@Sora</span> &#183; <i>5V 7D</i></p>
+                      </div>
+                      <p class="dprev__foot">7 joueur(s) class&eacute;(s)</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__apres">
+                  <div class="dprev__main">
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#127941; MVP de la Semaine !</p>
+                      <p class="dprev__line">F&eacute;licitations <span class="dprev__ment">@Nova</span> ! <b>12</b> victoires cette semaine &#127881;</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ============================= CLANS ============================= -->
@@ -639,6 +681,48 @@
               <p class="row__text"><label class="row__label" for="rl-transfer" data-i18n="rl.clanTransfer">Transfert de clan</label> <span class="row__desc" id="rl-transfer-d" data-i18n="rl.clanTransferD"></span></p>
               <span class="row__state" data-state aria-hidden="true"></span>
               <div class="row__ctl"><div class="combo" data-combo data-source="roles"><input type="hidden" data-setting="role.clanTransfer"><button class="combo__button" id="rl-transfer" type="button" aria-describedby="rl-transfer-d"></button></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- `clan.board_title` et `clan.board_row` — « `{rank}`
+                 **{name}** - {leader} | {members} | {wins}V {losses}D KD
+                 {kd} » — puis un defi, `clan.war_offer_title` et sa
+                 description, qui arrive dans le salon du clan vise. -->
+            <div class="secprev" data-secprev="clans" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">20:35</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#127942; Classement Clan</p>
+                      <div class="dprev__lines">
+                        <p><code>1</code> <b>Aurora</b> - <span class="dprev__ment">@Nova</span> | 6 | 14V 4D KD 1.8</p>
+                        <p><code>2</code> <b>Kitsune</b> - <span class="dprev__ment">@Kaori</span> | 5 | 11V 7D KD 1.3</p>
+                        <p><code>3</code> <b>Vanta</b> - <span class="dprev__ment">@Milo</span> | 4 | 8V 9D KD 0.9</p>
+                      </div>
+                      <p class="dprev__foot">3 clan(s)</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="dprev dprev--suite secprev__apres">
+                  <div class="dprev__main">
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#9876;&#65039; D&eacute;fi de Aurora</p>
+                      <p class="dprev__line">Chef : <span class="dprev__ment">@Nova</span></p>
+                      <p class="dprev__line"><b>4 vs 4</b></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -744,6 +828,43 @@
             </div>
           </div>
         </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- Les sept rangs par defaut du bot, `mmr.tier_*`, sous le
+                 titre `wiz.mmr_ranks_title`. Le role est donne des que le
+                 MMR passe le minimum du rang : c est ce que la colonne de
+                 droite montre. -->
+            <div class="secprev" data-secprev="rangs" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">18:20</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#128220; Rangs</p>
+                      <div class="dprev__lines">
+                        <p><b>Grand Champion</b> &#183; <code>1600</code></p>
+                        <p><b>Champion</b> &#183; <code>1400</code></p>
+                        <p><b>Diamant</b> &#183; <code>1250</code></p>
+                        <p><b>Platine</b> &#183; <code>1100</code></p>
+                        <p><b>Or</b> &#183; <code>1000</code></p>
+                        <p><b>Argent</b> &#183; <code>900</code></p>
+                        <p><b>Bronze</b> &#183; <code>0</code></p>
+                      </div>
+                      <p class="dprev__foot">Rangs (7)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="sec sec--aside" data-section="mmr" aria-labelledby="h-mmr" hidden>
@@ -840,6 +961,44 @@
               </div>
             </div>
           </aside>
+        </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- `mmr.elo_title` et `mmr.elo_footer` : la fiche qu un
+                 joueur recoit quand il demande son niveau. Les trois
+                 nombres du pied sont exactement les trois reglages de
+                 cette page. -->
+            <div class="secprev" data-secprev="mmr" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">22:58</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#128200; Niveau &#183; Nova</p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field">
+                          <span class="dprev__fname">&#127942; Rang</span>
+                          <span class="dprev__fval">Diamant</span>
+                        </div>
+                        <div class="dprev__field">
+                          <span class="dprev__fname">&#128200; MMR</span>
+                          <span class="dprev__fval">1 285</span>
+                        </div>
+                      </div>
+                      <p class="dprev__foot">Victoire +15 &#183; D&eacute;faite &#8722;12 &#183; MVP +5</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1620,6 +1779,44 @@
           <h2 class="grp__title" data-i18n="se2.grpArchive">Palmarès</h2>
           <div class="grp__card" data-seasons></div>
         </div>
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- `auto.season_end_*` : le message de cloture, publie le
+                 jour du mois choisi a gauche. Le podium est archive
+                 AVANT la remise a zero, et c est lui qu on voit ici. -->
+            <div class="secprev" data-secprev="saisons" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">00:01</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#127937; Fin de saison</p>
+                      <p class="dprev__line">La saison <b>octobre 2026</b> est termin&eacute;e. Le classement repart de z&eacute;ro : &agrave; vous de jouer !</p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field dprev__field--large">
+                          <span class="dprev__fname">Podium de la saison</span>
+                          <div class="dprev__lines">
+                            <p>&#129351; <span class="dprev__ment">@Nova</span> &#183; <i>31 victoires</i></p>
+                            <p>&#129352; <span class="dprev__ment">@Kaori</span> &#183; <i>24 victoires</i></p>
+                            <p>&#129353; <span class="dprev__ment">@Milo</span> &#183; <i>19 victoires</i></p>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="dprev__foot">Nouvelle saison</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ============================ HISTORIQUE ============================ -->
@@ -1654,6 +1851,47 @@
           </div>
         </div>
 
+
+        <div class="grp">
+          <h2 class="grp__title" data-i18n="se.previewTitle">Dans Discord</h2>
+          <div class="grp__card grp__card--pad">
+            <!-- `queue.history_title`, `queue.history_score` — « **{points}**
+                 pts · {count} joueurs » — et `queue.history_footer`. C est
+                 la meme liste que celle de gauche, vue depuis Discord. -->
+            <div class="secprev" data-secprev="historique" aria-hidden="true">
+              <div class="secprev__flux">
+                <div class="dprev secprev__arrive">
+                  <span class="dprev__av"><img src="assets/img/logo.png" alt="" width="40" height="40"></span>
+                  <div class="dprev__main">
+                    <div class="dprev__head">
+                      <span class="dprev__name">CreateYourQueue</span>
+                      <span class="dprev__app">APP</span>
+                      <span class="dprev__time">23:14</span>
+                    </div>
+                    <div class="dprev__embed">
+                      <p class="dprev__title">&#128220; Historique des derni&egrave;res parties</p>
+                      <div class="dprev__fields">
+                        <div class="dprev__field dprev__field--large">
+                          <span class="dprev__fname">Scrim 5v5 &#183; hier 21:40</span>
+                          <div class="dprev__lines">
+                            <p><b>3</b> pts &#183; 10 joueurs</p>
+                          </div>
+                        </div>
+                        <div class="dprev__field dprev__field--large">
+                          <span class="dprev__fname">Scrim 5v5 &#183; hier 20:05</span>
+                          <div class="dprev__lines">
+                            <p><b>2</b> pts &#183; 10 joueurs</p>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="dprev__foot">28 partie(s) enregistr&eacute;e(s) au total</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- =========================== STATISTIQUES =========================== -->
@@ -1767,16 +2005,16 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610310217"></script>
-<script src="assets/js/config.js?v=202610310217"></script>
-<script src="assets/js/lang/fr.js?v=202610310217"></script>
-<script src="assets/js/lang/en.js?v=202610310217"></script>
-<script src="assets/js/lang/es.js?v=202610310217"></script>
-<script src="assets/js/lang/de.js?v=202610310217"></script>
-<script src="assets/js/lang/ko.js?v=202610310217"></script>
-<script src="assets/js/app.js?v=202610310217"></script>
-<script src="assets/js/page-dashboard.js?v=202610310217"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202610310217"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202610310217"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202610310218"></script>
+<script src="assets/js/config.js?v=202610310218"></script>
+<script src="assets/js/lang/fr.js?v=202610310218"></script>
+<script src="assets/js/lang/en.js?v=202610310218"></script>
+<script src="assets/js/lang/es.js?v=202610310218"></script>
+<script src="assets/js/lang/de.js?v=202610310218"></script>
+<script src="assets/js/lang/ko.js?v=202610310218"></script>
+<script src="assets/js/app.js?v=202610310218"></script>
+<script src="assets/js/page-dashboard.js?v=202610310218"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202610310218"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202610310218"></script>
 </body>
 </html>
