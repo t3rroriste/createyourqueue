@@ -116,6 +116,8 @@ configuré.
   "name": "Valorant League FR",
   "iconUrl": "…",
   "memberCount": 1284,
+  "boosts": 7,
+  "botSince": "2026-03-14",
   "me": { "name": "nova_admin" },
   "botJoignable": true,
   "channels":      [{ "id": "1", "name": "commandes-queue", "category": "COMPÉTITION", "disabled": false }],
@@ -274,13 +276,18 @@ Le relevé d'activité. `?days=` (1–90, 30 par défaut).
 
 ```json
 { "days": 30, "opened": 41, "launched": 40, "cancelled": 6,
-  "abandonRate": 15, "avgWait": 397, "matches": 41,
+  "abandonRate": 15, "avgWait": 397, "matches": 41, "playerSlots": 410,
   "byHour": [0, 0, 2, …], "byDay": [ { "day": "2026-10-01", "n": 3 } ] }
 ```
 
 `abandonRate` vaut `null` et non `0` quand aucune file n'a été ouverte :
 aucune file et aucun abandon ne sont pas la même chose. Les heures sont
 celles du bot, en UTC.
+
+`playerSlots` additionne les deux équipes de chaque partie de la période.
+Ce sont des PLACES, pas des personnes : qui joue dix soirées y compte dix
+fois. C'est la question que pose le panneau — combien de joueurs ont
+traversé les queues — et non combien de personnes différentes.
 
 #### `GET /guilds/{id}/audit`
 

@@ -708,6 +708,15 @@ class Handler(BaseHTTPRequestHandler):
             "name": g["name"],
             "iconUrl": icon_url(g["id"], g.get("icon"), 128),
             "memberCount": g.get("approximate_member_count"),
+            # Les boosts et la date d'arrivée du bot viennent du BOT, qui
+            # n'existe pas derrière ce serveur-ci : ce sont les deux seuls
+            # champs de la fiche qu'on ne peut pas honorer en
+            # développement. `null` et pas `0` — le panneau affiche alors
+            # son état vide réel, qui est exactement ce qu'il affichera en
+            # production quand le bot dort. Un zéro se lirait « aucun
+            # boost », ce qui serait une réponse inventée.
+            "boosts": None,
+            "botSince": None,
             "me": {"name": s["user_name"]},
             # En production, ce champ dit si le bot a répondu : sans lui, le
             # panneau servait la copie du site comme une lecture fraîche.

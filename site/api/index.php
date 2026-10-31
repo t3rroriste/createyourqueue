@@ -678,12 +678,21 @@ function appel_bot(string $methode, string $chemin, ?array $corps = null): array
 
 /* Les réglages du bot, traduits dans les clés du panneau. Tableau vide s'il
    ne répond pas : l'appelant garde alors ce qu'il avait. */
-function reglages_du_bot(string $gid): array
+/* `$brut` rend la réponse du bot telle quelle, en plus des réglages mis à
+   plat. Deux champs de la fiche — les boosts et la date d'arrivée du bot —
+   ne sont pas des réglages : ils ne passent par aucun pont, ils ne
+   s'écrivent pas, ils se lisent. Les faire entrer dans `$sortie` les
+   aurait rendus modifiables par PATCH, ce qu'ils ne sont pas. Rappeler le
+   bot une seconde fois pour deux nombres aurait doublé l'appel le plus
+   coûteux de la route. */
+function reglages_du_bot(string $gid, ?array &$brut = null): array
 {
     [$code, $rep] = appel_bot('GET', '/api/guilds/' . $gid);
     if ($code !== 200) {
+        $brut = null;
         return [];
     }
+    $brut = $rep;
     $sortie = [];
     foreach (PONT_RESSOURCES as $cleSite => $cleBot) {
         $res = $rep['resources'][$cleBot] ?? null;
@@ -1410,7 +1419,7 @@ if (preg_match('#^/guilds/(\d{5,25})(/settings)?$#', $chemin, $m)) {
            l'air juste, on modifiait un champ, et c'est le refus
            d'enregistrement (BOT_INJOIGNABLE) qui apprenait que le bot
            dormait. L'écriture était honnête, la lecture non. */
-        $duBot = reglages_du_bot($gid);
+        $duBot = reglages_du_bot($gid, $ficheBot);
         $rep = [
             'id'                 => $laGuilde['id'],
             'name'               => $laGuilde['name'],
@@ -1423,8 +1432,8 @@ if (preg_match('#^/guilds/(\d{5,25})(/settings)?$#', $chemin, $m)) {
                deux sont donc nuls quand le bot dort — et le panneau
                n'affiche alors rien plutôt qu'un zéro, qui se lirait comme
                « aucun boost ». */
-            'boosts'             => $duBot['boosts'] ?? null,
-            'botSince'           => $duBot['joined'] ?? null,
+            'boosts'             => $ficheBot['boosts'] ?? null,
+            'botSince'           => $ficheBot['joined'] ?? null,
             'me'                 => ['name' => $session['user_name']],
             /* Le bot a le dernier mot sur ce qu'il tient : c'est lui qui
                publiera et créera, pas nous. Injoignable, on sert la copie
