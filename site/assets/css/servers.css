@@ -219,13 +219,17 @@ html.motion-force.motion-pending .sv__main { visibility: hidden; }
   transition: border-color 180ms var(--e-soft), background 180ms var(--e-soft);
 }
 .svfind input::placeholder { color: var(--ink-40); }
-.svfind input:hover { background: rgba(255,255,255,.07); }
+.svfind input:hover { background: var(--lift-3); }
 .svfind input:focus-visible {
   outline: none;
   border-color: var(--ink-60);
-  background: rgba(255,255,255,.07);
+  background: var(--lift-3);
 }
+/* La croix d'effacement de Safari et Chrome est dessinée en noir : sur
+   fond sombre elle est invertie pour se voir, sur fond clair elle est
+   déjà de la bonne couleur et l'inversion la rendrait invisible. */
 .svfind input::-webkit-search-cancel-button { filter: invert(1) opacity(.4); }
+html[data-theme="light"] .svfind input::-webkit-search-cancel-button { filter: opacity(.4); }
 
 .sv__count {
   font-size: 12.5px; color: var(--ink-60);

@@ -875,6 +875,9 @@ label.row__label { cursor: pointer; }
 }
 .combo__search input:focus { outline: none; }
 .combo__search input::-webkit-search-cancel-button { filter: invert(1) opacity(.4); }
+/* Même raison qu'au choix du serveur : la croix du navigateur est noire,
+   l'inversion ne sert qu'au thème sombre. */
+html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { filter: opacity(.4); }
 .combo__search:focus-within { box-shadow: inset 0 0 0 1px var(--ink-60); }
 .combo__count { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink-60); }
 
