@@ -56,6 +56,22 @@ VITRINE = COMMUN + [
     # — et sans être chargée par personne, support.html appelant
     # page-modules.js. Quatrième cas du même oubli.
     "assets/js/page-support.js",
+    # LA VIDÉO DE PRÉSENTATION — section 3 de l'accueil.
+    #
+    # Déclarée en commentaire, et c'est voulu : `publier_site.py` s'arrête
+    # net sur un fichier listé mais absent du disque, et il a raison. Tant
+    # que le montage n'est pas livré, une déclaration sèche refuserait
+    # TOUTE publication du site pour une vidéo qui n'existe pas encore.
+    #
+    # Le jour où `site/assets/video/` est rempli : on retire les dièses,
+    # et rien d'autre. La page, elle, est déjà écrite — sans les fichiers
+    # elle affiche son message de repli et son lien de téléchargement.
+    # "assets/video/presentation.webm",
+    # "assets/video/presentation.mp4",
+    # "assets/video/affiche.jpg",
+    # "assets/video/sous-titres.fr.vtt", "assets/video/sous-titres.en.vtt",
+    # "assets/video/sous-titres.es.vtt", "assets/video/sous-titres.de.vtt",
+    # "assets/video/sous-titres.ko.vtt",
 ]
 
 # dashboard.cyqbot.eu — l'application.
