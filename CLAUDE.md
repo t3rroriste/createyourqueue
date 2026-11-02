@@ -150,6 +150,21 @@ Puis `http://localhost:8765/welcome.html?guild=test&motion=on` par exemple.
 `.claude/launch.json` déclare `cyq-site` (8765), `cyq-api` (3000) et
 `cyq-archive` (8766, l'instantané de septembre pour comparer).
 
+Chacune des trois a un jumeau suffixé `-windows`. Ce n'est pas un oubli :
+le fichier part sur les deux machines, et il n'existe aucun nom
+d'interpréteur qui marche des deux côtés. Sur le MacBook, `python` tout
+court n'existe pas — macOS ne l'installe plus depuis 12.3 — donc les
+entrées sans suffixe appellent `python3`. Sur le PC, `python3` est pire
+qu'absent : Windows en fait un alias qui ouvre le Microsoft Store au lieu
+de dire que rien n'a démarré. Les jumelles `-windows` appellent donc
+`python`, le seul nom que le PC ait jamais eu — c'est aussi celui qu'
+`outils/cyq.ps1` cherche.
+
+Ce sont les seules portes d'entrée du dépôt à se dédoubler, et pour la
+même raison que le coffre à mots de passe : un `.py` ne peut pas se
+lancer lui-même. La logique, elle, reste dans `outils/serveur_local.py`,
+appelé à l'identique par les six.
+
 ### Les trois relevés d'un coup
 
 ```
