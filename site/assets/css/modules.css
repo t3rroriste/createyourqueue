@@ -443,6 +443,72 @@
 .mock__btn-n { color: var(--ink-60); }
 .mock__btn--primary .mock__btn-n { color: var(--raised-2); }
 
+/* --- Réactions ---------------------------------------------------------
+   La seule chose de la scène qui réponde au clic — app.js, [data-react].
+   Un compteur qui monte d'un suffit à dire « ceci répond » ; au-delà, la
+   maquette promettrait un Discord qui tourne dans la page.
+
+   PAS D'EMOJI, alors que Discord n'a que ça. Un pictogramme en couleur
+   dans une page monochrome se voit avant le message qu'il accompagne. On
+   garde le trait des autres icônes de la scène, et c'est la pastille —
+   ronde, comptée, détachée sous le message — qui fait lire « réaction ».
+
+   Ni focus ni tabindex : la scène est aria-hidden, et un élément
+   focusable dans un sous-arbre masqué envoie le clavier sur du décor.
+   Voir outils/communs/maquette.html. */
+.mock__reacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.mock__react {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--raised-2);
+  color: var(--ink-60);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  /* couleur et bordure seulement : ni l'une ni l'autre ne relance la
+     mise en page, et la pastille est posée dans un fil de messages */
+  transition: color 140ms var(--e-soft), border-color 140ms var(--e-soft);
+}
+.mock__react:hover { color: var(--ink); }
+/* la mienne. En --ink et non en --accent : chaque scène n'a qu'un seul
+   emploi du cuivre, et il est déjà pris ailleurs — couleur d'équipe,
+   variation de MMR, score, rôle de chef, argument de commande. */
+.mock__react.is-mine {
+  border-color: var(--ink-40);
+  color: var(--ink);
+}
+.mock__react-n { font-variant-numeric: tabular-nums; }
+
+/* Le sursaut au clic. `transform` seul, et la classe est reposée par le
+   script à chaque clic — sans ça, le second ne rejouerait rien. */
+@keyframes mock-react-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+.mock__react.is-pop { animation: mock-react-pop 260ms var(--e-out); }
+
+/* La liste de langues de la scène Options : le clic coche la ligne.
+   Même raison d'être que les réactions — la scène répond, et c'est
+   tout. Une réaction n'aurait rien voulu dire ici : le message est
+   éphémère, et Discord n'en accepte aucune dessus. */
+[data-choix] .mock__opt { cursor: pointer; }
+[data-choix] .mock__opt:hover .mock__opt-name { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .mock__react.is-pop { animation: none; }
+}
+
 /* --- Bloc de code (classement) ----------------------------------------- */
 /* Seul endroit en monospace : Discord rend ainsi les tableaux que les bots
    publient. Pile système, rien à charger. */
