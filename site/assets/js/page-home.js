@@ -555,11 +555,18 @@
    quand même, sans l'arrivée en fondu — et si JavaScript manque tout
    entier, le `href` des cartes mène toujours à /modules#queue.
 
-   CE QU'ELLE MONTRE EST RECOPIÉ DE LA CARTE. La maquette, le titre et le
-   résumé sont clonés depuis la carte cliquée ; seul le texte long lui est
-   propre (`mm.*`). Six maquettes réécrites ici seraient six choses à
-   tenir d'accord avec la grille, et c'est précisément comme ça qu'un
-   second texte finit par mentir.
+   CE QU'ELLE MONTRE N'EST PAS RÉÉCRIT. Le titre vient de la carte
+   cliquée, le texte long des dictionnaires (`mm.*`), et la scène Discord
+   de la RÉSERVE posée en bas de la page — les six scènes qu'
+   outils/fragments.py y recopie depuis outils/communs/maquette.html,
+   celles-là mêmes que la page Modules affiche. Rien de tout cela n'a de
+   second exemplaire : une maquette réécrite ici serait une chose de plus
+   à tenir d'accord avec la page Modules, et c'est précisément comme ça
+   qu'un balisage finit par mentir.
+
+   Ce n'est plus la VIGNETTE de la carte qui est agrandie : un
+   pictogramme ne dit rien de plus de près que de loin. C'est le message
+   que le bot publie.
    ========================================================================= */
 (function fenetreModule() {
   'use strict';
@@ -574,6 +581,7 @@
   var para     = boite.querySelector('[data-modmodal-p]');
   var fond     = boite.querySelector('[data-modmodal-fond]');
   var fermerB  = boite.querySelector('[data-modmodal-close]');
+  var stock    = boite.querySelector('[data-modmodal-stock]');
 
   /* Le module ouvert, et la carte d'où l'on vient : c'est à elle que le
      focus revient à la fermeture. Sans ça, on se retrouve rejeté en haut
@@ -604,15 +612,16 @@
 
   function remplir(carte) {
     var nom = carte.getAttribute('data-mod-open');
-    var vignette = carte.querySelector('.mcard__view');
     var h = carte.querySelector('.mcard__t');
+    /* La scène est prise dans la réserve, pas sur la carte : la carte ne
+       porte qu'une vignette, et c'est le message complet qu'on vient
+       voir. Clonée, et non déplacée — la réserve doit rester entière
+       pour le module suivant. */
+    var scene = stock && stock.querySelector('[data-maquette="' + nom + '"]');
 
     vue.innerHTML = '';
-    if (vignette) {
-      var copie = vignette.cloneNode(true);
-      copie.removeAttribute('aria-hidden');     // le parent le porte déjà
-      vue.appendChild(copie);
-    }
+    if (scene) vue.appendChild(scene.cloneNode(true));
+
     if (h) titre.textContent = h.textContent;
     para.textContent = t(TEXTES[nom] || '');
     return nom;
