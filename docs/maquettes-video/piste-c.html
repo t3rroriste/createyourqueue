@@ -393,6 +393,13 @@ img.k-av { background: none; }
       <h1>La présentation, piste C</h1>
       <p>Tout se règle depuis le panneau, et le vrai message part sur Discord. Voix : Gabriel, d'ElevenLabs, en une seule prise découpée phrase par phrase.</p>
     </div>
+    <div class="seg-ui" role="group" aria-label="Langue">
+      <button type="button" id="l-fr" data-langue="fr" aria-pressed="true">FR</button>
+      <button type="button" id="l-en" data-langue="en" aria-pressed="false">EN</button>
+      <button type="button" id="l-es" data-langue="es" aria-pressed="false">ES</button>
+      <button type="button" id="l-de" data-langue="de" aria-pressed="false">DE</button>
+      <button type="button" id="l-ko" data-langue="ko" aria-pressed="false">KO</button>
+    </div>
     <div class="seg-ui" role="group" aria-label="Format">
       <button type="button" id="f-auto" data-format="auto" aria-pressed="true">Auto</button>
       <button type="button" id="f-l" data-format="l" aria-pressed="false">Ordinateur</button>
@@ -422,13 +429,19 @@ img.k-av { background: none; }
 
 <audio data-voix preload="auto" src="voix/fr.mp4"></audio>
 <script src="anime.umd.min.js"></script>
+<script src="textes.js"></script>
+<script src="textes-film.js"></script>
 <script src="voix/fr.cues.js"></script>
+<script src="voix/en.cues.js"></script>
+<script src="voix/es.cues.js"></script>
+<script src="voix/de.cues.js"></script>
+<script src="voix/ko.cues.js"></script>
 <script>
 (function () {
   'use strict';
 
   var A = window.anime;
-  var VOIX = (window.CYQ_VOIX || {}).fr;
+  var VOIX;
   var LOGO = 'data:image/png;base64,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';
   var ecran = document.querySelector('[data-ecran]');
   var audio = document.querySelector('[data-voix]');
@@ -436,9 +449,23 @@ img.k-av { background: none; }
 
   // Chaque plan part de l'instant de SA phrase : quand le texte change, ou
   // quand une autre langue dure plus longtemps, le film suit sans retouche.
-  var T = {};
-  VOIX.lignes.forEach(function (l) { T[l.id] = Math.round(l.debut * 1000); });
-  var TOTAL = Math.round(VOIX.total * 1000);
+  var T = {}, TOTAL = 0;
+  // S : libellés du site, B : textes du bot, F : textes propres au film.
+  var LANGUE = 'fr', S, B, F;
+  function langue(l) {
+    LANGUE = l;
+    S = window.CYQ_TEXTES[l].site; B = window.CYQ_TEXTES[l].bot; F = window.CYQ_FILM_TEXTES[l];
+    VOIX = window.CYQ_VOIX[l];
+    T = {};
+    VOIX.lignes.forEach(function (x) { T[x.id] = Math.round(x.debut * 1000); });
+    TOTAL = Math.round(VOIX.total * 1000);
+  }
+  langue('fr');
+  function fmt(t, o) { return t.replace(/\{(\w+)\}/g, function (_, k) { return o[k] != null ? o[k] : ''; }); }
+  // Le gras de Discord : **texte** dans les fichiers du bot
+  function md(t) { return t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+  function nb(v) { return v.toLocaleString(F.loc); }
+  function equipe(n) { return fmt(B['queue.team_default'], { n: n }); }
   var CHAPITRES = [
     ['chaos', 'Le problème'], ['panneau', 'Le panneau'], ['format', 'Le format'], ['apercu', 'L’aperçu'],
     ['ouvrir', 'L’ouverture'], ['annonce', 'L’annonce'], ['equipes', 'Les équipes'], ['vocal', 'Le déplacement vocal'], ['suivi', 'Le suivi'],
@@ -477,11 +504,8 @@ img.k-av { background: none; }
     { n: 'Ivan', h: 230 }, { n: 'Pablo', h: 70 }, { n: 'Aya', h: 290 }, { n: 'Tom', h: 100 }, { n: 'Alex', h: 45 }
   ];
   var ALEX = 12;
-  var CHAOS = [
-    [0, 'qui pour une 5v5 ce soir ?'], [1, '+1'], [2, 'moi'], [4, '+1'], [3, 'je prends mid'],
-    [5, 'on est combien là ?'], [6, '+1'], [7, 'moi aussi'], [1, 'attendez je recompte'],
-    [8, '+1'], [9, 'c’est complet ?'], [10, 'moi !'], [11, '+1 ?'], [0, 'bon on est 11 ou 12 ?']
-  ];
+  // Qui écrit quoi dans le salon du début ; le texte vient de F.chaos
+  var CHAOS = [0, 1, 2, 4, 3, 5, 6, 7, 1, 8, 9, 10, 11, 0];
   // L'ordre des réactions : l'organisateur d'abord, puis neuf joueurs.
   var FILE = [ALEX, 0, 1, 2, 3, 4, 5, 6, 7, 8];
   var EQ = [[ALEX, 3, 4, 7, 8], [0, 1, 2, 5, 6]];
@@ -526,25 +550,25 @@ img.k-av { background: none; }
     var rail = h('nav', 'k-rail', dr);
     h('i', '', rail, I.discord).style.background = 'var(--k-chat)';
     h('hr', '', rail);
-    h('i', 'is-on', rail, 'LC');
+    h('i', 'is-on', rail, F.gi);
     h('i', '', rail, 'GG');
     h('i', '', rail, 'R6');
     h('i', '', rail, I.plus).style.color = '#23A55A';
     var side = R.side = h('aside', 'k-side', dr);
-    h('header', 'k-guild', side, 'Les Copains' + I.chev);
+    h('header', 'k-guild', side, F.guild + I.chev);
     var ch = h('div', 'k-chans', side);
-    h('div', 'k-cat', ch, 'Salons textuels');
+    h('div', 'k-cat', ch, F.catText);
     function salon(nom, on) {
       var r = h('div', 'k-ch', ch, '<span class="k-chbg"></span><span class="k-hash">#</span><span>' + nom + '</span>');
       return r;
     }
-    salon('général');
-    R.chRech = salon('recherche-équipe');
-    R.chAnn = salon('🔱・queue-annonce');
+    salon(F.chanGen);
+    R.chRech = salon(F.chanLfg);
+    R.chAnn = salon(B['names.channel_queue_announcement']);
     // Deux salons de moins que sur un vrai serveur : les deux vocaux
     // d'équipe et leurs dix joueurs doivent tenir dans la colonne.
-    h('div', 'k-cat', ch, 'Salons vocaux');
-    R.chAtt = h('div', 'k-ch', ch, I.vox + '<span>🎮 Attente Queue</span><span class="k-badge">0/10</span>');
+    h('div', 'k-cat', ch, F.catVoice);
+    R.chAtt = h('div', 'k-ch', ch, I.vox + '<span>' + B['names.voice_queue_waiting'] + '</span><span class="k-badge">0/10</span>');
     R.badge = R.chAtt.lastChild;
     var vz = R.vz = h('div', 'k-vz', ch);
     R.att = FILE.map(function (g) {
@@ -556,7 +580,7 @@ img.k-av { background: none; }
     var eqs = h('div', 'k-eqs', vz);
     R.eqHead = []; R.eqSlots = []; R.eqFlash = []; R.eqBadge = [];
     EQ.forEach(function (eq, i) {
-      var hd = h('div', 'k-ch', eqs, '<span class="k-chflash"></span>' + I.vox + '<span>Équipe ' + (i + 1) + '</span><span class="k-badge">0/5</span>');
+      var hd = h('div', 'k-ch', eqs, '<span class="k-chflash"></span>' + I.vox + '<span>' + equipe(i + 1) + '</span><span class="k-badge">0/5</span>');
       R.eqHead.push(hd); R.eqFlash.push(hd.firstChild); R.eqBadge.push(hd.lastChild);
       R.eqSlots.push(eq.map(function (g) {
         var r = h('div', 'k-vm', eqs);
@@ -568,40 +592,44 @@ img.k-av { background: none; }
     });
     var me = h('div', 'k-me', side);
     av(ALEX, me);
-    h('div', '', me, '<b>Alex</b><span>En ligne</span>');
+    h('div', '', me, '<b>Alex</b><span>' + F.online + '</span>');
 
     var main = R.main = h('section', 'k-main', k);
     var head = h('header', 'k-head', main);
     var burger = P ? I.menu : '';
-    R.headA = h('div', '', head, burger + '<span class="k-hash">#</span>recherche-équipe<em>on cherche du monde pour jouer</em>');
-    R.headB = h('div', '', head, burger + '<span class="k-hash">#</span>🔱・queue-annonce<em>les files ouvertes par le bot</em>');
+    var ann = B['names.channel_queue_announcement'];
+    R.headA = h('div', '', head, burger + '<span class="k-hash">#</span>' + F.chanLfg + '<em>' + F.topicLfg + '</em>');
+    R.headB = h('div', '', head, burger + '<span class="k-hash">#</span>' + ann + '<em>' + F.topicAnn + '</em>');
     var flux = R.flux = h('div', 'k-flux', main);
     var chatA = R.chatA = h('div', 'k-chat', flux);
     R.list = h('div', 'k-list', chatA);
-    R.msgs = CHAOS.map(function (m, i) {
-      return h('div', 'k-msg', R.list, avHtml(m[0]) + '<div class="k-mb"><div class="k-mh"><b class="k-mn">' + G[m[0]].n +
-        '</b><span class="k-mt">Aujourd’hui à 20:' + (41 + Math.floor(i / 3)) + '</span></div><p>' + m[1] + '</p></div>');
+    R.msgs = CHAOS.map(function (g, i) {
+      return h('div', 'k-msg', R.list, avHtml(g) + '<div class="k-mb"><div class="k-mh"><b class="k-mn">' + G[g].n +
+        '</b><span class="k-mt">' + fmt(F.today, { h: '20:' + (41 + Math.floor(i / 3)) }) + '</span></div><p>' + F.chaos[i] + '</p></div>');
     });
-    R.tape = h('div', 'k-tape', chatA, '<i><u></u><u></u><u></u></i><span><b>Pablo</b>, <b>Aya</b> et <b>Tom</b> sont en train d’écrire…</span>');
+    R.tape = h('div', 'k-tape', chatA, '<i><u></u><u></u><u></u></i><span>' + F.typing + '</span>');
 
     var chatB = R.chatB = h('div', 'k-chat k-chatB', flux);
-    h('div', 'k-debut', chatB, '<i>#</i><b>Bienvenue dans #🔱・queue-annonce !</b><span>C’est le début du salon. Le bot y publie chaque file ouverte.</span>');
+    h('div', 'k-debut', chatB, '<i>#</i><b>' + fmt(F.welcomeT, { c: ann }) + '</b><span>' + F.welcomeS + '</span>');
     var bot = R.bot = h('div', 'k-msg k-mention', chatB);
     h('img', 'k-av', bot).src = LOGO;
     var mb = h('div', 'k-mb', bot);
-    h('div', 'k-mh', mb, '<b class="k-mn">CreateYourQueue</b><span class="k-app">APP</span><span class="k-mt">Aujourd’hui à 20:58</span>');
+    h('div', 'k-mh', mb, '<b class="k-mn">CreateYourQueue</b><span class="k-app">APP</span><span class="k-mt">' + fmt(F.today, { h: '20:58' }) + '</span>');
     h('p', '', mb, '<span class="k-ment">@everyone</span>');
     var vers = h('div', 'k-vers', mb);
     // Deux états du MÊME message, empilés : l'annonce change de forme au
     // lancement, et la faire grandir en place animerait une hauteur.
     var vb = R.verB = h('div', 'k-verB', vers);
     var va = R.verA = h('div', 'k-verA', vers);
-    var tete = '<div class="k-et">Nouveau Scrim 5v5</div>';
-    var champs = '<div class="k-ef"><div><b>Heure</b><span><b>21:00</b></span></div><div><b>Type</b><span><b>Scrim</b></span></div></div>';
-    h('div', 'k-emb', va, tete + '<div class="k-ed"><p>Organisé par ' + ment(ALEX) + '</p><p class="k-vide"></p>' +
-      '<p>Equipe N°1 : <b>Équipe 1</b> 🔴</p><p>Equipe N°2 : <b>Équipe 2</b> 🔵</p><p class="k-vide"></p>' +
-      '<p>🎙️ Réagis avec ✅ puis rejoins le vocal <b>🎮 Attente Queue</b> pour participer !</p></div>' + champs +
-      '<div class="k-eft">Réagis avec ✅ pour participer</div>');
+    // L'annonce, ligne à ligne comme queue_config.py la compose, avec les
+    // textes du bot dans la langue du serveur.
+    var tete = '<div class="k-et">' + fmt(B['queue.ann_title'], { name: 'Scrim 5v5' }) + '</div>';
+    var champs = '<div class="k-ef"><div><b>' + B['queue.field_time'] + '</b><span><b>21:00</b></span></div><div><b>' + B['queue.field_type'] + '</b><span><b>Scrim</b></span></div></div>';
+    var par = '<p>' + fmt(B['queue.ann_by'], { author: ment(ALEX) }) + '</p><p class="k-vide"></p>';
+    function ligneEq(n) { return '<p>' + md(fmt(B['queue.ann_team_line'], { n: n, name: equipe(n), color: n === 1 ? '🔴' : '🔵' })) + '</p>'; }
+    h('div', 'k-emb', va, tete + '<div class="k-ed">' + par + ligneEq(1) + ligneEq(2) + '<p class="k-vide"></p>' +
+      '<p>' + md(fmt(B['queue.ann_cta'], { channel: B['names.voice_queue_waiting'] })) + '</p></div>' + champs +
+      '<div class="k-eft">' + B['queue.ann_footer_join'] + '</div>');
     var ra = h('div', 'k-reacs', va);
     var reac = R.reac = h('span', 'k-reac', ra);
     R.reacMe = h('span', 'k-reacme', reac);
@@ -609,19 +637,19 @@ img.k-av { background: none; }
     var rn = h('span', 'k-rn', reac);
     var rs = R.reacStrip = h('span', 'k-rs', rn);
     for (var n = 1; n <= 11; n++) h('b', '', rs, n);
-    h('div', 'k-emb', vb, tete + '<div class="k-ed"><p>Organisé par ' + ment(ALEX) + '</p><p class="k-vide"></p>' +
-      '<p>Equipe N°1 : <b>Équipe 1</b> 🔴</p><p>' + EQ[0].map(ment).join(' ') + '</p>' +
-      '<p>Equipe N°2 : <b>Équipe 2</b> 🔵</p><p>' + EQ[1].map(ment).join(' ') + '</p><p class="k-vide"></p>' +
-      '<p>🎮 <b>La partie a commencé !</b></p></div>' + champs);
+    h('div', 'k-emb', vb, tete + '<div class="k-ed">' + par +
+      ligneEq(1) + '<p>' + EQ[0].map(ment).join(' ') + '</p>' +
+      ligneEq(2) + '<p>' + EQ[1].map(ment).join(' ') + '</p><p class="k-vide"></p>' +
+      '<p>' + md(B['queue.ann_started']) + '</p></div>' + champs);
     h('div', 'k-reacs', vb, '<span class="k-reac"><span class="k-reacme"></span><span>✅</span><span>11</span></span>');
 
     var saisie = h('div', 'k-saisie', main, I.plus);
-    R.phA = h('span', '', saisie, 'Envoyer un message dans #recherche-équipe');
-    R.phB = h('span', '', saisie, 'Envoyer un message dans #🔱・queue-annonce');
+    R.phA = h('span', '', saisie, fmt(F.placeholder, { c: F.chanLfg }));
+    R.phB = h('span', '', saisie, fmt(F.placeholder, { c: ann }));
 
     if (!P) {
       var mem = h('aside', 'k-mem', k);
-      h('div', 'k-cat', mem, 'En ligne — 13');
+      h('div', 'k-cat', mem, fmt(F.onlineN, { n: 13 }));
       [ALEX, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].slice(0, 12).forEach(function (g) {
         h('div', 'k-mm', mem, avHtml(g) + '<span>' + G[g].n + '</span>');
       });
@@ -640,32 +668,33 @@ img.k-av { background: none; }
     var R = { nav: {}, sec: {} };
     var d = R.win = h('div', 'd', par);
     h('nav', 'd-nav', d, '<span class="d-nav__mark"><img src="' + LOGO + '" alt="">CreateYourQueue</span>' +
-      '<span class="d-nav__links"><span>Documentation</span><span>Modules</span><span>Support</span></span>' +
-      '<span class="d-disc">' + I.ecrou + '</span><span class="d-pill d-pill--ghost d-pill--sm">Retour</span>');
+      '<span class="d-nav__links"><span>' + S['n.docs'] + '</span><span>' + S['m.nav'] + '</span><span>' + S['n.support'] + '</span></span>' +
+      '<span class="d-disc">' + I.ecrou + '</span><span class="d-pill d-pill--ghost d-pill--sm">' + S['c.back'] + '</span>');
     var db = R.db = h('div', 'd-db', d);
     var side = h('div', 'd-side', db);
-    h('div', 'd-guild', side, '<span class="d-guild__ic">LC</span><span><b>Les Copains</b><span>1 248 membres</span></span>');
-    h('div', 'd-find', side, I.loupe + 'Chercher une section<kbd>⌘ K</kbd>');
+    h('div', 'd-guild', side, '<span class="d-guild__ic">' + F.gi + '</span><span><b>' + F.guild + '</b><span>' + F.members + '</span></span>');
+    h('div', 'd-find', side, I.loupe + S['d.find'] + '<kbd>⌘ K</kbd>');
     var navv = R.navv = h('div', 'd-navv', side);
     var navin = R.navin = h('div', 'd-navin', navv);
     R.mark = h('span', 'd-mark', navin);
+    // Les clés sont celles de dashboard.html : le menu se lit dans la langue du site
     var GROUPES = [
-      [null, [['apercu', 'Dashboard']]],
-      ['Général', [['configurations', 'Configurations'], ['options', 'Options'], ['classement', 'Classement', 1], ['rangs', 'Rangs', 1],
-        ['mmr', 'MMR', 1], ['historique', 'Historique', 1], ['saisons', 'Saisons', 1], ['clans', 'Clans', 1]]],
-      ['Queue', [['queue', 'Queue'], ['programmation', 'Programmation'], ['presets', 'Presets']]],
-      ['Le serveur', [['salons', 'Salons'], ['roles', 'Rôles']]],
-      ['Accès', [['blacklist', 'Blacklist']]],
-      ['Sécurité', [['logs', 'Logs'], ['antiraid', 'Anti-raid'], ['nettoyage', 'Nettoyage automatique'], ['antilien', 'Anti-lien']]],
-      ['Suivi', [['stats', 'Statistiques'], ['journal', 'Journal'], ['diagnostic', 'Diagnostic']]]
+      [null, [['apercu', 's.overview']]],
+      ['cat.bot', [['configurations', 's.config'], ['options', 's.options'], ['classement', 'fn.leaderboard', 1], ['rangs', 's.ranks', 1],
+        ['mmr', 's.mmr', 1], ['historique', 's.history', 1], ['saisons', 's.seasons', 1], ['clans', 'fn.clans', 1]]],
+      ['cat.queue', [['queue', 's.queue'], ['programmation', 's.schedule'], ['presets', 's.presets']]],
+      ['cat.server', [['salons', 's.channels'], ['roles', 's.roles']]],
+      ['cat.access', [['blacklist', 's.blacklist']]],
+      ['cat.security', [['logs', 's.logs'], ['antiraid', 'se.grpRaid'], ['nettoyage', 'se.grpClean'], ['antilien', 'se.grpAntilink']]],
+      ['cat.monitor', [['stats', 's.stats'], ['journal', 's.journal'], ['diagnostic', 'd.diagnostic']]]
     ];
     // Le téléphone range les sections en une rangée défilante, sans les
     // sous-sections fléchées — exactement comme dashboard.css sous 900 px.
     GROUPES.forEach(function (gr) {
       var g = h('div', 'd-grp', navin);
-      if (gr[0]) h('div', 'd-cat', g, gr[0] + I.chev);
+      if (gr[0]) h('div', 'd-cat', g, S[gr[0]] + I.chev);
       gr[1].forEach(function (it) {
-        R.nav[it[0]] = h('div', 'd-nl', g, (it[2] ? '<i>↳</i>' : '') + '<span>' + it[1] + '</span>');
+        R.nav[it[0]] = h('div', 'd-nl', g, (it[2] ? '<i>↳</i>' : '') + '<span>' + S[it[1]] + '</span>');
       });
     });
     h('div', 'd-me', side, '<i>A</i><span>Alex</span>');
@@ -696,121 +725,119 @@ img.k-av { background: none; }
     function liste(v) { return '<span class="d-select">' + v + I.chev + '</span>'; }
 
     // Le tableau de bord d'accueil
-    var s0 = section('apercu', 'Dashboard', 'Les Copains · ce qui s’est passé sur le serveur.');
-    var c0 = groupe(h('div', 'd-col', s0), 'La semaine');
-    c0.innerHTML = '<div class="d-stats"><div><b>37</b><span>files ouvertes</span></div><div><b>112</b><span>matchs joués</span></div><div><b>86</b><span>joueurs actifs</span></div></div>';
-    var c0b = groupe(s0.lastChild, 'Activité récente');
-    rang(c0b, 'Scrim 5v5', '· Équipe 2 l’emporte', '<span class="d-rt">il y a 2 h</span>');
-    rang(c0b, 'Kaito', '· passe Diamant', '<span class="d-rt">hier</span>');
-    rang(c0b, 'Saison 4', '· podium publié', '<span class="d-rt">lundi</span>');
+    var s0 = section('apercu', S['s.overview'], fmt(F.apLead, { g: F.guild }));
+    var c0 = groupe(h('div', 'd-col', s0), S['ov.week']);
+    c0.innerHTML = '<div class="d-stats">' + [37, 112, 86].map(function (v, i) { return '<div><b>' + v + '</b><span>' + F.stats[i] + '</span></div>'; }).join('') + '</div>';
+    var c0b = groupe(s0.lastChild, S['ov.recent']);
+    F.act.forEach(function (a) { rang(c0b, a[0], a[1], '<span class="d-rt">' + a[2] + '</span>'); });
 
     // La file — la section du film
-    var sq = section('queue', 'Queue', 'La configuration utilisée quand un organisateur ouvre une queue sans préciser de preset.');
+    var sq = section('queue', S['s.queue'], S['q.lead']);
     var body = h('div', 'd-body', sq);
     var col = h('div', 'd-col', body);
-    var ci = groupe(col, 'Identité');
-    var rn = rang(ci, 'Nom de la queue', '', '<span class="d-in"><span class="d-sel-txt"><span class="d-sel-hl"></span><span data-txt>Queue</span></span><span class="d-caret"></span></span>');
+    var ci = groupe(col, S['q.grpIdentity']);
+    var rn = rang(ci, S['q.name'], '', '<span class="d-in"><span class="d-sel-txt"><span class="d-sel-hl"></span><span data-txt>Queue</span></span><span class="d-caret"></span></span>');
     R.nomIn = rn.ctl.firstChild; R.nomTxt = rn.ctl.querySelector('[data-txt]'); R.nomHl = rn.ctl.querySelector('.d-sel-hl'); R.nomCaret = rn.ctl.querySelector('.d-caret');
     R.rowNom = rn.row;
-    rang(ci, 'Type', '', '<span class="d-in">Scrim</span>');
-    rang(ci, 'Session', '', liste('À la demande'));
-    var cf = groupe(col, 'Format');
+    rang(ci, S['q.type'], '', '<span class="d-in">Scrim</span>');
+    rang(ci, S['q.session'], '', liste(S['q.sessionOnDemand']));
+    var cf = groupe(col, S['q.grpFormat']);
     R.grpFormat = cf.parentNode;
     function seg(card, label, vals, on) {
       var r = rang(card, label, '', '<span class="d-seg"><i class="d-segsel"></i>' + vals.map(function (v) { return '<span>' + v + '</span>'; }).join('') + '</span>');
       var spans = r.ctl.querySelectorAll('.d-seg span');
       return { row: r.row, sel: r.ctl.querySelector('.d-segsel'), btns: spans, on: on };
     }
-    R.segEq = seg(cf, 'Nombre d’équipes', [2, 3, 4, 5, 6], 0);
-    R.segJo = seg(cf, 'Joueurs par équipe', [1, 2, 3, 4, 5, 6], 3);
-    var ct = groupe(col, 'Équipes');
+    R.segEq = seg(cf, S['q.teams'], [2, 3, 4, 5, 6], 0);
+    R.segJo = seg(cf, S['q.players'], [1, 2, 3, 4, 5, 6], 3);
+    var ct = groupe(col, S['q.grpTeams']);
     R.grpEq = ct.parentNode;
-    [['Équipe 1', '#DD2E44'], ['Équipe 2', '#55ACEE']].forEach(function (e, i) {
-      var r = rang(ct, 'N°' + (i + 1), '', '<span class="d-in d-in--team">' + e[0] + '</span><span class="d-swatch" style="--c:' + e[1] + '"><i></i></span>');
+    [[equipe(1), '#DD2E44'], [equipe(2), '#55ACEE']].forEach(function (e, i) {
+      var r = rang(ct, fmt(F.teamNo, { n: i + 1 }), '', '<span class="d-in d-in--team">' + e[0] + '</span><span class="d-swatch" style="--c:' + e[1] + '"><i></i></span>');
       if (i) R.swatch2 = r.ctl.lastChild;
     });
     var aside = h('div', 'd-col', body);
-    var cp = groupe(aside, 'Aperçu de l’annonce', true);
+    var cp = groupe(aside, S['q.previewTitle'], true);
     cp.style.position = 'relative'; cp.style.overflow = 'hidden';
     R.prev = h('div', 'dprev', cp, '<span class="dprev__av"><img src="' + LOGO + '" alt=""></span><div class="dprev__main">' +
       '<div class="dprev__head"><span class="dprev__name">CreateYourQueue</span><span class="dprev__app">APP</span><span class="dprev__time">20:58</span></div>' +
       '<p><span class="dprev__ment">@everyone</span></p><div class="dprev__embed">' +
-      '<p class="dprev__title">Nouveau <span data-ptitre>Queue</span></p><p class="dprev__by">Organisé par <b>@Alex</b></p>' +
-      '<div><p>Equipe N°1 : <b>Équipe 1</b><span class="dprev__dot" style="--c:#DD2E44"></span></p><p>Equipe N°2 : <b>Équipe 2</b><span class="dprev__dot" style="--c:#55ACEE"></span></p></div>' +
-      '<p class="dprev__cta">🎙️ Réagis avec ✅ puis rejoins le vocal <b>🎮 Attente Queue</b> pour participer !</p>' +
-      '<div class="dprev__fields"><div><span class="dprev__fname">Heure</span><b>21:00</b></div><div><span class="dprev__fname">Type</span><b>Scrim</b></div></div>' +
-      '<p class="dprev__foot">Réagis avec ✅ pour participer</p></div><p class="dprev__react"><span>✅</span>1</p></div>');
+      '<p class="dprev__title">' + fmt(B['queue.ann_title'], { name: '<span data-ptitre>Queue</span>' }) + '</p><p class="dprev__by">' + fmt(B['queue.ann_by'], { author: '<b>@Alex</b>' }) + '</p>' +
+      '<div>' + [1, 2].map(function (n) { return '<p>' + md(fmt(B['queue.ann_team_line'], { n: n, name: equipe(n), color: '' })) + '<span class="dprev__dot" style="--c:' + (n === 1 ? '#DD2E44' : '#55ACEE') + '"></span></p>'; }).join('') + '</div>' +
+      '<p class="dprev__cta">' + md(fmt(B['queue.ann_cta'], { channel: B['names.voice_queue_waiting'] })) + '</p>' +
+      '<div class="dprev__fields"><div><span class="dprev__fname">' + B['queue.field_time'] + '</span><b>21:00</b></div><div><span class="dprev__fname">' + B['queue.field_type'] + '</span><b>Scrim</b></div></div>' +
+      '<p class="dprev__foot">' + B['queue.ann_footer_join'] + '</p></div><p class="dprev__react"><span>✅</span>1</p></div>');
     R.prevTitre = R.prev.querySelector('[data-ptitre]');
     R.prevBalai = h('span', 'dprev__balai', cp);
     R.cardPrev = cp;
     var cl = groupe(aside, null, true);
     cl.classList.add('d-launch');
-    R.launch = h('span', 'd-pill', cl, 'Ouvrir la queue maintenant');
-    R.stop = h('span', 'd-pill d-pill--ghost', cl, 'Fermer la queue en cours');
-    R.state = h('p', 'd-state', cl, 'Queue ouverte dans 🔱・queue-annonce.');
+    R.launch = h('span', 'd-pill', cl, S['q.launch']);
+    R.stop = h('span', 'd-pill d-pill--ghost', cl, S['q.stop']);
+    R.state = h('p', 'd-state', cl, fmt(S['q.launchOk'], { channel: B['names.channel_queue_announcement'] }));
     R.cardLaunch = cl;
 
     // Le suivi, une section par plan
-    var sc1 = section('classement', 'Classement', 'Publie un classement mis à jour dans le salon dédié.');
-    var cc = groupe(sc1, 'Dans Discord · 📃・queue-classement');
+    var sc1 = section('classement', S['fn.leaderboard'], S['fn.leaderboardD']);
+    var cc = groupe(sc1, S['se.previewTitle'] + ' · ' + B['names.channel_queue_classement']);
     [[0, 1412], [3, 1388], [ALEX, 1350], [6, 1297], [4, 1264]].forEach(function (x, i) {
-      rang(cc, '', '', '').row.innerHTML = '<div class="d-lb"><u>' + (i + 1) + '</u>' + avHtml(x[0]) + '<b>' + G[x[0]].n + '</b></div><span class="d-num" style="margin-left:auto">' + x[1].toLocaleString('fr-FR') + ' MMR</span>';
+      rang(cc, '', '', '').row.innerHTML = '<div class="d-lb"><u>' + (i + 1) + '</u>' + avHtml(x[0]) + '<b>' + G[x[0]].n + '</b></div><span class="d-num" style="margin-left:auto">' + nb(x[1]) + ' MMR</span>';
     });
-    var sc2 = section('rangs', 'Rangs', 'Les paliers que le bot affiche dans /elo et attribue en rôles.');
-    var cr = groupe(sc2, 'Les rangs');
-    [['Diamant', 1600, '#B9E2F5'], ['Platine', 1400, '#9AD1C4'], ['Or', 1250, '#E8C26A'], ['Argent', 1100, '#BFC3C8'], ['Bronze', 0, '#C0875A']].forEach(function (x) {
-      rang(cr, '', '', '').row.innerHTML = '<div class="d-lb"><i class="d-rank" style="--c:' + x[2] + '"></i><b>' + x[0] + '</b></div><span class="d-num" style="margin-left:auto">dès ' + x[1].toLocaleString('fr-FR') + ' MMR</span>';
+    var sc2 = section('rangs', S['s.ranks'], S['rk.lead']);
+    var cr = groupe(sc2, S['rk.grpList']);
+    [[1600, '#B9E2F5'], [1400, '#9AD1C4'], [1250, '#E8C26A'], [1100, '#BFC3C8'], [0, '#C0875A']].forEach(function (x, i) {
+      rang(cr, '', '', '').row.innerHTML = '<div class="d-lb"><i class="d-rank" style="--c:' + x[1] + '"></i><b>' + F.ranks[i] + '</b></div><span class="d-num" style="margin-left:auto">' + fmt(F.des, { n: nb(x[0]) }) + '</span>';
     });
-    var sc3 = section('mmr', 'MMR', 'Points attribués après chaque match validé.');
-    var cm = groupe(sc3, 'Points');
-    rang(cm, 'MMR de départ', '', nombre('1 000'));
-    rang(cm, 'Points par victoire', '', nombre('25'));
-    rang(cm, 'Points par défaite', '', nombre('20'));
-    rang(cm, 'Bonus MVP', '', nombre('5'));
-    var sc4 = section('saisons', 'Saisons', 'Une saison se clôt, le podium part dans Discord, le palmarès reste.');
-    var cs = groupe(sc4, 'Clôture automatique');
-    rang(cs, 'Clôture automatique', '', inter(true));
-    rang(cs, 'Jour du mois', '', nombre('1'));
-    rang(cs, 'Annoncer le podium', '', inter(true));
-    rang(cs, 'Garder le palmarès', '', inter(true));
-    var sc5 = section('clans', 'Clans', 'Guerres de clans, chefs, transferts.');
-    var cn = groupe(sc5, 'Les clans du serveur');
+    var sc3 = section('mmr', S['s.mmr'], S['mm.lead']);
+    var cm = groupe(sc3, S['mm.grpPoints']);
+    rang(cm, S['mm.start'], '', nombre(nb(1000)));
+    rang(cm, S['mm.win'], '', nombre('25'));
+    rang(cm, S['mm.loss'], '', nombre('20'));
+    rang(cm, S['mm.mvpBonus'], '', nombre('5'));
+    var sc4 = section('saisons', S['s.seasons'], F.seasonsLead);
+    var cs = groupe(sc4, S['se2.enabled']);
+    rang(cs, S['se2.enabled'], '', inter(true));
+    rang(cs, S['se2.resetDay'], '', nombre('1'));
+    rang(cs, S['se2.announce'], '', inter(true));
+    rang(cs, S['se2.keepHistory'], '', inter(true));
+    var sc5 = section('clans', S['fn.clans'], S['fn.clansD']);
+    var cn = groupe(sc5, F.clansGroup);
     [['Les Lynx', 12, 0], ['Nova', 9, 3], ['Ronin', 7, 5]].forEach(function (x) {
-      rang(cn, '', '', '').row.innerHTML = '<div class="d-lb">' + avHtml(x[2]) + '<b>' + x[0] + '</b></div><span class="d-rt" style="flex:0 0 auto">' + x[1] + ' membres · chef ' + G[x[2]].n + '</span>';
+      rang(cn, '', '', '').row.innerHTML = '<div class="d-lb">' + avHtml(x[2]) + '<b>' + x[0] + '</b></div><span class="d-rt" style="flex:0 0 auto">' + fmt(F.clan, { n: x[1], c: G[x[2]].n }) + '</span>';
     });
-    var sc6 = section('programmation', 'Programmation', 'Quand la file s’ouvre toute seule. L’heure est celle du bot, en UTC.');
-    var cg = groupe(sc6, 'Ouvrir automatiquement');
-    rang(cg, 'Preset publié', '', liste('Scrim 5v5'));
-    var rauto = rang(cg, 'Ouvrir automatiquement', '', inter(false));
+    var sc6 = section('programmation', S['s.schedule'], S['sc.lead']);
+    var cg = groupe(sc6, S['sc.enabled']);
+    rang(cg, S['sc.preset'], '', liste('Scrim 5v5'));
+    var rauto = rang(cg, S['sc.enabled'], '', inter(false));
     R.swAuto = rauto.ctl.firstChild;
-    rang(cg, 'Heure', '', '<span class="d-in d-in--sm">21:00</span>');
-    var rj = rang(cg, 'Jours', '', '<span class="d-chips">' + ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(function (j) { return '<span><i></i><b>' + j + '</b></span>'; }).join('') + '</span>');
+    rang(cg, S['sc.time'], '', '<span class="d-in d-in--sm">21:00</span>');
+    var rj = rang(cg, S['sc.days'], '', '<span class="d-chips">' + F.days.map(function (j) { return '<span><i></i><b>' + j + '</b></span>'; }).join('') + '</span>');
     R.jours = rj.ctl.querySelectorAll('.d-chips i');
     R.cardProg = cg;
 
     // La sécurité
-    var sr = section('antiraid', 'Anti-raid', 'Le bot compte les arrivées. Au-delà du seuil, il verrouille les salons et prévient le staff.');
-    var car = groupe(sr, 'Anti-raid');
-    rang(car, 'Seuil d’arrivées', '', nombre('10', 'comptes'));
-    rang(car, 'Fenêtre d’observation', '', nombre('30', 's'));
-    rang(car, 'Âge minimum du compte', '', nombre('7', 'jours'));
-    var rk = rang(car, 'Expulsion automatique', '', inter(false));
+    var sr = section('antiraid', S['se.grpRaid'], S['se.raidLead']);
+    var car = groupe(sr, S['se.grpRaid']);
+    rang(car, S['se.threshold'], '', nombre('10', F.uAcc));
+    rang(car, S['se.window'], '', nombre('30', F.uSec));
+    rang(car, S['se.accountAge'], '', nombre('7', F.uDays));
+    var rk = rang(car, S['se.raidKick'], '', inter(false));
     R.swKick = rk.ctl.firstChild;
     R.cardRaid = car;
-    var sl = section('antilien', 'Anti-lien', 'Les liens supprimés, salon par salon. Le staff n’est pas filtré.');
-    var cli = groupe(sl, 'Salons surveillés');
-    rang(cli, '#général', '', inter(true));
-    rang(cli, '#recherche-équipe', '', inter(true));
-    rang(cli, '#clips', '', inter(false));
-    var sn = section('nettoyage', 'Nettoyage automatique', 'Un salon vidé à intervalle régulier. Le panneau de statut est épargné.');
-    var cnet = groupe(sn, 'Nettoyage automatique');
-    rang(cnet, 'Nettoyage automatique', '', inter(true));
-    rang(cnet, 'Salon nettoyé', '', liste('#bot-commandes'));
-    rang(cnet, 'Intervalle', '', liste('Toutes les 24 h'));
+    var sl = section('antilien', S['se.grpAntilink'], S['se.linkLead']);
+    var cli = groupe(sl, F.watched);
+    rang(cli, '#' + F.chanGen, '', inter(true));
+    rang(cli, '#' + F.chanLfg, '', inter(true));
+    rang(cli, '#' + F.clips, '', inter(false));
+    var sn = section('nettoyage', S['se.grpClean'], S['se.cleanLead']);
+    var cnet = groupe(sn, S['se.grpClean']);
+    rang(cnet, S['se.autoclean'], '', inter(true));
+    rang(cnet, S['se.autocleanChannel'], '', liste('#' + F.botcmd));
+    rang(cnet, S['se.autocleanDelay'], '', liste(F.every24));
 
     var save = R.save = h('div', 'd-save', d);
-    R.saveMsg = h('span', 'd-save__msg', save, 'Modifications non enregistrées');
-    var sa = h('span', 'd-save__a', save, '<span>Annuler</span><span>Enregistrer</span>');
+    R.saveMsg = h('span', 'd-save__msg', save, S['d.unsaved']);
+    var sa = h('span', 'd-save__a', save, '<span>' + S['c.cancel'] + '</span><span>' + S['c.save'] + '</span>');
     R.saveOk = sa.lastChild;
     return R;
   }
@@ -824,20 +851,20 @@ img.k-av { background: none; }
       h('div', 'pip__ph', v, icone + titre);
       return { box: v, body: h('div', 'pip__body', v) };
     }
-    var raid = R.raid = volet('Nouveaux membres', I.bouclier);
+    var raid = R.raid = volet(F.newMembers, I.bouclier);
     R.raidRows = RAID.map(function (n, i) {
-      var r = h('div', 'pr', raid.body, '<span class="k-av" style="--h:' + (i * 67 + 10) + '">' + n.charAt(0).toUpperCase() + '</span><span><b>' + n + '</b><small>compte créé il y a ' + (i + 1) + ' h</small></span><span class="pr__tag">Expulsé</span><i class="pr__trait"></i>');
+      var r = h('div', 'pr', raid.body, '<span class="k-av" style="--h:' + (i * 67 + 10) + '">' + n.charAt(0).toUpperCase() + '</span><span><b>' + n + '</b><small>' + fmt(F.created, { n: i + 1 }) + '</small></span><span class="pr__tag">' + F.kicked + '</span><i class="pr__trait"></i>');
       return { row: r, tag: r.querySelector('.pr__tag'), trait: r.querySelector('.pr__trait') };
     });
-    var lien = R.lien = volet('général', '<span class="k-hash">#</span>');
-    R.lienMsg = h('div', 'pm', lien.body, '<span class="k-av" style="--h:120">F</span><div class="k-mb"><div class="k-mh"><b class="k-mn">free.skins.gg</b><span class="k-mt">20:59</span></div><p>skins gratuits ici 👉 <a>disc0rd-gift.ru/n1tro</a></p></div>');
-    R.lienSys = h('div', 'psys', lien.body, I.bouclier + '<span>Lien supprimé par CreateYourQueue : salon surveillé.</span>');
-    var net = R.net = volet('bot-commandes', '<span class="k-hash">#</span>');
+    var lien = R.lien = volet(F.chanGen, '<span class="k-hash">#</span>');
+    R.lienMsg = h('div', 'pm', lien.body, '<span class="k-av" style="--h:120">F</span><div class="k-mb"><div class="k-mh"><b class="k-mn">free.skins.gg</b><span class="k-mt">20:59</span></div><p>' + F.freeSkins + ' <a>disc0rd-gift.ru/n1tro</a></p></div>');
+    R.lienSys = h('div', 'psys', lien.body, I.bouclier + '<span>' + F.linkRemoved + '</span>');
+    var net = R.net = volet(F.botcmd, '<span class="k-hash">#</span>');
     R.netMsgs = [[0, '!rank'], [5, '!stats Lou'], [6, 'test test'], [2, '!elo'], [9, '?'], [3, '!top']].map(function (m) {
       return h('div', 'pm', net.body, avHtml(m[0]) + '<div class="k-mb"><div class="k-mh"><b class="k-mn">' + G[m[0]].n + '</b></div><p>' + m[1] + '</p></div>');
     });
     R.netMsgs.forEach(function (m) { m.style.padding = '2px 4px'; });
-    R.netVide = h('div', 'pvide', net.body, '<div>' + I.ok.replace('<svg', '<svg style="width:30px;height:30px;color:#23A55A;margin:0 auto 8px"') + 'Salon nettoyé · prochain passage dans 24 h</div>');
+    R.netVide = h('div', 'pvide', net.body, '<div>' + I.ok.replace('<svg', '<svg style="width:30px;height:30px;color:#23A55A;margin:0 auto 8px"') + F.cleaned + '</div>');
     return R;
   }
 
@@ -855,7 +882,7 @@ img.k-av { background: none; }
     var cur = h('div', P ? 'doigt' : 'cur', punch, P ? '' : I.curseur);
     var clic = h('div', 'clic', punch);
     var burst = h('div', 'burst', punch);
-    var fin = h('div', 'fin', scene, '<div class="fin__in"><img src="' + LOGO + '" alt=""><b>CreateYourQueue</b><span>cyqbot.eu</span><span class="d-pill">Ajouter à Discord<i>' + I.fleche + '</i></span></div>');
+    var fin = h('div', 'fin', scene, '<div class="fin__in"><img src="' + LOGO + '" alt=""><b>CreateYourQueue</b><span>cyqbot.eu</span><span class="d-pill">' + F.add + '<i>' + I.fleche + '</i></span></div>');
     var noir = h('div', 'noir', scene);
 
     /* ── mesures, tout à plat ── */
@@ -1283,8 +1310,8 @@ img.k-av { background: none; }
       var jo = t < tJo ? 3 : 4;
       for (var i = 0; i < D.segJo.btns.length; i++) classe(D.segJo.btns[i], 'is-on', i === jo);
       classe(D.segEq.btns[0], 'is-on', true);
-      ecrire(D.saveMsg, t < tSave ? 'Modifications non enregistrées' : 'Enregistré');
-      ecrire(D.launch, t >= tOpen && t < tOpen + 700 ? 'Ouverture…' : 'Ouvrir la queue maintenant');
+      ecrire(D.saveMsg, t < tSave ? S['d.unsaved'] : S['c.saved']);
+      ecrire(D.launch, t >= tOpen && t < tOpen + 700 ? S['q.launching'] : S['q.launch']);
       D.stop.style.color = t >= tOpen + 700 ? 'var(--ink)' : '';
       D.stop.style.borderColor = t >= tOpen + 700 ? 'var(--hair)' : '';
       classe(K.chRech, 'is-on', t < tB);
