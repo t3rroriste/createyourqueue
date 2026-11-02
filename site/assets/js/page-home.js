@@ -583,6 +583,7 @@
   var q = function (s) { return boite.querySelector(s); };
 
   var video   = q('[data-lecteur-video]'),
+      hoteFilm = q('[data-lecteur-film]'),
       fond    = q('[data-lecteur-fond]'),
       cadre   = q('[data-lecteur-boite]'),
       fermerB = q('[data-lecteur-close]'),
@@ -624,16 +625,6 @@
 
   function t(k) { return (window.CYQ && window.CYQ.t) ? window.CYQ.t(k) : ''; }
 
-  /* ---------------------------------------------------------------------
-     L'affiche manquante. Le src pointe sur un fichier qui n'est peut-être
-     pas encore déposé : plutôt qu'une icône d'image cassée au milieu de
-     l'accueil, la coque devient un aplat. */
-  function sansAffiche() { coque.classList.add('video__coque--nue'); }
-  if (affiche) {
-    affiche.addEventListener('error', sansAffiche);
-    if (affiche.complete && affiche.naturalWidth === 0) sansAffiche();
-  }
-
   /* --------------------------- le temps lu ---------------------------- */
 
   function mmss(s) {
@@ -649,6 +640,66 @@
     if (!champDuree || !isFinite(video.duration) || video.duration <= 0) return;
     champDuree.textContent = mmss(video.duration);
     champDuree.hidden = false;
+  }
+
+  /* ---------------------------- le film -------------------------------
+     L'image n'est pas une vidéo : film.js la dessine, et c'est l'<audio>
+     qui donne l'heure. `dessiner` pose l'image de l'instant lu, à chaque
+     image pendant la lecture et à chaque saut.
+
+     currentTime n'avance que par paliers ; entre deux, on extrapole à
+     l'horloge du navigateur, plafonné à 250 ms : si le son cale, l'image
+     l'attend au lieu de partir seule devant. */
+  var calme = window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+              !/[?&]motion=on(&|$)/.test(location.search);
+  var film = null, filmFormat = '', filmAffiche = null, langueSon = '';
+  var dernierT = -1, dernierP = 0;
+
+  // La langue du site, si le film l'a ; le français sinon
+  function langueFilm() {
+    var l = (window.CYQ && window.CYQ.lang) || 'fr';
+    return (window.CYQ_VOIX && window.CYQ_VOIX[l]) ? l : 'fr';
+  }
+  // Sur un téléphone tenu droit, le film prend sa mise en page verticale
+  function formatLecteur() {
+    return window.matchMedia('(max-width: 640px) and (orientation: portrait)').matches ? 'p' : 'l';
+  }
+  function poserAffiche() {
+    if (!affiche || !window.CYQ_FILM) return;
+    if (filmAffiche) filmAffiche.detruire();
+    filmAffiche = window.CYQ_FILM.creer(affiche, { langue: langueFilm(), format: 'l' });
+    if (filmAffiche && champDuree) {
+      champDuree.textContent = mmss(filmAffiche.total / 1000);
+      champDuree.hidden = false;
+    }
+  }
+  // Vrai si la source a changé, donc s'il faut recharger
+  function poserSon() {
+    var l = langueFilm();
+    if (l === langueSon) return false;
+    langueSon = l;
+    video.innerHTML = '';
+    var src = document.createElement('source');
+    src.src = 'assets/video/voix/' + l + '.mp4';
+    src.type = 'audio/mp4';
+    src.addEventListener('error', montrerErreur);
+    video.appendChild(src);
+    return true;
+  }
+  function monterFilm() {
+    if (!window.CYQ_FILM) return;
+    if (film) film.detruire();
+    filmFormat = formatLecteur();
+    cadre.classList.toggle('lecteur__boite--p', filmFormat === 'p');
+    film = window.CYQ_FILM.creer(hoteFilm, { langue: langueFilm(), format: filmFormat, calme: calme, depart: 0 });
+    dernierT = -1;
+  }
+  function dessiner() {
+    if (!film) return;
+    var t = (video.currentTime || 0) * 1000, now = performance.now();
+    if (!video.paused && t === dernierT) t += Math.min(now - dernierP, 250);
+    else { dernierT = t; dernierP = now; }
+    film.seek(t, ccOn);
   }
 
   /* ------------------------- la barre, en rAF ------------------------- */
@@ -670,6 +721,7 @@
     piste.setAttribute('aria-valuemax', isFinite(d) ? Math.round(d) : 0);
     piste.setAttribute('aria-valuenow', Math.round(video.currentTime || 0));
     piste.setAttribute('aria-valuetext', mmss(video.currentTime) + ' / ' + mmss(d));
+    dessiner();
 
     /* Le tampon : ce qui est déjà téléchargé. Sans lui, une attente de
        chargement ressemble à un plantage. */
@@ -807,7 +859,9 @@
 
   /* -------------------------- les sous-titres -------------------------- */
 
-  bCC.addEventListener('click', function () { ccOn = !ccOn; pistesLangue(); });
+  // Les sous-titres sont dessinés par le film, d'après le minutage de la
+  // voix : un <audio> n'affiche pas ses pistes, et ce sont les mêmes phrases.
+  bCC.addEventListener('click', function () { ccOn = !ccOn; pistesLangue(); maj(); });
 
   /* -------------------------- le plein écran --------------------------- */
 
@@ -826,13 +880,11 @@
     else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
   }
   bPlein.addEventListener('click', plein);
-  document.addEventListener('fullscreenchange', function () { mesurer(); maj(); });
+  document.addEventListener('fullscreenchange', function () { if (film) film.echelle(); mesurer(); maj(); });
 
   /* --------------------------- le média lui-même ----------------------- */
 
   function montrerErreur() { erreur.hidden = false; }
-  var sources = video.querySelectorAll('source');
-  if (sources.length) sources[sources.length - 1].addEventListener('error', montrerErreur);
   video.addEventListener('error', montrerErreur);
   video.addEventListener('loadeddata', function () { erreur.hidden = true; });
 
@@ -861,8 +913,13 @@
 
     /* Le média n'est demandé qu'ICI, au premier clic. Tant que la fenêtre
        n'a pas été ouverte, l'accueil n'a téléchargé que l'affiche. */
-    if (!amorce) { amorce = true; video.preload = 'metadata'; video.load(); }
+    var autreSon = poserSon();
+    if (!amorce || autreSon) { amorce = true; position = 0; video.preload = 'auto'; video.load(); }
     else if (position > 0) { video.currentTime = position; }
+    /* Le film se monte ICI, fenêtre ouverte : il mesure sa scène au
+       montage, et une boîte cachée ne mesure que des zéros. Remonté
+       seulement si la langue ou le sens de l'écran ont changé. */
+    if (!film || autreSon || filmFormat !== formatLecteur()) monterFilm();
 
     mesurer();
     maj();
@@ -909,7 +966,14 @@
   bRec.addEventListener('click', function () { aller(-PAS); });
   bAv.addEventListener('click', function () { aller(PAS); });
 
-  window.addEventListener('resize', function () { if (ouvert) { mesurer(); maj(); } });
+  window.addEventListener('resize', function () {
+    if (filmAffiche) filmAffiche.echelle();
+    if (!ouvert) return;
+    // Le téléphone a tourné : le film change de mise en page, pas d'échelle
+    if (film && filmFormat !== formatLecteur()) monterFilm();
+    else if (film) film.echelle();
+    mesurer(); maj();
+  });
 
   /* --------------------------- le clavier ------------------------------ */
 
@@ -963,5 +1027,13 @@
      voit pas et ils resteraient dans l'ancienne langue. */
   document.addEventListener('cyq:lang', function () {
     majLecture(); majSon(); pistesLangue();
+    // Le film parle la langue du site : l'affiche suit tout de suite, le
+    // lecteur aussi s'il est ouvert — sinon, à sa prochaine ouverture.
+    poserAffiche();
+    if (ouvert && poserSon()) { position = 0; video.load(); monterFilm(); maj(); }
   });
+
+  // Les polices changent la largeur des textes, donc les mesures du film :
+  // l'affiche attend qu'elles soient là.
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(poserAffiche);
 })();

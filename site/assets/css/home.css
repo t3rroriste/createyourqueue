@@ -834,7 +834,10 @@ html::-webkit-scrollbar { display: none; }
 
 .video__coque {
   position: relative;
-  margin-top: var(--sp-4);
+  /* Plus étroite que la colonne : à 1100 px de large, l'affiche écrasait
+     tout ce qui l'entourait. Centrée, sans titre au-dessus. */
+  width: min(760px, 100%);
+  margin: 0 auto;
   border-radius: var(--r-shell);
   border: 1px solid var(--hair);
   background: var(--panel);
@@ -853,8 +856,9 @@ html::-webkit-scrollbar { display: none; }
   aspect-ratio: 16 / 9;
 }
 .video__affiche {
-  display: block; width: 100%; height: 100%;
-  object-fit: cover;
+  /* Le film figé, monté par film.js : il remplit la coque, et c'est son
+     propre `.film` qui le découpe. */
+  position: absolute; inset: 0; display: block;
 }
 /* L'affiche n'a pas chargé : le script pose cette classe et on montre un
    aplat. Une image cassée au milieu de l'accueil se voit bien plus
@@ -913,6 +917,43 @@ html::-webkit-scrollbar { display: none; }
 /* Six cartes et non la page Modules reprise en entier. La carte de la file
    d'attente tient deux colonnes : c'est le module qu'on vient chercher, et
    le seul dont l'aperçu a besoin de largeur pour se lire. */
+/* ---- les rangées : le contenu des anciennes fenêtres, posé à plat ------
+   Une scène Discord et son texte, côte à côte, la rangée suivante en
+   miroir. Sous 900 px, la scène passe au-dessus de son texte. */
+.mrows { display: grid; gap: var(--sp-5); margin-top: var(--sp-4); }
+.mrow {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: center; gap: var(--sp-4);
+  scroll-margin-top: 120px;
+}
+.mrow--inv .mrow__vue { order: 2; }
+.mrow__vue { min-width: 0; display: flex; justify-content: center; }
+/* La lévitation : ample et rapide — 22 px de course en 3,2 s. Une scène
+   qui flotte à peine se lit comme immobile, et c'est la seule chose de
+   la rangée qui dit « ceci est vivant ». Translate seulement : aucune
+   ombre animée, rien qui relance une mise en page. */
+.mrow__flot {
+  display: flex; justify-content: center; width: 100%; min-width: 0;
+  animation: mrow-leviter 3.2s var(--e-soft) infinite;
+}
+.mrow:nth-child(2n) .mrow__flot { animation-delay: -1.6s; }
+@keyframes mrow-leviter {
+  0%, 100% { transform: translate3d(0, 10px, 0); }
+  50%      { transform: translate3d(0, -12px, 0); }
+}
+.mrow__scene { display: flex; justify-content: center; width: 100%; min-width: 0; }
+.mrow__scene .mock { width: 100%; max-width: 540px; }
+.mrow__t { font-size: clamp(22px, 2.6vw, 30px); font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
+.mrow__p { margin-top: var(--sp-2); font-size: 16px; line-height: 1.65; color: var(--ink-60); max-width: 46ch; }
+@media (max-width: 900px) {
+  .mrow { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  .mrow--inv .mrow__vue { order: 0; }
+  .mrows { gap: var(--sp-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .mrow__flot { animation: none; }
+}
+
 .mgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
 /* Le survol éclaire le filet, il ne soulève pas la carte. Ce n'est pas un
    goût : la révélation au défilement écrit un `transform` EN LIGNE sur
@@ -1347,7 +1388,9 @@ html.lecteur-ouvert, html.lecteur-ouvert body { overflow: hidden; }
 
 .lecteur__boite {
   position: relative; z-index: 1;
-  width: min(1120px, 100%);
+  /* Assez grand pour lire le panneau, pas au point de ne plus voir le
+     site autour : la fenêtre se ferme d'un clic sur ce qui dépasse. */
+  width: min(880px, 100%);
   max-height: calc(100vh - 2 * var(--gutter));
   overflow: auto;
   background: var(--bg);
@@ -1367,7 +1410,15 @@ html.lecteur-ouvert, html.lecteur-ouvert body { overflow: hidden; }
 .lecteur__fermer:hover { background: var(--raised-2); }
 
 .lecteur__scene { position: relative; aspect-ratio: 16 / 9; background: #000; }
-.lecteur__video { display: block; width: 100%; height: 100%; }
+.lecteur__film { position: absolute; inset: 0; }
+/* Téléphone tenu droit : le film passe en vertical. La scène garde son
+   9:16, mais sa largeur se règle sur la hauteur disponible — sinon les
+   commandes passeraient sous le bord de l'écran. */
+.lecteur__boite--p .lecteur__scene {
+  aspect-ratio: 9 / 16;
+  width: min(100%, calc((100vh - 2 * var(--gutter) - 150px) * 9 / 16));
+  margin: 0 auto;
+}
 
 .lecteur__erreur {
   position: absolute; inset: 0;
