@@ -628,7 +628,7 @@ img.k-av { background: none; }
     h('nav', 'd-nav', d, '<span class="d-nav__mark"><img src="' + LOGO + '" alt="">CreateYourQueue</span>' +
       '<span class="d-nav__links"><span>Documentation</span><span>Modules</span><span>Support</span></span>' +
       '<span class="d-disc">' + I.ecrou + '</span><span class="d-pill d-pill--ghost d-pill--sm">Retour</span>');
-    var db = h('div', 'd-db', d);
+    var db = R.db = h('div', 'd-db', d);
     var side = h('div', 'd-side', db);
     h('div', 'd-guild', side, '<span class="d-guild__ic">LC</span><span><b>Les Copains</b><span>1 248 membres</span></span>');
     h('div', 'd-find', side, I.loupe + 'Chercher une section<kbd>⌘ K</kbd>');
@@ -864,7 +864,12 @@ img.k-av { background: none; }
     function navPoint(cle, off) { var c = centre(D.nav[cle]); return P ? decale(c, off, 0) : decale(c, 0, off); }
     function markY(cle) { var b = boite(D.nav[cle], D.navin); return b.y + b.h / 2 - 9; }
     var mainH = D.main.clientHeight;
+    // Sur ordinateur, seule la colonne de la section défile ; sur téléphone
+    // c'est la page entière (le panneau passe en une colonne sous 900 px),
+    // et la pilule de navigation reste posée au-dessus.
+    var scQ = P ? D.db : D.sec.queue.sc;
     function defile(cle, el, marge) {
+      if (P) return -Math.max(0, boite(el, D.win).y - (marge || 0));
       var sc = D.sec[cle].sc, b = boite(el, sc), haut = sc.scrollHeight;
       return -Math.max(0, Math.min(haut - mainH + 40, b.y - (marge || 0)));
     }
@@ -885,15 +890,18 @@ img.k-av { background: none; }
     var cProg = centre(D.cardProg);
     var cRaid = centre(D.cardRaid);
     var cMain = centre(D.main);
-    var yFormat = defile('queue', P ? D.grpFormat : D.grpFormat, P ? 10 : 60);
-    var yPrev = P ? defile('queue', D.cardPrev.parentNode, 10) : 0;
-    var yLaunch = defile('queue', D.cardLaunch, P ? 200 : 360);
+    var yFormat = defile('queue', D.grpFormat, P ? 96 : 60);
+    var yPrev = P ? defile('queue', D.cardPrev.parentNode, 96) : 0;
+    var yLaunch = defile('queue', D.cardLaunch, P ? 470 : 360);
     var navQ = navPour('queue'), navProg = navPour('programmation'), navRaid = navPour('antiraid');
     var navLien = navPour('antilien'), navNet = navPour('nettoyage');
     var drawerW = K.drawer.offsetWidth;
 
     var tl = A.createTimeline({ autoplay: false, defaults: { ease: 'outExpo', duration: 600 } });
-    function vise(v, t, d, e) { tl.add(cam, { x: v.x, y: v.y, scale: v.scale, duration: d || 1000, ease: e || 'inOutCubic' }, t); }
+    function vise(v, t, d, e, panneau) {
+      if (P && panneau) v = { x: 0, y: 0, scale: 1 };
+      tl.add(cam, { x: v.x, y: v.y, scale: v.scale, duration: d || 1000, ease: e || 'inOutCubic' }, t);
+    }
     function va(p, t, d) { tl.add(cur, { x: p.x, y: p.y, duration: d || 700, ease: 'inOutCubic' }, t); }
     function tape(p, t) {
       tl.add(cur, { scale: .8, duration: 100, ease: 'outQuad' }, t)
@@ -952,6 +960,7 @@ img.k-av { background: none; }
       .set(D.sec.apercu.box, { opacity: 1 }, 0)
       .set(Object.keys(D.sec).map(function (c) { return D.sec[c].sc; }), { y: 0 }, 0)
       .set(D.navin, P ? { x: 0 } : { y: 0 }, 0)
+      .set(D.db, { y: 0 }, 0)
       .set(D.mark, { y: markY('apercu') }, 0)
       .set(D.segJo.sel, { x: segPas * 3 }, 0)
       .set(D.segEq.sel, { x: 0 }, 0)
@@ -997,33 +1006,33 @@ img.k-av { background: none; }
     tape(pQ, tQ); marque('queue', tQ); sec('apercu', 'queue', tQ);
 
     /* ── 3. le format ── */
-    vise(cadre(decale(cRowNom, P ? 0 : 120, P ? 60 : 30), P ? 1.08 : 1.45), T.format - 1000, 1000);
+    vise(cadre(decale(cRowNom, 120, 30), 1.45), T.format - 1000, 1000, null, true);
     va(pNom, T.format - 900, 700);
     tape(pNom, T.format - 150);
     var tTape = T.format + 250, NOM = 'Scrim 5v5';
     tl.add(D.nomHl, { opacity: 1, duration: 80 }, T.format - 100).add(D.nomHl, { opacity: 0, duration: 60 }, tTape);
     tl.add(D.save, { opacity: 1, y: 0, duration: 500, ease: 'outExpo' }, tTape + 300);
-    tl.add(D.sec.queue.sc, { y: yFormat, duration: 800, ease: 'inOutCubic' }, T.format + 1500);
+    tl.add(scQ, { y: yFormat, duration: 800, ease: 'inOutCubic' }, T.format + 1500);
     var vFormat = cadre(decale(cFormat, P ? 0 : 60, yFormat + (P ? 40 : 0)), P ? 1.08 : 1.4);
-    vise(vFormat, T.format + 1400, 1000);
+    vise(vFormat, T.format + 1400, 1000, null, true);
     var p5 = decale(pJo5, 0, yFormat);
     va(p5, T.format + 2000, 700);
     var tJo = T.format + 2900;
     tape(p5, tJo);
     tl.add(D.segJo.sel, { x: segPas * 4, duration: 380, ease: 'outExpo' }, tJo);
     var vEq = cadre(decale(cEquipes, P ? 0 : 60, yFormat + (P ? 10 : 0)), P ? 1.08 : 1.35);
-    vise(vEq, T.format + 3600, 1000);
+    vise(vEq, T.format + 3600, 1000, null, true);
     va(decale(pSwatch, 0, yFormat), T.format + 3800, 900);
 
     /* ── 4. l'aperçu ── */
-    tl.add(D.sec.queue.sc, { y: yPrev, duration: 900, ease: 'inOutCubic' }, T.apercu - 700);
-    vise(cadre(decale(cPrev, P ? 0 : -40, yPrev), P ? 1.12 : 1.6), T.apercu - 700, 1200);
+    tl.add(scQ, { y: yPrev, duration: 900, ease: 'inOutCubic' }, T.apercu - 700);
+    vise(cadre(decale(cPrev, -40, yPrev), 1.6), T.apercu - 700, 1200, null, true);
     va(decale(cPrev, P ? 120 : 100, yPrev + (P ? 200 : 150)), T.apercu - 600, 1000);
     tl.add(D.prevBalai, { x: 380, duration: 1100, ease: 'inOutSine' }, T.apercu + 900);
 
     /* ── 5. enregistrer, ouvrir ── */
-    tl.add(D.sec.queue.sc, { y: yLaunch, duration: 800, ease: 'inOutCubic' }, T.ouvrir - 1100);
-    vise(cadre(P ? decale(cLaunch, 0, yLaunch + 90) : decale(cLaunch, 30, yLaunch + 20), P ? 1.05 : 1.35), T.ouvrir - 1100, 1000);
+    tl.add(scQ, { y: yLaunch, duration: 800, ease: 'inOutCubic' }, T.ouvrir - 1100);
+    vise(cadre(P ? decale(cLaunch, 0, yLaunch + 90) : decale(cLaunch, 30, yLaunch + 20), P ? 1.05 : 1.35), T.ouvrir - 1100, 1000, null, true);
     va(pSave, T.ouvrir - 700, 600);
     var tSave = T.ouvrir + 100;
     tape(pSave, tSave);
@@ -1127,6 +1136,7 @@ img.k-av { background: none; }
     tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 700, ease: 'inOutCubic' }, tC)
       .set(tousSec, { opacity: 0 }, tC)
       .set(D.sec.classement.box, { opacity: 1, y: 0 }, tC)
+      .set(scQ, { y: 0 }, tC)
       .set(D.navin, P ? { x: navPour('classement') } : { y: 0 }, tC)
       .set(D.mark, { y: markY('classement') }, tC)
       .set(D.win, { x: 80 }, tC)
@@ -1148,7 +1158,7 @@ img.k-av { background: none; }
       tape(p, t); marque(cle, t); sec(MONTAGE[i - 1], cle, t);
     });
     var tP = tMont[5];
-    vise(cadre(decale(cProg, P ? 0 : 20, -20), P ? 1.06 : 1.2), tP + 300, 900);
+    vise(cadre(decale(cProg, 20, -20), 1.2), tP + 300, 900, null, true);
     va(pSwAuto, tP + 500, 600);
     tape(pSwAuto, tP + 1200);
     inter(D.swAuto, tP + 1200);
@@ -1160,7 +1170,7 @@ img.k-av { background: none; }
     var pRaid = navPoint('antiraid', navRaid);
     va(pRaid, T.securite - 900, 600);
     tape(pRaid, T.securite - 200); marque('antiraid', T.securite - 200); sec('programmation', 'antiraid', T.securite - 200);
-    vise(cadre(decale(cRaid, P ? 0 : 60, P ? 60 : 0), P ? 1.06 : 1.28), T.securite + 200, 900);
+    vise(cadre(decale(cRaid, 60, 0), 1.28), T.securite + 200, 900, null, true);
     va(pSwKick, T.securite + 600, 600);
     tape(pSwKick, T.securite + 1300);
     inter(D.swKick, T.securite + 1300);
