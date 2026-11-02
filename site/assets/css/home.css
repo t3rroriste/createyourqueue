@@ -1300,10 +1300,11 @@ html.modmodal-ouvert, html.modmodal-ouvert body { overflow: hidden; }
   html:not(.motion-force) .modmodal__flot { animation: none; }
 }
 
-/* Sous 1040 px, les deux fenêtres se superposent : côte à côte, la
-   scène descend sous 420 px de large et son embed se replie en colonne
-   — elle ne montre alors plus rien de ce qu'on est venu voir. */
-@media (max-width: 1040px) {
+/* Sous 960 px, les deux fenêtres se superposent. C'est la scène qui fixe
+   le seuil : plus étroite que 460 px, son embed replie ses colonnes —
+   les deux équipes passent l'une sous l'autre, le classement déborde —
+   et elle ne montre alors plus rien de ce qu'on est venu voir. */
+@media (max-width: 960px) {
   .modmodal { place-items: start center; }
   .modmodal__duo {
     grid-template-columns: minmax(0, 1fr);
