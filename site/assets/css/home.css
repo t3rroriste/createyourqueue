@@ -1168,9 +1168,14 @@ html::-webkit-scrollbar { display: none; }
    chacun, et c'est cette feuille qui sait les dessiner. */
 
 /* ================== la fenêtre d'un module ===========================
-   Ouverte par une carte de la grille. Elle montre la MÊME maquette que
-   la vignette — clonée par page-home.js, pas réécrite — en plus grand,
-   avec le texte long et les deux boutons.
+   Ouverte par une carte de la grille. DEUX fenêtres, pas une boîte : à
+   gauche la scène Discord du module — le message que le bot publie,
+   celui de la page Modules, cloné depuis la réserve par page-home.js —
+   et à droite le texte long avec les deux boutons.
+
+   La boîte unique agrandissait la vignette de la carte. Un pictogramme
+   grossi ne dit rien de plus de près que de loin ; le message, lui,
+   montre le produit, et il lui faut sa propre largeur.
 
    Elle vit à la fin de la feuille parce qu'elle recouvre tout le reste :
    écrite plus haut, elle aurait eu besoin d'un z-index de plus en plus
@@ -1180,6 +1185,13 @@ html::-webkit-scrollbar { display: none; }
   position: fixed; inset: 0; z-index: 200;
   display: grid; place-items: center;
   padding: var(--gutter);
+  /* La paire peut être plus haute que l'écran — le journal de
+     modération et le classement sont de vraies fenêtres. On la laisse
+     défiler plutôt que de la couper : une scène tranchée en deux se lit
+     comme un défaut d'affichage. `margin: auto` sur la paire la garde
+     centrée tant qu'elle tient. */
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 /* Le verrou de défilement. Sur <html> et non sur <body> : iOS ignore
    `overflow: hidden` posé sur le body et continue de faire défiler la
@@ -1187,44 +1199,75 @@ html::-webkit-scrollbar { display: none; }
 html.modmodal-ouvert, html.modmodal-ouvert body { overflow: hidden; }
 
 .modmodal__fond {
-  position: absolute; inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,.72);
   /* Pas de `backdrop-filter` : il force le navigateur à refloutter tout
      ce qui est derrière à chaque image, et la page derrière est longue.
-     Un voile opaque dit la même chose pour rien. */
+     Un voile opaque dit la même chose pour rien.
+     `fixed` et non `absolute` depuis que la fenêtre défile : en absolu,
+     le voile s'arrêtait à la hauteur de l'écran et laissait la page
+     nue sous une scène haute. */
 }
 
-.modmodal__boite {
+/* --- les deux fenêtres ------------------------------------------------ */
+
+/* La scène d'abord dans le DOM : c'est l'ordre de lecture une fois les
+   deux empilées sur un téléphone, et c'est ce qu'on vient voir. */
+.modmodal__duo {
   position: relative; z-index: 1;
-  width: min(620px, 100%);
-  max-height: calc(100vh - 2 * var(--gutter));
-  overflow: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  align-items: center;
+  gap: var(--sp-3);
+  width: min(1120px, 100%);
+  margin: auto;
+}
+
+/* --- la fenêtre de gauche : la scène ---------------------------------- */
+
+/* DEUX CALQUES, ET ILS NE SE MÉLANGENT PAS. Celui-ci lévite — une
+   animation CSS, donc elle tourne même si anime.js manque. Celui du
+   dessous se gonfle vers le curseur, et son transform est écrit par
+   app.js. Sur un seul élément, le ballon écraserait la lévitation dès
+   la première image. */
+.modmodal__flot {
+  display: flex; justify-content: center; min-width: 0;
+  animation: modmodal-leviter 7s var(--e-soft) infinite;
+}
+@keyframes modmodal-leviter {
+  0%, 100% { transform: translate3d(0, 6px, 0); }
+  50%      { transform: translate3d(0, -10px, 0); }
+}
+
+.modmodal__scene {
+  display: flex; justify-content: center;
+  min-width: 0; width: 100%;
+}
+/* La scène est la même qu'en page Modules — c'est modules.css qui la
+   dessine. On ne règle ici que sa largeur dans la fenêtre : plus large
+   qu'en page Modules, puisqu'elle n'a plus de texte à côté d'elle mais
+   une colonne plus courte. */
+.modmodal__scene .mock { max-width: 580px; }
+
+/* La réserve des six scènes : jamais affichée, voir index.html. Le
+   `hidden` suffirait ; la règle est écrite pour qu'un futur
+   `display: grid` posé sur un sélecteur voisin ne la rallume pas. */
+.modmodal__stock { display: none !important; }
+
+/* --- la fenêtre de droite : le texte ---------------------------------- */
+
+.modmodal__boite {
+  min-width: 0;
+  padding: var(--sp-3);
   background: var(--panel);
   border: 1px solid var(--hair);
   border-radius: var(--r-card);
   box-shadow: 0 60px 120px -40px rgba(0,0,0,.95);
 }
-
-/* La maquette reprend les mesures de la vignette, en plus haut : c'est
-   la même image, regardée de plus près. */
-.modmodal__view {
-  min-height: 240px; padding: var(--sp-3);
-  display: grid; place-items: center;
-  background: var(--raised);
-  border-bottom: 1px solid var(--hair);
-  border-radius: var(--r-card) var(--r-card) 0 0;
-  /* Le ballon de app.js écrit un `transform` ici : sans ça, la maquette
-     déborderait des coins arrondis en se gonflant. */
-  overflow: hidden;
+.modmodal__t {
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  line-height: 1.1; letter-spacing: -0.02em; font-weight: 500;
 }
-/* La vignette clonée garde ses règles `.mcard__view` ; on neutralise
-   seulement ce qui n'a plus de sens une fois dedans. */
-.modmodal__view .mcard__view {
-  padding: 0; min-height: 0; background: none; border-bottom: none;
-}
-
-.modmodal__corps { padding: var(--sp-3); }
-.modmodal__t { font-size: 22px; font-weight: 500; letter-spacing: -0.015em; }
 .modmodal__p {
   margin-top: var(--sp-2);
   font-size: 15px; line-height: 1.65; color: var(--ink-60);
@@ -1235,31 +1278,51 @@ html.modmodal-ouvert, html.modmodal-ouvert body { overflow: hidden; }
 }
 .modmodal__actions .pill--ghost { height: 44px; font-size: 14px; }
 
-/* L'ARRIVÉE. Le voile fond, la boîte monte de douze pixels — deux
+/* L'ARRIVÉE. Le voile fond, la paire monte de douze pixels — deux
    animations CSS, aucune dépendance : la fenêtre s'ouvre même si
-   anime.js n'a pas chargé. */
+   anime.js n'a pas chargé. La lévitation, elle, attend que l'arrivée
+   soit finie : les deux écrivent un transform, sur deux éléments
+   différents, et les lancer ensemble donnerait un départ de travers. */
 @keyframes modmodal-fond-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes modmodal-boite-in {
+@keyframes modmodal-duo-in {
   from { opacity: 0; transform: translateY(12px) scale(.98); }
   to   { opacity: 1; transform: none; }
 }
-.modmodal__fond  { animation: modmodal-fond-in  180ms var(--e-soft); }
-.modmodal__boite { animation: modmodal-boite-in 260ms var(--e-out); }
+.modmodal__fond { animation: modmodal-fond-in 180ms var(--e-soft); }
+.modmodal__duo  { animation: modmodal-duo-in  260ms var(--e-out); }
+.modmodal__flot { animation-delay: 260ms; }
 
 @media (prefers-reduced-motion: reduce) {
   html:not(.motion-force) .modmodal__fond,
-  html:not(.motion-force) .modmodal__boite { animation: none; }
+  html:not(.motion-force) .modmodal__duo,
+  /* La lévitation surtout : elle ne s'arrête jamais toute seule, et
+     c'est précisément ce que ce réglage demande de ne pas faire. */
+  html:not(.motion-force) .modmodal__flot { animation: none; }
 }
 
-/* À 375 px, la fenêtre prend tout l'écran : une boîte centrée avec des
-   marges de chaque côté perd vingt pour cent de la largeur disponible
-   pour ne rien montrer de plus. */
-@media (max-width: 560px) {
-  .modmodal { padding: 0; place-items: stretch; }
-  .modmodal__boite {
-    width: 100%; max-height: 100vh; border: none; border-radius: 0;
+/* Sous 1040 px, les deux fenêtres se superposent : côte à côte, la
+   scène descend sous 420 px de large et son embed se replie en colonne
+   — elle ne montre alors plus rien de ce qu'on est venu voir. */
+@media (max-width: 1040px) {
+  .modmodal { place-items: start center; }
+  .modmodal__duo {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(620px, 100%);
+    gap: var(--sp-2);
   }
-  .modmodal__view { border-radius: 0; min-height: 200px; }
+}
+
+/* À 375 px, la fenêtre de droite prend toute la largeur : une boîte
+   centrée avec des marges de chaque côté perd vingt pour cent de la
+   place disponible pour ne rien montrer de plus. */
+@media (max-width: 560px) {
+  .modmodal { padding: var(--gutter) 0 0; }
+  .modmodal__duo { gap: var(--gutter); }
+  .modmodal__scene .mock { border-radius: 0; border-left: none; border-right: none; }
+  .modmodal__boite {
+    border-radius: var(--r-card) var(--r-card) 0 0;
+    border-bottom: none;
+  }
   .modmodal__actions .pill { flex: 1 1 100%; justify-content: center; }
 }
 
