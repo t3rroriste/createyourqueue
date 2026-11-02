@@ -1,0 +1,74 @@
+{
+  "_lisez_moi": "Le texte de la voix off, dans l'ordre. « cible » est l'instant (en secondes) où la phrase devrait commencer ; l'outil la décale si la précédente déborde. Les écarts entre deux cibles ne sont pas libres : chaque plan du film a besoin d'un minimum de temps (voir piste-c.html). « jeu » est le texte envoyé à ElevenLabs, avec ses indications de ton entre crochets ; « dit » remplace « texte » pour la voix de secours du Mac, qui lit mal les mots anglais. Les sous-titres gardent « texte ».",
+  "voix": "Daniel",
+  "debit": 178,
+  "elevenlabs": {},
+  "lignes": [
+    {
+      "id": "chaos",
+      "cible": 0.5,
+      "texte": "Getting ten people into a game on Discord? Good luck. Everyone's typing… and nobody knows who's playing.",
+      "jeu": "[sarcastic] Getting ten people into a game on Discord? Good luck. [excited] Everyone's typing… and nobody knows who's playing."
+    },
+    {
+      "id": "panneau",
+      "cible": 5.6,
+      "texte": "With CreateYourQueue, everything is set up from the dashboard. Zero commands to type.",
+      "jeu": "[confident] With CreateYourQueue, everything is set up from the dashboard. Zero commands to type."
+    },
+    {
+      "id": "format",
+      "cible": 10.8,
+      "texte": "A name for the queue, the format — two teams of five — and you're done.",
+      "jeu": "A name for the queue, the format — two teams of five — and you're done."
+    },
+    {
+      "id": "apercu",
+      "cible": 16.2,
+      "texte": "On the right, the preview shows the exact message the bot will post.",
+      "jeu": "On the right, the preview shows the EXACT message the bot will post."
+    },
+    {
+      "id": "ouvrir",
+      "cible": 20.8,
+      "texte": "Save… and open the queue!",
+      "jeu": "[excited] Save… and open the queue!"
+    },
+    {
+      "id": "annonce",
+      "cible": 24.8,
+      "texte": "The announcement drops in the channel. One click on the check mark, join the waiting room… and the queue fills itself.",
+      "jeu": "[excited] The announcement drops in the channel. One click on the check mark, join the waiting room… and the queue fills itself."
+    },
+    {
+      "id": "equipes",
+      "cible": 33.2,
+      "texte": "Ten out of ten! The bot builds the teams and creates two voice channels…",
+      "jeu": "Ten out of ten! The bot builds the teams and creates two voice channels…"
+    },
+    {
+      "id": "vocal",
+      "cible": 37.0,
+      "texte": "… then moves every player into theirs. Automatically. Nobody hunts for their channel.",
+      "jeu": "[excited] …then moves every player into theirs. Automatically. Nobody hunts for their channel."
+    },
+    {
+      "id": "suivi",
+      "cible": 44.6,
+      "texte": "After the match, everything follows: leaderboard, MMR, ranks, seasons, clans. And the queue can even open by itself, on schedule.",
+      "jeu": "After the match, everything follows: leaderboard, MMR, ranks, seasons, clans. And the queue can even open by itself, on schedule."
+    },
+    {
+      "id": "securite",
+      "cible": 54.2,
+      "texte": "The same dashboard protects your server too: anti-raid, anti-link, auto-clean.",
+      "jeu": "[confident] The same dashboard protects your server too: anti-raid, anti-link, auto-clean."
+    },
+    {
+      "id": "fin",
+      "cible": 62.4,
+      "texte": "CreateYourQueue. Your server, ready in a few clicks.",
+      "jeu": "[confident] CreateYourQueue. Your server, ready in a few clicks."
+    }
+  ]
+}

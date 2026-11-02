@@ -1,0 +1,74 @@
+{
+  "_lisez_moi": "Le texte de la voix off, dans l'ordre. « cible » est l'instant (en secondes) où la phrase devrait commencer ; l'outil la décale si la précédente déborde. Les écarts entre deux cibles ne sont pas libres : chaque plan du film a besoin d'un minimum de temps (voir piste-c.html). « jeu » est le texte envoyé à ElevenLabs, avec ses indications de ton entre crochets ; « dit » remplace « texte » pour la voix de secours du Mac, qui lit mal les mots anglais. Les sous-titres gardent « texte ».",
+  "voix": "Mónica",
+  "debit": 178,
+  "elevenlabs": {},
+  "lignes": [
+    {
+      "id": "chaos",
+      "cible": 0.5,
+      "texte": "¿Montar una partida de diez en Discord? Suerte. Todos escriben… y nadie sabe quién juega.",
+      "jeu": "[sarcastic] ¿Montar una partida de diez en Discord? Suerte. [excited] Todos escriben… y nadie sabe quién juega."
+    },
+    {
+      "id": "panneau",
+      "cible": 5.6,
+      "texte": "Con CreateYourQueue, todo se configura desde el panel. Cero comandos que escribir.",
+      "jeu": "[confident] Con CreateYourQueue, todo se configura desde el panel. Cero comandos que escribir."
+    },
+    {
+      "id": "format",
+      "cible": 10.8,
+      "texte": "Un nombre para la cola, el formato — dos equipos de cinco — y listo.",
+      "jeu": "Un nombre para la cola, el formato — dos equipos de cinco — y listo."
+    },
+    {
+      "id": "apercu",
+      "cible": 16.2,
+      "texte": "A la derecha, la vista previa muestra el mensaje exacto que publicará el bot.",
+      "jeu": "A la derecha, la vista previa muestra el mensaje EXACTO que publicará el bot."
+    },
+    {
+      "id": "ouvrir",
+      "cible": 20.8,
+      "texte": "Guardas… ¡y abres la cola!",
+      "jeu": "[excited] Guardas… ¡y abres la cola!"
+    },
+    {
+      "id": "annonce",
+      "cible": 24.8,
+      "texte": "El anuncio llega al canal. Un clic en la marca, entras en la sala de espera… y la cola se llena sola.",
+      "jeu": "[excited] El anuncio llega al canal. Un clic en la marca, entras en la sala de espera… y la cola se llena sola."
+    },
+    {
+      "id": "equipes",
+      "cible": 33.2,
+      "texte": "¡Diez de diez! El bot arma los equipos y crea los dos canales de voz…",
+      "jeu": "¡Diez de diez! El bot arma los equipos y crea los dos canales de voz…"
+    },
+    {
+      "id": "vocal",
+      "cible": 37.0,
+      "texte": "… y mueve a cada jugador al suyo. Automáticamente. Nadie busca su canal.",
+      "jeu": "[excited] …y mueve a cada jugador al suyo. Automáticamente. Nadie busca su canal."
+    },
+    {
+      "id": "suivi",
+      "cible": 44.6,
+      "texte": "Después de la partida, todo sigue: clasificación, MMR, rangos, temporadas, clanes. Y la cola puede incluso abrirse sola, a una hora fija.",
+      "jeu": "Después de la partida, todo sigue: clasificación, MMR, rangos, temporadas, clanes. Y la cola puede incluso abrirse sola, a una hora fija."
+    },
+    {
+      "id": "securite",
+      "cible": 54.2,
+      "texte": "El mismo panel también protege tu servidor: anti-raid, anti-enlace, limpieza automática.",
+      "jeu": "[confident] El mismo panel también protege tu servidor: anti-raid, anti-enlace, limpieza automática."
+    },
+    {
+      "id": "fin",
+      "cible": 62.4,
+      "texte": "CreateYourQueue. Tu servidor, listo en unos clics.",
+      "jeu": "[confident] CreateYourQueue. Tu servidor, listo en unos clics."
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "_lisez_moi": "Le texte de la voix off, dans l'ordre. « cible » est l'instant (en secondes) où la phrase devrait commencer ; l'outil la décale si la précédente déborde. Les écarts entre deux cibles ne sont pas libres : chaque plan du film a besoin d'un minimum de temps (voir piste-c.html). « jeu » est le texte envoyé à ElevenLabs, avec ses indications de ton entre crochets ; « dit » remplace « texte » pour la voix de secours du Mac, qui lit mal les mots anglais. Les sous-titres gardent « texte ».",
+  "voix": "Anna",
+  "debit": 178,
+  "elevenlabs": {},
+  "lignes": [
+    {
+      "id": "chaos",
+      "cible": 0.5,
+      "texte": "Zehn Leute für ein Match auf Discord zusammenbringen? Viel Glück. Alle schreiben… und keiner weiß, wer spielt.",
+      "jeu": "[sarcastic] Zehn Leute für ein Match auf Discord zusammenbringen? Viel Glück. [excited] Alle schreiben… und keiner weiß, wer spielt."
+    },
+    {
+      "id": "panneau",
+      "cible": 5.6,
+      "texte": "Mit CreateYourQueue stellst du alles im Dashboard ein. Kein einziger Befehl.",
+      "jeu": "[confident] Mit CreateYourQueue stellst du alles im Dashboard ein. Kein einziger Befehl."
+    },
+    {
+      "id": "format",
+      "cible": 10.8,
+      "texte": "Ein Name für die Queue, das Format — zwei Teams à fünf — und fertig.",
+      "jeu": "Ein Name für die Queue, das Format — zwei Teams à fünf — und fertig."
+    },
+    {
+      "id": "apercu",
+      "cible": 16.2,
+      "texte": "Rechts zeigt die Vorschau genau die Nachricht, die der Bot posten wird.",
+      "jeu": "Rechts zeigt die Vorschau GENAU die Nachricht, die der Bot posten wird."
+    },
+    {
+      "id": "ouvrir",
+      "cible": 20.8,
+      "texte": "Speichern… und die Queue öffnen!",
+      "jeu": "[excited] Speichern… und die Queue öffnen!"
+    },
+    {
+      "id": "annonce",
+      "cible": 24.8,
+      "texte": "Die Ankündigung landet im Kanal. Ein Klick auf den Haken, rein in den Warteraum… und die Queue füllt sich von selbst.",
+      "jeu": "[excited] Die Ankündigung landet im Kanal. Ein Klick auf den Haken, rein in den Warteraum… und die Queue füllt sich von selbst."
+    },
+    {
+      "id": "equipes",
+      "cible": 33.2,
+      "texte": "Zehn von zehn! Der Bot stellt die Teams zusammen und erstellt zwei Sprachkanäle…",
+      "jeu": "Zehn von zehn! Der Bot stellt die Teams zusammen und erstellt zwei Sprachkanäle…"
+    },
+    {
+      "id": "vocal",
+      "cible": 37.0,
+      "texte": "… und verschiebt jeden Spieler in seinen. Automatisch. Keiner muss seinen Kanal suchen.",
+      "jeu": "[excited] …und verschiebt jeden Spieler in seinen. Automatisch. Keiner muss seinen Kanal suchen."
+    },
+    {
+      "id": "suivi",
+      "cible": 44.6,
+      "texte": "Nach dem Match läuft alles weiter: Rangliste, MMR, Ränge, Saisons, Clans. Und die Queue kann sich sogar zu einer festen Zeit selbst öffnen.",
+      "jeu": "Nach dem Match läuft alles weiter: Rangliste, MMR, Ränge, Saisons, Clans. Und die Queue kann sich sogar zu einer festen Zeit selbst öffnen."
+    },
+    {
+      "id": "securite",
+      "cible": 54.2,
+      "texte": "Dasselbe Dashboard schützt auch deinen Server: Anti-Raid, Link-Schutz, automatisches Aufräumen.",
+      "jeu": "[confident] Dasselbe Dashboard schützt auch deinen Server: Anti-Raid, Link-Schutz, automatisches Aufräumen."
+    },
+    {
+      "id": "fin",
+      "cible": 62.4,
+      "texte": "CreateYourQueue. Dein Server, bereit in wenigen Klicks.",
+      "jeu": "[confident] CreateYourQueue. Dein Server, bereit in wenigen Klicks."
+    }
+  ]
+}

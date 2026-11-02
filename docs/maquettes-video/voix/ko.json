@@ -1,0 +1,76 @@
+{
+  "_lisez_moi": "Le texte de la voix off, dans l'ordre. « cible » est l'instant (en secondes) où la phrase devrait commencer ; l'outil la décale si la précédente déborde. Les écarts entre deux cibles ne sont pas libres : chaque plan du film a besoin d'un minimum de temps (voir piste-c.html). « jeu » est le texte envoyé à ElevenLabs, avec ses indications de ton entre crochets ; « dit » remplace « texte » pour la voix de secours du Mac, qui lit mal les mots anglais. Les sous-titres gardent « texte ».",
+  "voix": "Yuna",
+  "debit": 178,
+  "elevenlabs": {},
+  "lignes": [
+    {
+      "id": "chaos",
+      "cible": 0.5,
+      "texte": "디스코드에서 열 명을 모아 게임하기? 행운을 빌어요. 다들 채팅만 치고… 누가 하는지는 아무도 몰라요.",
+      "jeu": "[sarcastic] 디스코드에서 열 명을 모아 게임하기? 행운을 빌어요. [excited] 다들 채팅만 치고… 누가 하는지는 아무도 몰라요."
+    },
+    {
+      "id": "panneau",
+      "cible": 5.6,
+      "texte": "CreateYourQueue라면 모든 설정을 대시보드에서 해요. 명령어는 하나도 필요 없어요.",
+      "jeu": "[confident] 크리에이트 유어 큐라면 모든 설정을 대시보드에서 해요. 명령어는 하나도 필요 없어요.",
+      "dit": "크리에이트 유어 큐라면 모든 설정을 대시보드에서 해요. 명령어는 하나도 필요 없어요."
+    },
+    {
+      "id": "format",
+      "cible": 10.8,
+      "texte": "대기열 이름을 정하고, 형식은 — 다섯 명씩 두 팀 — 끝이에요.",
+      "jeu": "대기열 이름을 정하고, 형식은 — 다섯 명씩 두 팀 — 끝이에요."
+    },
+    {
+      "id": "apercu",
+      "cible": 16.2,
+      "texte": "오른쪽 미리보기는 봇이 올릴 메시지를 그대로 보여 줘요.",
+      "jeu": "오른쪽 미리보기는 봇이 올릴 메시지를 그대로 보여 줘요."
+    },
+    {
+      "id": "ouvrir",
+      "cible": 20.8,
+      "texte": "저장하고… 대기열을 열어요!",
+      "jeu": "[excited] 저장하고… 대기열을 열어요!"
+    },
+    {
+      "id": "annonce",
+      "cible": 24.8,
+      "texte": "공지가 채널에 올라와요. 체크 표시를 누르고 대기실에 들어가면… 대기열이 알아서 채워져요.",
+      "jeu": "[excited] 공지가 채널에 올라와요. 체크 표시를 누르고 대기실에 들어가면… 대기열이 알아서 채워져요."
+    },
+    {
+      "id": "equipes",
+      "cible": 33.2,
+      "texte": "열 명 완료! 봇이 팀을 짜고 음성 채널 두 개를 만들어요…",
+      "jeu": "열 명 완료! 봇이 팀을 짜고 음성 채널 두 개를 만들어요…"
+    },
+    {
+      "id": "vocal",
+      "cible": 37.0,
+      "texte": "… 그리고 모든 플레이어를 각자의 채널로 옮겨요. 자동으로요. 채널을 찾아 헤맬 필요가 없어요.",
+      "jeu": "[excited] …그리고 모든 플레이어를 각자의 채널로 옮겨요. 자동으로요. 채널을 찾아 헤맬 필요가 없어요."
+    },
+    {
+      "id": "suivi",
+      "cible": 44.6,
+      "texte": "경기가 끝나면 전부 이어져요. 순위표, MMR, 랭크, 시즌, 클랜까지. 대기열은 정해진 시간에 알아서 열 수도 있어요.",
+      "jeu": "경기가 끝나면 전부 이어져요. 순위표, MMR, 랭크, 시즌, 클랜까지. 대기열은 정해진 시간에 알아서 열 수도 있어요."
+    },
+    {
+      "id": "securite",
+      "cible": 54.2,
+      "texte": "같은 대시보드가 서버도 지켜 줘요. 안티레이드, 링크 차단, 자동 정리.",
+      "jeu": "[confident] 같은 대시보드가 서버도 지켜 줘요. 안티레이드, 링크 차단, 자동 정리."
+    },
+    {
+      "id": "fin",
+      "cible": 62.4,
+      "texte": "CreateYourQueue. 몇 번의 클릭으로 준비 끝.",
+      "jeu": "[confident] 크리에이트 유어 큐. 몇 번의 클릭으로 준비 끝.",
+      "dit": "크리에이트 유어 큐. 몇 번의 클릭으로 준비 끝."
+    }
+  ]
+}
