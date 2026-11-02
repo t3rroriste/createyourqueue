@@ -56,6 +56,30 @@
         "archives/en-ligne-2026-09-28"
       ],
       "port": 8766
+    },
+    {
+      "name": "cyq-maquettes",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8767",
+        "--directory",
+        "docs/maquettes-video"
+      ],
+      "port": 8767
+    },
+    {
+      "name": "cyq-maquettes-windows",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8767",
+        "--directory",
+        "docs/maquettes-video"
+      ],
+      "port": 8767
     }
   ]
 }

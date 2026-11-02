@@ -1,0 +1,1033 @@
+<title>Pistes vidéo CYQ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Archivo:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Une salle de projection : l'écran au centre, les commandes dessous.
+   Les tokens sont ceux de home.css — la vidéo vivra sur l'accueil. */
+:root {
+  --bg: #0A0908;
+  --panel: #121110;
+  --ink: #F4F1EC;
+  --ink-60: rgba(244,241,236,.60);
+  --ink-40: rgba(244,241,236,.40);
+  --hair: rgba(244,241,236,.08);
+  --hair-2: rgba(244,241,236,.14);
+  --accent: #C08A5A;
+  --sans: 'Geist', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, Menlo, Consolas, monospace;
+  /* D.A. du panneau, seulement pour l'écran du dashboard de la piste C */
+  --p-acc: #F6F6F3;
+  --p-bg: #0C0C0B;
+  --p-sans: 'Archivo', system-ui, sans-serif;
+  --p-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--ink); }
+body { font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px;
+}
+.tete { display: grid; gap: 6px; }
+.tete h1 { margin: 0; font-size: clamp(26px, 4vw, 38px); line-height: 1.08; letter-spacing: -.02em; font-weight: 600; text-wrap: balance; }
+.tete p { margin: 0; color: var(--ink-60); max-width: 62ch; }
+
+.cmd { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.seg-ui { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--hair); border-radius: 11px; background: var(--panel); }
+.seg-ui button {
+  appearance: none; border: 0; background: transparent; color: var(--ink-60);
+  font: 500 14px/1 var(--sans); padding: 9px 14px; border-radius: 8px; cursor: pointer;
+  display: inline-flex; gap: 8px; align-items: center;
+}
+.seg-ui button b { font: 600 11px/1 var(--mono); letter-spacing: .06em; color: var(--ink-40); }
+.seg-ui button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg-ui button[aria-pressed="true"] b { color: rgba(10,9,8,.55); }
+.seg-ui button:focus-visible, .tr button:focus-visible, .piste-rm button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.ecran {
+  position: relative; overflow: hidden; border-radius: 16px;
+  border: 1px solid var(--hair); background: #070606;
+  margin-inline: auto; max-width: 100%;
+}
+.ecran.is-l { aspect-ratio: 16 / 9; width: 100%; }
+.ecran.is-p { aspect-ratio: 9 / 16; width: min(100%, calc(76vh * 9 / 16)); }
+
+.tr { display: flex; align-items: center; gap: 12px; max-width: 100%; }
+.tr button {
+  appearance: none; border: 1px solid var(--hair-2); background: var(--panel); color: var(--ink);
+  width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; cursor: pointer; flex: none;
+}
+.tr button svg { width: 16px; height: 16px; }
+.barre { position: relative; flex: 1; height: 38px; cursor: pointer; display: flex; align-items: center; min-width: 0; }
+.barre-fond { position: relative; width: 100%; height: 3px; border-radius: 2px; background: var(--hair-2); overflow: hidden; }
+.barre-plein { position: absolute; inset: 0; background: var(--ink); transform-origin: 0 50%; transform: scaleX(0); }
+.temps { font: 500 12px/1 var(--mono); color: var(--ink-60); font-variant-numeric: tabular-nums; flex: none; }
+
+.fiche { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px 36px; padding-top: 6px; border-top: 1px solid var(--hair); }
+.fiche h2 { margin: 14px 0 6px; font-size: 21px; letter-spacing: -.01em; font-weight: 600; }
+.fiche h2 span { font: 600 12px/1 var(--mono); color: var(--ink-40); margin-right: 8px; letter-spacing: .06em; vertical-align: 3px; }
+.fiche > div > p { margin: 0; color: var(--ink-60); max-width: 60ch; }
+.fiche dl { margin: 14px 0 0; display: grid; gap: 12px; }
+.fiche dt { font: 600 11px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-40); }
+.fiche dd { margin: 3px 0 0; color: var(--ink); font-size: 14px; }
+.note { color: var(--ink-40); font-size: 13px; margin: 0; }
+
+.piste-rm {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 20;
+  display: flex; gap: 10px; align-items: center; padding: 8px 8px 8px 14px; border-radius: 12px;
+  background: rgba(18,17,16,.92); border: 1px solid var(--hair-2); font-size: 13px; color: var(--ink-60); white-space: nowrap;
+}
+.piste-rm button { appearance: none; border: 0; background: var(--ink); color: var(--bg); font: 600 13px/1 var(--sans); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+
+@media (max-width: 720px) {
+  .fiche { grid-template-columns: minmax(0, 1fr); }
+  .cmd { justify-content: flex-start; }
+  .seg-ui button { padding: 9px 11px; font-size: 13px; }
+}
+
+/* ────────────────────────── La scène ──────────────────────────
+   Composée à taille fixe (960×540 ou 540×960) puis mise à l'échelle
+   d'un seul transform : les positions de caméra restent des nombres
+   simples, identiques quelle que soit la taille de l'écran. */
+.scene {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0;
+  overflow: hidden; background: var(--bg); color: var(--ink);
+  font: 13px/1.35 var(--sans); user-select: none;
+}
+.scene.is-p { font-size: 15px; }
+.scene * { box-sizing: border-box; }
+.cam, .secoue { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.noir { position: absolute; inset: 0; background: var(--bg); z-index: 30; pointer-events: none; }
+.vignette { position: absolute; inset: 0; pointer-events: none; z-index: 12;
+  background: radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(0,0,0,.82) 100%); }
+.flou { position: absolute; border-radius: 48px; background: #1D1A17; filter: blur(22px); }
+svg { display: block; }
+
+.av {
+  display: inline-grid; place-items: center; border-radius: 50%; flex: none;
+  /* Teinte par joueur mais chroma très bas : on suit les gens à l'œil
+     sans faire entrer une palette qui n'existe pas dans la D.A. */
+  background: oklch(70% .055 var(--h)); color: #0A0908; font-weight: 600;
+}
+
+/* Discord, simplifié : la silhouette suffit, le détail distrairait */
+.dc { position: absolute; display: flex; background: var(--panel); border: 1px solid var(--hair); border-radius: 14px; overflow: hidden; }
+.is-l .dc { left: 80px; top: 44px; width: 800px; height: 432px; }
+.is-p .dc { left: 22px; top: 70px; width: 496px; height: 790px; flex-direction: column; }
+.dc--tilt.is-l, .is-l .dc--tilt { transform: perspective(1700px) rotateY(-7deg) rotateX(3deg); }
+.is-p .dc--tilt { transform: perspective(1700px) rotateX(4deg); }
+.dc-side { width: 176px; flex: none; background: #0E0D0C; border-right: 1px solid var(--hair); padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; z-index: 4; }
+.is-p .dc-side { position: absolute; left: 0; top: 0; bottom: 0; width: 300px; border-right: 1px solid var(--hair-2); box-shadow: 30px 0 60px rgba(0,0,0,.6); padding: 22px 14px; }
+.dc-srv { display: flex; align-items: center; gap: 9px; font-weight: 600; padding: 0 6px 12px; border-bottom: 1px solid var(--hair); margin-bottom: 6px; }
+.dc-srv i { width: 22px; height: 22px; border-radius: 7px; background: #2A2724; flex: none; }
+.dc-cat { font: 600 10px/1 var(--mono); letter-spacing: .09em; text-transform: uppercase; color: var(--ink-40); padding: 12px 6px 6px; }
+.dc-ch { display: flex; align-items: center; gap: 7px; padding: 6px 8px; border-radius: 6px; color: var(--ink-60); white-space: nowrap; }
+.dc-ch.is-on { background: rgba(244,241,236,.07); color: var(--ink); }
+.dc-ch svg { width: 14px; height: 14px; flex: none; }
+.hash { color: var(--ink-40); font-weight: 500; }
+.dc-vox .dc-ch { color: var(--ink); }
+.dc-voxl { display: flex; gap: 4px; padding: 2px 8px 6px 29px; }
+.dc-voxl .av { width: 19px; height: 19px; font-size: 9px; }
+.dc-main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }
+.dc-head { height: 46px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 16px; border-bottom: 1px solid var(--hair); }
+.dc-head svg { width: 18px; height: 18px; color: var(--ink-60); margin-right: 4px; }
+.dc-flux { flex: 1; position: relative; overflow: hidden; min-height: 0; }
+.dc-liste { position: absolute; left: 0; right: 0; top: 0; padding: 8px 16px 0; }
+.dc-msg { height: 46px; display: flex; align-items: center; gap: 10px; }
+.dc-msg .av { width: 30px; height: 30px; font-size: 12px; }
+.dc-mb b { display: block; font-weight: 600; line-height: 1.2; }
+.dc-mb p { margin: 0; color: var(--ink-60); line-height: 1.3; }
+.is-p .dc-msg { height: 54px; }
+.is-p .dc-msg .av { width: 36px; height: 36px; font-size: 14px; }
+.dc-saisie { flex: none; margin: 0 16px 14px; height: 40px; border-radius: 9px; background: #1B1917; display: flex; align-items: center; padding: 0 14px; color: var(--ink-40); position: relative; white-space: nowrap; overflow: hidden; }
+.is-p .dc-saisie { height: 48px; margin-bottom: 18px; }
+.dc-saisie .frappe { position: absolute; left: 14px; color: var(--ink); }
+.dc-saisie .frappe::after { content: ""; display: inline-block; width: 1.5px; height: 1.1em; background: var(--ink); vertical-align: -2px; margin-left: 1px; }
+.dc-mem { width: 160px; flex: none; border-left: 1px solid var(--hair); background: #0E0D0C; padding: 4px 10px; }
+.dc-m { display: flex; align-items: center; gap: 8px; height: 31px; padding: 0 4px; color: var(--ink-60); position: relative; font-size: 12.5px; }
+.dc-m .av { width: 24px; height: 24px; font-size: 11px; }
+.dc-ok { margin-left: auto; width: 15px; height: 15px; color: var(--ink); }
+.is-p .dc-mem { width: auto; border-left: 0; border-bottom: 1px solid var(--hair); display: flex; gap: 7px; padding: 12px 16px; align-items: center; background: transparent; }
+.is-p .dc-mem .dc-cat, .is-p .dc-mn { display: none; }
+.is-p .dc-m { height: auto; padding: 0; }
+.is-p .dc-m .av { width: 30px; height: 30px; font-size: 13px; }
+.is-p .dc-ok { position: absolute; right: -3px; bottom: -3px; width: 14px; height: 14px; background: var(--bg); border-radius: 50%; padding: 1px; }
+
+/* Le message du bot — le seul objet cuivré de la scène */
+.em { position: absolute; left: 16px; bottom: 12px; width: 330px; background: #181614; border: 1px solid var(--hair-2); border-radius: 12px; padding: 14px 16px 14px 20px; box-shadow: 0 24px 60px rgba(0,0,0,.55); z-index: 2; }
+.is-p .em { left: 16px; right: 16px; width: auto; bottom: 16px; padding: 18px 20px 18px 24px; }
+.em::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 2px; background: var(--accent); }
+.em-top { display: flex; align-items: center; gap: 8px; }
+.em-logo { width: 24px; height: 24px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; color: #0A0908; flex: none; }
+.em-logo svg { width: 14px; height: 14px; }
+.em-bot { font: 600 9px/1 var(--mono); background: rgba(244,241,236,.1); padding: 3px 5px; border-radius: 4px; color: var(--ink-60); }
+.em-cpt { font: 600 34px/1 var(--mono); margin: 12px 0 12px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.em-cpt span + span { color: var(--ink-40); }
+.em-grille { display: grid; grid-template-columns: repeat(5, 36px); gap: 10px; position: relative; margin-bottom: 12px; }
+.em-slot { width: 36px; height: 36px; position: relative; }
+.em-slot i { position: absolute; inset: 0; border-radius: 50%; border: 1.5px dashed rgba(244,241,236,.2); }
+.em-slot .av { position: absolute; inset: 0; width: 36px; height: 36px; font-size: 14px; }
+.em-div { position: absolute; left: -4px; right: -4px; top: 46px; height: 1px; background: var(--hair-2); transform-origin: 0 50%; }
+.em-bal { position: relative; width: 226px; height: 14px; display: flex; align-items: center; }
+.em-bal::before { content: ""; position: absolute; left: 0; right: 0; height: 2px; border-radius: 1px; background: var(--hair-2); }
+.em-bal::after { content: ""; position: absolute; left: 112px; width: 2px; height: 10px; background: var(--ink-40); }
+.em-bal i { position: absolute; left: 107px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
+.em-pied { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.em-btns { display: flex; gap: 8px; }
+.em-b { width: 46px; height: 30px; border-radius: 7px; background: rgba(244,241,236,.08); display: grid; place-items: center; color: var(--ink-60); }
+.em-b svg { width: 15px; height: 15px; }
+.em-b--ok { background: var(--ink); color: #0A0908; }
+.em-att { display: flex; align-items: center; gap: 5px; color: var(--ink-40); }
+.em-att svg { width: 14px; height: 14px; margin-right: 2px; }
+.em-att .av { width: 20px; height: 20px; font-size: 9px; }
+
+.hud { position: absolute; left: 24px; bottom: 16px; display: flex; gap: 8px; z-index: 14; }
+.is-p .hud { left: 22px; bottom: 36px; }
+.pill { display: flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 14px; background: rgba(18,17,16,.88); border: 1px solid var(--hair-2); font: 500 12.5px/1 var(--mono); font-variant-numeric: tabular-nums; }
+.is-p .pill { height: 34px; font-size: 15px; padding: 0 13px; border-radius: 17px; }
+.pill svg { width: 13px; height: 13px; color: var(--ink-60); }
+.balai { position: absolute; left: 0; right: 0; top: 50%; height: 2px; z-index: 13; transform-origin: 0 50%;
+  background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent) 70%, transparent); }
+
+/* Piste B — des pastilles, aucune interface */
+.b-fond { position: absolute; inset: 0; background-image: radial-gradient(rgba(244,241,236,.06) 1px, transparent 1.2px); background-size: 24px 24px; }
+.b-dot { position: absolute; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: oklch(70% .055 var(--h)); z-index: 5; }
+.is-p .b-dot { width: 52px; height: 52px; margin: -26px 0 0 -26px; }
+.b-dot::after { content: ""; position: absolute; left: 22%; top: 18%; width: 30%; height: 22%; border-radius: 50%; background: rgba(255,255,255,.28); }
+.b-blip { position: absolute; left: 30px; top: -28px; width: 36px; height: 24px; border-radius: 12px 12px 12px 3px; background: var(--ink); display: flex; gap: 3px; align-items: center; justify-content: center; transform-origin: 0 100%; }
+.b-blip i { width: 4px; height: 4px; border-radius: 50%; background: #0A0908; }
+.b-mq { position: absolute; inset: -7px; border-radius: 50%; border: 2px solid var(--ink); }
+.b-mq--b { border-style: dashed; border-color: rgba(244,241,236,.6); }
+.b-num { position: absolute; inset: 0; display: grid; place-items: center; font: 600 260px/1 var(--mono); color: var(--ink); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.b-anneau, .b-onde { position: absolute; left: 0; top: 0; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; border: 3px solid var(--accent); z-index: 4; }
+.b-anneau::after { content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: var(--accent); }
+.b-onde { border-width: 2px; z-index: 3; }
+.b-cran { position: absolute; left: 50%; top: 50%; width: 3px; height: 11px; margin: -5.5px 0 0 -1.5px; border-radius: 2px; background: var(--ink); }
+.b-fleau { position: absolute; left: 0; top: 0; height: 2px; z-index: 2; background: linear-gradient(90deg, rgba(244,241,236,.5), rgba(244,241,236,.08) 38%, rgba(244,241,236,.08) 62%, rgba(244,241,236,.5)); }
+.b-salle { position: absolute; left: 0; top: 0; border: 1px solid var(--hair-2); border-radius: 30px; background: rgba(244,241,236,.025); z-index: 1; }
+.b-hp { position: absolute; right: 16px; top: 16px; width: 22px; height: 22px; color: var(--ink-60); }
+.b-vague { position: absolute; right: 9px; top: 9px; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--ink-40); }
+.b-att { position: absolute; left: 0; top: 0; width: 18px; height: 18px; margin: -9px; color: var(--ink-40); }
+
+/* Piste C — fenêtre propre, curseur, zoom au clic */
+.app { position: absolute; border-radius: 12px; overflow: hidden; background: var(--panel); border: 1px solid var(--hair-2); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+.is-l .app { left: 50px; top: 26px; width: 860px; height: 488px; }
+.is-p .app { left: 26px; top: 40px; width: 488px; height: 880px; border-radius: 40px; }
+.app-bar { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: #0E0D0C; border-bottom: 1px solid var(--hair); }
+.app-bar i { width: 9px; height: 9px; border-radius: 50%; background: rgba(244,241,236,.16); }
+.is-p .app-bar { height: 40px; justify-content: center; border-bottom: 0; background: var(--panel); }
+.is-p .app-bar i { display: none; }
+.is-p .app-bar::after { content: ""; width: 96px; height: 24px; border-radius: 12px; background: #000; }
+.app .dc { left: 0; top: 26px; right: 0; bottom: 0; width: auto; height: auto; border: 0; border-radius: 0; }
+.is-p .app .dc { top: 40px; }
+.slash { position: absolute; left: 16px; right: 16px; bottom: 62px; background: #1B1917; border: 1px solid var(--hair-2); border-radius: 10px; padding: 7px; z-index: 3; box-shadow: 0 16px 40px rgba(0,0,0,.45); }
+.is-p .slash { bottom: 74px; }
+.slash-r { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 7px; background: rgba(244,241,236,.07); }
+.slash-r b { font-weight: 600; }
+.slash-r span:last-child { margin-left: auto; color: var(--ink-40); font-size: .9em; }
+.curseur { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -3px 0 0 -5px; z-index: 20; transform-origin: 5px 3px; }
+.doigt { position: absolute; left: 0; top: 0; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(244,241,236,.28); border: 2px solid rgba(244,241,236,.85); z-index: 20; }
+.clic { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 2px solid var(--ink); z-index: 19; }
+
+.db { position: absolute; left: 0; top: 26px; right: 0; bottom: 0; display: flex; background: var(--p-bg); color: var(--p-acc); font-family: var(--p-sans); }
+.is-p .db { top: 40px; flex-direction: column; }
+.db-nav { width: 190px; flex: none; border-right: 1px solid rgba(246,246,243,.08); padding: 14px 10px; display: flex; flex-direction: column; gap: 1px; }
+.db-g { font: 500 10px/1 var(--p-mono); letter-spacing: .1em; text-transform: uppercase; color: rgba(246,246,243,.38); padding: 12px 9px 6px; }
+.db-it { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 6px; font-size: 12.5px; color: rgba(246,246,243,.58); white-space: nowrap; }
+.db-it svg { width: 14px; height: 14px; flex: none; }
+.db-it.is-on { background: var(--p-acc); color: var(--p-bg); }
+.is-p .db-nav { width: auto; flex-direction: row; gap: 6px; border-right: 0; border-bottom: 1px solid rgba(246,246,243,.08); padding: 14px 16px; overflow: hidden; }
+.is-p .db-g { display: none; }
+.is-p .db-it { border: 1px solid rgba(246,246,243,.12); padding: 8px 12px; font-size: 14px; }
+.db-main { flex: 1; padding: 24px 28px; position: relative; min-width: 0; }
+.is-p .db-main { padding: 22px 18px; }
+.db-h { font: 700 23px/1.1 var(--p-sans); letter-spacing: -.015em; margin: 0 0 4px; }
+.db-sub { font: 400 11.5px/1.4 var(--p-mono); color: rgba(246,246,243,.45); margin: 0; }
+.db-card { margin-top: 18px; border: 1px solid rgba(246,246,243,.1); border-radius: 10px; }
+.db-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; }
+.db-row + .db-row { border-top: 1px solid rgba(246,246,243,.08); }
+.is-p .db-row { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; }
+.db-l b { display: block; font-size: 13.5px; font-weight: 600; }
+.db-l span { font: 400 11px/1.3 var(--p-mono); color: rgba(246,246,243,.45); }
+.seg { position: relative; display: flex; background: rgba(246,246,243,.07); border-radius: 7px; padding: 3px; }
+.seg span { position: relative; z-index: 1; width: 46px; height: 28px; display: grid; place-items: center; font: 500 12px/1 var(--p-mono); color: var(--p-acc); mix-blend-mode: difference; }
+.seg-sel { position: absolute; left: 3px; top: 3px; width: 46px; height: 28px; border-radius: 5px; background: var(--p-acc); }
+.sw { position: relative; width: 40px; height: 22px; border-radius: 11px; background: rgba(246,246,243,.16); }
+.sw-on { position: absolute; inset: 0; border-radius: 11px; background: var(--p-acc); }
+.sw-k { position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--p-acc); mix-blend-mode: difference; }
+.db-sel { font: 400 12px/1 var(--p-mono); border: 1px solid rgba(246,246,243,.16); border-radius: 6px; padding: 8px 10px; color: rgba(246,246,243,.8); white-space: nowrap; }
+.db-save { position: absolute; left: 28px; right: 28px; bottom: 18px; display: flex; align-items: center; justify-content: space-between; padding: 9px 9px 9px 16px; background: var(--p-acc); color: var(--p-bg); border-radius: 9px; font-size: 12.5px; }
+.is-p .db-save { left: 18px; right: 18px; bottom: 22px; font-size: 14px; }
+.db-btn { position: relative; background: var(--p-bg); color: var(--p-acc); border-radius: 6px; padding: 8px 14px; font: 600 12px/1 var(--p-sans); }
+.db-btn svg { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px; }
+</style>
+
+<main class="wrap">
+  <header class="tete">
+    <h1>Trois pistes pour la vidéo</h1>
+    <p>Le même début d'histoire, tourné trois fois : des joueurs qui galèrent à monter une partie, la file du bot, les équipes, les salons vocaux. Aucune légende, seuls les écrans parlent. Le format suit l'écran, et on peut le forcer.</p>
+  </header>
+
+  <div class="cmd">
+    <div class="seg-ui" role="group" aria-label="Piste">
+      <button type="button" id="p-A" data-piste="A" aria-pressed="true"><b>A</b>Caméra</button>
+      <button type="button" id="p-B" data-piste="B" aria-pressed="false"><b>B</b>Pastilles</button>
+      <button type="button" id="p-C" data-piste="C" aria-pressed="false"><b>C</b>Démo guidée</button>
+    </div>
+    <div class="seg-ui" role="group" aria-label="Format">
+      <button type="button" id="f-auto" data-format="auto" aria-pressed="true">Auto</button>
+      <button type="button" id="f-l" data-format="l" aria-pressed="false">Ordinateur</button>
+      <button type="button" id="f-p" data-format="p" aria-pressed="false">Téléphone</button>
+    </div>
+  </div>
+
+  <div class="ecran is-l" data-ecran></div>
+
+  <div class="tr">
+    <button type="button" id="t-lecture" data-lecture aria-label="Pause"></button>
+    <button type="button" id="t-reprise" data-reprise aria-label="Revoir depuis le début">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+    <div class="barre" data-barre role="slider" aria-label="Position dans la vidéo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+      <div class="barre-fond"><div class="barre-plein" data-plein></div></div>
+    </div>
+    <span class="temps" data-temps>0:00 / 0:00</span>
+  </div>
+
+  <section class="fiche" aria-live="polite">
+    <div>
+      <h2 data-f-titre></h2>
+      <p data-f-texte></p>
+    </div>
+    <dl data-f-dl></dl>
+  </section>
+
+  <p class="note">Prototype : pseudos et messages sont des exemples. Les trois tournent avec anime.js 4.5.0, la version déjà copiée dans le site ; la piste retenue s'intègre telle quelle, sans dépendance nouvelle. La suite (tous les modules du panneau, la modération) se tournera dans le même style.</p>
+</main>
+
+<script src="anime.umd.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var A = window.anime;
+  var ecran = document.querySelector('[data-ecran]');
+  var reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !/[?&]motion=on/.test(location.search);
+  var etat = { piste: 'A', format: 'auto', tl: null, scene: null, k: 1, W: 960, H: 540, tick: null, attente: null, fmt: 'l' };
+
+  /* ── Icônes : des traits, pas de texte — c'est tout le principe ── */
+  function ico(d, extra) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' + (extra || '') + '>' + d + '</svg>';
+  }
+  var ICO = {
+    vox: ico('<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>'),
+    ok: ico('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
+    non: ico('<path d="M6 6l12 12M18 6 6 18"/>'),
+    msg: ico('<path d="M4 5h16v11H9l-5 4z"/>'),
+    gens: ico('<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.4 6-5.4s5.4 2 6 5.4"/><path d="M16 5.2a3 3 0 0 1 0 5.6M18 14.8c1.6.7 2.6 2.4 3 5.2"/>'),
+    horloge: ico('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+    logo: ico('<path d="M5 7h14M5 12h10M5 17h6"/>', ' stroke-width="2.6"'),
+    file: ico('<path d="M4 6h16M4 12h12M4 18h8"/>'),
+    trophee: ico('<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/>'),
+    rang: ico('<path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/>'),
+    bouclier: ico('<path d="M12 3 5 6v5c0 4.4 3 8 7 10 4-2 7-5.6 7-10V6z"/>'),
+    lien: ico('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+    balai: ico('<path d="M14 4 9 14M5 14h8l1 6H4z"/>'),
+    cal: ico('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
+    oeil: ico('<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/>'),
+    lecture: ico('<path d="M7 5v14l12-7z" fill="currentColor"/>'),
+    pause: ico('<path d="M8 5v14M16 5v14"/>', ' stroke-width="3"'),
+    fleche: '<svg viewBox="0 0 24 24"><path d="M5 3l14 8.2-6.3 1.6L9.6 19z" fill="#F4F1EC" stroke="#0A0908" stroke-width="1.5" stroke-linejoin="round"/></svg>'
+  };
+
+  /* ── Le casting. Les deux derniers sont ceux qu'on oublie dans le salon. ── */
+  var GENS = [
+    { n: 'Kaito', h: 28 }, { n: 'nyxx', h: 200 }, { n: 'Bastien', h: 120 }, { n: 'Lou', h: 330 },
+    { n: 'R3d', h: 15 }, { n: 'Mehdi', h: 260 }, { n: 'zoé.gg', h: 300 }, { n: 'Sacha', h: 160 },
+    { n: 'Ivan', h: 220 }, { n: 'Pablo', h: 60 }, { n: 'Aya', h: 280 }, { n: 'Tom', h: 90 },
+    { n: 'Inès', h: 140 }, { n: 'Yann', h: 240 }
+  ];
+  var CHAOS = [
+    [0, 'qui pour une 5v5 ?'], [1, '+1'], [2, 'moi'], [4, '+1'], [3, 'je prends mid'],
+    [5, 'on est combien là ?'], [6, '+1'], [7, 'moi aussi'], [1, 'attendez je recompte'],
+    [8, '+1'], [9, 'c’est complet ?'], [10, 'moi !'], [11, '+1 ?'], [0, 'bon on est 11 ou 12 ?']
+  ];
+  // Équipes équilibrées : l'ordre d'arrivée n'est pas l'ordre de jeu,
+  // et le voir se réarranger est précisément ce qu'on veut montrer.
+  var EQ_A = [0, 3, 4, 7, 8], EQ_B = [1, 2, 5, 6, 9];
+
+  function el(tag, cls, parent, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function avatar(i, parent, cls) {
+    var a = el('span', 'av' + (cls ? ' ' + cls : ''), parent, GENS[i].n.charAt(0).toUpperCase());
+    a.style.setProperty('--h', GENS[i].h);
+    return a;
+  }
+  // Centre d'un élément en coordonnées de scène, mesuré AVANT tout
+  // transform de départ : la caméra vise la place finale des choses.
+  function centre(e) {
+    var s = etat.scene.getBoundingClientRect(), r = e.getBoundingClientRect();
+    return { x: (r.left - s.left + r.width / 2) / etat.k, y: (r.top - s.top + r.height / 2) / etat.k };
+  }
+  function cadrer(e, s, dx, dy) {
+    var c = centre(e);
+    return { x: (etat.W / 2 - c.x - (dx || 0)) * s, y: (etat.H / 2 - c.y - (dy || 0)) * s, scale: s };
+  }
+  function graine(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function mmss(s) { s = Math.max(0, Math.floor(s)); return (s < 600 ? '0' : '') + Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+  function ecrire(e, v) { if (e.textContent !== String(v)) e.textContent = v; }
+
+  /* ── Briques communes : Discord, le message du bot ── */
+  function discord(parent, P, tilt) {
+    var win = el('div', 'dc' + (tilt ? ' dc--tilt' : ''), parent);
+    var side = el('aside', 'dc-side', win);
+    el('div', 'dc-srv', side, '<i></i>Les Copains');
+    el('div', 'dc-cat', side, 'Salons');
+    ['général', 'recherche-équipe', 'clips'].forEach(function (n, i) {
+      el('div', 'dc-ch' + (i === 1 ? ' is-on' : ''), side, '<span class="hash">#</span>' + n);
+    });
+    el('div', 'dc-cat', side, 'Vocaux');
+    el('div', 'dc-ch', side, ICO.vox + 'Lounge');
+    var vox = [EQ_A, EQ_B].map(function (eq, i) {
+      var box = el('div', 'dc-vox', side);
+      el('div', 'dc-ch', box, ICO.vox + 'Équipe ' + (i + 1));
+      var l = el('div', 'dc-voxl', box);
+      return { box: box, minis: eq.map(function (g) { return avatar(g, l); }) };
+    });
+    var main = el('section', 'dc-main', win);
+    el('header', 'dc-head', main, (P ? ico('<path d="M4 7h16M4 12h16M4 17h16"/>') : '') + '<span class="hash">#</span><b>recherche-équipe</b>');
+    var mem = el('aside', 'dc-mem', P ? main : win);
+    el('div', 'dc-cat', mem, 'En ligne — 12');
+    var membres = [];
+    for (var i = 0; i < 12; i++) {
+      var r = el('div', 'dc-m', mem);
+      avatar(i, r);
+      el('span', 'dc-mn', r, GENS[i].n);
+      membres.push({ row: r, ok: el('span', 'dc-ok', r, ICO.ok) });
+    }
+    var flux = el('div', 'dc-flux', main);
+    var liste = el('div', 'dc-liste', flux);
+    var saisie = el('div', 'dc-saisie', main, '<span class="ph">Envoyer un message</span><span class="frappe"></span>');
+    return { win: win, side: side, vox: vox, main: main, flux: flux, liste: liste, mem: mem, membres: membres, saisie: saisie };
+  }
+  function message(liste, gi, txt) {
+    var m = el('div', 'dc-msg', liste);
+    avatar(gi, m);
+    el('div', 'dc-mb', m, '<b>' + GENS[gi].n + '</b><p>' + txt + '</p>');
+    return m;
+  }
+  function embed(parent) {
+    var e = el('div', 'em', parent);
+    el('div', 'em-top', e, '<span class="em-logo">' + ICO.logo + '</span><b>CreateYourQueue</b><span class="em-bot">BOT</span>');
+    var cpt = el('div', 'em-cpt', e, '<span>0</span><span>/10</span>');
+    var grille = el('div', 'em-grille', e);
+    var slots = [], ronds = [], avs = [];
+    for (var i = 0; i < 10; i++) {
+      var s = el('span', 'em-slot', grille);
+      ronds.push(el('i', '', s));
+      avs.push(avatar(i, s));
+      slots.push(s);
+    }
+    var div = el('span', 'em-div', grille);
+    var bal = el('div', 'em-bal', e);
+    var aiguille = el('i', '', bal);
+    var pied = el('div', 'em-pied', e);
+    var btns = el('div', 'em-btns', pied, '<span class="em-b em-b--ok">' + ICO.ok + '</span><span class="em-b">' + ICO.non + '</span>');
+    var att = el('div', 'em-att', pied, ICO.horloge);
+    avatar(10, att); avatar(11, att);
+    return { box: e, n: cpt.firstChild, grille: grille, ronds: ronds, avs: avs, div: div, bal: bal, aiguille: aiguille, ok: btns.firstChild, att: att };
+  }
+  function etatsEmbed(tl, E) {
+    tl.set(E.box, { opacity: 0, y: 40 }, 0)
+      .set(E.avs, { scale: 0, x: 0, y: 0 }, 0)
+      .set(E.ronds, { opacity: 1 }, 0)
+      .set(E.div, { opacity: 0, scaleX: 0 }, 0)
+      .set(E.bal, { opacity: 0 }, 0)
+      .set(E.aiguille, { x: -40 }, 0)
+      .set(E.att, { opacity: 0, x: 10 }, 0);
+  }
+  // Le réarrangement en deux équipes : chaque avatar glisse de sa place
+  // d'arrivée à sa place d'équipe, la rangée du bas descend de 12 px
+  // pour ouvrir la séparation. Grille fixe 36 + 10 : pas besoin de mesurer.
+  function equipes(tl, E, t0) {
+    var cible = {};
+    EQ_A.forEach(function (g, i) { cible[g] = i; });
+    EQ_B.forEach(function (g, i) { cible[g] = 5 + i; });
+    for (var g = 0; g < 10; g++) {
+      var de = g, vers = cible[g];
+      var dx = (vers % 5 - de % 5) * 46;
+      var dy = (Math.floor(vers / 5) - Math.floor(de / 5)) * 46 + (vers >= 5 ? 12 : 0);
+      tl.add(E.avs[g], { x: dx, y: dy, duration: 800, ease: 'inOutCubic' }, t0 + g * 35);
+    }
+    tl.add(E.ronds, { opacity: 0, duration: 300, ease: 'outQuad' }, t0)
+      .add(E.div, { opacity: 1, scaleX: 1, duration: 600, ease: 'outExpo' }, t0 + 600)
+      .add(E.bal, { opacity: 1, duration: 300, ease: 'outQuad' }, t0 + 500)
+      .add(E.aiguille, { x: 0, duration: 1500, ease: 'outElastic(1, .45)' }, t0 + 650);
+  }
+  function hud(parent) {
+    var h = el('div', 'hud', parent);
+    function pill(i) { var p = el('div', 'pill', h, i + '<span>0</span>'); return p.lastChild; }
+    return { box: h, msg: pill(ICO.msg), gens: pill(ICO.gens), temps: pill(ICO.horloge) };
+  }
+
+  /* ════════════════ Piste A — la caméra façon Keeper ════════════════ */
+  function pisteA(scene, P) {
+    var W = etat.W, H = etat.H;
+    var fond = el('div', '', scene);
+    var flous = [[-60, 60, 260, 180], [W - 180, H - 220, 300, 200], [W * .4, -80, 240, 140]].map(function (f) {
+      var b = el('div', 'flou', fond);
+      b.style.cssText = 'left:' + f[0] + 'px;top:' + f[1] + 'px;width:' + f[2] + 'px;height:' + f[3] + 'px';
+      return b;
+    });
+    var cam = el('div', 'cam', scene);
+    var secoue = el('div', 'secoue', cam);
+    var D = discord(secoue, P, true);
+    var msgs = CHAOS.map(function (m) { return message(D.liste, m[0], m[1]); });
+    var E = embed(D.flux);
+    var tension = el('div', 'vignette', scene);
+    var balai = el('div', 'balai', scene);
+    var Hd = hud(scene);
+    var noir = el('div', 'noir', scene);
+
+    var hMsg = P ? 54 : 46;
+    var visibles = Math.floor((D.flux.clientHeight - 8) / hMsg);
+    var vFlux = cadrer(D.flux, P ? 1.08 : 1.16, 0, P ? 60 : 30);
+    var vEmbed = cadrer(E.box, P ? 1.22 : 1.55);
+    var vEquipes = cadrer(E.box, P ? 1.12 : 1.32);
+    var vVox = cadrer(D.vox[0].box, P ? 1.25 : 1.75, 0, 18);
+    var tirer = P ? -(D.side.offsetWidth + 40) : 0;
+
+    var tl = nouvelle();
+    tl.set(cam, { scale: 1.02, x: 0, y: 0 }, 0)
+      .set(secoue, { x: 0 }, 0)
+      .set(msgs, { opacity: 0, y: 14 }, 0)
+      .set(D.liste, { y: 0, opacity: 1 }, 0)
+      .set(D.membres.map(function (m) { return m.row; }), { opacity: 1 }, 0)
+      .set(D.membres.map(function (m) { return m.ok; }), { opacity: 0, scale: .4 }, 0)
+      .set(D.vox.map(function (v) { return v.box; }), { opacity: 0, y: -6 }, 0)
+      .set([].concat(D.vox[0].minis, D.vox[1].minis), { opacity: 0, scale: .4 }, 0)
+      .set(tension, { opacity: 0 }, 0)
+      .set(balai, { scaleX: 0, opacity: 1 }, 0)
+      .set(noir, { opacity: 1 }, 0)
+      .set(flous, { x: 0 }, 0);
+    if (P) tl.set(D.side, { x: tirer }, 0);
+    etatsEmbed(tl, E);
+
+    tl.add(noir, { opacity: 0, duration: 500, ease: 'outQuad' }, 0)
+      .add(flous, { x: function (_, i) { return i % 2 ? -50 : 40; }, duration: 16000, ease: 'linear' }, 0);
+
+    // 1. Le chaos : un message toutes les 300 ms, la caméra pousse, l'image s'assombrit
+    msgs.forEach(function (m, i) {
+      var t = 250 + i * 300;
+      tl.add(m, { opacity: 1, y: 0, duration: 380, ease: 'outQuad' }, t);
+      if (i >= visibles) tl.add(D.liste, { y: -(i - visibles + 1) * hMsg, duration: 300, ease: 'outQuad' }, t);
+    });
+    tl.add(cam, { x: vFlux.x, y: vFlux.y, scale: vFlux.scale, duration: 4300, ease: 'inOutSine' }, 0)
+      .add(tension, { opacity: 1, duration: 3600, ease: 'inQuad' }, 600)
+      .add([D.membres[10].row, D.membres[11].row], { opacity: .25, duration: 700, ease: 'outQuad' }, 3200);
+    [-7, 6, -4, 3, 0].forEach(function (x, i) { tl.add(secoue, { x: x, duration: 90, ease: 'inOutQuad' }, 3950 + i * 90); });
+
+    // 2. La bascule : un trait cuivré, le salon s'efface, le bot prend la place
+    tl.add(balai, { scaleX: 1, duration: 420, ease: 'inOutQuad' }, 4400)
+      .add(balai, { opacity: 0, duration: 300, ease: 'outQuad' }, 4850)
+      .add(tension, { opacity: 0, duration: 700, ease: 'outQuad' }, 4500)
+      .add(D.liste, { opacity: .14, duration: 500, ease: 'outQuad' }, 4500)
+      .add(E.box, { opacity: 1, y: 0, duration: 800, ease: 'outExpo' }, 4700)
+      .add(cam, { x: vEmbed.x, y: vEmbed.y, scale: vEmbed.scale, duration: 1000, ease: 'inOutCubic' }, 4650);
+
+    // 3. La file se remplit, chaque membre reçoit sa coche
+    for (var i = 0; i < 10; i++) {
+      tl.add(E.avs[i], { scale: 1, duration: 450, ease: 'outBack(2)' }, 5700 + i * 260)
+        .add(D.membres[i].ok, { opacity: 1, scale: 1, duration: 300, ease: 'outBack(2)' }, 5750 + i * 260);
+    }
+    tl.add([D.membres[10].row, D.membres[11].row], { opacity: 1, duration: 400 }, 8300)
+      .add(E.att, { opacity: 1, x: 0, duration: 500, ease: 'outExpo' }, 8400);
+
+    // 4. Deux équipes, la balance se pose
+    tl.add(cam, { x: vEquipes.x, y: vEquipes.y, scale: vEquipes.scale, duration: 900, ease: 'inOutCubic' }, 8800);
+    equipes(tl, E, 9000);
+
+    // 5. Les salons vocaux s'ouvrent, chacun y glisse
+    if (P) tl.add(D.side, { x: 0, duration: 750, ease: 'outExpo' }, 10900);
+    tl.add(cam, { x: vVox.x, y: vVox.y, scale: vVox.scale, duration: 1100, ease: 'inOutCubic' }, 10800)
+      .add(D.vox.map(function (v) { return v.box; }), { opacity: 1, y: 0, duration: 500, ease: 'outExpo', delay: A.stagger(220) }, 11400)
+      .add([].concat(D.vox[0].minis, D.vox[1].minis), { opacity: 1, scale: 1, duration: 380, ease: 'outBack(2)', delay: A.stagger(70) }, 11700);
+
+    tl.add(cam, { x: 0, y: 0, scale: 1, duration: 1500, ease: 'inOutCubic' }, 13600)
+      .add(noir, { opacity: 1, duration: 800, ease: 'inQuad' }, 15600)
+      .add(noir, { opacity: 1, duration: 300 }, 16400);
+
+    var bruit = [7, 9, 8, 11, 10, 12, 9, 11, 10, 12, 11];
+    etat.tick = function (t) {
+      var n = 0;
+      for (var j = 0; j < msgs.length; j++) if (t >= 250 + j * 300) n++;
+      ecrire(Hd.msg, n);
+      var rejoints = 0;
+      for (var k = 0; k < 10; k++) if (t >= 5800 + k * 260) rejoints++;
+      ecrire(E.n, rejoints);
+      // Avant le bot, le compte des joueurs ne tient pas en place ;
+      // après, il est juste. Même pastille, deux comportements.
+      ecrire(Hd.gens, t < 4500 ? bruit[Math.floor(t / 400) % bruit.length] : rejoints + '/10');
+      ecrire(Hd.temps, t < 4500 ? mmss(t / 4400 * 1420) : mmss(Math.min(41, (t - 4500) / 6300 * 41)));
+    };
+    etat.repos = 9800;
+    return tl;
+  }
+
+  /* ════════════════ Piste B — des pastilles, aucune interface ════════════════ */
+  function pisteB(scene, P) {
+    var W = etat.W, H = etat.H, rnd = graine(7);
+    var C = { x: W / 2, y: P ? H * .44 : H * .48 };
+    el('div', 'b-fond', scene);
+    var cam = el('div', 'cam', scene);
+    var num = el('div', 'b-num', cam, '9');
+    var salles = [0, 1].map(function () {
+      var s = el('div', 'b-salle', cam, '<span class="b-hp">' + ICO.vox + '</span>');
+      var vagues = [0, 1, 2].map(function () { return el('i', 'b-vague', s); });
+      return { box: s, vagues: vagues };
+    });
+    var fleau = el('div', 'b-fleau', cam);
+    var onde = el('div', 'b-onde', cam);
+    var anneau = el('div', 'b-anneau', cam);
+    var crans = [];
+    var rA = P ? 66 : 62;
+    for (var c = 0; c < 10; c++) {
+      var cr = el('i', 'b-cran', anneau);
+      cr.style.transform = 'rotate(' + (c * 36) + 'deg) translateY(-' + rA + 'px)';
+      crans.push(cr);
+    }
+    var att = el('div', 'b-att', cam, ICO.horloge);
+    var dots = GENS.map(function (g, i) {
+      var d = el('div', 'b-dot', cam);
+      d.style.setProperty('--h', g.h);
+      var blip = el('div', 'b-blip', d, '<i></i><i></i><i></i>');
+      var mq = el('i', 'b-mq' + (EQ_B.indexOf(i) >= 0 ? ' b-mq--b' : ''), d);
+      return { d: d, blip: blip, mq: mq };
+    });
+    var vignette = el('div', 'vignette', scene);
+    var noir = el('div', 'noir', scene);
+    vignette.style.opacity = '.7';
+
+    var marge = P ? 70 : 80;
+    function auHasard() { return { x: marge + rnd() * (W - 2 * marge), y: marge + rnd() * (H - 2 * marge - (P ? 120 : 40)) }; }
+    var R = P ? 150 : 140;
+    function place(i, r) { var a = -Math.PI / 2 + i * Math.PI * 2 / 10; return { x: C.x + Math.cos(a) * r, y: C.y + Math.sin(a) * r }; }
+    var ecart = P ? 250 : 240;
+    var cA = P ? { x: C.x, y: C.y - ecart } : { x: C.x - ecart, y: C.y };
+    var cB = P ? { x: C.x, y: C.y + ecart } : { x: C.x + ecart, y: C.y };
+    function penta(cen, i) { var a = -Math.PI / 2 + i * Math.PI * 2 / 5; return { x: cen.x + Math.cos(a) * 66, y: cen.y + Math.sin(a) * 66 }; }
+    var lane = P ? [{ x: C.x - 22, y: H - 120 }, { x: C.x + 34, y: H - 120 }] : [{ x: W - 120, y: H - 56 }, { x: W - 64, y: H - 56 }];
+    var hors = [{ x: -60, y: C.y + 40 }, { x: W + 60, y: C.y - 60 }];
+
+    var tl = nouvelle();
+    var depart = GENS.map(function (_, i) { return i < 12 ? auHasard() : hors[i - 12]; });
+    dots.forEach(function (o, i) {
+      tl.set(o.d, { x: depart[i].x, y: depart[i].y, scale: i < 12 ? 1 : .8, opacity: i < 12 ? 1 : 0 }, 0)
+        .set(o.blip, { scale: 0 }, 0)
+        .set(o.mq, { opacity: 0, scale: .6 }, 0);
+    });
+    tl.set(num, { opacity: 0, scale: 1 }, 0)
+      .set(anneau, { x: C.x, y: C.y, scale: 0, opacity: 1 }, 0)
+      .set(onde, { x: C.x, y: C.y, scale: .6, opacity: 0 }, 0)
+      .set(crans, { opacity: .15 }, 0)
+      .set(fleau, { x: C.x - 300, y: C.y, rotate: P ? 81 : -9, opacity: 0 }, 0)
+      .set(att, { x: P ? C.x - 64 : W - 170, y: lane[0].y, opacity: 0 }, 0)
+      .set(cam, { scale: 1.06, x: 0, y: 0 }, 0)
+      .set(noir, { opacity: 1 }, 0);
+    fleau.style.width = '600px';
+    salles.forEach(function (s, i) {
+      var cen = i ? cB : cA, w = 220, h = 210;
+      s.box.style.width = w + 'px'; s.box.style.height = h + 'px';
+      tl.set(s.box, { x: cen.x - w / 2, y: cen.y - h / 2 - 4, scale: .7, opacity: 0 }, 0)
+        .set(s.vagues, { scale: .4, opacity: 0 }, 0);
+    });
+
+    tl.add(noir, { opacity: 0, duration: 500, ease: 'outQuad' }, 0)
+      .add(cam, { scale: 1, duration: 4300, ease: 'inOutSine' }, 0);
+
+    // 1. Ils se cherchent : trois sauts au hasard, des bulles qui s'ouvrent partout
+    for (var i = 0; i < 12; i++) {
+      for (var s = 0; s < 3; s++) {
+        var p = auHasard();
+        tl.add(dots[i].d, { x: p.x, y: p.y, duration: 1250, ease: 'inOutSine' }, s * 1300 + i * 25);
+      }
+      for (var b = 0; b < 2; b++) {
+        var tb = 250 + rnd() * 3300;
+        tl.add(dots[i].blip, { scale: 1, duration: 260, ease: 'outBack(2.4)' }, tb)
+          .add(dots[i].blip, { scale: 0, duration: 200, ease: 'inQuad' }, tb + 650);
+      }
+    }
+    tl.add(num, { opacity: .1, duration: 600, ease: 'outQuad' }, 300)
+      .add(num, { opacity: 0, scale: .9, duration: 400, ease: 'inQuad' }, 4100)
+      .add([dots[10].d, dots[11].d], { opacity: .3, scale: .78, duration: 800, ease: 'outQuad' }, 3300);
+
+    // 2. L'anneau tombe, onde de choc
+    tl.add(anneau, { scale: 1, duration: 650, ease: 'outBack(1.8)' }, 4300)
+      .add(onde, { scale: 3.4, opacity: [.8, 0], duration: 1000, ease: 'outExpo' }, 4420);
+
+    // 3. Ils se rangent autour de lui, un cran s'allume par joueur
+    for (var j = 0; j < 10; j++) {
+      var q = place(j, R);
+      tl.add(dots[j].d, { x: q.x, y: q.y, duration: 700, ease: 'outCubic' }, 4950 + j * 230)
+        .add(crans[j], { opacity: 1, duration: 200 }, 5350 + j * 230);
+    }
+    // Les deux oubliés ne le sont plus : ils attendent la suivante
+    tl.add(dots[10].d, { x: lane[0].x, y: lane[0].y, opacity: 1, scale: .8, duration: 800, ease: 'inOutCubic' }, 7400)
+      .add(dots[11].d, { x: lane[1].x, y: lane[1].y, opacity: 1, scale: .8, duration: 800, ease: 'inOutCubic' }, 7480)
+      .add(att, { opacity: 1, duration: 400 }, 7900);
+
+    // 4. Deux équipes, la balance oscille puis se pose
+    tl.add(crans, { opacity: 0, duration: 300 }, 8400)
+      .add(anneau, { scale: .5, duration: 600, ease: 'inOutCubic' }, 8400);
+    EQ_A.forEach(function (g, k) { var pA = penta(cA, k); tl.add(dots[g].d, { x: pA.x, y: pA.y, duration: 950, ease: 'inOutCubic' }, 8450 + k * 40); });
+    EQ_B.forEach(function (g, k) { var pB = penta(cB, k); tl.add(dots[g].d, { x: pB.x, y: pB.y, duration: 950, ease: 'inOutCubic' }, 8470 + k * 40); });
+    tl.add(dots.slice(0, 10).map(function (o) { return o.mq; }), { opacity: 1, scale: 1, duration: 400, ease: 'outBack(2)', delay: A.stagger(30) }, 9300)
+      .add(fleau, { opacity: 1, duration: 400 }, 9200)
+      .add(fleau, { rotate: P ? 90 : 0, duration: 1700, ease: 'outElastic(1, .4)' }, 9300);
+
+    // 5. Une salle chacun, le son passe
+    tl.add(fleau, { opacity: 0, duration: 400 }, 11000)
+      .add(salles.map(function (o) { return o.box; }), { scale: 1, opacity: 1, duration: 750, ease: 'outExpo', delay: A.stagger(150) }, 11000);
+    salles.forEach(function (o, k) {
+      o.vagues.forEach(function (v, n) {
+        tl.add(v, { scale: [.4, 1.7], opacity: [.7, 0], duration: 1000, ease: 'outQuad' }, 11600 + k * 120 + n * 450);
+      });
+    });
+
+    // 6. Et la file suivante se forme déjà avec les deux qui attendaient
+    tl.add(cam, { scale: .9, duration: 2200, ease: 'inOutCubic' }, 12800)
+      .add(anneau, { scale: 1, duration: 600, ease: 'outBack(1.6)' }, 13100)
+      .add(att, { opacity: 0, duration: 300 }, 13100);
+    [10, 11, 12, 13].forEach(function (g, k) {
+      var r = place(k, R);
+      tl.add(dots[g].d, { x: r.x, y: r.y, scale: 1, opacity: 1, duration: 800, ease: 'outCubic' }, 13300 + k * 260)
+        .add(crans[k], { opacity: 1, duration: 200 }, 13700 + k * 260);
+    });
+    tl.add(noir, { opacity: 1, duration: 800, ease: 'inQuad' }, 15500)
+      .add(noir, { opacity: 1, duration: 300 }, 16300);
+
+    var bruit = [9, 7, 11, 8, 12, 10, 9, 11, 13, 10];
+    etat.tick = function (t) { if (t < 4500) ecrire(num, bruit[Math.floor(t / 380) % bruit.length]); };
+    etat.repos = 11900;
+    return tl;
+  }
+
+  /* ════════════════ Piste C — la démo guidée, façon Screen Studio ════════════════ */
+  function pisteC(scene, P) {
+    var W = etat.W, H = etat.H;
+    var cam = el('div', 'cam', scene);
+    var app = el('div', 'app', cam, '<div class="app-bar"><i></i><i></i><i></i></div>');
+    var D = discord(app, P, false);
+    var debut = CHAOS.slice(0, 5).map(function (m) { return message(D.liste, m[0], m[1]); });
+    var E = embed(D.flux);
+    var slash = el('div', 'slash', D.main, '<div class="slash-r"><span class="em-logo">' + ICO.logo + '</span><b>/createteam</b><span>CreateYourQueue</span></div>');
+    var frappe = D.saisie.querySelector('.frappe'), ph = D.saisie.querySelector('.ph');
+
+    // Le panneau, dans sa propre D.A. : c'est le vrai produit qu'on montre
+    var db = el('div', 'db', app);
+    var nav = el('nav', 'db-nav', db);
+    var modules = [
+      ['Jeu'], [ICO.oeil, 'Aperçu'], [ICO.file, 'File d’attente', 1], [ICO.trophee, 'Classement'], [ICO.rang, 'Rangs'],
+      [ICO.gens, 'Clans'], [ICO.cal, 'Saisons'], ['Modération'], [ICO.bouclier, 'Anti-raid'], [ICO.lien, 'Anti-lien'], [ICO.balai, 'Nettoyage']
+    ];
+    modules.forEach(function (m) {
+      if (m.length === 1) el('div', 'db-g', nav, m[0]);
+      else el('div', 'db-it' + (m[2] ? ' is-on' : ''), nav, m[0] + m[1]);
+    });
+    var dm = el('div', 'db-main', db);
+    el('h3', 'db-h', dm, 'File d’attente');
+    el('p', 'db-sub', dm, 'Les Copains · #recherche-équipe');
+    var carte = el('div', 'db-card', dm);
+    var r1 = el('div', 'db-row', carte, '<div class="db-l"><b>Format</b><span>joueurs par équipe</span></div>');
+    var seg = el('div', 'seg', r1);
+    var sel = el('i', 'seg-sel', seg);
+    var segs = ['1v1', '2v2', '3v3', '4v4', '5v5'].map(function (f) { return el('span', '', seg, f); });
+    var r2 = el('div', 'db-row', carte, '<div class="db-l"><b>Équilibrage</b><span>par MMR</span></div>');
+    var sw = el('div', 'sw', r2, '<i class="sw-on"></i><i class="sw-k"></i>');
+    el('div', 'db-row', carte, '<div class="db-l"><b>Salon</b><span>où la file s’affiche</span></div><span class="db-sel">#recherche-équipe</span>');
+    var save = el('div', 'db-save', dm, '<span>Modifications en attente</span>');
+    var btn = el('span', 'db-btn', save, '<span>Enregistrer</span>' + ICO.ok);
+
+    var curseur = el('div', P ? 'doigt' : 'curseur', cam, P ? '' : ICO.fleche);
+    var clic = el('div', 'clic', cam);
+    var noir = el('div', 'noir', scene);
+
+    // Mesures à plat, avant tout décalage de départ
+    var pSaisie = centre(D.saisie), pSlash = centre(slash.firstChild), pOk = centre(E.ok);
+    var p5 = centre(segs[4]), pSw = centre(sw), pBtn = centre(btn);
+    pSaisie.x -= D.saisie.offsetWidth * .3;
+    var vSaisie = cadrer(D.saisie, P ? 1.25 : 1.7, D.saisie.offsetWidth * -.22);
+    var vEmbed = cadrer(E.box, P ? 1.18 : 1.6);
+    var vEq = cadrer(E.box, P ? 1.1 : 1.35);
+    var vVox = cadrer(D.vox[0].box, P ? 1.2 : 1.75, 0, 18);
+    var vCarte = cadrer(carte, P ? 1.15 : 1.45);
+    var vSave = cadrer(save, P ? 1.2 : 1.6, -40);
+    var tirer = P ? -(D.side.offsetWidth + 40) : 0;
+    var pas = segs[1].offsetLeft - segs[0].offsetLeft;
+    var bordG = { x: 30, y: H * .5 };
+
+    var tl = nouvelle();
+    tl.set(cam, { x: 0, y: 0, scale: 1 }, 0)
+      .set(debut, { opacity: 0, y: 14 }, 0)
+      .set([debut[0], debut[1], debut[2]], { opacity: 1, y: 0 }, 0)
+      .set(D.liste, { opacity: 1 }, 0)
+      .set(slash, { opacity: 0, y: 10 }, 0)
+      .set(D.membres.map(function (m) { return m.ok; }), { opacity: 0, scale: .4 }, 0)
+      .set(D.vox.map(function (v) { return v.box; }), { opacity: 0, y: -6 }, 0)
+      .set([].concat(D.vox[0].minis, D.vox[1].minis), { opacity: 0, scale: .4 }, 0)
+      .set(D.win, { x: 0, opacity: 1 }, 0)
+      .set(db, { x: W * .35, opacity: 0 }, 0)
+      .set(sel, { x: pas * 2 }, 0)
+      .set(sw.firstChild, { opacity: 0 }, 0)
+      .set(sw.lastChild, { x: 0 }, 0)
+      .set(save, { y: 80, opacity: 0 }, 0)
+      .set(btn.firstChild, { opacity: 1 }, 0)
+      .set(btn.lastChild, { opacity: 0, scale: .4 }, 0)
+      .set(curseur, { x: W * .66, y: H * .72, scale: 1, opacity: 1 }, 0)
+      .set(clic, { opacity: 0, scale: .3 }, 0)
+      .set(noir, { opacity: 1 }, 0);
+    if (P) tl.set(D.side, { x: tirer }, 0);
+    etatsEmbed(tl, E);
+
+    function va(p, t, d) { tl.add(curseur, { x: p.x, y: p.y, duration: d || 800, ease: 'inOutCubic' }, t); }
+    function tape(p, t) {
+      tl.add(curseur, { scale: .82, duration: 110, ease: 'outQuad' }, t)
+        .add(curseur, { scale: 1, duration: 180, ease: 'outQuad' }, t + 110)
+        .set(clic, { x: p.x, y: p.y, scale: .3, opacity: .7 }, t)
+        .add(clic, { scale: 1.5, opacity: 0, duration: 500, ease: 'outQuad' }, t + 10);
+    }
+    function vise(v, t, d) { tl.add(cam, { x: v.x, y: v.y, scale: v.scale, duration: d || 1000, ease: 'inOutCubic' }, t); }
+
+    tl.add(noir, { opacity: 0, duration: 500, ease: 'outQuad' }, 0)
+      .add(debut[3], { opacity: 1, y: 0, duration: 380, ease: 'outQuad' }, 600)
+      .add(debut[4], { opacity: 1, y: 0, duration: 380, ease: 'outQuad' }, 1200);
+
+    // 1. On tape la commande
+    va(pSaisie, 1500, 900); vise(vSaisie, 1600);
+    tape(pSaisie, 2500);
+    tl.add(slash, { opacity: 1, y: 0, duration: 350, ease: 'outExpo' }, 3000);
+    va(pSlash, 3500, 450); tape(pSlash, 4000);
+    tl.add(slash, { opacity: 0, y: 6, duration: 200 }, 4120);
+
+    // 2. Le message du bot arrive, les autres rejoignent, on clique ✓
+    tl.add(D.liste, { opacity: .16, duration: 400 }, 4300)
+      .add(E.box, { opacity: 1, y: 0, duration: 750, ease: 'outExpo' }, 4300);
+    vise(vEmbed, 4300, 950);
+    for (var i = 0; i < 9; i++) {
+      tl.add(E.avs[i], { scale: 1, duration: 420, ease: 'outBack(2)' }, 5300 + i * 190)
+        .add(D.membres[i].ok, { opacity: 1, scale: 1, duration: 300 }, 5300 + i * 190);
+    }
+    va(pOk, 6500, 650); tape(pOk, 7200);
+    tl.add(E.avs[9], { scale: 1, duration: 450, ease: 'outBack(2)' }, 7260)
+      .add(D.membres[9].ok, { opacity: 1, scale: 1, duration: 300 }, 7260)
+      .add(E.att, { opacity: 1, x: 0, duration: 500, ease: 'outExpo' }, 7500);
+
+    // 3. Équipes, puis les vocaux
+    vise(vEq, 7800, 800);
+    equipes(tl, E, 7900);
+    if (P) {
+      // Sur téléphone, le panneau des salons se tire du bord, au doigt
+      tl.set(curseur, { x: bordG.x, y: bordG.y }, 9500);
+      tl.add(curseur, { x: bordG.x + 240, duration: 650, ease: 'inOutCubic' }, 9550)
+        .add(D.side, { x: 0, duration: 650, ease: 'inOutCubic' }, 9550);
+      vise(vVox, 9500, 1000);
+    } else {
+      vise(vVox, 9500, 1000);
+      va(centre(D.vox[0].box), 9500, 1000);
+    }
+    tl.add(D.vox.map(function (v) { return v.box; }), { opacity: 1, y: 0, duration: 500, ease: 'outExpo', delay: A.stagger(200) }, 10200)
+      .add([].concat(D.vox[0].minis, D.vox[1].minis), { opacity: 1, scale: 1, duration: 360, ease: 'outBack(2)', delay: A.stagger(50) }, 10400);
+
+    // 4. Le panneau : on passe en 5v5, on active l'équilibrage, on enregistre
+    vise({ x: 0, y: 0, scale: 1 }, 11500, 800);
+    tl.add(D.win, { x: -W * .3, opacity: 0, duration: 700, ease: 'inOutCubic' }, 11600)
+      .add(db, { x: 0, opacity: 1, duration: 700, ease: 'inOutCubic' }, 11650);
+    vise(vCarte, 12300, 900);
+    va(p5, 12300, 900); tape(p5, 13250);
+    tl.add(sel, { x: pas * 4, duration: 450, ease: 'outExpo' }, 13280)
+      .add(save, { y: 0, opacity: 1, duration: 600, ease: 'outExpo' }, 13450);
+    va(pSw, 13700, 550); tape(pSw, 14300);
+    tl.add(sw.firstChild, { opacity: 1, duration: 250 }, 14320)
+      .add(sw.lastChild, { x: 18, duration: 300, ease: 'outBack(1.6)' }, 14320);
+    vise(vSave, 14600, 800);
+    va(pBtn, 14600, 800); tape(pBtn, 15450);
+    tl.add(btn.firstChild, { opacity: 0, duration: 150 }, 15470)
+      .add(btn.lastChild, { opacity: 1, scale: 1, duration: 400, ease: 'outBack(2.2)' }, 15500);
+    vise({ x: 0, y: 0, scale: 1 }, 16100, 900);
+    tl.add(noir, { opacity: 1, duration: 700, ease: 'inQuad' }, 17000)
+      .add(noir, { opacity: 1, duration: 300 }, 17700);
+
+    var cmd = '/createteam';
+    etat.tick = function (t) {
+      var n = t < 2600 || t >= 4120 ? 0 : Math.min(cmd.length, Math.floor((t - 2600) / 75));
+      ecrire(frappe, cmd.slice(0, n));
+      frappe.style.opacity = n ? 1 : 0;
+      ph.style.opacity = n ? 0 : 1;
+      var r = 0;
+      for (var k = 0; k < 9; k++) if (t >= 5400 + k * 190) r++;
+      if (t >= 7300) r = 10;
+      ecrire(E.n, r);
+    };
+    etat.repos = 13600;
+    return tl;
+  }
+
+  /* ════════════════ La régie ════════════════ */
+  var PISTES = {
+    A: { f: pisteA, titre: 'Caméra', texte: 'La plus proche de la vidéo Keeper. Une fenêtre Discord légèrement inclinée, une caméra qui ne s’arrête jamais : elle pousse dans le salon pendant le chaos, plonge sur le message du bot, glisse vers les vocaux. Les pastilles du bas racontent l’histoire en chiffres : 23 minutes avant, 41 secondes après.',
+      dl: [['Rythme', 'Nerveux : un plan toutes les 1 à 2 secondes.'], ['La suite', 'Le panneau filmé module par module avec la même caméra ; la modération en raid, façon Keeper.'], ['Langues', 'Seuls les textes de l’interface changent : messages, noms de salons.']] },
+    B: { f: pisteB, titre: 'Pastilles', texte: 'Aucune interface. Chaque joueur est une pastille : elles s’agitent, se cherchent, deux finissent sur le côté. L’anneau cuivré du bot tombe au centre et range tout le monde : une file, deux équipes équilibrées, deux salons. Les deux restants ouvrent la file suivante : personne n’est oublié.',
+      dl: [['Rythme', 'Fluide, presque chorégraphié.'], ['La suite', 'Chaque module devient une forme : une balance pour le MMR, un podium, un calendrier. La modération : des intrus repoussés par l’anneau.'], ['Langues', 'Zéro texte, rien à traduire. En revanche, on voit moins le produit lui-même.']] },
+    C: { f: pisteC, titre: 'Démo guidée', texte: 'Le style des vidéos produit : un écran net, un curseur qui fait les gestes, un zoom doux à chaque clic. On voit la commande, la file qui se remplit, puis le panneau où l’on passe en 5v5 et où l’on enregistre. Sur téléphone, le curseur devient un doigt et le panneau des salons se tire du bord.',
+      dl: [['Rythme', 'Posé, chaque geste a le temps d’être lu.'], ['La suite', 'Chaque module = un réglage filmé de près, puis son effet dans Discord. La modération pareil.'], ['Langues', 'Les textes de l’interface, comme A. C’est celle qui explique le mieux comment s’en servir.']] }
+  };
+
+  function nouvelle() {
+    return A.createTimeline({
+      autoplay: false,
+      defaults: { ease: 'outExpo', duration: 600 },
+      onUpdate: maj,
+      onComplete: function () {
+        // Boucle à la main plutôt que loop:true : le temps affiché reste
+        // celui d'un seul passage, et la pause entre deux passages respire.
+        clearTimeout(etat.attente);
+        etat.attente = setTimeout(function () { if (etat.tl && !etat.pause) etat.tl.restart(); }, 700);
+      }
+    });
+  }
+
+  var plein = document.querySelector('[data-plein]'), temps = document.querySelector('[data-temps]');
+  var barre = document.querySelector('[data-barre]'), lecture = document.querySelector('[data-lecture]');
+  function maj(tl) {
+    tl = tl || etat.tl;
+    if (!tl) return;
+    var t = tl.currentTime, d = tl.duration || 1;
+    plein.style.transform = 'scaleX(' + Math.min(1, t / d) + ')';
+    ecrire(temps, mmss(t / 1000).replace(/^0/, '') + ' / ' + mmss(d / 1000).replace(/^0/, ''));
+    barre.setAttribute('aria-valuenow', Math.round(t / d * 100));
+    if (etat.tick) etat.tick(t);
+  }
+  function boutonLecture() {
+    lecture.innerHTML = etat.pause ? ICO.lecture : ICO.pause;
+    lecture.setAttribute('aria-label', etat.pause ? 'Lire' : 'Pause');
+  }
+
+  function formatReel() {
+    if (etat.format !== 'auto') return etat.format;
+    var w = document.documentElement.clientWidth, h = window.innerHeight;
+    return w >= 640 && w > h ? 'l' : 'p';
+  }
+  function echelle() {
+    if (!etat.scene) return;
+    etat.k = ecran.clientWidth / etat.W;
+    etat.scene.style.transform = 'scale(' + etat.k + ')';
+  }
+
+  function monter() {
+    clearTimeout(etat.attente);
+    if (etat.tl) { etat.tl.pause(); etat.tl.revert && etat.tl.revert(); }
+    etat.tick = null;
+    var P = formatReel() === 'p';
+    etat.fmt = P ? 'p' : 'l';
+    etat.W = P ? 540 : 960; etat.H = P ? 960 : 540;
+    ecran.className = 'ecran ' + (P ? 'is-p' : 'is-l');
+    ecran.innerHTML = '';
+    var scene = el('div', 'scene ' + (P ? 'is-p' : 'is-l'), ecran);
+    scene.style.width = etat.W + 'px'; scene.style.height = etat.H + 'px';
+    etat.scene = scene;
+    echelle();
+    var p = PISTES[etat.piste];
+    etat.tl = p.f(scene, P);
+    etat.tl.seek(0);
+    if (reduit && !etat.forcer) {
+      // Mouvement réduit : un plan fixe, choisi là où l'histoire se lit
+      // d'un coup d'œil, et la possibilité de lancer quand même.
+      etat.pause = true;
+      etat.tl.seek(etat.repos);
+      var rm = el('div', 'piste-rm', ecran, '<span>Mouvement réduit : plan fixe</span>');
+      el('button', '', rm, 'Lancer quand même').addEventListener('click', function () {
+        etat.forcer = true; etat.pause = false; rm.remove(); etat.tl.restart(); boutonLecture();
+      });
+    } else if (!etat.pause) {
+      etat.tl.play();
+    }
+    maj();
+    boutonLecture();
+    document.querySelector('[data-f-titre]').innerHTML = '<span>' + etat.piste + '</span>' + p.titre;
+    document.querySelector('[data-f-texte]').textContent = p.texte;
+    document.querySelector('[data-f-dl]').innerHTML = p.dl.map(function (d) { return '<div><dt>' + d[0] + '</dt><dd>' + d[1] + '</dd></div>'; }).join('');
+  }
+
+  function presser(sel, attr, val) {
+    [].forEach.call(document.querySelectorAll(sel), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute(attr) === val)); });
+  }
+  [].forEach.call(document.querySelectorAll('[data-piste]'), function (b) {
+    b.addEventListener('click', function () {
+      etat.piste = b.getAttribute('data-piste'); presser('[data-piste]', 'data-piste', etat.piste);
+      if (!reduit || etat.forcer) etat.pause = false;
+      try { localStorage.setItem('cyq-piste', etat.piste); } catch (e) {}
+      monter();
+    });
+  });
+  [].forEach.call(document.querySelectorAll('[data-format]'), function (b) {
+    b.addEventListener('click', function () {
+      etat.format = b.getAttribute('data-format'); presser('[data-format]', 'data-format', etat.format);
+      monter();
+    });
+  });
+  lecture.addEventListener('click', function () {
+    etat.pause = !etat.pause;
+    if (etat.pause) { clearTimeout(etat.attente); etat.tl.pause(); }
+    else if (etat.tl.currentTime >= etat.tl.duration) etat.tl.restart();
+    else etat.tl.play();
+    boutonLecture();
+  });
+  document.querySelector('[data-reprise]').addEventListener('click', function () {
+    etat.pause = false; clearTimeout(etat.attente); etat.tl.restart(); boutonLecture();
+  });
+  function chercher(x) {
+    var r = barre.getBoundingClientRect();
+    var p = Math.max(0, Math.min(1, (x - r.left) / r.width));
+    etat.tl.seek(p * etat.tl.duration);
+    maj();
+  }
+  barre.addEventListener('click', function (e) { chercher(e.clientX); });
+  barre.addEventListener('keydown', function (e) {
+    var d = e.key === 'ArrowRight' ? 1000 : e.key === 'ArrowLeft' ? -1000 : 0;
+    if (!d) return;
+    e.preventDefault();
+    etat.tl.seek(Math.max(0, Math.min(etat.tl.duration, etat.tl.currentTime + d)));
+    maj();
+  });
+
+  var dernier = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(dernier);
+    dernier = setTimeout(function () {
+      if (formatReel() !== etat.fmt) monter(); else echelle();
+    }, 150);
+  });
+
+  try { var g = localStorage.getItem('cyq-piste'); if (g && PISTES[g]) { etat.piste = g; presser('[data-piste]', 'data-piste', g); } } catch (e) {}
+  // Les polices changent la largeur des textes, donc les mesures de caméra :
+  // on attend qu'elles soient là avant de monter la première scène.
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(monter);
+})();
+</script>
