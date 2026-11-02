@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "cyq-site",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": [
         "outils/serveur_local.py"
       ],
@@ -11,7 +11,7 @@
     },
     {
       "name": "cyq-api",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": [
         "api-locale/server.py"
       ],
@@ -19,6 +19,34 @@
     },
     {
       "name": "cyq-archive",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8766",
+        "--directory",
+        "archives/en-ligne-2026-09-28"
+      ],
+      "port": 8766
+    },
+    {
+      "name": "cyq-site-windows",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "outils/serveur_local.py"
+      ],
+      "port": 8765
+    },
+    {
+      "name": "cyq-api-windows",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "api-locale/server.py"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "cyq-archive-windows",
       "runtimeExecutable": "python",
       "runtimeArgs": [
         "-m",
