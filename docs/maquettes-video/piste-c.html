@@ -1173,10 +1173,12 @@ img.k-av { background: none; }
     });
     var tStart = tMove + 9 * PAS_MOVE + 1400;
     if (P) {
-      tl.add(K.drawer, { x: -(drawerW + 30), duration: 600, ease: 'inOutCubic' }, tStart - 900)
-        .add(K.dim, { opacity: 0, duration: 400 }, tStart - 900);
+      // Le panneau des salons reste ouvert jusqu'au dernier arrivé : c'est
+      // l'image qu'on est venu voir, on la laisse tenir.
+      tl.add(K.drawer, { x: -(drawerW + 30), duration: 500, ease: 'inOutCubic' }, tStart - 450)
+        .add(K.dim, { opacity: 0, duration: 350 }, tStart - 450);
     }
-    vise(vBot, tStart - 800, 900);
+    vise(vBot, tStart - (P ? 450 : 800), P ? 600 : 900);
     tl.add(K.verA, { opacity: 0, duration: 300, ease: 'outQuad' }, tStart)
       .add(K.verB, { opacity: 1, y: 0, duration: 450, ease: 'outExpo' }, tStart + 120);
 
