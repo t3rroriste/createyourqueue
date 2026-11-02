@@ -64,6 +64,8 @@
         "-m",
         "http.server",
         "8767",
+        "--bind",
+        "127.0.0.1",
         "--directory",
         "docs/maquettes-video"
       ],
@@ -76,6 +78,8 @@
         "-m",
         "http.server",
         "8767",
+        "--bind",
+        "127.0.0.1",
         "--directory",
         "docs/maquettes-video"
       ],
