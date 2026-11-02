@@ -124,12 +124,18 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--ink); 
 .k-ch span { position: relative; overflow: hidden; text-overflow: ellipsis; }
 .k-chbg { position: absolute; inset: 0; border-radius: 4px; background: var(--k-sel); }
 .k-ch.is-on { color: #fff; }
-.k-ch > *:not(.k-chbg) { position: relative; }
+.k-ch > *:not(.k-chbg):not(.k-chflash) { position: relative; }
 .k-badge { margin-left: auto; font: 500 11px/1 var(--k-sans); color: var(--k-mute); background: var(--k-rail); border-radius: 4px; padding: 3px 5px; font-variant-numeric: tabular-nums; }
 .k-vz { position: relative; }
 .k-vm { display: flex; align-items: center; gap: 8px; height: 24px; padding-left: 36px; color: var(--k-mute); font-size: 14px; white-space: nowrap; }
 .k-vm .k-av { width: 20px; height: 20px; font-size: 9px; }
-.k-eqs { position: absolute; left: 0; right: 0; top: 0; }
+/* Décalés d'une ligne : la rangée d'avatars du vocal d'attente, repliée,
+   tient au-dessus pendant que les vocaux d'équipe se remplissent. */
+.k-eqs { position: absolute; left: 0; right: 0; top: 28px; }
+.k-eqs .k-vm { height: 22px; }
+.k-chflash { position: absolute; inset: 0; border-radius: 4px; background: rgba(88,101,242,.45); }
+.k-vm .k-av { position: relative; }
+.k-speak { position: absolute; inset: -3px; border-radius: 50%; border: 2px solid #23A55A; }
 .k-me { height: 52px; flex: none; background: var(--k-me); display: flex; align-items: center; gap: 8px; padding: 0 8px; }
 .k-me .k-av { width: 32px; height: 32px; font-size: 13px; }
 .k-me b { display: block; font-size: 14px; font-weight: 600; color: var(--k-head); line-height: 1.2; }
@@ -186,6 +192,9 @@ img.k-av { background: none; }
 .k-rs b { height: 18px; font-weight: 600; }
 .k-jet { position: absolute; inset: 0; pointer-events: none; z-index: 7; }
 .k-jet .k-av { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; font-size: 10px; box-shadow: 0 0 0 2px var(--k-side); }
+.k-jet .k-ghost { box-shadow: none; }
+.k-ring { position: absolute; left: 0; top: 0; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 2px solid rgba(219,222,225,.5); }
+.burst { position: absolute; left: 0; top: 0; width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 50%; border: 2px solid var(--accent); z-index: 48; }
 .k-saisie { flex: none; margin: 0 16px 24px; height: 44px; border-radius: 8px; background: var(--k-input); display: flex; align-items: center; gap: 14px; padding: 0 16px; color: var(--k-mute); position: relative; white-space: nowrap; overflow: hidden; }
 .k-saisie svg { width: 22px; height: 22px; flex: none; }
 .k-saisie span { position: absolute; left: 52px; }
@@ -382,7 +391,7 @@ img.k-av { background: none; }
   <header class="tete">
     <div>
       <h1>La présentation, piste C</h1>
-      <p>Tout se règle depuis le panneau, et le vrai message part sur Discord. Voix française de travail, synthétisée sur le Mac : elle sert à caler le montage.</p>
+      <p>Tout se règle depuis le panneau, et le vrai message part sur Discord. La voix est encore celle du Mac, calée sur le nouveau texte : la prise ElevenLabs la remplacera sans toucher au montage.</p>
     </div>
     <div class="seg-ui" role="group" aria-label="Format">
       <button type="button" id="f-auto" data-format="auto" aria-pressed="true">Auto</button>
@@ -432,7 +441,7 @@ img.k-av { background: none; }
   var TOTAL = Math.round(VOIX.total * 1000);
   var CHAPITRES = [
     ['chaos', 'Le problème'], ['panneau', 'Le panneau'], ['format', 'Le format'], ['apercu', 'L’aperçu'],
-    ['ouvrir', 'L’ouverture'], ['annonce', 'L’annonce'], ['equipes', 'Les équipes'], ['suivi', 'Le suivi'],
+    ['ouvrir', 'L’ouverture'], ['annonce', 'L’annonce'], ['equipes', 'Les équipes'], ['vocal', 'Le déplacement vocal'], ['suivi', 'Le suivi'],
     ['securite', 'La sécurité'], ['fin', 'Fin']
   ];
 
@@ -545,14 +554,16 @@ img.k-av { background: none; }
       return { row: r, av: a, nom: n };
     });
     var eqs = h('div', 'k-eqs', vz);
-    R.eqHead = []; R.eqSlots = [];
+    R.eqHead = []; R.eqSlots = []; R.eqFlash = []; R.eqBadge = [];
     EQ.forEach(function (eq, i) {
-      R.eqHead.push(h('div', 'k-ch', eqs, I.vox + '<span>Équipe ' + (i + 1) + '</span>'));
+      var hd = h('div', 'k-ch', eqs, '<span class="k-chflash"></span>' + I.vox + '<span>Équipe ' + (i + 1) + '</span><span class="k-badge">0/5</span>');
+      R.eqHead.push(hd); R.eqFlash.push(hd.firstChild); R.eqBadge.push(hd.lastChild);
       R.eqSlots.push(eq.map(function (g) {
         var r = h('div', 'k-vm', eqs);
         var a = av(g, r);
+        var sp = h('i', 'k-speak', a);
         h('span', '', r, G[g].n);
-        return { row: r, av: a };
+        return { row: r, av: a, speak: sp };
       }));
     });
     var me = h('div', 'k-me', side);
@@ -617,6 +628,9 @@ img.k-av { background: none; }
     }
     R.dim = h('div', 'k-dim', k);
     R.jet = h('div', 'k-jet', k);
+    R.ring = h('span', 'k-ring', R.jet);
+    // Deux échos par jeton : la traînée qui rend le trajet lisible d'un vocal à l'autre
+    R.ombres = FILE.map(function (g) { return [av(g, R.jet, 'k-ghost'), av(g, R.jet, 'k-ghost')]; });
     R.jetons = FILE.map(function (g) { return av(g, R.jet); });
     return R;
   }
@@ -831,11 +845,16 @@ img.k-av { background: none; }
   function film(scene, P) {
     var W = etat.W, H = etat.H;
     var cam = h('div', 'cam', scene);
-    var K = discord(cam, P);
-    var D = dashboard(cam, P);
-    var Q = pip(cam);
-    var cur = h('div', P ? 'doigt' : 'cur', cam, P ? '' : I.curseur);
-    var clic = h('div', 'clic', cam);
+    // Un second calque sous la caméra, pour les petits coups de zoom à
+    // chaque clic : sur la caméra elle-même, ils se battraient avec ses
+    // travellings en cours.
+    var punch = h('div', 'cam', cam);
+    var K = discord(punch, P);
+    var D = dashboard(punch, P);
+    var Q = pip(punch);
+    var cur = h('div', P ? 'doigt' : 'cur', punch, P ? '' : I.curseur);
+    var clic = h('div', 'clic', punch);
+    var burst = h('div', 'burst', punch);
     var fin = h('div', 'fin', scene, '<div class="fin__in"><img src="' + LOGO + '" alt=""><b>CreateYourQueue</b><span>cyqbot.eu</span><span class="d-pill">Ajouter à Discord<i>' + I.fleche + '</i></span></div>');
     var noir = h('div', 'noir', scene);
 
@@ -907,7 +926,9 @@ img.k-av { background: none; }
       tl.add(cur, { scale: .8, duration: 100, ease: 'outQuad' }, t)
         .add(cur, { scale: 1, duration: 200, ease: 'outQuad' }, t + 100)
         .set(clic, { x: p.x, y: p.y, scale: .3, opacity: .7 }, t)
-        .add(clic, { scale: 1.6, opacity: 0, duration: 520, ease: 'outQuad' }, t + 10);
+        .add(clic, { scale: 1.6, opacity: 0, duration: 520, ease: 'outQuad' }, t + 10)
+        .add(punch, { scale: 1.022, duration: 90, ease: 'outQuad' }, t)
+        .add(punch, { scale: 1, duration: 480, ease: 'outExpo' }, t + 90);
     }
     function sec(de, vers, t) {
       tl.add(D.sec[de].box, { opacity: 0, y: -4, duration: 180, ease: 'outQuad' }, t)
@@ -925,9 +946,15 @@ img.k-av { background: none; }
     /* ── états de départ ── */
     var tousSec = Object.keys(D.sec).map(function (c) { return D.sec[c].box; });
     tl.set(cam, { x: 0, y: 0, scale: 1 }, 0)
+      .set(punch, { scale: 1 }, 0)
+      .set(burst, { opacity: 0 }, 0)
+      .set(K.ring, { opacity: 0 }, 0)
+      .set([].concat.apply([], K.ombres), { opacity: 0 }, 0)
+      .set(K.eqFlash, { opacity: 0 }, 0)
+      .set([].concat(K.eqSlots[0], K.eqSlots[1]).map(function (s) { return s.speak; }), { opacity: 0 }, 0)
       .set(noir, { opacity: 1 }, 0)
       .set(K.win, { opacity: 1, x: 0, scale: 1 }, 0)
-      .set(D.win, { opacity: 0, x: 80, scale: .97 }, 0)
+      .set(D.win, { opacity: 0, x: 150, scale: .97 }, 0)
       .set(Q.box, { opacity: 0, y: 30 }, 0)
       .set([Q.raid.box, Q.lien.box, Q.net.box], { opacity: 0 }, 0)
       .set(fin.firstChild.children, { opacity: 0, y: 14 }, 0)
@@ -935,7 +962,7 @@ img.k-av { background: none; }
       .set(cur, { x: W * .7, y: H * .8, opacity: 0, scale: 1 }, 0)
       .set(clic, { opacity: 0 }, 0)
       // Discord
-      .set(K.msgs, { opacity: 0, y: 14 }, 0)
+      .set(K.msgs, { opacity: 0, y: 18, scale: .96 }, 0)
       .set(K.list, { y: 0 }, 0)
       .set(K.tape, { opacity: 0 }, 0)
       .set([K.chatA, K.headA, K.phA], { opacity: 1 }, 0)
@@ -950,7 +977,7 @@ img.k-av { background: none; }
       .set(K.reacStrip, { y: 0 }, 0)
       .set(K.jetons, { opacity: 0, scale: .4, x: jReac.x, y: jReac.y }, 0)
       .set(K.att.map(function (a) { return a.row; }), { opacity: 0, x: -6 }, 0)
-      .set(K.eqHead, { opacity: 0, y: -6 }, 0)
+      .set(K.eqHead, { opacity: 0, y: -6, scale: .92 }, 0)
       .set([].concat(K.eqSlots[0], K.eqSlots[1]).map(function (s) { return s.row; }), { opacity: 0, x: -6 }, 0)
       .set(K.badge, { opacity: 0 }, 0)
       .set(K.dim, { opacity: 0 }, 0);
@@ -987,7 +1014,7 @@ img.k-av { background: none; }
     vise(vChaos, 0, T.panneau - 700, 'inOutSine');
     K.msgs.forEach(function (m, i) {
       var t = 250 + i * Math.round((T.panneau - 1900) / CHAOS.length);
-      tl.add(m, { opacity: 1, y: 0, duration: 360, ease: 'outQuad' }, t);
+      tl.add(m, { opacity: 1, y: 0, scale: 1, duration: 320, ease: 'outBack(1.4)' }, t);
       if (i >= visibles) tl.add(K.list, { y: -(i - visibles + 1) * hMsg, duration: 300, ease: 'outQuad' }, t);
     });
     tl.add(K.tape, { opacity: 1, duration: 300 }, 900).add(K.tape, { opacity: 0, duration: 300 }, T.panneau - 900);
@@ -996,7 +1023,7 @@ img.k-av { background: none; }
     var tA = T.panneau - 700;
     // L'un sort avant que l'autre n'entre : deux interfaces en fondu
     // l'une sur l'autre, à mi-course, ne se lisent ni l'une ni l'autre.
-    tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 560, ease: 'inCubic' }, tA)
+    tl.add(K.win, { opacity: 0, x: -150, scale: .95, duration: 480, ease: 'inCubic' }, tA)
       .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tA + 430);
     vise({ x: 0, y: 0, scale: 1 }, tA, 700);
     vise(cadre(centre(D.win), P ? 1 : 1.03), tA + 900, 3000, 'inOutSine');
@@ -1043,17 +1070,19 @@ img.k-av { background: none; }
     va(pL, tSave + 800, 600);
     var tOpen = tSave + 1600;
     tape(pL, tOpen);
+    tl.set(burst, { x: pL.x, y: pL.y, scale: .5, opacity: .9 }, tOpen + 40)
+      .add(burst, { scale: 3, opacity: 0, duration: 700, ease: 'outExpo' }, tOpen + 40);
     tl.add(D.prev, { y: -8, opacity: .5, duration: 300, ease: 'outQuad' }, tOpen + 50)
       .add(D.prev, { y: 0, opacity: 1, duration: 420, ease: 'outExpo' }, tOpen + 400)
       .add(D.state, { opacity: 1, y: 0, duration: 300 }, tOpen + 700);
 
     /* ── 6. l'annonce dans Discord ── */
     var tB = T.annonce - 1000;
-    tl.add(D.win, { opacity: 0, x: 80, scale: .97, duration: 560, ease: 'inCubic' }, tB)
+    tl.add(D.win, { opacity: 0, x: 150, scale: .95, duration: 480, ease: 'inCubic' }, tB)
       .add(cur, { opacity: 0, duration: 200 }, tB)
       .set([K.chatA, K.headA, K.phA, K.chRech.firstChild], { opacity: 0 }, tB)
       .set([K.chatB, K.headB, K.phB, K.chAnn.firstChild], { opacity: 1 }, tB)
-      .set(K.win, { x: -70 }, tB)
+      .set(K.win, { x: -150 }, tB)
       .add(K.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tB + 430);
     vise({ x: 0, y: 0, scale: 1 }, tB, 700);
     var vBot = cadre(decale(cBot, P ? 0 : 60, 0), P ? 1.1 : 1.32);
@@ -1076,6 +1105,8 @@ img.k-av { background: none; }
       tl.add(K.reacStrip, { y: -(i + 1) * 18, duration: 260, ease: 'outBack(1.6)' }, t)
         .add(K.reac, { scale: 1.16, duration: 110, ease: 'outQuad' }, t)
         .add(K.reac, { scale: 1, duration: 300, ease: 'outBack(3)' }, t + 110)
+        .set(K.ring, { x: jReac.x, y: jReac.y, scale: .6, opacity: .7 }, t)
+        .add(K.ring, { scale: 1.9, opacity: 0, duration: 460, ease: 'outQuad' }, t)
         .set(K.jetons[i], { x: jReac.x, y: jReac.y - 4, scale: .4, opacity: 0 }, t)
         .add(K.jetons[i], { opacity: 1, scale: 1.25, y: jReac.y - 34, duration: 260, ease: 'outBack(2)' }, t);
       if (P) {
@@ -1097,51 +1128,68 @@ img.k-av { background: none; }
       vise({ x: 0, y: 0, scale: 1 }, tPlein - 700, 800);
     }
 
-    /* ── 7. les équipes ── */
-    var vVz = cadre(decale(cVz, P ? 0 : 40, -20), P ? 1.15 : 1.6);
-    vise(vVz, T.equipes - 700, 1000);
-    var tMove = T.equipes + 900;
-    // D'abord on vide le vocal d'attente d'un coup (les avatars deviennent
-    // des jetons, sur place), puis les deux vocaux d'équipe apparaissent, et
-    // seulement alors les jetons y descendent : les deux listes occupent la
-    // même place dans la colonne, jamais en même temps.
-    if (!P) {
-      FILE.forEach(function (g, de) { tl.set(K.jetons[de], { x: jAtt[de].x, y: jAtt[de].y, scale: .95, opacity: 1 }, tMove); });
-      tl.add(K.att.map(function (a) { return a.row; }), { opacity: 0, duration: 160 }, tMove);
-    }
-    tl.add(K.eqHead, { opacity: 1, y: 0, duration: 450, delay: A.stagger(200) }, tMove + 80);
-    ordreEq.forEach(function (g, i) {
-      var de = FILE.indexOf(g), t = tMove + 300 + i * 90;
-      var slot = [].concat(K.eqSlots[0], K.eqSlots[1])[i].row;
-      if (P) {
-        tl.add(K.att[de].row, { opacity: 0, x: 8, duration: 200 }, tMove + i * 40)
-          .add(slot, { opacity: 1, x: 0, duration: 320 }, t + 200);
-      } else {
-        tl.add(K.jetons[de], { x: jEq[i].x, y: jEq[i].y, duration: 820, ease: 'inOutCubic' }, t)
-          .add(slot, { opacity: 1, x: 0, duration: 260 }, t + 760)
-          .add(K.jetons[de], { opacity: 0, duration: 120 }, t + 840);
-      }
+    /* ── 7. les équipes, puis le déplacement vocal ──
+       Ce que le bot fait mieux que personne, donc filmé de près : le
+       vocal d'attente se replie en une rangée d'avatars, les deux vocaux
+       d'équipe naissent dessous, et chaque joueur y est déplacé l'un
+       après l'autre, avec sa traînée, sous les compteurs qui suivent. */
+    var vVz = cadre(decale(cVz, P ? 0 : 30, 10), P ? 1.15 : 1.75);
+    vise(vVz, T.equipes - 600, 900);
+    tl.add(cam, { x: vVz.x * 1.07, y: vVz.y * 1.07, scale: vVz.scale * 1.07, duration: T.vocal + 3200 - T.equipes, ease: 'inOutSine' }, T.equipes + 300);
+    var tPli = T.equipes + 250;
+    var rangee = FILE.map(function (_, i) { return { x: jAtt[0].x + i * 19, y: jAtt[0].y }; });
+    FILE.forEach(function (g, de) {
+      tl.set(K.jetons[de], { x: jAtt[de].x, y: jAtt[de].y, scale: .95, opacity: 1 }, tPli)
+        .add(K.jetons[de], { x: rangee[de].x, y: rangee[de].y, scale: .82, duration: 560, ease: 'inOutCubic' }, tPli + 40 + de * 30);
     });
-    tl.add(K.badge, { opacity: 0, duration: 250 }, tMove + 1200);
-    var tStart = T.equipes + 4200;
+    tl.add(K.att.map(function (a) { return a.row; }), { opacity: 0, duration: 140 }, tPli);
+    K.eqHead.forEach(function (hd, i) {
+      var t = T.equipes + 1500 + i * 380;
+      tl.add(hd, { opacity: 1, y: 0, scale: 1, duration: 520, ease: 'outBack(2)' }, t)
+        .add(K.eqFlash[i], { opacity: 1, duration: 120 }, t)
+        .add(K.eqFlash[i], { opacity: 0, duration: 700, ease: 'outQuad' }, t + 220);
+    });
+    var tMove = T.vocal + 150, PAS_MOVE = 250;
+    var slots = [].concat(K.eqSlots[0], K.eqSlots[1]);
+    ordreEq.forEach(function (g, i) {
+      var de = FILE.indexOf(g), t = tMove + i * PAS_MOVE, c = jEq[i];
+      tl.add(K.jetons[de], { scale: 1.3, duration: 140, ease: 'outQuad' }, t)
+        .add(K.jetons[de], { x: c.x, duration: 760, ease: 'inOutCubic' }, t + 100)
+        .add(K.jetons[de], { y: c.y, duration: 760, ease: 'inOutSine' }, t + 100)
+        .add(K.jetons[de], { scale: 1, duration: 320, ease: 'outBack(2.6)' }, t + 800)
+        .add(slots[i].row, { opacity: 1, x: 0, duration: 240 }, t + 820)
+        .add(K.jetons[de], { opacity: 0, duration: 100 }, t + 900)
+        // L'anneau vert de Discord : le joueur est arrivé, il parle déjà
+        .add(slots[i].speak, { opacity: 1, duration: 100 }, t + 940)
+        .add(slots[i].speak, { opacity: 0, duration: 260 }, t + 1500 + (i % 3) * 180);
+      K.ombres[de].forEach(function (o, k) {
+        var d = 55 * (k + 1);
+        tl.set(o, { x: rangee[de].x, y: rangee[de].y, scale: 1.15, opacity: 0 }, t + 100)
+          .add(o, { opacity: .38 / (k + 1), duration: 80 }, t + 100 + d)
+          .add(o, { x: c.x, duration: 760, ease: 'inOutCubic' }, t + 100 + d)
+          .add(o, { y: c.y, duration: 760, ease: 'inOutSine' }, t + 100 + d)
+          .add(o, { opacity: 0, duration: 160 }, t + 700 + d);
+      });
+    });
+    var tStart = tMove + 9 * PAS_MOVE + 1400;
     if (P) {
       tl.add(K.drawer, { x: -(drawerW + 30), duration: 600, ease: 'inOutCubic' }, tStart - 900)
         .add(K.dim, { opacity: 0, duration: 400 }, tStart - 900);
     }
-    vise(vBot, tStart - 800, 1000);
+    vise(vBot, tStart - 800, 900);
     tl.add(K.verA, { opacity: 0, duration: 300, ease: 'outQuad' }, tStart)
       .add(K.verB, { opacity: 1, y: 0, duration: 450, ease: 'outExpo' }, tStart + 120);
 
     /* ── 8. le suivi ── */
     var tC = T.suivi - 800;
     var MONTAGE = ['classement', 'rangs', 'mmr', 'saisons', 'clans', 'programmation'];
-    tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 560, ease: 'inCubic' }, tC)
+    tl.add(K.win, { opacity: 0, x: -150, scale: .95, duration: 480, ease: 'inCubic' }, tC)
       .set(tousSec, { opacity: 0 }, tC)
       .set(D.sec.classement.box, { opacity: 1, y: 0 }, tC)
       .set(scQ, { y: 0 }, tC)
       .set(D.navin, P ? { x: navPour('classement') } : { y: 0 }, tC)
       .set(D.mark, { y: markY('classement') }, tC)
-      .set(D.win, { x: 80 }, tC)
+      .set(D.win, { x: 150 }, tC)
       .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tC + 430);
     // Plan large : les clics se font dans la barre latérale, elle doit rester dans le cadre
     vise(P ? cadre(decale(cMain, 0, -60), 1) : cadre(centre(D.win), 1.03), tC, 900);
@@ -1241,12 +1289,18 @@ img.k-av { background: none; }
       classe(K.chAnn, 'is-on', t >= tB);
       var n = 0;
       for (var r = 0; r < 10; r++) if (t >= tR[r] + (P ? 300 : 1000)) n++;
-      if (t >= tMove + 1200) n = 0;
-      ecrire(K.badge, n + '/10');
+      var partis = 0, arrives = [0, 0];
+      for (var mv = 0; mv < 10; mv++) {
+        if (t >= tMove + mv * PAS_MOVE + 100) partis++;
+        if (t >= tMove + mv * PAS_MOVE + 820) arrives[mv < 5 ? 0 : 1]++;
+      }
+      ecrire(K.badge, (n - partis) + '/10');
+      ecrire(K.eqBadge[0], arrives[0] + '/5');
+      ecrire(K.eqBadge[1], arrives[1] + '/5');
     };
     etat.cles = {
       chaos: 4200, panneau: T.panneau + 1800, format: T.format + 3300, apercu: T.apercu + 1500, ouvrir: tOpen + 900,
-      annonce: tR[9] + 1300, equipes: tStart + 1200, suivi: tP + 2200, securite: tPip + 2200, fin: T.fin + 2400
+      annonce: tR[9] + 1300, equipes: T.equipes + 2600, vocal: tMove + 5 * PAS_MOVE + 600, suivi: tP + 2200, securite: tPip + 2200, fin: T.fin + 2400
     };
     return tl;
   }
