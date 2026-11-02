@@ -994,8 +994,10 @@ img.k-av { background: none; }
 
     /* ── 2. le panneau ── */
     var tA = T.panneau - 700;
-    tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 700, ease: 'inOutCubic' }, tA)
-      .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tA + 150);
+    // L'un sort avant que l'autre n'entre : deux interfaces en fondu
+    // l'une sur l'autre, à mi-course, ne se lisent ni l'une ni l'autre.
+    tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 560, ease: 'inCubic' }, tA)
+      .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tA + 430);
     vise({ x: 0, y: 0, scale: 1 }, tA, 700);
     vise(cadre(centre(D.win), P ? 1 : 1.03), tA + 900, 3000, 'inOutSine');
     tl.add(cur, { opacity: 1, duration: 300 }, T.panneau + 700);
@@ -1047,12 +1049,12 @@ img.k-av { background: none; }
 
     /* ── 6. l'annonce dans Discord ── */
     var tB = T.annonce - 1000;
-    tl.add(D.win, { opacity: 0, x: 80, scale: .97, duration: 700, ease: 'inOutCubic' }, tB)
+    tl.add(D.win, { opacity: 0, x: 80, scale: .97, duration: 560, ease: 'inCubic' }, tB)
       .add(cur, { opacity: 0, duration: 200 }, tB)
       .set([K.chatA, K.headA, K.phA, K.chRech.firstChild], { opacity: 0 }, tB)
       .set([K.chatB, K.headB, K.phB, K.chAnn.firstChild], { opacity: 1 }, tB)
       .set(K.win, { x: -70 }, tB)
-      .add(K.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tB + 150);
+      .add(K.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tB + 430);
     vise({ x: 0, y: 0, scale: 1 }, tB, 700);
     var vBot = cadre(decale(cBot, P ? 0 : 60, 0), P ? 1.1 : 1.32);
     vise(vBot, tB + 800, 1000);
@@ -1133,14 +1135,14 @@ img.k-av { background: none; }
     /* ── 8. le suivi ── */
     var tC = T.suivi - 800;
     var MONTAGE = ['classement', 'rangs', 'mmr', 'saisons', 'clans', 'programmation'];
-    tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 700, ease: 'inOutCubic' }, tC)
+    tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 560, ease: 'inCubic' }, tC)
       .set(tousSec, { opacity: 0 }, tC)
       .set(D.sec.classement.box, { opacity: 1, y: 0 }, tC)
       .set(scQ, { y: 0 }, tC)
       .set(D.navin, P ? { x: navPour('classement') } : { y: 0 }, tC)
       .set(D.mark, { y: markY('classement') }, tC)
       .set(D.win, { x: 80 }, tC)
-      .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tC + 150);
+      .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tC + 430);
     // Plan large : les clics se font dans la barre latérale, elle doit rester dans le cadre
     vise(P ? cadre(decale(cMain, 0, -60), 1) : cadre(centre(D.win), 1.03), tC, 900);
     tl.set(cur, { x: W * .55, y: H * .75 }, tC + 600).add(cur, { opacity: 1, duration: 250 }, tC + 700);
