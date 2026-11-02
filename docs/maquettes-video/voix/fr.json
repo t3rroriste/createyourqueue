@@ -1,0 +1,31 @@
+{
+  "_lisez_moi": "Le texte de la voix off, dans l'ordre. « cible » est l'instant (en secondes) où la phrase devrait commencer ; l'outil la décale si la précédente déborde. « dit » remplace « texte » pour la synthèse seulement : la voix française lit mal les mots anglais, on les lui écrit comme ils se prononcent. Les sous-titres gardent « texte ».",
+  "voix": "Thomas",
+  "debit": 172,
+  "lignes": [
+    { "id": "chaos",    "cible": 0.8,
+      "texte": "Monter une partie à dix sur Discord, c'est recompter une liste qui bouge pendant qu'on la lit." },
+    { "id": "panneau",  "cible": 7.4,
+      "texte": "Avec CreateYourQueue, tout se règle depuis le panneau. Pas une seule commande à taper.",
+      "dit":   "Avec Kriéte-yor-kiou, tout se règle depuis le panneau. Pas une seule commande à taper." },
+    { "id": "format",   "cible": 14.0,
+      "texte": "On donne un nom à la file, puis on choisit le format : deux équipes de cinq." },
+    { "id": "apercu",   "cible": 20.6,
+      "texte": "À droite, l'aperçu montre le message exact que le bot va publier." },
+    { "id": "ouvrir",   "cible": 26.4,
+      "texte": "On enregistre, et on ouvre la file." },
+    { "id": "annonce",  "cible": 31.0,
+      "texte": "L'annonce arrive dans le salon. Pour participer, les joueurs réagissent avec la coche, puis rejoignent le vocal d'attente." },
+    { "id": "equipes",  "cible": 41.4,
+      "texte": "À dix, la file est pleine. Le bot compose les équipes, crée les salons vocaux, et y place tout le monde." },
+    { "id": "suivi",    "cible": 50.4,
+      "texte": "Après la partie, le classement suit : MMR, rangs, saisons, clans. Et les files peuvent même s'ouvrir toutes seules, à heure fixe.",
+      "dit":   "Après la partie, le classement suit : èm-èm-èr, rangs, saisons, clans. Et les files peuvent même s'ouvrir toutes seules, à heure fixe." },
+    { "id": "securite", "cible": 61.0,
+      "texte": "Le même panneau protège aussi le serveur : anti-raid, anti-lien, nettoyage automatique.",
+      "dit":   "Le même panneau protège aussi le serveur : anti-réde, anti-lien, nettoyage automatique." },
+    { "id": "fin",      "cible": 69.0,
+      "texte": "CreateYourQueue. Votre serveur, réglé en quelques clics.",
+      "dit":   "Kriéte-yor-kiou. Votre serveur, réglé en quelques clics." }
+  ]
+}
