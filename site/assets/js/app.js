@@ -1112,6 +1112,68 @@
   }
   CYQ.ballon = ballon;
 
+  /* ------------------------------------ la maquette qui répond --------
+     Les scènes Discord (outils/communs/maquette.html) ne sont plus
+     seulement regardées : on clique leurs réactions, et la liste de
+     langues de la scène Options change de ligne cochée.
+
+     SI PEU, ET C'EST VOULU. Une maquette qui ferait tout ce que fait
+     Discord cesserait d'être une maquette : elle promettrait un produit
+     qui tourne dans la page. Un compteur qui monte d'un suffit à dire
+     « ceci répond », et c'est tout ce qu'elle a à dire.
+
+     UN SEUL ÉCOUTEUR, posé sur le document. La fenêtre d'un module CLONE
+     la scène à l'ouverture (page-home.js) : des écouteurs posés nœud par
+     nœud au démarrage ne suivraient pas les clones, et la scène de la
+     fenêtre serait la seule à ne pas répondre.
+
+     Ni focus ni tabindex : la scène est aria-hidden, et un élément
+     focusable dans un sous-arbre masqué envoie le clavier sur du décor.
+     C'est un plaisir de souris ; rien de ce que la page dit n'en dépend. */
+  function wireMaquettes() {
+    document.addEventListener('click', function (e) {
+      var cible = e.target;
+      if (!cible || !cible.closest) return;
+
+      var pastille = cible.closest('[data-react]');
+      if (pastille) { basculerReaction(pastille); return; }
+
+      var opt = cible.closest('[data-choix] .mock__opt');
+      if (opt) choisirOption(opt);
+    });
+  }
+
+  function basculerReaction(pastille) {
+    var n = pastille.querySelector('.mock__react-n');
+    if (!n) return;
+    var compte = parseInt(n.textContent, 10);
+    if (isNaN(compte)) return;
+
+    /* `toggle` rend l'état APRÈS bascule : c'est lui qui dit dans quel
+       sens compter, et il n'y a donc pas deux vérités à tenir. */
+    var mienne = pastille.classList.toggle('is-mine');
+    n.textContent = String(Math.max(0, compte + (mienne ? 1 : -1)));
+
+    /* Le sursaut. La classe est retirée puis reposée — sans le retrait,
+       un second clic ne relance rien, l'animation étant déjà jouée. La
+       lecture de offsetWidth force le navigateur à prendre acte du
+       retrait avant la repose ; c'est le seul moyen en CSS pur, et
+       `prefers-reduced-motion` peut toujours neutraliser l'animation
+       depuis la feuille, ce qu'un transform écrit ici interdirait. */
+    pastille.classList.remove('is-pop');
+    void pastille.offsetWidth;
+    pastille.classList.add('is-pop');
+  }
+
+  function choisirOption(opt) {
+    var liste = opt.closest('[data-choix]');
+    if (!liste) return;
+    $$('.mock__opt', liste).forEach(function (o) {
+      o.classList.remove('mock__opt--on');
+    });
+    opt.classList.add('mock__opt--on');
+  }
+
   /* -------------------------------------------------------- tiroir mobile */
 
   function wireDrawer() {
@@ -1419,6 +1481,7 @@
        n'en tient aucune liste. La page Modules en pose sur chacune des
        siennes, l'accueil sur celle du héros. */
     $$('[data-ballon]').forEach(ballon);
+    wireMaquettes();
     wireDrawer();
     wireRouter();
     wireRetour();
