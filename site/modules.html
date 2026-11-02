@@ -11,15 +11,15 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202610311948"></script>
+<script src="assets/js/theme-tot.js?v=202611021353"></script>
 <link rel="icon" href="assets/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202610311948">
-<link rel="stylesheet" href="assets/css/modules.css?v=202610311948">
+<link rel="stylesheet" href="assets/css/home.css?v=202611021353">
+<link rel="stylesheet" href="assets/css/modules.css?v=202611021353">
 <script>
 // Même garde que l'accueil : on masque l'en-tête le temps que le script pose
 // ses états de départ, avec un retrait automatique qui ne dépend pas
@@ -154,7 +154,20 @@
            qu'elle vieillisse avec lui. Les textes sont des pseudos et des
            chiffres, donc ils n'ont pas à être traduits. -->
       <div class="mod__visual" aria-hidden="true" data-mod-visual>
-        <div class="mock mock--queue">
+        <!-- cyq:maquette module=queue -->
+        <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+                 <!-- cyq:/maquette -->
+
+             `module` vaut queue, mmr, duel, clan, securite ou options. Rien
+             d'autre n'est lu, et un nom inconnu ne rend rien du tout plutot
+             que de rendre la mauvaise scene.
+
+             Decorative : la page qui l'accueille porte aria-hidden. Les
+             reactions se cliquent a la souris (app.js, [data-reacts]) et ne
+             prennent pas le focus — un element focusable dans un sous-arbre
+             aria-hidden envoie le clavier sur du decor. -->
+
+        <div class="mock mock--queue" data-maquette="queue">
           <div class="mock__bar">
             <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
             <span class="mock__bar-name">queue-5v5</span>
@@ -209,10 +222,15 @@
                   <span class="mock__btn">Quitter</span>
                   <span class="mock__btn mock__btn--off">Lancer</span>
                 </div>
+                <div class="mock__reacts" data-reacts>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg><span class="mock__react-n">7</span></span>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="mock__react-n">3</span></span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <!-- cyq:/maquette -->
       </div>
     </div>
   </section>
@@ -225,7 +243,21 @@
         <p class="mod__body" data-i18n="m.mmrL"></p>
       </div>
       <div class="mod__visual" aria-hidden="true" data-mod-visual>
-        <div class="mock mock--mmr">
+        <!-- cyq:maquette module=mmr -->
+        <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+                 <!-- cyq:/maquette -->
+
+             `module` vaut queue, mmr, duel, clan, securite ou options. Rien
+             d'autre n'est lu, et un nom inconnu ne rend rien du tout plutot
+             que de rendre la mauvaise scene.
+
+             Decorative : la page qui l'accueille porte aria-hidden. Les
+             reactions se cliquent a la souris (app.js, [data-reacts]) et ne
+             prennent pas le focus — un element focusable dans un sous-arbre
+             aria-hidden envoie le clavier sur du decor. -->
+
+
+        <div class="mock mock--mmr" data-maquette="mmr">
           <div class="mock__bar">
             <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
             <span class="mock__bar-name">classement</span>
@@ -254,6 +286,10 @@
                   <span class="mock__btn">Mira<span class="mock__btn-n">0</span></span>
                   <span class="mock__btn">Dax<span class="mock__btn-n">0</span></span>
                 </div>
+                <div class="mock__reacts" data-reacts>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 6l4.5 6L21 8l-2 11H5L3 8z"/></svg><span class="mock__react-n">5</span></span>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="mock__react-n">2</span></span>
+                </div>
               </div>
             </div>
             <!-- Message groupé : même auteur, quelques minutes plus tard.
@@ -277,6 +313,7 @@
             </div>
           </div>
         </div>
+        <!-- cyq:/maquette -->
       </div>
     </div>
   </section>
@@ -289,7 +326,22 @@
         <p class="mod__body" data-i18n="m.duelL"></p>
       </div>
       <div class="mod__visual" aria-hidden="true" data-mod-visual>
-        <div class="mock mock--duel">
+        <!-- cyq:maquette module=duel -->
+        <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+                 <!-- cyq:/maquette -->
+
+             `module` vaut queue, mmr, duel, clan, securite ou options. Rien
+             d'autre n'est lu, et un nom inconnu ne rend rien du tout plutot
+             que de rendre la mauvaise scene.
+
+             Decorative : la page qui l'accueille porte aria-hidden. Les
+             reactions se cliquent a la souris (app.js, [data-reacts]) et ne
+             prennent pas le focus — un element focusable dans un sous-arbre
+             aria-hidden envoie le clavier sur du decor. -->
+
+
+
+        <div class="mock mock--duel" data-maquette="duel">
           <div class="mock__bar">
             <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
             <span class="mock__bar-name">duels</span>
@@ -338,10 +390,15 @@
                   <span class="mock__btn mock__btn--primary">Confirmer<span class="mock__btn-n">3</span></span>
                   <span class="mock__btn">Contester<span class="mock__btn-n">0</span></span>
                 </div>
+                <div class="mock__reacts" data-reacts>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/></svg><span class="mock__react-n">4</span></span>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg><span class="mock__react-n">3</span></span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <!-- cyq:/maquette -->
       </div>
     </div>
   </section>
@@ -354,7 +411,23 @@
         <p class="mod__body" data-i18n="m.clanL"></p>
       </div>
       <div class="mod__visual" aria-hidden="true" data-mod-visual>
-        <div class="mock mock--clan">
+        <!-- cyq:maquette module=clan -->
+        <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+                 <!-- cyq:/maquette -->
+
+             `module` vaut queue, mmr, duel, clan, securite ou options. Rien
+             d'autre n'est lu, et un nom inconnu ne rend rien du tout plutot
+             que de rendre la mauvaise scene.
+
+             Decorative : la page qui l'accueille porte aria-hidden. Les
+             reactions se cliquent a la souris (app.js, [data-reacts]) et ne
+             prennent pas le focus — un element focusable dans un sous-arbre
+             aria-hidden envoie le clavier sur du decor. -->
+
+
+
+
+        <div class="mock mock--clan" data-maquette="clan">
           <div class="mock__split">
             <!-- La colonne des salons : c'est la partie de Discord qu'on
                  reconnaît le plus vite, et c'est elle que le module crée. -->
@@ -420,6 +493,10 @@
                       <span class="mock__time">21:32</span>
                     </div>
                     <p class="mock__text"><span class="mock__ment">@Dax</span> a rejoint le clan <span class="mock__ment">@Bravo</span>.</p>
+                    <div class="mock__reacts" data-reacts>
+                      <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="mock__react-n">6</span></span>
+                      <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="mock__react-n">2</span></span>
+                    </div>
                   </div>
                 </div>
                 <div class="mock__msg mock__msg--cont">
@@ -430,6 +507,7 @@
             </div>
           </div>
         </div>
+        <!-- cyq:/maquette -->
       </div>
     </div>
   </section>
@@ -442,7 +520,24 @@
         <p class="mod__body" data-i18n="m.secL"></p>
       </div>
       <div class="mod__visual" aria-hidden="true" data-mod-visual>
-        <div class="mock mock--securite">
+        <!-- cyq:maquette module=securite -->
+        <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+                 <!-- cyq:/maquette -->
+
+             `module` vaut queue, mmr, duel, clan, securite ou options. Rien
+             d'autre n'est lu, et un nom inconnu ne rend rien du tout plutot
+             que de rendre la mauvaise scene.
+
+             Decorative : la page qui l'accueille porte aria-hidden. Les
+             reactions se cliquent a la souris (app.js, [data-reacts]) et ne
+             prennent pas le focus — un element focusable dans un sous-arbre
+             aria-hidden envoie le clavier sur du decor. -->
+
+
+
+
+
+        <div class="mock mock--securite" data-maquette="securite">
           <div class="mock__bar">
             <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
             <span class="mock__bar-name">journal-modération</span>
@@ -460,6 +555,10 @@
                 <div class="mock__log-line">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6.5 12 5a4.24 4.24 0 0 1 6 6l-1.5 1.5M13.5 17.5 12 19a4.24 4.24 0 0 1-6-6l1.5-1.5M4 4l16 16"/></svg>
                   <p>Lien supprimé dans <span class="mock__ment">#général</span> — envoyé par <span class="mock__ment">@Dax</span><span class="mock__log-note">Adresse hors des salons où les liens sont admis</span></p>
+                </div>
+                <div class="mock__reacts" data-reacts>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="mock__react-n">3</span></span>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg><span class="mock__react-n">1</span></span>
                 </div>
               </div>
             </div>
@@ -497,6 +596,7 @@
             </div>
           </div>
         </div>
+        <!-- cyq:/maquette -->
       </div>
     </div>
   </section>
@@ -509,7 +609,25 @@
         <p class="mod__body" data-i18n="m.optL"></p>
       </div>
       <div class="mod__visual" aria-hidden="true" data-mod-visual>
-        <div class="mock mock--options">
+        <!-- cyq:maquette module=options -->
+        <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+                 <!-- cyq:/maquette -->
+
+             `module` vaut queue, mmr, duel, clan, securite ou options. Rien
+             d'autre n'est lu, et un nom inconnu ne rend rien du tout plutot
+             que de rendre la mauvaise scene.
+
+             Decorative : la page qui l'accueille porte aria-hidden. Les
+             reactions se cliquent a la souris (app.js, [data-reacts]) et ne
+             prennent pas le focus — un element focusable dans un sous-arbre
+             aria-hidden envoie le clavier sur du decor. -->
+
+
+
+
+
+
+        <div class="mock mock--options" data-maquette="options">
           <div class="mock__bar">
             <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
             <span class="mock__bar-name">commandes</span>
@@ -536,7 +654,7 @@
           <!-- La saisie et son menu d'autocomplétion : le bot se pilote
                aussi depuis Discord, et il s'adapte au serveur. -->
           <div class="mock__compose">
-            <div class="mock__menu">
+            <div class="mock__menu" data-choix>
               <div class="mock__menu-head">
                 <span class="mock__menu-k">langue</span>
                 <span class="mock__menu-d">renomme aussi les salons et les rôles du bot</span>
@@ -555,6 +673,7 @@
             </div>
           </div>
         </div>
+        <!-- cyq:/maquette -->
       </div>
     </div>
   </section>
@@ -618,14 +737,14 @@
   <!-- cyq:/pied -->
 </main>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202610311948"></script>
-<script src="assets/js/config.js?v=202610311948"></script>
-<script src="assets/js/lang/fr.js?v=202610311948"></script>
-<script src="assets/js/lang/en.js?v=202610311948"></script>
-<script src="assets/js/lang/es.js?v=202610311948"></script>
-<script src="assets/js/lang/de.js?v=202610311948"></script>
-<script src="assets/js/lang/ko.js?v=202610311948"></script>
-<script src="assets/js/app.js?v=202610311948"></script>
-<script src="assets/js/page-modules.js?v=202610311948"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202611021353"></script>
+<script src="assets/js/config.js?v=202611021353"></script>
+<script src="assets/js/lang/fr.js?v=202611021353"></script>
+<script src="assets/js/lang/en.js?v=202611021353"></script>
+<script src="assets/js/lang/es.js?v=202611021353"></script>
+<script src="assets/js/lang/de.js?v=202611021353"></script>
+<script src="assets/js/lang/ko.js?v=202611021353"></script>
+<script src="assets/js/app.js?v=202611021353"></script>
+<script src="assets/js/page-modules.js?v=202611021353"></script>
 </body>
 </html>
