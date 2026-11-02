@@ -1,23 +1,25 @@
-<!-- Les six scenes Discord, la source unique.
-     ================================================================
-     Elles vivaient dans modules.html, et seulement la. La fenetre d'un
-     module, sur l'accueil, montre la meme scene : la recopier aurait
-     fait deux textes a tenir d'accord, et c'est exactement ce que
-     fragments.py existe pour empecher.
+<!-- Les six scènes Discord, la source unique.
+     Source unique : outils/fragments.py la recopie dans chaque page entre
+     ses deux repères. Ne pas modifier le résultat dans une page — il sera
+     réécrit au prochain passage, et la correction sera perdue.
 
-     La page dit laquelle elle veut :
+     Elles ne vivaient que dans modules.html. La fenêtre d'un module, sur
+     l'accueil, montre la MÊME scène : la recopier là-bas aurait fait deux
+     balisages à tenir d'accord, et c'est précisément ce que ce dossier
+     existe pour empêcher.
 
-         <!-- cyq:maquette module=queue -->
-         <!-- cyq:/maquette -->
+     Un paramètre :
+       module    queue · mmr · duel · clan · securite · options
 
-     `module` vaut queue, mmr, duel, clan, securite ou options. Rien
-     d'autre n'est lu, et un nom inconnu ne rend rien du tout plutot
-     que de rendre la mauvaise scene.
+     Un nom inconnu ne rend rien plutôt que de rendre la mauvaise scène :
+     une page vide se voit, une scène qui ne correspond pas au titre se
+     lit comme une vérité.
 
-     Decorative : la page qui l'accueille porte aria-hidden. Les
-     reactions se cliquent a la souris (app.js, [data-reacts]) et ne
-     prennent pas le focus — un element focusable dans un sous-arbre
-     aria-hidden envoie le clavier sur du decor. -->
+     DÉCORATIVES : c'est la page d'accueil qui porte l'aria-hidden, parce
+     que c'est elle qui sait dans quel cadre la scène est posée. Les
+     réactions se cliquent à la souris — app.js, [data-reacts] — et ne
+     prennent jamais le focus : un élément focusable dans un sous-arbre
+     aria-hidden envoie le clavier sur du décor. -->
 
 {{si module=queue}}
 <div class="mock mock--queue" data-maquette="queue">
