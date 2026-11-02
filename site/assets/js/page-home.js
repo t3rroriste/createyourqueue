@@ -1030,7 +1030,15 @@
     // Le film parle la langue du site : l'affiche suit tout de suite, le
     // lecteur aussi s'il est ouvert — sinon, à sa prochaine ouverture.
     poserAffiche();
-    if (ouvert && poserSon()) { position = 0; video.load(); monterFilm(); maj(); }
+    if (ouvert) {
+      // Recharger le son l'arrête : s'il jouait, il reprend au début de
+      // l'autre langue — les deux films n'ont pas le même minutage.
+      var jouait = !video.paused && !video.ended;
+      if (poserSon()) {
+        position = 0; video.load(); monterFilm(); maj();
+        if (jouait) { var p = video.play(); if (p && p.catch) p.catch(function () { majLecture(); }); }
+      }
+    }
   });
 
   // Les polices changent la largeur des textes, donc les mesures du film :
