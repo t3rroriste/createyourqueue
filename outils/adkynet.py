@@ -46,7 +46,11 @@ def _env(name: str, default: str | None = None) -> str | None:
 
 HOST = _env("ADKYNET_SFTP_HOST", "node2.adky.net")
 PORT = int(_env("ADKYNET_SFTP_PORT", "2022"))
-USER = _env("ADKYNET_SFTP_USER", "bdexh0br.a197589d")
+# Le suffixe est l'identifiant du SERVEUR, pas du compte : il change à chaque
+# fois que le serveur est recréé sur le panneau, et l'ancien est alors refusé
+# — c'est ce qui s'est passé le 2 novembre 2026, quand `a197589d` a laissé la
+# place à `d1751de4`. Il se relève dans Settings -> SFTP Details -> Username.
+USER = _env("ADKYNET_SFTP_USER", "bdexh0br.d1751de4")
 
 # Dossiers qui n'ont rien à faire sur le serveur : dépendances compilées
 # pour Windows, caches, historique git, réglages locaux de Claude, tests.
