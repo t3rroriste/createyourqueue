@@ -6,19 +6,19 @@ window.CYQ_VOIX["es"] = {
   {
    "id": "chaos",
    "debut": 0.5,
-   "duree": 5.046,
+   "duree": 5.081,
    "texte": "¿Montar una partida de diez en Discord? Suerte. Todos escriben… y nadie sabe quién juega."
   },
   {
    "id": "panneau",
-   "debut": 5.896,
+   "debut": 5.931,
    "duree": 4.52,
    "texte": "Con CreateYourQueue, todo se configura desde el panel. Cero comandos que escribir."
   },
   {
    "id": "format",
-   "debut": 10.8,
-   "duree": 3.966,
+   "debut": 10.801,
+   "duree": 3.594,
    "texte": "Un nombre para la cola, el formato — dos equipos de cinco — y listo."
   },
   {

@@ -47,6 +47,16 @@ FREQ = 24000
 # l'instant visé de la suivante. En dessous, les phrases se collent et la
 # voix a l'air de lire une liste.
 SOUFFLE = 0.35
+# L'écart minimal, en secondes, entre le début d'une phrase et celui de la
+# suivante. Ce n'est pas une affaire de voix mais d'image : chaque plan de
+# piste-c.html a besoin de ce temps pour jouer ses gestes (le clic sur
+# « Ouvrir » doit finir avant qu'on reparte sur Discord, les dix réactions
+# doivent tomber avant les équipes…). Une langue lue plus lentement pousse
+# donc la suite au lieu d'écraser un plan. À revoir si le montage change.
+ECARTS = {
+    "chaos": 5.0, "panneau": 4.6, "format": 5.3, "apercu": 4.2, "ouvrir": 3.8,
+    "annonce": 8.2, "equipes": 3.6, "vocal": 6.8, "suivi": 9.2, "securite": 7.8,
+}
 # Le silence laissé après la dernière phrase : le plan de fin a besoin de
 # tenir un instant sans voix, sinon le film coupe au dernier mot.
 QUEUE = 2.2
@@ -164,6 +174,9 @@ def main() -> int:
                 synthetiser(ligne.get("dit", ligne["texte"]), cfg["voix"], cfg["debit"], wav)
             donnees, duree = lire(wav)
             debut = max(float(ligne["cible"]), curseur + (SOUFFLE if reperes else 0))
+            if reperes:
+                precedent = reperes[-1]
+                debut = max(debut, precedent["debut"] + ECARTS.get(precedent["id"], 0))
             if debut > float(ligne["cible"]) + 0.05:
                 print(f"  {ligne['id']} : décalée de {debut - ligne['cible']:.2f} s "
                       "(la phrase précédente déborde)")

@@ -17,13 +17,13 @@ window.CYQ_VOIX["fr"] = {
   },
   {
    "id": "format",
-   "debut": 11.06,
+   "debut": 11.27,
    "duree": 3.7,
    "texte": "Un nom pour la file, le format — deux équipes de cinq — et c'est réglé."
   },
   {
    "id": "apercu",
-   "debut": 16.2,
+   "debut": 16.57,
    "duree": 3.74,
    "texte": "À droite, l'aperçu montre le message exact que le bot va publier."
   },

@@ -1,7 +1,7 @@
 /* Écrit par outils/voix_video.py — ne pas corriger à la main. */
 window.CYQ_VOIX = window.CYQ_VOIX || {};
 window.CYQ_VOIX["en"] = {
- "total": 68.496,
+ "total": 70.806,
  "lignes": [
   {
    "id": "chaos",
@@ -23,49 +23,49 @@ window.CYQ_VOIX["en"] = {
   },
   {
    "id": "apercu",
-   "debut": 17.91,
+   "debut": 18.74,
    "duree": 4.04,
    "texte": "On the right, the preview shows the exact message the bot will post."
   },
   {
    "id": "ouvrir",
-   "debut": 22.3,
+   "debut": 23.13,
    "duree": 2.14,
    "texte": "Save… and open the queue!"
   },
   {
    "id": "annonce",
-   "debut": 24.8,
+   "debut": 26.93,
    "duree": 6.6,
    "texte": "The announcement drops in the channel. One click on the check mark, join the waiting room… and the queue fills itself."
   },
   {
    "id": "equipes",
-   "debut": 33.2,
+   "debut": 35.13,
    "duree": 4.76,
    "texte": "Ten out of ten! The bot builds the teams and creates two voice channels…"
   },
   {
    "id": "vocal",
-   "debut": 38.31,
+   "debut": 40.24,
    "duree": 5.36,
    "texte": "… then moves every player into theirs. Automatically. Nobody hunts for their channel."
   },
   {
    "id": "suivi",
-   "debut": 44.6,
+   "debut": 47.04,
    "duree": 9.52,
    "texte": "After the match, everything follows: leaderboard, MMR, ranks, seasons, clans. And the queue can even open by itself, on schedule."
   },
   {
    "id": "securite",
-   "debut": 54.47,
+   "debut": 56.91,
    "duree": 5.46,
    "texte": "The same dashboard protects your server too: anti-raid, anti-link, auto-clean."
   },
   {
    "id": "fin",
-   "debut": 62.4,
+   "debut": 64.71,
    "duree": 3.896,
    "texte": "CreateYourQueue. Your server, ready in a few clicks."
   }
