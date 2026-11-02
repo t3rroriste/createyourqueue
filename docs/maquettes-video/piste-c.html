@@ -125,7 +125,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--ink); 
 .k-chbg { position: absolute; inset: 0; border-radius: 4px; background: var(--k-sel); }
 .k-ch.is-on { color: #fff; }
 .k-ch > *:not(.k-chbg):not(.k-chflash) { position: relative; }
-.k-badge { margin-left: auto; font: 500 11px/1 var(--k-sans); color: var(--k-mute); background: var(--k-rail); border-radius: 4px; padding: 3px 5px; font-variant-numeric: tabular-nums; }
+/* Le compteur ne cède jamais sa place : c'est le nom du salon qui s'abrège,
+   et en anglais comme en allemand ce nom est long. */
+.k-ch > span:not(.k-badge):not(.k-chbg):not(.k-chflash) { min-width: 0; flex: 0 1 auto; }
+.k-badge { flex: none; margin-left: auto; font: 500 11px/1 var(--k-sans); color: var(--k-mute); background: var(--k-rail); border-radius: 4px; padding: 3px 5px; font-variant-numeric: tabular-nums; }
 .k-vz { position: relative; }
 .k-vm { display: flex; align-items: center; gap: 8px; height: 24px; padding-left: 36px; color: var(--k-mute); font-size: 14px; white-space: nowrap; }
 .k-vm .k-av { width: 20px; height: 20px; font-size: 9px; }
