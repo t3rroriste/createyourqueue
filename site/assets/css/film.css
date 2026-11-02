@@ -21,7 +21,10 @@
   --k-blurple: #5865F2; --k-gold: #F0B232;
   --k-sans: 'gg sans', 'Noto Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --sans: 'Geist', 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  position: relative; overflow: hidden; background: var(--bg); color-scheme: dark;
+  /* Pas de `position` ici : c'est le conteneur qui sait où il est posé
+     (en absolu dans l'affiche comme dans le lecteur). La fixer ici
+     écrasait la sienne et l'aplatissait à zéro de haut. */
+  overflow: hidden; background: var(--bg); color-scheme: dark;
 }
 .film__cc {
   position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); z-index: 70;
