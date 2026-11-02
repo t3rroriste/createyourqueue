@@ -716,8 +716,10 @@ svg { display: block; }
     tl.add(cam, { scale: .9, duration: 2200, ease: 'inOutCubic' }, 12800)
       .add(anneau, { scale: 1, duration: 600, ease: 'outBack(1.6)' }, 13100)
       .add(att, { opacity: 0, duration: 300 }, 13100);
+    // Rayon réduit : à pleine taille, le cercle mordait sur les deux salles
+    var R2 = P ? 104 : 94;
     [10, 11, 12, 13].forEach(function (g, k) {
-      var r = place(k, R);
+      var r = place(k, R2);
       tl.add(dots[g].d, { x: r.x, y: r.y, scale: 1, opacity: 1, duration: 800, ease: 'outCubic' }, 13300 + k * 260)
         .add(crans[k], { opacity: 1, duration: 200 }, 13700 + k * 260);
     });
@@ -774,12 +776,14 @@ svg { display: block; }
     var pSaisie = centre(D.saisie), pSlash = centre(slash.firstChild), pOk = centre(E.ok);
     var p5 = centre(segs[4]), pSw = centre(sw), pBtn = centre(btn);
     pSaisie.x -= D.saisie.offsetWidth * .3;
-    var vSaisie = cadrer(D.saisie, P ? 1.25 : 1.7, D.saisie.offsetWidth * -.22);
+    // Visé un peu au-dessus de la saisie : la bulle de commande s'ouvre là,
+    // et le bas de la fenêtre ne laisse pas une bande de vide dans le cadre.
+    var vSaisie = cadrer(D.saisie, P ? 1.25 : 1.55, D.saisie.offsetWidth * -.22, -70);
     var vEmbed = cadrer(E.box, P ? 1.18 : 1.6);
     var vEq = cadrer(E.box, P ? 1.1 : 1.35);
     var vVox = cadrer(D.vox[0].box, P ? 1.2 : 1.75, 0, 18);
     var vCarte = cadrer(carte, P ? 1.15 : 1.45);
-    var vSave = cadrer(save, P ? 1.2 : 1.6, -40);
+    var vSave = cadrer(save, P ? 1.2 : 1.4, P ? 0 : 60, -40);
     var tirer = P ? -(D.side.offsetWidth + 40) : 0;
     var pas = segs[1].offsetLeft - segs[0].offsetLeft;
     var bordG = { x: 30, y: H * .5 };
