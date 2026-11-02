@@ -56,6 +56,14 @@ VITRINE = COMMUN + [
     # — et sans être chargée par personne, support.html appelant
     # page-modules.js. Quatrième cas du même oubli.
     "assets/js/page-support.js",
+    # Le film de présentation de l'accueil : son moteur, ses textes, et la
+    # voix dans les cinq langues (outils/voix_video.py, outils/textes_video.py)
+    "assets/css/film.css", "assets/js/film.js",
+    "assets/js/film-textes.js", "assets/js/film-scenario.js",
+    "assets/video/voix/fr.mp4", "assets/video/voix/en.mp4", "assets/video/voix/es.mp4",
+    "assets/video/voix/de.mp4", "assets/video/voix/ko.mp4",
+    "assets/video/voix/fr.cues.js", "assets/video/voix/en.cues.js", "assets/video/voix/es.cues.js",
+    "assets/video/voix/de.cues.js", "assets/video/voix/ko.cues.js",
     # LA VIDÉO DE PRÉSENTATION — section 3 de l'accueil.
     #
     # Déclarée en commentaire, et c'est voulu : `publier_site.py` s'arrête
