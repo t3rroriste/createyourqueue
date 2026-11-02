@@ -90,6 +90,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--ink); 
 .scene { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; background: var(--bg); user-select: none; }
 .scene *, .scene *::before, .scene *::after { box-sizing: border-box; }
 .scene p { margin: 0; }
+/* `.scene p` remettait à zéro les marges de ces deux paragraphes-là */
+.scene .d-lead { margin: 0 0 30px; }
+.scene.is-p .d-lead { margin-bottom: 22px; }
+.scene .d-state { margin: 10px 0 0; }
 .cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
 .noir { position: absolute; inset: 0; background: var(--bg); z-index: 60; pointer-events: none; }
 .scene svg { display: block; }
@@ -364,7 +368,7 @@ img.k-av { background: none; }
 .fin img { width: 88px; height: 88px; }
 .fin b { font-size: 52px; font-weight: 500; letter-spacing: -0.035em; line-height: 1; }
 .is-p .fin b { font-size: 34px; }
-.fin span { font-size: 16px; color: var(--ink-60); }
+.fin__in > span:not(.d-pill) { font-size: 16px; color: var(--ink-60); }
 .fin .d-pill { margin-top: 12px; padding: 0 8px 0 22px; }
 .fin .d-pill i { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); color: var(--accent); display: grid; place-items: center; font-style: normal; }
 .fin .d-pill i svg { width: 14px; height: 14px; }
@@ -543,7 +547,7 @@ img.k-av { background: none; }
     var eqs = h('div', 'k-eqs', vz);
     R.eqHead = []; R.eqSlots = [];
     EQ.forEach(function (eq, i) {
-      R.eqHead.push(h('div', 'k-ch', eqs, I.vox + '<span>Équipe ' + (i + 1) + ' ' + (i ? '🔵' : '🔴') + '</span>'));
+      R.eqHead.push(h('div', 'k-ch', eqs, I.vox + '<span>Équipe ' + (i + 1) + '</span>'));
       R.eqSlots.push(eq.map(function (g) {
         var r = h('div', 'k-vm', eqs);
         var a = av(g, r);
@@ -984,7 +988,7 @@ img.k-av { background: none; }
     tl.add(K.win, { opacity: 0, x: -70, scale: .96, duration: 700, ease: 'inOutCubic' }, tA)
       .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tA + 150);
     vise({ x: 0, y: 0, scale: 1 }, tA, 700);
-    vise(cadre(cMain, P ? 1 : 1.04), tA + 900, 3000, 'inOutSine');
+    vise(cadre(centre(D.win), P ? 1 : 1.03), tA + 900, 3000, 'inOutSine');
     tl.add(cur, { opacity: 1, duration: 300 }, T.panneau + 700);
     navScroll(navQ, T.panneau + 2000);
     var pQ = navPoint('queue', navQ);
@@ -1013,13 +1017,13 @@ img.k-av { background: none; }
 
     /* ── 4. l'aperçu ── */
     tl.add(D.sec.queue.sc, { y: yPrev, duration: 900, ease: 'inOutCubic' }, T.apercu - 700);
-    vise(cadre(decale(cPrev, 0, yPrev), P ? 1.12 : 1.6), T.apercu - 700, 1200);
-    va(decale(cPrev, P ? 120 : 190, yPrev + (P ? 200 : 140)), T.apercu - 600, 1000);
+    vise(cadre(decale(cPrev, P ? 0 : -40, yPrev), P ? 1.12 : 1.6), T.apercu - 700, 1200);
+    va(decale(cPrev, P ? 120 : 100, yPrev + (P ? 200 : 150)), T.apercu - 600, 1000);
     tl.add(D.prevBalai, { x: 380, duration: 1100, ease: 'inOutSine' }, T.apercu + 900);
 
     /* ── 5. enregistrer, ouvrir ── */
     tl.add(D.sec.queue.sc, { y: yLaunch, duration: 800, ease: 'inOutCubic' }, T.ouvrir - 1100);
-    vise(cadre(P ? decale(cLaunch, 0, yLaunch + 90) : decale(cLaunch, 40, yLaunch + 70), P ? 1.05 : 1.3), T.ouvrir - 1100, 1000);
+    vise(cadre(P ? decale(cLaunch, 0, yLaunch + 90) : decale(cLaunch, 30, yLaunch + 20), P ? 1.05 : 1.35), T.ouvrir - 1100, 1000);
     va(pSave, T.ouvrir - 700, 600);
     var tSave = T.ouvrir + 100;
     tape(pSave, tSave);
@@ -1085,19 +1089,26 @@ img.k-av { background: none; }
     /* ── 7. les équipes ── */
     var vVz = cadre(decale(cVz, P ? 0 : 40, -20), P ? 1.15 : 1.6);
     vise(vVz, T.equipes - 700, 1000);
-    tl.add(K.eqHead, { opacity: 1, y: 0, duration: 450, delay: A.stagger(220) }, T.equipes + 300);
     var tMove = T.equipes + 900;
+    // D'abord on vide le vocal d'attente d'un coup (les avatars deviennent
+    // des jetons, sur place), puis les deux vocaux d'équipe apparaissent, et
+    // seulement alors les jetons y descendent : les deux listes occupent la
+    // même place dans la colonne, jamais en même temps.
+    if (!P) {
+      FILE.forEach(function (g, de) { tl.set(K.jetons[de], { x: jAtt[de].x, y: jAtt[de].y, scale: .95, opacity: 1 }, tMove); });
+      tl.add(K.att.map(function (a) { return a.row; }), { opacity: 0, duration: 160 }, tMove);
+    }
+    tl.add(K.eqHead, { opacity: 1, y: 0, duration: 450, delay: A.stagger(200) }, tMove + 80);
     ordreEq.forEach(function (g, i) {
-      var de = FILE.indexOf(g), t = tMove + i * 90;
+      var de = FILE.indexOf(g), t = tMove + 300 + i * 90;
+      var slot = [].concat(K.eqSlots[0], K.eqSlots[1])[i].row;
       if (P) {
-        tl.add(K.att[de].row, { opacity: 0, x: 8, duration: 220 }, t)
-          .add([].concat(K.eqSlots[0], K.eqSlots[1])[i].row, { opacity: 1, x: 0, duration: 320 }, t + 300);
+        tl.add(K.att[de].row, { opacity: 0, x: 8, duration: 200 }, tMove + i * 40)
+          .add(slot, { opacity: 1, x: 0, duration: 320 }, t + 200);
       } else {
-        tl.set(K.jetons[de], { x: jAtt[de].x, y: jAtt[de].y, scale: .95, opacity: 1 }, t)
-          .add(K.att[de].row, { opacity: 0, duration: 150 }, t)
-          .add(K.jetons[de], { x: jEq[i].x, y: jEq[i].y, duration: 820, ease: 'inOutCubic' }, t + 40)
-          .add([].concat(K.eqSlots[0], K.eqSlots[1])[i].row, { opacity: 1, x: 0, duration: 260 }, t + 800)
-          .add(K.jetons[de], { opacity: 0, duration: 120 }, t + 880);
+        tl.add(K.jetons[de], { x: jEq[i].x, y: jEq[i].y, duration: 820, ease: 'inOutCubic' }, t)
+          .add(slot, { opacity: 1, x: 0, duration: 260 }, t + 760)
+          .add(K.jetons[de], { opacity: 0, duration: 120 }, t + 840);
       }
     });
     tl.add(K.badge, { opacity: 0, duration: 250 }, tMove + 1200);
@@ -1120,7 +1131,8 @@ img.k-av { background: none; }
       .set(D.mark, { y: markY('classement') }, tC)
       .set(D.win, { x: 80 }, tC)
       .add(D.win, { opacity: 1, x: 0, scale: 1, duration: 900, ease: 'outExpo' }, tC + 150);
-    vise(cadre(decale(cMain, P ? 0 : 0, P ? -60 : -40), P ? 1 : 1.1), tC, 900);
+    // Plan large : les clics se font dans la barre latérale, elle doit rester dans le cadre
+    vise(P ? cadre(decale(cMain, 0, -60), 1) : cadre(centre(D.win), 1.03), tC, 900);
     tl.set(cur, { x: W * .55, y: H * .75 }, tC + 600).add(cur, { opacity: 1, duration: 250 }, tC + 700);
     var pasM = Math.round((T.securite - T.suivi - 1600) / MONTAGE.length);
     var tMont = [T.suivi - 200];
@@ -1136,7 +1148,7 @@ img.k-av { background: none; }
       tape(p, t); marque(cle, t); sec(MONTAGE[i - 1], cle, t);
     });
     var tP = tMont[5];
-    vise(cadre(decale(cProg, P ? 0 : 60, 0), P ? 1.06 : 1.32), tP + 300, 900);
+    vise(cadre(decale(cProg, P ? 0 : 20, -20), P ? 1.06 : 1.2), tP + 300, 900);
     va(pSwAuto, tP + 500, 600);
     tape(pSwAuto, tP + 1200);
     inter(D.swAuto, tP + 1200);
@@ -1144,7 +1156,7 @@ img.k-av { background: none; }
 
     /* ── 9. la sécurité ── */
     navScroll(navRaid, T.securite - 1300);
-    vise(cadre(decale(cMain, 0, P ? -60 : -40), P ? 1 : 1.08), T.securite - 1300, 900);
+    vise(P ? cadre(decale(cMain, 0, -60), 1) : cadre(centre(D.win), 1.03), T.securite - 1300, 900);
     var pRaid = navPoint('antiraid', navRaid);
     va(pRaid, T.securite - 900, 600);
     tape(pRaid, T.securite - 200); marque('antiraid', T.securite - 200); sec('programmation', 'antiraid', T.securite - 200);
