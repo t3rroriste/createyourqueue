@@ -1348,9 +1348,14 @@ img.k-av { background: none; }
     b.type = 'button';
     b.addEventListener('click', function () { aller(T[c[0]] - (c[0] === 'chaos' ? 800 : 300)); if (!etat.joue) jouer(); });
     c.push(b);
-    var cran = h('span', 'barre__cran', document.querySelector('[data-crans]'));
-    cran.style.left = (T[c[0]] / TOTAL * 100) + '%';
   });
+  // Les crans de la barre suivent le minutage de la langue en cours
+  function crans() {
+    var fond = document.querySelector('[data-crans]');
+    [].forEach.call(fond.querySelectorAll('.barre__cran'), function (x) { x.remove(); });
+    CHAPITRES.forEach(function (c) { h('span', 'barre__cran', fond).style.left = (T[c[0]] / TOTAL * 100) + '%'; });
+  }
+  crans();
 
   function formatReel() {
     if (etat.format !== 'auto') return etat.format;
@@ -1369,6 +1374,7 @@ img.k-av { background: none; }
     ecran.className = 'ecran ' + (P ? 'is-p' : 'is-l');
     ecran.innerHTML = '';
     var scene = h('div', 'scene ' + (P ? 'is-p' : 'is-l'), ecran);
+    scene.setAttribute('lang', LANGUE);
     scene.style.width = etat.W + 'px'; scene.style.height = etat.H + 'px';
     etat.scene = scene;
     echelle();
@@ -1494,7 +1500,25 @@ img.k-av { background: none; }
     clearTimeout(attente);
     attente = setTimeout(function () { if (formatReel() !== etat.fmt) monter(); else echelle(); }, 150);
   });
-  window.CYQ_FILM = { aller: aller, etat: etat, T: T };
+  // Changer de langue change tout à la fois : les textes, la voix et donc le
+  // minutage. On repart de l'affiche plutôt que d'un instant qui, dans
+  // l'autre langue, ne tomberait plus sur la même image.
+  [].forEach.call(document.querySelectorAll('[data-langue]'), function (b) {
+    b.addEventListener('click', function () {
+      var l = b.getAttribute('data-langue');
+      if (l === LANGUE) return;
+      arreter();
+      langue(l);
+      [].forEach.call(document.querySelectorAll('[data-langue]'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      audio.src = 'voix/' + l + '.mp4';
+      audioOk = true;
+      audio.load();
+      crans();
+      monter();
+      aller(etat.cles.annonce);
+    });
+  });
+  window.CYQ_FILM = { aller: aller, etat: etat, get T() { return T; }, get langue() { return LANGUE; } };
 
   boutonLire();
   // Les polices changent la largeur des textes, donc toutes les mesures :
