@@ -127,7 +127,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--ink); 
 .k-ch > *:not(.k-chbg) { position: relative; }
 .k-badge { margin-left: auto; font: 500 11px/1 var(--k-sans); color: var(--k-mute); background: var(--k-rail); border-radius: 4px; padding: 3px 5px; font-variant-numeric: tabular-nums; }
 .k-vz { position: relative; }
-.k-vm { display: flex; align-items: center; gap: 8px; height: 26px; padding-left: 36px; color: var(--k-mute); font-size: 14px; white-space: nowrap; }
+.k-vm { display: flex; align-items: center; gap: 8px; height: 24px; padding-left: 36px; color: var(--k-mute); font-size: 14px; white-space: nowrap; }
 .k-vm .k-av { width: 20px; height: 20px; font-size: 9px; }
 .k-eqs { position: absolute; left: 0; right: 0; top: 0; }
 .k-me { height: 52px; flex: none; background: var(--k-me); display: flex; align-items: center; gap: 8px; padding: 0 8px; }
@@ -532,9 +532,9 @@ img.k-av { background: none; }
     salon('général');
     R.chRech = salon('recherche-équipe');
     R.chAnn = salon('🔱・queue-annonce');
-    salon('📊・queue-resultat');
+    // Deux salons de moins que sur un vrai serveur : les deux vocaux
+    // d'équipe et leurs dix joueurs doivent tenir dans la colonne.
     h('div', 'k-cat', ch, 'Salons vocaux');
-    h('div', 'k-ch', ch, I.vox + '<span>Lounge</span>');
     R.chAtt = h('div', 'k-ch', ch, I.vox + '<span>🎮 Attente Queue</span><span class="k-badge">0/10</span>');
     R.badge = R.chAtt.lastChild;
     var vz = R.vz = h('div', 'k-vz', ch);
