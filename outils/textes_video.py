@@ -9,7 +9,7 @@ bot/locales/<l>.json pour le message du bot et les noms de salons.
 
     python outils/textes_video.py
 
-Écrit docs/maquettes-video/textes.js. À relancer quand un de ces libellés
+Écrit site/assets/js/film-textes.js. À relancer quand un de ces libellés
 change ; le film n'a rien d'autre à faire.
 """
 
@@ -22,7 +22,7 @@ import sys
 
 OUTILS_DIR = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(OUTILS_DIR)
-SORTIE = os.path.join(RACINE, "docs", "maquettes-video", "textes.js")
+SORTIE = os.path.join(RACINE, "site", "assets", "js", "film-textes.js")
 LANGUES = ["fr", "en", "es", "de", "ko"]
 
 # Les clés du site que le film affiche — et seulement celles-là.
@@ -86,7 +86,7 @@ def main() -> int:
         f.write(";\n")
     for m in manques:
         print("  manque :", m)
-    print(f"{len(SITE)} clés du site, {len(BOT)} du bot, {len(LANGUES)} langues → docs/maquettes-video/textes.js")
+    print(f"{len(SITE)} clés du site, {len(BOT)} du bot, {len(LANGUES)} langues → site/assets/js/film-textes.js")
     return 0
 
 

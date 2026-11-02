@@ -12,9 +12,9 @@ ne le signale.
     python outils/voix_video.py --langue en
 
 Lit   docs/maquettes-video/voix/<langue>.json   (le texte, l'instant visé)
-Écrit docs/maquettes-video/voix/<langue>.mp4    (la piste complète, AAC)
-      docs/maquettes-video/voix/<langue>.cues.js (le minutage réel, pour le film)
-      docs/maquettes-video/voix/<langue>.vtt    (les sous-titres)
+Écrit site/assets/video/voix/<langue>.mp4    (la piste complète, AAC)
+      site/assets/video/voix/<langue>.cues.js (le minutage réel, pour le film)
+      site/assets/video/voix/<langue>.vtt    (les sous-titres)
 
 La synthèse passe par `say`, donc par le MacBook seulement : c'est une voix
 provisoire, faite pour caler le montage. La voix définitive sera soit
@@ -39,6 +39,9 @@ import wave
 OUTILS_DIR = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(OUTILS_DIR)
 DOSSIER = os.path.join(RACINE, "docs", "maquettes-video", "voix")
+# Les sources (texte, prises) restent dans docs ; ce que le site lit part
+# dans site/, là où publier_site.py le prend. Un seul exemplaire de chaque.
+PUBLIE = os.path.join(RACINE, "site", "assets", "video", "voix")
 
 # 24 kHz mono : la voix n'a rien au-dessus, et la piste reste sous 1 Mo
 # pour plus d'une minute une fois passée en AAC.
@@ -195,26 +198,27 @@ def main() -> int:
         # .mp4 et non .m4a : c'est le même conteneur, mais .m4a n'est servi
         # ni par tous les hébergeurs ni par les artifacts, et le navigateur
         # lit l'AAC dans un .mp4 partout.
-        sortie = os.path.join(DOSSIER, f"{args.langue}.mp4")
+        os.makedirs(PUBLIE, exist_ok=True)
+        sortie = os.path.join(PUBLIE, f"{args.langue}.mp4")
         subprocess.run(["afconvert", "-f", "mp4f", "-d", "aac", "-b", "64000", brut, sortie], check=True)
 
     total = round(len(piste) / 2 / FREQ, 3)
     # Un script et non un JSON : le film l'inclut d'une balise <script>,
     # ce qui marche aussi ouvert depuis le disque, sans serveur.
-    with open(os.path.join(DOSSIER, f"{args.langue}.cues.js"), "w", encoding="utf-8") as f:
+    with open(os.path.join(PUBLIE, f"{args.langue}.cues.js"), "w", encoding="utf-8") as f:
         f.write("/* Écrit par outils/voix_video.py — ne pas corriger à la main. */\n")
         f.write("window.CYQ_VOIX = window.CYQ_VOIX || {};\n")
         f.write(f"window.CYQ_VOIX[{json.dumps(args.langue)}] = ")
         json.dump({"total": total, "lignes": reperes}, f, ensure_ascii=False, indent=1)
         f.write(";\n")
-    with open(os.path.join(DOSSIER, f"{args.langue}.vtt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(PUBLIE, f"{args.langue}.vtt"), "w", encoding="utf-8") as f:
         f.write("WEBVTT\n\n")
         for r in reperes:
             f.write(f"{horodatage(r['debut'])} --> {horodatage(r['debut'] + r['duree'])}\n{r['texte']}\n\n")
 
     for r in reperes:
         print(f"  {r['debut']:6.2f} s  +{r['duree']:5.2f}  {r['id']}")
-    print(f"Piste : {total:.1f} s → voix/{args.langue}.mp4")
+    print(f"Piste : {total:.1f} s → site/assets/video/voix/{args.langue}.mp4")
     return 0
 
 
