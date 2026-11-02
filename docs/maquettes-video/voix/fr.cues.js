@@ -1,67 +1,73 @@
 /* Écrit par outils/voix_video.py — ne pas corriger à la main. */
 window.CYQ_VOIX = window.CYQ_VOIX || {};
 window.CYQ_VOIX["fr"] = {
- "total": 75.237,
+ "total": 68.253,
  "lignes": [
   {
    "id": "chaos",
-   "debut": 0.8,
-   "duree": 5.036,
-   "texte": "Monter une partie à dix sur Discord, c'est recompter une liste qui bouge pendant qu'on la lit."
+   "debut": 0.5,
+   "duree": 5.88,
+   "texte": "Monter une partie à dix sur Discord ? Bon courage. Tout le monde écrit… et personne ne sait qui joue."
   },
   {
    "id": "panneau",
-   "debut": 7.4,
-   "duree": 5.106,
-   "texte": "Avec CreateYourQueue, tout se règle depuis le panneau. Pas une seule commande à taper."
+   "debut": 6.73,
+   "duree": 4.8,
+   "texte": "Avec CreateYourQueue, tout se règle depuis le panneau. Zéro commande à taper."
   },
   {
    "id": "format",
-   "debut": 14.0,
-   "duree": 4.595,
-   "texte": "On donne un nom à la file, puis on choisit le format : deux équipes de cinq."
+   "debut": 11.88,
+   "duree": 4.54,
+   "texte": "Un nom pour la file, le format — deux équipes de cinq — et c'est réglé."
   },
   {
    "id": "apercu",
-   "debut": 20.6,
-   "duree": 4.177,
+   "debut": 16.77,
+   "duree": 4.12,
    "texte": "À droite, l'aperçu montre le message exact que le bot va publier."
   },
   {
    "id": "ouvrir",
-   "debut": 26.4,
-   "duree": 2.401,
-   "texte": "On enregistre, et on ouvre la file."
+   "debut": 21.24,
+   "duree": 2.44,
+   "texte": "On enregistre… et on ouvre la file !"
   },
   {
    "id": "annonce",
-   "debut": 31.0,
-   "duree": 7.358,
-   "texte": "L'annonce arrive dans le salon. Pour participer, les joueurs réagissent avec la coche, puis rejoignent le vocal d'attente."
+   "debut": 24.8,
+   "duree": 6.64,
+   "texte": "L'annonce tombe dans le salon. Un clic sur la coche, on rejoint le vocal d'attente… et la file se remplit toute seule."
   },
   {
    "id": "equipes",
-   "debut": 41.4,
-   "duree": 6.743,
-   "texte": "À dix, la file est pleine. Le bot compose les équipes, crée les salons vocaux, et y place tout le monde."
+   "debut": 33.2,
+   "duree": 4.14,
+   "texte": "Dix sur dix ! Le bot compose les équipes et crée les deux salons vocaux…"
+  },
+  {
+   "id": "vocal",
+   "debut": 37.69,
+   "duree": 4.84,
+   "texte": "… puis il déplace chaque joueur dans le sien. Automatiquement. Personne ne cherche son salon."
   },
   {
    "id": "suivi",
-   "debut": 50.4,
-   "duree": 8.821,
-   "texte": "Après la partie, le classement suit : MMR, rangs, saisons, clans. Et les files peuvent même s'ouvrir toutes seules, à heure fixe."
+   "debut": 44.6,
+   "duree": 8.8,
+   "texte": "Après le match, tout suit : classement, MMR, rangs, saisons, clans. Et la file peut même s'ouvrir toute seule, à heure fixe."
   },
   {
    "id": "securite",
-   "debut": 61.0,
-   "duree": 5.988,
-   "texte": "Le même panneau protège aussi le serveur : anti-raid, anti-lien, nettoyage automatique."
+   "debut": 54.2,
+   "duree": 5.92,
+   "texte": "Le même panneau protège aussi ton serveur : anti-raid, anti-lien, nettoyage automatique."
   },
   {
    "id": "fin",
-   "debut": 69.0,
-   "duree": 4.037,
-   "texte": "CreateYourQueue. Votre serveur, réglé en quelques clics."
+   "debut": 62.4,
+   "duree": 3.653,
+   "texte": "CreateYourQueue. Ton serveur, prêt en quelques clics."
   }
  ]
 };

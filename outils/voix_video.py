@@ -68,6 +68,63 @@ def lire(chemin: str) -> tuple[bytes, float]:
         return donnees, w.getnframes() / FREQ
 
 
+def decouper(prise: str, ids: list[str], dossier: str) -> None:
+    """Coupe une prise d'un seul tenant en une phrase par fichier.
+
+    Pourquoi une prise entière plutôt qu'une génération par phrase : le
+    forfait gratuit d'ElevenLabs n'en accepte qu'une à la fois, et surtout
+    une voix lue d'une traite garde le même souffle et la même énergie d'une
+    phrase à l'autre, ce que onze prises séparées ne garantissent pas.
+
+    Le texte est envoyé avec un [long pause] entre deux phrases : les N-1
+    silences les plus longs de la prise sont donc les coutures. On coupe au
+    milieu de chacun, puis on rogne le silence en tête et en queue de
+    chaque morceau — le minutage du film se charge de remettre de l'air.
+    """
+    import array
+
+    with tempfile.TemporaryDirectory() as tmp:
+        wav = os.path.join(tmp, "prise.wav")
+        subprocess.run(["afconvert", "-f", "WAVE", "-d", f"LEI16@{FREQ}", "-c", "1", prise, wav], check=True)
+        with wave.open(wav, "rb") as w:
+            ech = array.array("h", w.readframes(w.getnframes()))
+    if sys.byteorder != "little":
+        ech.byteswap()
+
+    # Énergie par fenêtres de 20 ms ; « silence » = sous 2 % du pic. Assez
+    # bas pour ne pas couper sur une respiration, assez haut pour ignorer
+    # le souffle de fond que laissent certaines voix.
+    pas = FREQ // 50
+    niveaux = [max((abs(x) for x in ech[i:i + pas]), default=0) for i in range(0, len(ech), pas)]
+    seuil = max(niveaux) * 0.02
+    trous, debut = [], None
+    for i, n in enumerate(niveaux + [seuil + 1]):
+        if n < seuil and debut is None:
+            debut = i
+        elif n >= seuil and debut is not None:
+            if debut > 0 and i < len(niveaux):
+                trous.append((i - debut, debut, i))
+            debut = None
+    if len(trous) < len(ids) - 1:
+        raise SystemExit(f"La prise n'a que {len(trous)} silences pour {len(ids)} phrases : "
+                         "il manque des [long pause] entre les phrases.")
+    coutures = sorted(sorted(trous, reverse=True)[:len(ids) - 1], key=lambda t: t[1])
+    bornes = [0] + [((a + b) // 2) * pas for _, a, b in coutures] + [len(ech)]
+
+    os.makedirs(dossier, exist_ok=True)
+    for k, ident in enumerate(ids):
+        morceau = ech[bornes[k]:bornes[k + 1]]
+        fen = [max((abs(x) for x in morceau[i:i + pas]), default=0) for i in range(0, len(morceau), pas)]
+        utiles = [i for i, n in enumerate(fen) if n >= seuil]
+        # 60 ms gardées de chaque côté : une attaque coupée net s'entend.
+        a = max(0, (utiles[0] - 3) * pas) if utiles else 0
+        b = min(len(morceau), (utiles[-1] + 4) * pas) if utiles else len(morceau)
+        with wave.open(os.path.join(dossier, ident + ".wav"), "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(FREQ)
+            w.writeframes(morceau[a:b].tobytes())
+        print(f"  {ident} : {(b - a) / FREQ:.2f} s")
+
+
 def horodatage(s: float) -> str:
     m, s = divmod(s, 60)
     return f"00:{int(m):02d}:{s:06.3f}"
@@ -76,6 +133,9 @@ def horodatage(s: float) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     ap.add_argument("--langue", default="fr")
+    ap.add_argument("--prise", help="une prise ElevenLabs du texte entier, à découper en phrases")
+    ap.add_argument("--texte-eleven", action="store_true",
+                    help="affiche le texte à envoyer à ElevenLabs, en une seule prise")
     args = ap.parse_args()
 
     source = os.path.join(DOSSIER, f"{args.langue}.json")
@@ -83,6 +143,11 @@ def main() -> int:
         cfg = json.load(f)
 
     enregistrees = os.path.join(DOSSIER, args.langue)
+    if args.texte_eleven:
+        print(" [long pause] ".join(l.get("jeu", l["texte"]) for l in cfg["lignes"]))
+        return 0
+    if args.prise:
+        decouper(args.prise, [l["id"] for l in cfg["lignes"]], enregistrees)
     if not shutil.which("say") and not os.path.isdir(enregistrees):
         print("La synthèse demande `say` (macOS). Sur ce poste, poser les phrases "
               f"enregistrées dans {enregistrees}/<id>.wav.", file=sys.stderr)
