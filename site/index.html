@@ -15,7 +15,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202611021355"></script>
+<script src="assets/js/theme-tot.js?v=202611021356"></script>
 <link rel="icon" href="assets/img/logo.png">
 <!-- L'ADRESSE CANONIQUE ET LES CINQ LANGUES.
 
@@ -41,13 +41,13 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202611021355">
+<link rel="stylesheet" href="assets/css/home.css?v=202611021356">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202611021355">
+<link rel="stylesheet" href="assets/css/modules.css?v=202611021356">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -714,30 +714,47 @@
 
 <!-- ================== LA FENÊTRE D'UN MODULE ======================
 
-     Les six cartes de la grille menaient sur /modules et son ancre. Elles
-     ouvrent maintenant cette fenêtre : on reste sur l'accueil, la lecture
-     n'est pas coupée, et le bouton « Ajouter à Discord » est à portée au
-     moment précis où le module vient de convaincre.
+     Deux fenêtres côte à côte, et non une boîte. À gauche la scène
+     Discord du module — le message que le bot publie vraiment, celui de
+     la page Modules, recopié ici par outils/fragments.py depuis
+     outils/communs/maquette.html. À droite ce que le module fait, et les
+     deux boutons.
 
-     Le lien reste un vrai `href` vers /modules#queue, et c'est
-     délibéré : sans JavaScript, sans anime.js, ou sur un clic du milieu,
-     la page Modules répond toujours. La fenêtre est un raccourci,
-     jamais la seule porte.
+     POURQUOI DEUX. La boîte unique agrandissait la VIGNETTE de la carte :
+     un pictogramme, qui ne dit rien de plus de près que de loin. Le vrai
+     message, lui, montre le produit. Il lui faut sa propre largeur, et au
+     texte la sienne.
 
-     UNE SEULE fenêtre pour six modules. La maquette et les textes sont
-     RECOPIÉS depuis la carte cliquée — pas réécrits ici : six maquettes
-     de plus dans cette page seraient six choses à tenir d'accord avec
-     la grille, et c'est exactement ce qui finit par mentir. -->
+     LA SCÈNE LÉVITE, et se gonfle vers le curseur. Deux calques pour
+     cela, et ils ne se mélangent pas : `__flot` porte la lévitation, qui
+     est une animation CSS, `__scene` porte le ballon, qui est un
+     `transform` écrit par app.js. Sur un seul élément, le second
+     écraserait la première dès la première image.
+
+     Le lien des cartes reste un vrai `href` vers /modules#queue : sans
+     JavaScript, sur un clic du milieu, la page Modules répond toujours.
+     La fenêtre est un raccourci, jamais la seule porte.
+
+     LA RÉSERVE, tout en bas, n'est jamais affichée. Les six scènes y
+     attendent et page-home.js CLONE celle du module ouvert ; les poser
+     dans la fenêtre reviendrait à les montrer toutes les six. -->
 <div class="modmodal" data-modmodal hidden>
   <div class="modmodal__fond" data-modmodal-fond aria-hidden="true"></div>
-  <div class="modmodal__boite" role="dialog" aria-modal="true"
-       aria-labelledby="modmodal-t" data-modmodal-boite>
 
-    <!-- `data-ballon` : la maquette se gonfle vers le curseur, comme
-         celle du héros. Même fonction, même amplitude. -->
-    <div class="modmodal__view" data-modmodal-view data-ballon aria-hidden="true"></div>
+  <div class="modmodal__duo">
 
-    <div class="modmodal__corps">
+    <!-- La fenêtre de gauche. aria-hidden : c'est un décor, et son
+         contenu — des pseudos, des chiffres — ne se lit pas à voix
+         haute. Le texte de droite dit la même chose en phrases. -->
+    <div class="modmodal__flot" aria-hidden="true">
+      <div class="modmodal__scene" data-modmodal-view data-ballon></div>
+    </div>
+
+    <!-- La fenêtre de droite. C'est elle qui porte le rôle de dialogue :
+         le piège à focus de page-home.js tourne dans ses bornes, et la
+         scène de gauche n'a rien de focusable à y mettre. -->
+    <div class="modmodal__boite" role="dialog" aria-modal="true"
+         aria-labelledby="modmodal-t" data-modmodal-boite>
       <h2 class="modmodal__t" id="modmodal-t" data-modmodal-t></h2>
       <p class="modmodal__p" data-modmodal-p></p>
       <div class="modmodal__actions">
@@ -749,6 +766,391 @@
                 data-i18n="c.back">Retour</button>
       </div>
     </div>
+
+  </div>
+
+  <!-- La réserve des six scènes. `hidden`, et jamais rien d'autre :
+       elle n'est là que pour que le script ait d'où cloner. -->
+  <div class="modmodal__stock" hidden data-modmodal-stock>
+    <!-- cyq:maquette module=queue -->
+    <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+    <div class="mock mock--queue" data-maquette="queue">
+      <div class="mock__bar">
+        <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+        <span class="mock__bar-name">queue-5v5</span>
+        <span class="mock__bar-topic">Scrims du soir · rejoindre avec les boutons</span>
+        <span class="mock__bar-tools">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg>
+        </span>
+      </div>
+      <div class="mock__chat">
+        <div class="mock__msg">
+          <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+          <div class="mock__main">
+            <div class="mock__head">
+              <span class="mock__name">CreateYourQueue</span>
+              <span class="mock__app">APP</span>
+              <span class="mock__time">Aujourd’hui à 21:04</span>
+              <span class="mock__edited">(modifié)</span>
+            </div>
+            <div class="mock__embed">
+              <div class="mock__embed-author"><span class="mock__av mock__av--xs">N</span>Queue ouverte par Nova</div>
+              <div class="mock__embed-title">Scrim du soir</div>
+              <div class="mock__fields">
+                <div class="mock__field"><span class="mock__field-k">Format</span><span class="mock__field-v">2 × 5</span></div>
+                <div class="mock__field"><span class="mock__field-k">Places</span><span class="mock__field-v">4 / 10</span></div>
+                <div class="mock__field"><span class="mock__field-k">Preset</span><span class="mock__field-v">Ranked</span></div>
+              </div>
+              <div class="mock__teams">
+                <div class="mock__team">
+                  <div class="mock__team-head"><span class="mock__swatch mock__swatch--acc"></span>Alpha<span class="mock__team-n">2/5</span></div>
+                  <div class="mock__slot"><span class="mock__av mock__av--sm">N</span>Nova</div>
+                  <div class="mock__slot"><span class="mock__av mock__av--sm">M</span>Mira</div>
+                  <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
+                  <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
+                  <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
+                </div>
+                <div class="mock__team">
+                  <div class="mock__team-head"><span class="mock__swatch"></span>Bravo<span class="mock__team-n">2/5</span></div>
+                  <div class="mock__slot"><span class="mock__av mock__av--sm">K</span>Kite</div>
+                  <div class="mock__slot"><span class="mock__av mock__av--sm">D</span>Dax</div>
+                  <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
+                  <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
+                  <div class="mock__slot mock__slot--free"><span class="mock__av mock__av--sm mock__av--ghost"></span></div>
+                </div>
+              </div>
+              <div class="mock__embed-foot">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+                <span>Rassemblement dans Attente scrim · 4 connectés</span>
+              </div>
+            </div>
+            <div class="mock__btns">
+              <span class="mock__btn mock__btn--primary">Rejoindre</span>
+              <span class="mock__btn">Quitter</span>
+              <span class="mock__btn mock__btn--off">Lancer</span>
+            </div>
+            <div class="mock__reacts" data-reacts>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg><span class="mock__react-n">7</span></span>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="mock__react-n">3</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- cyq:/maquette -->
+    <!-- cyq:maquette module=mmr -->
+    <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+    <div class="mock mock--mmr" data-maquette="mmr">
+      <div class="mock__bar">
+        <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+        <span class="mock__bar-name">classement</span>
+        <span class="mock__bar-topic">Republié par le bot après chaque match</span>
+      </div>
+      <div class="mock__chat">
+        <div class="mock__msg">
+          <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+          <div class="mock__main">
+            <div class="mock__head">
+              <span class="mock__name">CreateYourQueue</span>
+              <span class="mock__app">APP</span>
+              <span class="mock__time">Aujourd’hui à 22:31</span>
+            </div>
+            <div class="mock__embed">
+              <div class="mock__embed-title">Vote MVP — match #42</div>
+              <p class="mock__text mock__text--sub">Une voix par joueur, deux minutes pour voter.</p>
+              <div class="mock__embed-foot">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                <span>Vote clos · 4 voix sur 4 · MVP : Nova</span>
+              </div>
+            </div>
+            <div class="mock__btns">
+              <span class="mock__btn mock__btn--primary">Nova<span class="mock__btn-n">3</span></span>
+              <span class="mock__btn">Kite<span class="mock__btn-n">1</span></span>
+              <span class="mock__btn">Mira<span class="mock__btn-n">0</span></span>
+              <span class="mock__btn">Dax<span class="mock__btn-n">0</span></span>
+            </div>
+            <div class="mock__reacts" data-reacts>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 6l4.5 6L21 8l-2 11H5L3 8z"/></svg><span class="mock__react-n">5</span></span>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="mock__react-n">2</span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Message groupé : même auteur, quelques minutes plus tard.
+             Discord ne répète ni l'avatar ni le nom, d'où la gouttière
+             laissée vide. -->
+        <div class="mock__msg mock__msg--cont">
+          <span></span>
+          <div class="mock__main">
+            <div class="mock__embed">
+              <div class="mock__embed-title">Classement — saison 3</div>
+              <div class="mock__code">
+                <div class="mock__code-row mock__code-row--head"><span>#</span><span>Joueur</span><span class="mock__num">MMR</span><span class="mock__num">±</span></div>
+                <div class="mock__code-row"><span>1</span><span>Nova</span><span class="mock__num">1 135</span><span class="mock__num mock__up--acc">+35</span></div>
+                <div class="mock__code-row"><span>2</span><span>Kite</span><span class="mock__num">1 090</span><span class="mock__num">+20</span></div>
+                <div class="mock__code-row"><span>3</span><span>Mira</span><span class="mock__num">985</span><span class="mock__num mock__down">−15</span></div>
+                <div class="mock__code-row"><span>4</span><span>Dax</span><span class="mock__num">960</span><span class="mock__num mock__down">−15</span></div>
+              </div>
+              <div class="mock__embed-foot"><span>Après le match #42 · départ 1 000 · victoire +20 · MVP +15</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- cyq:/maquette -->
+    <!-- cyq:maquette module=duel -->
+    <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+    <div class="mock mock--duel" data-maquette="duel">
+      <div class="mock__bar">
+        <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+        <span class="mock__bar-name">duels</span>
+        <span class="mock__bar-topic">Défis entre équipes · score confirmé au vote</span>
+      </div>
+      <div class="mock__chat">
+        <div class="mock__msg">
+          <div class="mock__used"><span class="mock__av mock__av--xs">N</span><span>Nova a utilisé</span><span class="mock__used-cmd">/duel</span></div>
+          <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+          <div class="mock__main">
+            <div class="mock__head">
+              <span class="mock__name">CreateYourQueue</span>
+              <span class="mock__app">APP</span>
+              <span class="mock__time">Aujourd’hui à 21:47</span>
+              <span class="mock__edited">(modifié)</span>
+            </div>
+            <div class="mock__embed">
+              <div class="mock__embed-author">Duel #17 · Alpha défie Bravo</div>
+              <div class="mock__vs">
+                <div class="mock__side-team">
+                  <span class="mock__side-name">Alpha</span>
+                  <span class="mock__stack"><span class="mock__av mock__av--sm">N</span><span class="mock__av mock__av--sm">M</span></span>
+                  <span class="mock__side-who">Nova · Mira</span>
+                </div>
+                <div class="mock__score">
+                  <span class="mock__score-v"><span class="mock__score-acc">13</span> <span class="mock__score-sep">–</span> 9</span>
+                  <span class="mock__score-k">score proposé par Nova</span>
+                </div>
+                <div class="mock__side-team mock__side-team--end">
+                  <span class="mock__side-name">Bravo</span>
+                  <span class="mock__stack"><span class="mock__av mock__av--sm">K</span><span class="mock__av mock__av--sm">D</span></span>
+                  <span class="mock__side-who">Kite · Dax</span>
+                </div>
+              </div>
+              <div class="mock__rule"></div>
+              <div class="mock__fields">
+                <div class="mock__field"><span class="mock__field-k">Confirmation</span><span class="mock__field-v">3 / 4 voix</span></div>
+                <div class="mock__field"><span class="mock__field-k">Temps restant</span><span class="mock__field-v">1 min 58 s</span></div>
+              </div>
+              <div class="mock__embed-foot">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                <span>Le score compte une fois confirmé dans le temps imparti</span>
+              </div>
+            </div>
+            <div class="mock__btns">
+              <span class="mock__btn mock__btn--primary">Confirmer<span class="mock__btn-n">3</span></span>
+              <span class="mock__btn">Contester<span class="mock__btn-n">0</span></span>
+            </div>
+            <div class="mock__reacts" data-reacts>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/></svg><span class="mock__react-n">4</span></span>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg><span class="mock__react-n">3</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- cyq:/maquette -->
+    <!-- cyq:maquette module=clan -->
+    <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+    <div class="mock mock--clan" data-maquette="clan">
+      <div class="mock__split">
+        <!-- La colonne des salons : c'est la partie de Discord qu'on
+             reconnaît le plus vite, et c'est elle que le module crée. -->
+        <div class="mock__side">
+          <div class="mock__server">
+            <span>Ligue du soir</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="mock__cat">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            <span>Queue</span>
+          </div>
+          <div class="mock__cat">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <span>Clans</span>
+          </div>
+          <div class="mock__chan mock__chan--on">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+            <span>adhésions</span>
+          </div>
+          <div class="mock__chan">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+            <span>alpha</span>
+          </div>
+          <div class="mock__chan">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+            <span>Vocal Alpha</span>
+          </div>
+          <div class="mock__voice">
+            <div class="mock__vm">
+              <span class="mock__av mock__av--sm mock__av--talk">N</span>
+              <span class="mock__chef">Nova
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 6l4.5 6L21 8l-2 11H5L3 8z"/></svg>
+              </span>
+            </div>
+            <div class="mock__vm"><span class="mock__av mock__av--sm">M</span><span>Mira</span></div>
+          </div>
+          <div class="mock__chan mock__chan--unread">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+            <span>bravo</span>
+          </div>
+          <div class="mock__chan">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+            <span>Vocal Bravo</span>
+          </div>
+          <div class="mock__voice">
+            <div class="mock__vm"><span class="mock__av mock__av--sm">K</span><span>Kite</span></div>
+            <div class="mock__vm"><span class="mock__av mock__av--sm">D</span><span>Dax</span></div>
+          </div>
+        </div>
+        <div class="mock__pane">
+          <div class="mock__bar">
+            <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+            <span class="mock__bar-name">adhésions</span>
+          </div>
+          <div class="mock__chat">
+            <div class="mock__msg">
+              <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+              <div class="mock__main">
+                <div class="mock__head">
+                  <span class="mock__name">CreateYourQueue</span>
+                  <span class="mock__app">APP</span>
+                  <span class="mock__time">21:32</span>
+                </div>
+                <p class="mock__text"><span class="mock__ment">@Dax</span> a rejoint le clan <span class="mock__ment">@Bravo</span>.</p>
+                <div class="mock__reacts" data-reacts>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="mock__react-n">6</span></span>
+                  <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="mock__react-n">2</span></span>
+                </div>
+              </div>
+            </div>
+            <div class="mock__msg mock__msg--cont">
+              <span></span>
+              <p class="mock__text">Clan war terminée : Alpha 2 – 1 Bravo. Résultat compté au classement.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- cyq:/maquette -->
+    <!-- cyq:maquette module=securite -->
+    <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+    <div class="mock mock--securite" data-maquette="securite">
+      <div class="mock__bar">
+        <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+        <span class="mock__bar-name">journal-modération</span>
+        <span class="mock__bar-topic">Un des dix journaux · écrit par le bot</span>
+      </div>
+      <div class="mock__chat">
+        <div class="mock__msg">
+          <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+          <div class="mock__main">
+            <div class="mock__head">
+              <span class="mock__name">CreateYourQueue</span>
+              <span class="mock__app">APP</span>
+              <span class="mock__time">Aujourd’hui à 21:12</span>
+            </div>
+            <div class="mock__log-line">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6.5 12 5a4.24 4.24 0 0 1 6 6l-1.5 1.5M13.5 17.5 12 19a4.24 4.24 0 0 1-6-6l1.5-1.5M4 4l16 16"/></svg>
+              <p>Lien supprimé dans <span class="mock__ment">#général</span> — envoyé par <span class="mock__ment">@Dax</span><span class="mock__log-note">Adresse hors des salons où les liens sont admis</span></p>
+            </div>
+            <div class="mock__reacts" data-reacts>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="mock__react-n">3</span></span>
+              <span class="mock__react" data-react><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg><span class="mock__react-n">1</span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Les lignes suivantes appartiennent au même groupe : l'heure
+             prend la place de l'avatar, comme les messages groupés. -->
+        <div class="mock__logs">
+          <div class="mock__log">
+            <span class="mock__log-time">21:13</span>
+            <div class="mock__log-line">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+              <p>6 messages nettoyés dans <span class="mock__ment">#queue-5v5</span><span class="mock__log-note">Queue lancée, ses rappels n’avaient plus lieu d’être</span></p>
+            </div>
+          </div>
+          <div class="mock__log">
+            <span class="mock__log-time">21:15</span>
+            <div class="mock__log-line mock__log-line--acc">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="M12 8v4M12 15.5v.01"/></svg>
+              <p>Anti-raid déclenché : 12 arrivées en 10 s<span class="mock__log-note">Seuil réglé à 10 arrivées en 10 s</span></p>
+            </div>
+          </div>
+          <div class="mock__log">
+            <span class="mock__log-time">21:24</span>
+            <div class="mock__log-line">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6.5 12 5a4.24 4.24 0 0 1 6 6l-1.5 1.5M13.5 17.5 12 19a4.24 4.24 0 0 1-6-6l1.5-1.5M4 4l16 16"/></svg>
+              <p>Lien supprimé dans <span class="mock__ment">#queue-5v5</span> — envoyé par <span class="mock__ment">@Kite</span></p>
+            </div>
+          </div>
+          <div class="mock__log">
+            <span class="mock__log-time">21:26</span>
+            <div class="mock__log-line">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+              <p>Message de <span class="mock__ment">@Mira</span> nettoyé dans <span class="mock__ment">#duels</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- cyq:/maquette -->
+    <!-- cyq:maquette module=options -->
+    <!-- engendré par outils/fragments.py depuis outils/communs/maquette.html -->
+    <div class="mock mock--options" data-maquette="options">
+      <div class="mock__bar">
+        <svg class="mock__bar-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M4 15h14M10 3 8 21M16 3l-2 18"/></svg>
+        <span class="mock__bar-name">commandes</span>
+        <span class="mock__bar-topic">Réglages du bot, réservés aux organisateurs</span>
+      </div>
+      <div class="mock__chat">
+        <div class="mock__msg">
+          <div class="mock__used"><span class="mock__av mock__av--xs">N</span><span>Nova a utilisé</span><span class="mock__used-cmd">/salon</span></div>
+          <span class="mock__av mock__av--bot"><img src="assets/img/logo.png" alt="" width="36" height="36"></span>
+          <div class="mock__main">
+            <div class="mock__head">
+              <span class="mock__name">CreateYourQueue</span>
+              <span class="mock__app">APP</span>
+              <span class="mock__time">Aujourd’hui à 20:58</span>
+            </div>
+            <p class="mock__text">Salon du classement : <span class="mock__ment">#classement</span>. Il y sera republié après chaque match.</p>
+            <div class="mock__ephem">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Seule Nova peut voir ce message</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- La saisie et son menu d'autocomplétion : le bot se pilote
+           aussi depuis Discord, et il s'adapte au serveur. -->
+      <div class="mock__compose">
+        <div class="mock__menu" data-choix>
+          <div class="mock__menu-head">
+            <span class="mock__menu-k">langue</span>
+            <span class="mock__menu-d">renomme aussi les salons et les rôles du bot</span>
+          </div>
+          <div class="mock__opt mock__opt--on"><span class="mock__opt-name">Français</span><span class="mock__opt-code">fr</span></div>
+          <div class="mock__opt"><span class="mock__opt-name">English</span><span class="mock__opt-code">en</span></div>
+          <div class="mock__opt"><span class="mock__opt-name">Español</span><span class="mock__opt-code">es</span></div>
+          <div class="mock__opt"><span class="mock__opt-name">Deutsch</span><span class="mock__opt-code">de</span></div>
+          <div class="mock__opt"><span class="mock__opt-name" lang="ko">한국어</span><span class="mock__opt-code">ko</span></div>
+        </div>
+        <div class="mock__input">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          <span class="mock__input-cmd">/langue</span>
+          <span class="mock__input-arg">langue</span>
+          <span class="mock__caret"></span>
+        </div>
+      </div>
+    </div>
+    <!-- cyq:/maquette -->
   </div>
 </div>
 
@@ -864,14 +1266,14 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202611021355"></script>
-<script src="assets/js/config.js?v=202611021355"></script>
-<script src="assets/js/lang/fr.js?v=202611021355"></script>
-<script src="assets/js/lang/en.js?v=202611021355"></script>
-<script src="assets/js/lang/es.js?v=202611021355"></script>
-<script src="assets/js/lang/de.js?v=202611021355"></script>
-<script src="assets/js/lang/ko.js?v=202611021355"></script>
-<script src="assets/js/app.js?v=202611021355"></script>
-<script src="assets/js/page-home.js?v=202611021355"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202611021356"></script>
+<script src="assets/js/config.js?v=202611021356"></script>
+<script src="assets/js/lang/fr.js?v=202611021356"></script>
+<script src="assets/js/lang/en.js?v=202611021356"></script>
+<script src="assets/js/lang/es.js?v=202611021356"></script>
+<script src="assets/js/lang/de.js?v=202611021356"></script>
+<script src="assets/js/lang/ko.js?v=202611021356"></script>
+<script src="assets/js/app.js?v=202611021356"></script>
+<script src="assets/js/page-home.js?v=202611021356"></script>
 </body>
 </html>
