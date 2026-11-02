@@ -1370,7 +1370,9 @@ img.k-av { background: none; }
     if (audioOk && !audio.paused) {
       var a = audio.currentTime * 1000;
       if (a !== etat.horlogeA) { etat.horlogeA = a; etat.horlogeP = now; }
-      return Math.min(a + (now - etat.horlogeP), TOTAL);
+      // Plafonné à 250 ms : si le son cale (chargement, onglet en arrière-
+      // plan), l'image l'attend au lieu de partir seule devant.
+      return Math.min(a + Math.min(now - etat.horlogeP, 250), TOTAL);
     }
     return Math.min(etat.t + (now - etat.horlogeP), TOTAL);
   }
