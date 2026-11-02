@@ -12,7 +12,7 @@ ne le signale.
     python outils/voix_video.py --langue en
 
 Lit   docs/maquettes-video/voix/<langue>.json   (le texte, l'instant visé)
-Écrit docs/maquettes-video/voix/<langue>.m4a    (la piste complète)
+Écrit docs/maquettes-video/voix/<langue>.mp4    (la piste complète, AAC)
       docs/maquettes-video/voix/<langue>.cues.js (le minutage réel, pour le film)
       docs/maquettes-video/voix/<langue>.vtt    (les sous-titres)
 
@@ -114,8 +114,11 @@ def main() -> int:
         with wave.open(brut, "wb") as w:
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(FREQ)
             w.writeframes(bytes(piste))
-        m4a = os.path.join(DOSSIER, f"{args.langue}.m4a")
-        subprocess.run(["afconvert", "-f", "m4af", "-d", "aac", "-b", "64000", brut, m4a], check=True)
+        # .mp4 et non .m4a : c'est le même conteneur, mais .m4a n'est servi
+        # ni par tous les hébergeurs ni par les artifacts, et le navigateur
+        # lit l'AAC dans un .mp4 partout.
+        sortie = os.path.join(DOSSIER, f"{args.langue}.mp4")
+        subprocess.run(["afconvert", "-f", "mp4f", "-d", "aac", "-b", "64000", brut, sortie], check=True)
 
     total = round(len(piste) / 2 / FREQ, 3)
     # Un script et non un JSON : le film l'inclut d'une balise <script>,
@@ -133,7 +136,7 @@ def main() -> int:
 
     for r in reperes:
         print(f"  {r['debut']:6.2f} s  +{r['duree']:5.2f}  {r['id']}")
-    print(f"Piste : {total:.1f} s → voix/{args.langue}.m4a")
+    print(f"Piste : {total:.1f} s → voix/{args.langue}.mp4")
     return 0
 
 
