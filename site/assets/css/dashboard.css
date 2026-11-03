@@ -2083,17 +2083,21 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
    et 4 : un quart, un tiers, une moitié et trois quarts retombent tous
    sur une rangée pleine.
 
-   `align-items: start` : deux widgets côte à côte n'ont pas la même
-   hauteur — une carte à un chiffre et sept jours de semaine — et les
-   étirer à la même aurait laissé un grand vide sous le chiffre. */
+   Les cases s'étirent à la hauteur de leur rangée, mais le CONTENU
+   reste en haut : seules les cartes à chiffre remplissent la leur (voir
+   plus bas). Sans ça, quatre cartes d'une même rangée avaient quatre
+   hauteurs différentes selon qu'elles portaient une ligne de précision
+   ou non, et la rangée se lisait comme une erreur de mise en page. */
 .ovgrid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 10px;
-  align-items: start;
 }
 
-.ovw { min-width: 0; }
+/* Colonne flex, et non `height: 100%` sur l'enfant : en mode édition le
+   widget porte une bande de commandes au-dessus, et une carte à 100 %
+   de la case débordait d'autant. */
+.ovw { min-width: 0; display: flex; flex-direction: column; }
 .ovw--s3  { grid-column: span 3; }
 .ovw--s6  { grid-column: span 6; }
 .ovw--s9  { grid-column: span 9; }
@@ -2101,8 +2105,9 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
 
 /* Les widgets à chiffre remplissent leur case : à côté d'un widget plus
    haut sur la même rangée, trois cartes de hauteurs différentes se
-   lisaient comme trois objets sans rapport. */
-.ovw > .ovstat { height: 100%; box-sizing: border-box; }
+   lisaient comme trois objets sans rapport. Les autres gardent leur
+   hauteur — une carte de journal étirée, c'est du vide encadré. */
+.ovw > .ovstat { flex: 1 1 auto; }
 
 .ovgrid__vide {
   margin: 0; padding: var(--sp-3) 0;
@@ -2300,7 +2305,15 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
 
 /* ---------------------------- les raccourcis -------------------------- */
 
-.ovquick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* auto-fit : le widget fait un quart de largeur ou toute la page selon
+   ce qu'on lui a donné, et deux colonnes fixes mettaient alors la
+   troisième tuile seule sur une deuxième rangée même quand les trois
+   tenaient côte à côte. */
+.ovquick {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+}
 .ovtile {
   display: flex; align-items: flex-end;
   min-height: 84px; padding: 14px 16px;
@@ -2373,12 +2386,10 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
 .ovgrid--edit .ovw { cursor: grab; }
 .ovgrid--edit .ovw.is-drag { cursor: grabbing; opacity: .45; }
 
-.ovw__nom {
-  flex: 1 1 auto; min-width: 0;
-  font-size: 12px; font-weight: 500; letter-spacing: -0.01em;
-  color: var(--ink-60);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+/* La bande ne porte pas de libellé : le widget se nomme lui-même juste
+   en dessous. Ce vide pousse les commandes à droite, où elles sont au
+   même endroit sur tous les widgets quelle que soit leur largeur. */
+.ovw__gap { flex: 1 1 auto; min-width: 0; }
 
 .ovw__acts { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; }
 
@@ -2524,10 +2535,6 @@ html.motion-force .ovgal__item { transition: background .16s var(--e-soft), colo
   .ovsem__chiffres { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .ovline { padding: 12px 14px; }
 
-  /* Le nom du widget disparaît de sa bande : à 171 px de large, il ne
-     laissait pas la place aux quatre commandes, qui sont ce dont on a
-     besoin ici. Il reste dans l'`aria-label` du widget, donc annoncé. */
-  .ovw__nom { display: none; }
-  .ovw__chrome { padding: 4px; justify-content: space-between; }
+  .ovw__chrome { padding: 4px; }
   .ovgal__liste { grid-template-columns: minmax(0, 1fr); }
 }

@@ -364,7 +364,11 @@
       ch.setAttribute('data-w-chrome', '');
       ch.innerHTML =
         '<span class="ovw__grip" aria-hidden="true">' + icon('swap', 13) + '</span>' +
-        '<span class="ovw__nom">' + esc(t(f.nom)) + '</span>' +
+        /* Pas de nom dans la bande : chaque widget porte déjà le sien
+           juste en dessous, et à 212 px de large il n'en restait que
+           « Me… ». Le nom entier est dans l'`aria-label` du groupe, donc
+           annoncé — il n'est pas perdu, il n'est pas répété. */
+        '<span class="ovw__gap"></span>' +
         '<span class="ovw__acts">' +
           bouton('w-up', 'caret', t('ov.wUp'), i === 0, 'ovw__act--up') +
           bouton('w-down', 'caret', t('ov.wDown'), i === dispo.length - 1, '') +

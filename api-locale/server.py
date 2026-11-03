@@ -18,6 +18,12 @@ serveur, le jeton Discord reste en mémoire, et le navigateur ne reçoit qu'un
 identifiant de session opaque.
 """
 
+# Les annotations deviennent du texte, jamais évaluées. Sans cette
+# ligne, `str | None` fait planter l'import sous Python 3.9 — celui
+# que macOS fournit, et donc celui du MacBook : l'API locale n'y
+# démarrait pas, alors qu'elle est l'outil pour essayer le panneau.
+from __future__ import annotations
+
 import hmac
 import json
 import mimetypes
