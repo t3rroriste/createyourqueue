@@ -624,7 +624,7 @@
     var active = allumee !== null && allumee !== '' &&
                  allumee !== '0' && allumee !== 'false' && allumee !== 'off';
     faits('programmation', [
-      [t('ov.fAuto'), allumee === null ? TIRET : t(active ? 'c.enabled' : 'c.disabled')],
+      [t('ov.fState'), allumee === null ? TIRET : t(active ? 'c.enabled' : 'c.disabled')],
       [t('ov.fDays'), !active ? (allumee === null ? TIRET : t('ov.fNone')) : jours(reglage('schedule.days'))],
       [t('ov.fTime'), !active ? (allumee === null ? TIRET : t('ov.fNone')) : ouNon(reglage('schedule.time'))],
       [t('ov.fPreset'), !active ? (allumee === null ? TIRET : t('ov.fNone')) : ouNon(reglage('schedule.preset'))]
@@ -639,11 +639,11 @@
        pas répondu, et on ne sait pas. */
     var manque = g && g.missingPermissions;
     faits('droits', manque == null
-      ? [[t('ov.fPermsState'), TIRET], [t('ov.fPermsHow'), t('ov.unknownShort')]]
+      ? [[t('ov.fState'), TIRET], [t('ov.fPermsHow'), t('ov.unknownShort')]]
       : (manque.length
-          ? [[t('ov.fPermsState'), t('ov.fPermsMissing', { n: manque.length })],
+          ? [[t('ov.fState'), t('ov.fPermsMissing', { n: manque.length })],
              [t('ov.fPermsList'), manque.join(', ')]]
-          : [[t('ov.fPermsState'), t('dg.allGood')]]));
+          : [[t('ov.fState'), t('dg.allGood')]]));
   }
 
   /* `schedule.days` compte à partir du LUNDI (0 = lundi, cf.
