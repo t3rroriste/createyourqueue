@@ -1636,6 +1636,15 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
   .navlink:hover::before { transform: scaleX(0); }
   .navlink:hover .navlink-label { transform: none; }
   .num:hover, .text:hover, .select:hover, .combo__button:hover, .swatch:hover { background: var(--film); }
+  .ovw__act:hover { background: transparent; color: var(--ink-60); }
+  .ovgal__item:hover { background: var(--panel); }
+
+  /* Au doigt, les quatre commandes d'un widget sont la cible la plus
+     petite de l'écran. 34 px est le plancher en dessous duquel « Retirer »
+     et « Descendre » se touchent l'un pour l'autre — et retirer un widget
+     pour avoir voulu le descendre est précisément l'erreur qu'on ne
+     pardonne pas à un tableau de bord qu'on vient de ranger. */
+  .ovw__act { min-width: 34px; height: 34px; }
 }
 
 /* ============================== les journaux ========================== */
@@ -2051,21 +2060,53 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
    largeur, barre de progression comprise. */
 .ovbody { display: grid; gap: var(--sp-3); }
 
-/* ---------------------------- les chiffres ---------------------------- */
+/* Le chapeau porte maintenant le bouton « Personnaliser » à droite du
+   titre, comme les sections qui ont une action. */
+.sec__head--ov {
+  display: flex; gap: var(--sp-2);
+  align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap;
+}
+.sec__headtxt { min-width: 0; }
 
-/* auto-fit et non un nombre fixe de colonnes : à 1100 px la colonne de
-   menu mange assez de largeur pour que les cartes tombent à 180 px, où un
-   nombre à cinq chiffres passe à la ligne.
+.ovbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.ovbar .pill { flex: 0 0 auto; }
 
-   168 px et non 190 depuis qu'elles sont CINQ : cinq cartes à 190 px
-   réclament 990 px, que le contenu n'a pas menu déplié, et la cinquième
-   tombait seule sur une deuxième rangée — une carte orpheline à côté de
-   quatre, qui se lit comme un oubli. 168 px les font tenir à partir de
-   880 px, et la chasse fixe des nombres les garde alignées. */
-.ovstats {
+/* ------------------------- la grille de widgets -----------------------
+
+   DOUZE COLONNES, et des largeurs en douzièmes. C'est ce qui remplace
+   l'ancien `auto-fit` : un `minmax` choisit la largeur tout seul, ce qui
+   était juste tant que la page était figée, mais empêche précisément ce
+   qu'on veut ici — dire qu'un widget fait un quart ou la moitié.
+
+   Douze parce que c'est le seul nombre sous vingt qui se divise par 2, 3
+   et 4 : un quart, un tiers, une moitié et trois quarts retombent tous
+   sur une rangée pleine.
+
+   `align-items: start` : deux widgets côte à côte n'ont pas la même
+   hauteur — une carte à un chiffre et sept jours de semaine — et les
+   étirer à la même aurait laissé un grand vide sous le chiffre. */
+.ovgrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 10px;
+  align-items: start;
+}
+
+.ovw { min-width: 0; }
+.ovw--s3  { grid-column: span 3; }
+.ovw--s6  { grid-column: span 6; }
+.ovw--s9  { grid-column: span 9; }
+.ovw--s12 { grid-column: span 12; }
+
+/* Les widgets à chiffre remplissent leur case : à côté d'un widget plus
+   haut sur la même rangée, trois cartes de hauteurs différentes se
+   lisaient comme trois objets sans rapport. */
+.ovw > .ovstat { height: 100%; box-sizing: border-box; }
+
+.ovgrid__vide {
+  margin: 0; padding: var(--sp-3) 0;
+  text-align: center; font-size: 13.5px; color: var(--ink-60);
 }
 
 .ovstat {
@@ -2195,84 +2236,6 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
   background: var(--ink);
 }
 
-/* --------------------------- la progression --------------------------- */
-
-.ovprog {
-  padding: 20px;
-  border-radius: var(--r-card);
-  background: var(--film);
-}
-.ovprog__head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: var(--sp-2); margin-bottom: 16px;
-}
-.ovprog__title {
-  margin: 0;
-  font-size: 15px; font-weight: 500; letter-spacing: -0.015em;
-  color: var(--ink);
-}
-.ovprog__count {
-  margin: 0; flex: 0 0 auto;
-  font-size: 12.5px; color: var(--ink-60);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Les quatre barreaux. Une liste ordonnée, parce que l'ordre est celui
-   du bot et qu'il compte : on ne peut pas enregistrer un format de queue
-   avant d'avoir des salons. */
-.ovrail {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-}
-.ovstep { min-width: 0; }
-
-/* La piste et la barre. La barre est un calque à part, mis à l'échelle
-   en X : animer une largeur ferait recalculer la mise en page quatre
-   fois par chargement. */
-.ovstep__bar {
-  /* display: block sur un <span> : sans lui, la hauteur de 4 px ne
-     s'applique pas et les quatre barreaux sont invisibles. */
-  display: block;
-  position: relative; overflow: hidden;
-  height: 4px; border-radius: 999px;
-  background: var(--hair);
-  margin-bottom: 9px;
-}
-.ovstep__bar::after {
-  content: ''; position: absolute; inset: 0;
-  border-radius: inherit;
-  background: var(--ink);
-  transform: scaleX(0); transform-origin: left center;
-}
-.ovstep.is-done .ovstep__bar::after { transform: scaleX(1); }
-
-.ovstep__lab {
-  display: block;
-  font-size: 12.5px; line-height: 1.3; letter-spacing: -0.01em;
-  color: var(--ink-40);
-  overflow-wrap: anywhere;
-}
-/* Fait : la mention s'efface, elle a cessé d'être une information.
-   À faire : elle remonte en --ink, c'est là que l'œil doit aller. */
-.ovstep.is-done .ovstep__lab { color: var(--ink-60); }
-.ovstep.is-next .ovstep__lab { color: var(--ink); font-weight: 500; }
-
-/* La phrase sous la barre : ce qui manque, nommé, et cliquable. Un seul
-   lien, celui du premier palier manquant — lister les quatre en
-   reproduirait le menu, et c'est le menu qui est déjà à gauche. */
-.ovprog__word {
-  margin: 16px 0 0;
-  font-size: 13.5px; line-height: 1.5; color: var(--ink-60);
-  text-wrap: pretty;
-}
-.ovprog__word a {
-  color: var(--ink); text-decoration: none;
-  border-bottom: 1px solid var(--hair);
-  padding-bottom: 1px;
-}
-.ovprog__word a:hover,
-.ovprog__word a:focus-visible { border-bottom-color: var(--ink-40); }
-
 /* ----------------------- l'activite recente --------------------------- */
 
 /* Le bloc reprend la carte et les rangees du Journal, sans les redecrire :
@@ -2282,7 +2245,10 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
    Seul le chapeau est propre a cet endroit : un titre et un lien vers le
    Journal sur la meme ligne de base, parce que la question qui suit
    « il s'est passe quoi ? » est toujours « montre-moi le reste ». */
-.ovjrn { margin-top: var(--sp-2); }
+/* La marge haute est partie avec les deux colonnes : dans la grille,
+   c'est `gap` qui tient l'écart, et la cumuler décalait ce seul widget
+   de ses voisins de rangée. */
+.ovjrn { min-width: 0; }
 
 .ovjrn__head {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -2300,16 +2266,12 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
 }
 .ovjrn__all:hover, .ovjrn__all:focus-visible { color: var(--ink); }
 
-/* ------------------------- les deux colonnes -------------------------- */
+/* ------------------------- les lignes et les tuiles ------------------- */
 
-.ovcols {
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: var(--sp-2); align-items: start;
-}
+/* `.ovcols` et `.ovcol` ont disparu avec les deux colonnes figées : la
+   grille de widgets fait ce travail, et à la largeur qu'on lui donne.
 
-.ovcol { min-width: 0; }
-
-/* La ligne cliquable. Même famille que la rangée de réglage — mêmes
+   La ligne cliquable. Même famille que la rangée de réglage — mêmes
    hauteurs, même filet — mais sans contrôle à droite : une flèche, donc
    toute la ligne est la cible. */
 .ovline {
@@ -2351,59 +2313,221 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
 }
 .ovtile:hover { background: var(--raised); }
 
+/* --------------------------- les fiches ------------------------------- */
+
+/* Les widgets de la collection disent tous la même chose de la même
+   façon : un libellé à gauche, sa valeur à droite, sur un filet. C'est
+   la rangée de réglage sans son contrôle — même hauteur, même filet,
+   même écart — parce que ce sont les mêmes réglages, en lecture. */
+.ovfacts { margin: 0; padding: 0; }
+
+.ovfact {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 9px 0;
+}
+.ovfact + .ovfact { box-shadow: inset 0 1px 0 var(--hair); }
+
+.ovfact dt {
+  font-size: 12.5px; color: var(--ink-60);
+  flex: 0 0 auto;
+}
+/* `min-width: 0` et la coupure : un identifiant de serveur et une liste
+   de droits manquants n'ont aucun espace où se couper, et sans ça ils
+   élargissaient leur widget jusqu'à déformer la rangée entière. */
+.ovfact dd {
+  margin: 0; min-width: 0;
+  text-align: right;
+  font-size: 13px; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* ====================== RANGER SON TABLEAU DE BORD =====================
+
+   Tout ce qui suit n'existe qu'en mode édition. Hors de lui, l'écran est
+   celui qu'on lit : pas une poignée, pas une croix. Un tableau de bord
+   qui porterait ses commandes en permanence demanderait de les ignorer à
+   chaque lecture.
+   ===================================================================== */
+
+/* Le pointillé dit où sont les cases, y compris celles qu'un widget ne
+   remplit pas : sans lui, deux widgets d'un quart côte à côte et un vide
+   de six colonnes à leur droite se lisaient comme une rangée cassée. */
+.ovgrid--edit .ovw {
+  border-radius: var(--r-card);
+  outline: 1px dashed var(--hair);
+  outline-offset: 3px;
+}
+
+/* La bande de commandes. Elle pousse le contenu vers le bas plutôt que
+   de le recouvrir : posée par-dessus, elle cachait le libellé du chiffre
+   — c'est-à-dire ce qui permet de reconnaître le widget qu'on déplace. */
+.ovw__chrome {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; padding: 5px 6px 5px 8px;
+  border-radius: var(--r-media);
+  background: var(--raised);
+}
+
+.ovw__grip { flex: 0 0 auto; color: var(--ink-40); cursor: grab; display: flex; }
+.ovgrid--edit .ovw { cursor: grab; }
+.ovgrid--edit .ovw.is-drag { cursor: grabbing; opacity: .45; }
+
+.ovw__nom {
+  flex: 1 1 auto; min-width: 0;
+  font-size: 12px; font-weight: 500; letter-spacing: -0.01em;
+  color: var(--ink-60);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.ovw__acts { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; }
+
+/* 28 px : le plancher confortable au doigt sans faire de la bande une
+   barre d'outils. Sous pointeur grossier, la règle d'en bas les monte. */
+.ovw__act {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 28px; padding: 0 6px;
+  border: 0; border-radius: 7px;
+  background: transparent; color: var(--ink-60);
+  font: inherit; font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.ovw__act:hover { background: var(--film); color: var(--ink); }
+.ovw__act[disabled] { opacity: .3; cursor: default; }
+.ovw__act[disabled]:hover { background: transparent; color: var(--ink-60); }
+/* La flèche « monter » est la même que « descendre », retournée : deux
+   chemins SVG pour un seul geste, c'est deux occasions de diverger. */
+.ovw__act--up svg { transform: rotate(180deg); }
+
+/* Le widget survolé pendant un glissé. Un filet plein, pas un fond : la
+   carte a déjà un fond, et un deuxième par-dessus la faisait clignoter. */
+.ovgrid--edit .ovw.is-over { outline: 1px solid var(--ink-40); }
+
+/* --------------------------- la collection ---------------------------- */
+
+.ovgal {
+  padding: var(--sp-2);
+  border-radius: var(--r-card);
+  background: var(--film);
+}
+.ovgal__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-2); margin-bottom: 10px;
+}
+.ovgal__head .grp__title { margin-bottom: 0; }
+
+/* Deux colonnes dès qu'il y a la place : la collection compte jusqu'à
+   quatorze entrées, et quatorze lignes pleine largeur font défiler la
+   page pour un choix qui tient en un écran. */
+.ovgal__liste {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 6px;
+}
+
+.ovgal__item {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 11px 13px;
+  border: 0; border-radius: var(--r-media);
+  background: var(--panel); color: inherit;
+  font: inherit; text-align: left;
+  cursor: pointer;
+}
+.ovgal__item:hover { background: var(--raised); }
+
+.ovgal__t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ovgal__n {
+  font-size: 13.5px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink);
+}
+.ovgal__d { font-size: 12px; line-height: 1.35; color: var(--ink-60); }
+.ovgal__go { flex: 0 0 auto; color: var(--ink-40); display: flex; }
+.ovgal__item:hover .ovgal__go { color: var(--ink); }
+
+.ovgal__vide { margin: 0; font-size: 13px; color: var(--ink-60); }
+
 /* ----------------------------- le mouvement --------------------------- */
 
 /* Les transitions vivent ICI et pas en JS : anime.js sert l'entrée de la
    page, pas les changements d'état qui suivent. Et si anime.js ne charge
-   pas, ces transitions-là fonctionnent quand même. */
+   pas, ces transitions-là fonctionnent quand même.
+
+   Rien n'anime la POSITION d'un widget qu'on déplace : le réordonner
+   dans une grille CSS n'est pas une transition qu'un navigateur sait
+   interpoler, et la rejouer à la main aurait demandé de mesurer chaque
+   case avant et après — un calcul de mise en page dans une boucle, ce
+   que le reste du site s'interdit. L'opacité du widget tiré suffit à
+   dire ce qui bouge. */
 @media (prefers-reduced-motion: no-preference) {
-  .ovstep__bar::after { transition: transform .5s var(--e-out); }
   .ovline,
   .ovline__go,
   .ovtile { transition: background .18s var(--e-soft), color .18s var(--e-soft), transform .18s var(--e-out); }
+  .ovw__act,
+  .ovgal__item { transition: background .16s var(--e-soft), color .16s var(--e-soft); }
+  .ovw.is-drag { transition: opacity .12s var(--e-soft); }
 }
-html.motion-force .ovstep__bar::after { transition: transform .5s var(--e-out); }
 html.motion-force .ovline,
 html.motion-force .ovline__go,
 html.motion-force .ovtile { transition: background .18s var(--e-soft), color .18s var(--e-soft), transform .18s var(--e-out); }
+html.motion-force .ovw__act,
+html.motion-force .ovgal__item { transition: background .16s var(--e-soft), color .16s var(--e-soft); }
 
 /* ----------------------------- petit écran ---------------------------- */
 
+/* ----------------------------- petit écran ----------------------------
+
+   LA GRILLE SE REPLIE, LES LARGEURS CHOISIES NE SONT PAS PERDUES. Les
+   douzièmes sont réinterprétés en sixièmes puis en une seule colonne :
+   ce qui est enregistré reste ce qu'on a choisi, et l'écran large le
+   retrouve intact. Les écraser à la volée aurait fait d'un passage sur
+   téléphone une remise à plat du rangement. */
+
 @media (max-width: 1080px) {
-  /* Deux colonnes côte à côte sous 1080 px donnent deux colonnes de
-     320 px : la ligne « Diagnostic » y passe sur trois lignes. */
-  .ovcols { grid-template-columns: minmax(0, 1fr); }
+  /* Six colonnes : un quart devient une moitié, trois quarts deviennent
+     toute la largeur. Trois cartes à chiffre par rangée au lieu de
+     quatre — en dessous, « Le bot est là depuis » passe sur trois
+     lignes. */
+  .ovgrid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .ovw--s3  { grid-column: span 3; }
+  .ovw--s6,
+  .ovw--s9,
+  .ovw--s12 { grid-column: span 6; }
 }
 
 @media (max-width: 560px) {
-  /* Quatre barreaux sur une rangée à 375 px font 78 px chacun, et
-     « Rôle organisateur » y tient sur quatre lignes. Deux par deux, les
-     libellés redeviennent des mots. L'ordre de lecture ne change pas :
-     on lit toujours de gauche à droite, puis en dessous. */
-  /* Deux par deux, et non empilées : quatre cartes l'une sous l'autre
-     font 800 px de défilement avant d'atteindre la progression, qui
-     est pourtant ce qu'on vient lire. auto-fit ne suffit pas à le
-     faire tout seul — 190 px de minimum n'entrent pas deux fois dans
-     343 px — et abaisser ce minimum donnerait trois colonnes sur une
-     tablette, où quatre est le bon compte. */
-  .ovstats { grid-template-columns: 1fr 1fr; }
-  /* Cinq cartes deux par deux laissent la cinquième seule sur sa rangée,
-     à moitié de largeur, et le vide à sa droite se lit comme une carte
-     qui manque. Elle prend donc les deux colonnes : « il y a 2 h » n'a
-     pas besoin de plus de place, mais la rangée a besoin d'être pleine. */
-  .ovstats > .ovstat:last-child { grid-column: 1 / -1; }
+  /* Deux colonnes, et non une : quatre cartes l'une sous l'autre font
+     800 px de défilement avant d'atteindre ce qu'on vient lire. Les
+     cartes à chiffre restent donc deux par deux, tout le reste prend la
+     largeur — sept jours de semaine ou cinq lignes de gestion dans
+     171 px, ce ne sont plus des mots. */
+  .ovgrid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ovw--s3 { grid-column: span 1; }
+  .ovw--s6,
+  .ovw--s9,
+  .ovw--s12 { grid-column: 1 / -1; }
+  /* Un quart resté seul en bout de rangée laisse un vide à sa droite qui
+     se lit comme une carte manquante : il prend les deux colonnes. */
+  .ovw--s3:last-child { grid-column: 1 / -1; }
+
   /* :not(--sm) : à spécificité égale la dernière règle l'emporte, et
      sans cette exclusion « en ligne » repassait au corps des nombres. */
   .ovstat__val:not(.ovstat__val--sm) { font-size: 1.45rem; }
 
-  .ovrail { grid-template-columns: 1fr 1fr; gap: 12px 10px; }
   .ovquick { grid-template-columns: 1fr; }
   .ovtile { min-height: 0; align-items: center; }
   .ovstat { padding: 16px; }
-  .ovprog { padding: 16px; }
   /* Deux totaux côte à côte dans 343 px moins les marges : « Places
      jouées » y passait sur deux lignes et poussait son chiffre d'autant.
      L'un sous l'autre, les deux libellés redeviennent des mots. */
   .ovsem__chiffres { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .ovline { padding: 12px 14px; }
+
+  /* Le nom du widget disparaît de sa bande : à 171 px de large, il ne
+     laissait pas la place aux quatre commandes, qui sont ce dont on a
+     besoin ici. Il reste dans l'`aria-label` du widget, donc annoncé. */
+  .ovw__nom { display: none; }
+  .ovw__chrome { padding: 4px; justify-content: space-between; }
+  .ovgal__liste { grid-template-columns: minmax(0, 1fr); }
 }

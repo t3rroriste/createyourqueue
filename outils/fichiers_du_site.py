@@ -101,6 +101,10 @@ APPLICATION = COMMUN + [
     # règle rien, donc il n'emprunte ni la rangée de réglage, ni sa
     # validation, ni sa barre d'enregistrement.
     "assets/js/page-dashboard-apercu.js",
+    # Le rangement de l'écran d'arrivée : quel widget est posé, où, et de
+    # quelle largeur. À part des deux autres parce qu'il ne touche à aucun
+    # contenu — il ne fait que déplacer des blocs que d'autres remplissent.
+    "assets/js/page-dashboard-widgets.js",
     # L'API elle-même. secrets.php n'y figure pas : il se dépose à la main
     # sur le serveur et ne doit jamais partir d'ici.
     "api/index.php", "api/.htaccess", "api/secrets.exemple.php",

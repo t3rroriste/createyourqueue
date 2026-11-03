@@ -46,57 +46,13 @@
 
   var TIRET = '—';
 
-  /* ==================================================================
-     LES QUATRE PALIERS
-
-     Ce ne sont pas des étapes choisies pour faire joli : ce sont les
-     contrôles que `open_queue` fait, dans son ordre (bot/cogs/
-     dashboard_api.py). Chacun correspond à un refus que le bot renvoie
-     en 409, et c'est ce qui donne sa valeur à la barre — pleine, elle
-     dit que « Ouvrir la queue » répondra 200.
-
-     Quatre et non cinq : un palier « premier lancement » n'aurait
-     conditionné aucune ouverture, et la charge de l'API ne le porte pas.
-     ================================================================== */
-
-  var PALIERS = [
-    {
-      cle: 'ov.stepChannels', va: 'salons',
-      /* Les deux salons sans lesquels le bot n'a nulle part où publier :
-         c'est `queue_ready` qui les exige, et son échec est le 409
-         « setup_incomplete ». */
-      ok: function (r) { return plein(r, 'channel.commands') && plein(r, 'channel.announcements'); }
-    },
-    {
-      cle: 'ov.stepRole', va: 'roles',
-      ok: function (r) { return plein(r, 'role.organizer'); }
-    },
-    {
-      cle: 'ov.stepQueue', va: 'queue',
-      /* Le format enregistré. Son absence est le 409 « no_config », et
-         le bot refuse plutôt que d'inventer un format par défaut. */
-      ok: function (r) {
-        return plein(r, 'queue.name') && plein(r, 'queue.players') && plein(r, 'queue.teams');
-      }
-    },
-    {
-      cle: 'ov.stepPerms', va: 'diagnostic',
-      /* Les droits Discord. Ils ne se règlent pas dans le panneau — d'où
-         le renvoi vers Diagnostic, qui les nomme un par un. */
-      ok: function (r, g) {
-        return !(g && g.missingPermissions && g.missingPermissions.length);
-      }
-    }
-  ];
-
-  /* Les réglages arrivent à plat, avec des clés pointées : `settings`
-     porte « channel.commands », pas un objet `channel`. C'est la même
-     forme que `remplir()` consomme. */
-  function plein(reglages, cle) {
-    if (!reglages) return false;
-    var v = reglages[cle];
-    return v != null && String(v).trim() !== '';
-  }
+  /* « Prêt à lancer » vivait ici : quatre paliers et une barre, qui
+     disaient si « Ouvrir la queue » répondrait 200. Le bloc est parti,
+     et ses paliers avec lui — chacun se lit dans la section qui le
+     règle, et une barre de progression sur l'écran d'arrivée ne faisait
+     que répéter le menu de gauche. Le widget « Droits Discord » garde la
+     seule de ces quatre mesures qui ne se règle nulle part dans le
+     panneau (voir page-dashboard-widgets.js). */
 
   function nombre(n) {
     try { return Number(n).toLocaleString(CYQ.lang); } catch (e) { return String(n); }
@@ -229,57 +185,6 @@
     } catch (e) { return ''; }
   }
 
-  function rendreProgression() {
-    var rail = $('[data-ov-rail]');
-    var mot = $('[data-ov-word]');
-    var compte = $('[data-ov="steps"]');
-    if (!rail) return;
-
-    var reglages = guilde && guilde.settings;
-    var connu = !!guilde;
-
-    var faits = 0, premierManquant = null;
-    var html = '';
-
-    PALIERS.forEach(function (p) {
-      var fait = connu && p.ok(reglages, guilde);
-      if (fait) faits++;
-      else if (!premierManquant && connu) premierManquant = p;
-
-      var classes = 'ovstep';
-      if (fait) classes += ' is-done';
-      else if (connu && premierManquant === p) classes += ' is-next';
-
-      html += '<li class="' + classes + '">'
-            + '<span class="ovstep__bar"></span>'
-            + '<span class="ovstep__lab">' + esc(t(p.cle)) + '</span>'
-            + '</li>';
-    });
-    rail.innerHTML = html;
-
-    if (compte) {
-      compte.textContent = connu
-        ? t('ov.steps', { n: faits, total: PALIERS.length })
-        : '';
-    }
-
-    if (!mot) return;
-    if (!connu) {
-      /* Pas d'API, ou chargement échoué : on ne prétend ni que tout va
-         bien, ni que quelque chose manque. On dit qu'on ne sait pas. */
-      mot.innerHTML = esc(t('ov.unknown'));
-    } else if (!premierManquant) {
-      mot.innerHTML = esc(t('ov.ready'));
-    } else {
-      /* Un seul lien, celui du premier palier manquant. Lister les
-         quatre reproduirait le menu, qui est déjà à gauche. */
-      mot.innerHTML = esc(t('ov.missing')) + ' '
-        + '<a href="#' + esc(premierManquant.va) + '" data-ov-goto="'
-        + esc(premierManquant.va) + '">' + esc(t(premierManquant.cle)) + '</a>';
-      brancherLiens(mot);
-    }
-  }
-
   /* ==================================================================
      LA SEMAINE
 
@@ -396,7 +301,6 @@
 
   function rendre() {
     rendreChiffres();
-    rendreProgression();
     rendreSemaine();
   }
 

@@ -130,16 +130,6 @@ window.CYQ_I18N.fr = {
   "ov.matchesCap": "les {n} dernières",
   "ov.last": "Dernière queue",
   "ov.lastNone": "aucune pour l'instant",
-  "ov.bot": "Le bot",
-  "ov.setup": "Prêt à lancer",
-  "ov.steps": "{n} sur {total}",
-  "ov.stepChannels": "Salons",
-  "ov.stepRole": "Rôle organisateur",
-  "ov.stepQueue": "Format de queue",
-  "ov.stepPerms": "Droits Discord",
-  "ov.ready": "Tout est en place : « Ouvrir la queue » fonctionnera.",
-  "ov.missing": "Il reste à régler :",
-  "ov.unknown": "Sans réponse de l'API, l'état de la configuration ne se mesure pas.",
   "ov.agoNow": "à l'instant",
   "ov.agoMin": "il y a {n} min",
   "ov.agoHour": "il y a {n} h",
@@ -162,6 +152,93 @@ window.CYQ_I18N.fr = {
      en entier. Les lignes elles-mêmes réemploient les clés jo.* — c'est
      le même relevé, il n'a pas à se nommer deux fois. */
   "ov.recent": "Activité récente", "ov.seeAll": "Tout voir",
+
+  /* ------------------------------------------------------------------
+     RANGER SON TABLEAU DE BORD
+
+     La disposition est propre à chaque navigateur et à chaque serveur :
+     ce n'est pas un réglage du bot, et aucune de ces phrases ne part
+     chez lui. Elles nomment des gestes — poser, retirer, déplacer,
+     élargir — et le libellé d'un geste se lit à l'impératif dans les
+     cinq langues.
+     ------------------------------------------------------------------ */
+  "ov.customize": "Personnaliser",
+  "ov.customizeDone": "Terminé",
+  "ov.addWidget": "Ajouter un widget",
+  "ov.reset": "Réinitialiser",
+  "ov.resetDone": "Disposition d'origine rétablie.",
+  "ov.editOn": "Mode personnalisation",
+  "ov.editOff": "Personnalisation terminée",
+  "ov.gallery": "Collection de widgets",
+  "ov.galleryEmpty": "Tous les widgets sont déjà posés.",
+  "ov.allRemoved": "Ce tableau de bord est vide. « Personnaliser », puis « Ajouter un widget ».",
+
+  "ov.wUp": "Monter",
+  "ov.wDown": "Descendre",
+  "ov.wSize": "Largeur",
+  "ov.wRemove": "Retirer",
+  "ov.moved": "Déplacé en position {n} sur {total}",
+  "ov.added": "{nom} ajouté",
+  "ov.removed": "{nom} retiré",
+
+  "ov.sizeQuarter": "Un quart",
+  "ov.sizeHalf": "Une moitié",
+  "ov.sizeThree": "Trois quarts",
+  "ov.sizeFull": "Toute la largeur",
+
+  /* Le nom et la phrase de chaque widget dans la collection. La phrase
+     dit ce qu'on gagne à le poser, pas ce qu'il contient : « Boosts » se
+     lit déjà sur la carte. */
+  "ov.wMembers": "Membres",
+  "ov.wMembersD": "Combien de membres compte ce serveur.",
+  "ov.wBoosts": "Boosts",
+  "ov.wBoostsD": "Les boosts Discord du serveur, lus par le bot.",
+  "ov.wSince": "Le bot est là depuis",
+  "ov.wSinceD": "Depuis quand le bot a rejoint ce serveur.",
+  "ov.wMatches": "Queues en mémoire",
+  "ov.wMatchesD": "Combien de queues passées le bot garde encore.",
+  "ov.wLast": "Dernière queue",
+  "ov.wLastD": "Quand une queue a été lancée pour la dernière fois.",
+  "ov.wQuick": "Aller droit au but",
+  "ov.wQuickD": "Trois raccourcis vers les sections les plus ouvertes.",
+  "ov.wWeek": "La semaine",
+  "ov.wWeekD": "Les sept derniers jours : ce qui a eu lieu, ce qui est prévu.",
+  "ov.wJournal": "Activité récente",
+  "ov.wJournalD": "Les derniers changements, qui les a faits et quand.",
+  "ov.wManage": "Gérer ce serveur",
+  "ov.wManageD": "Les cinq écrans de suivi, en liste.",
+  "ov.wServer": "Le serveur",
+  "ov.wServerD": "Nom, membres, identifiant et langue du bot.",
+  "ov.wFormat": "Format de queue",
+  "ov.wFormatD": "Ce que « Ouvrir la queue » lancera sans rien demander.",
+  "ov.wChannels": "Salons et rôles",
+  "ov.wChannelsD": "Où le bot publie, et qui a le droit d'organiser.",
+  "ov.wSchedule": "Ouverture automatique",
+  "ov.wScheduleD": "Les jours et l'heure des ouvertures programmées.",
+  "ov.wPerms": "Droits Discord",
+  "ov.wPermsD": "Ce que Discord refuse au bot sur ce serveur.",
+
+  /* Les lignes des fiches. « non réglé » et le tiret cadratin ne disent
+     pas la même chose : l'un est une configuration vide, l'autre une
+     absence de réponse. Les traduire pareil effacerait la différence. */
+  "ov.unset": "non réglé",
+  "ov.unknownShort": "le bot ne répond pas",
+  "ov.fServerName": "Nom",
+  "ov.fServerId": "Identifiant",
+  "ov.fLang": "Langue du bot",
+  "ov.fQueueName": "Nom de la queue",
+  "ov.fPlayers": "Joueurs",
+  "ov.fTeams": "Équipes",
+  "ov.fType": "Type",
+  "ov.fAuto": "Ouverture automatique",
+  "ov.fDays": "Jours",
+  "ov.fTime": "Heure",
+  "ov.fPreset": "Preset",
+  "ov.fNone": "aucun",
+  "ov.fPermsState": "État",
+  "ov.fPermsMissing": "{n} droit(s) manquant(s)",
+  "ov.fPermsList": "Manquants",
+  "ov.fPermsHow": "Pourquoi",
 
   "s.config": "Configurations",
   "s.configD": "La langue du bot et son identité sur ce serveur.",

@@ -10,7 +10,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202611021903"></script>
+<script src="assets/js/theme-tot.js?v=202611031131"></script>
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,8 +18,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202611021903">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202611021903">
+<link rel="stylesheet" href="assets/css/home.css?v=202611031131">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202611031131">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -325,9 +325,21 @@
            C'est ce qui lui permet de ne jamais porter de barre
            d'enregistrement. -->
       <section class="sec" data-section="apercu" aria-labelledby="h-apercu" hidden>
-        <header class="sec__head">
-          <h1 class="sec__title" id="h-apercu" data-i18n="s.overview">Dashboard</h1>
-          <p class="lead sec__lead" data-i18n="s.overviewD"></p>
+        <header class="sec__head sec__head--ov">
+          <div class="sec__headtxt">
+            <h1 class="sec__title" id="h-apercu" data-i18n="s.overview">Dashboard</h1>
+            <p class="lead sec__lead" data-i18n="s.overviewD"></p>
+          </div>
+
+          <!-- LA BARRE DE PERSONNALISATION.
+
+               Elle est ÉCRITE PAR LE SCRIPT, pas ici : hors mode édition
+               elle ne porte qu'un bouton, en mode édition quatre, et les
+               quatre n'existent que tant que le mode dure. Les poser en
+               dur dans la page aurait demandé de les cacher un par un à
+               chaque bascule — cinq occasions d'en oublier un visible.
+               page-dashboard-widgets.js la remplit. -->
+          <div class="ovbar" data-ov-bar></div>
         </header>
 
         <!-- `ovbody` et non `sec__body` : au-dessus de 1240 px,
@@ -337,121 +349,158 @@
              écrasait tout le reste sur la moitié de la largeur. -->
         <div class="ovbody">
 
-          <!-- LES CINQ CHIFFRES DU SERVEUR.
+          <!-- ================== LA GRILLE DE WIDGETS ==================
 
-               Aucun n'est calculé ici : ils viennent de l'API. Sans elle,
-               ils gardent leur tiret cadratin — un zéro se lirait comme
-               une mesure, et ce serait faux.
+               Chaque bloc de cet écran est un widget : il s'enlève, il se
+               remet, il se déplace et il change de largeur. Ce que la
+               page garde en mémoire — l'ordre, les largeurs, ce qui est
+               posé et ce qui dort — vit dans le navigateur, par serveur
+               (voir page-dashboard-widgets.js).
 
-               « Le bot » a quitté cette rangée : son état est dit au pied
-               du menu, depuis n'importe quelle section, et non plus
-               seulement ici. Deux boosts et une date d'arrivée ont pris
-               sa place — ce sont les deux choses qu'on regarde en
-               rouvrant un serveur qu'on n'avait pas ouvert depuis
-               longtemps.
+               TOUS LES WIDGETS SONT ÉCRITS ICI, y compris ceux qui ne
+               sont pas posés au départ. Un widget retiré est `hidden`, il
+               n'est pas détruit : son contenu continue d'être rempli par
+               les scripts qui le connaissent — page-dashboard-memoire.js
+               écrit dans `[data-ov-journal]`, page-dashboard-apercu.js
+               dans `[data-ov="members"]` — et le remettre n'a donc rien à
+               recharger. Fabriquer ces blocs en JS aurait obligé ces deux
+               scripts-là à redessiner au bon moment, ce qu'ils n'ont
+               aucun moyen de savoir.
 
-               Boosts et ancienneté viennent du BOT et de lui seul : ils
-               valent `null` quand il dort, et la carte garde alors son
-               tiret. Un « 0 boost » affiché parce que le bot ne répond
-               pas serait un chiffre faux présenté comme une mesure. -->
-          <div class="ovstats">
-            <div class="ovstat">
-              <p class="ovstat__lab" data-i18n="ov.members">Membres</p>
-              <p class="ovstat__val" data-ov="members">—</p>
-            </div>
-            <div class="ovstat">
-              <p class="ovstat__lab" data-i18n="ov.boosts">Boosts</p>
-              <p class="ovstat__val" data-ov="boosts">—</p>
-            </div>
-            <div class="ovstat">
-              <p class="ovstat__lab" data-i18n="ov.since">Le bot est là depuis</p>
-              <p class="ovstat__val ovstat__val--sm" data-ov="since">—</p>
-              <p class="ovstat__meta" data-ov="sinceMeta"></p>
-            </div>
-            <div class="ovstat">
-              <p class="ovstat__lab" data-i18n="ov.matches">Queues en mémoire</p>
-              <p class="ovstat__val" data-ov="matches">—</p>
-              <p class="ovstat__meta" data-ov="matchesMeta"></p>
-            </div>
-            <div class="ovstat">
-              <p class="ovstat__lab" data-i18n="ov.last">Dernière queue</p>
-              <p class="ovstat__val ovstat__val--sm" data-ov="last">—</p>
-            </div>
-          </div>
+               L'ORDRE DU DOM N'EST PAS L'ORDRE AFFICHÉ : le script range
+               les widgets selon la disposition enregistrée. Celui écrit
+               ici est la disposition par défaut, et c'est elle qu'on
+               retrouve en cliquant « Réinitialiser ».
 
-          <div class="ovprog" data-ov-prog>
-            <div class="ovprog__head">
-              <h2 class="ovprog__title" data-i18n="ov.setup">Prêt à lancer</h2>
-              <p class="ovprog__count" data-ov="steps"></p>
-            </div>
-            <ol class="ovrail" data-ov-rail></ol>
-            <p class="ovprog__word" data-ov-word></p>
-          </div>
+               « Prêt à lancer » n'est plus là. Les quatre paliers qu'il
+               mesurait se lisent chacun dans leur section, et une barre
+               de progression sur l'écran d'arrivée répétait le menu. -->
+          <div class="ovgrid" data-ov-grid>
 
-          <div class="ovjrn">
-            <div class="ovjrn__head">
-              <h2 class="grp__title" data-i18n="ov.recent">Activité récente</h2>
-              <a class="ovjrn__all underlined" href="#journal" data-ov-goto="journal"
-                 data-i18n="ov.seeAll">Tout voir</a>
-            </div>
-            <div class="grp__card" data-ov-journal></div>
-          </div>
+            <!-- LES CHIFFRES DU SERVEUR, un widget chacun.
 
-          <!-- LA SEMAINE.
+                 Aucun n'est calculé ici : ils viennent de l'API. Sans
+                 elle, ils gardent leur tiret cadratin — un zéro se
+                 lirait comme une mesure, et ce serait faux.
 
-               Deux chiffres et sept jours, et rien d'autre. Les chiffres
-               viennent de `GET /guilds/{id}/activity?days=7` : `opened`,
-               les files ouvertes, et `playerSlots`, le total des places
-               jouées — des PLACES et non des personnes, quelqu'un qui
-               joue trois soirs y compte trois fois, et le libellé le dit.
+                 Boosts et ancienneté viennent du BOT et de lui seul :
+                 ils valent `null` quand il dort, et la carte garde alors
+                 son tiret. Un « 0 boost » affiché parce que le bot ne
+                 répond pas serait un chiffre faux présenté comme une
+                 mesure. -->
+            <article class="ovw ovw--s3" data-w="membres" data-w-size="3">
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.members">Membres</p>
+                <p class="ovstat__val" data-ov="members">—</p>
+              </div>
+            </article>
 
-               Les sept jours portent DEUX marques, qui ne disent pas la
-               même chose et ne doivent donc pas se ressembler :
+            <article class="ovw ovw--s3" data-w="boosts" data-w-size="3">
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.boosts">Boosts</p>
+                <p class="ovstat__val" data-ov="boosts">—</p>
+              </div>
+            </article>
 
-                 · à gauche, ce qui a eu lieu — le nombre de files
-                   lancées ce jour-là, lu dans `byDay` ;
-                 · à droite, l'encoche de ce qui est PRÉVU — les jours
-                   que `schedule.days` coche, quand l'ouverture
-                   automatique est allumée.
+            <article class="ovw ovw--s3" data-w="anciennete" data-w-size="3">
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.since">Le bot est là depuis</p>
+                <p class="ovstat__val ovstat__val--sm" data-ov="since">—</p>
+                <p class="ovstat__meta" data-ov="sinceMeta"></p>
+              </div>
+            </article>
 
-               Un jour peut donc être prévu sans rien, ou plein sans être
-               prévu : ce sont deux informations indépendantes, et les
-               confondre en une seule colonne aurait fait croire qu'une
-               file lancée à la main était une file programmée.
+            <article class="ovw ovw--s3" data-w="queues" data-w-size="3">
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.matches">Queues en mémoire</p>
+                <p class="ovstat__val" data-ov="matches">—</p>
+                <p class="ovstat__meta" data-ov="matchesMeta"></p>
+              </div>
+            </article>
 
-               Tout est écrit par le script : les noms des jours changent
-               avec la langue, et la semaine ne commence pas le même jour
-               partout. Sans API, la liste reste vide et le dit. -->
-          <div class="ovsem">
-            <div class="ovsem__head">
-              <h2 class="grp__title" data-i18n="ov.week">La semaine</h2>
-              <p class="ovsem__date" data-ov-today></p>
-            </div>
-            <div class="grp__card grp__card--pad">
-              <div class="ovsem__chiffres">
-                <div class="ovsem__n">
-                  <p class="ovstat__lab" data-i18n="ov.opened">Queues ouvertes</p>
-                  <p class="ovstat__val" data-ov="opened">—</p>
+            <article class="ovw ovw--s3" data-w="derniere" data-w-size="3">
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.last">Dernière queue</p>
+                <p class="ovstat__val ovstat__val--sm" data-ov="last">—</p>
+              </div>
+            </article>
+
+            <article class="ovw ovw--s9" data-w="raccourcis" data-w-size="9">
+              <h2 class="grp__title" data-i18n="ov.quick">Aller droit au but</h2>
+              <div class="ovquick">
+                <a class="ovtile" href="#presets" data-ov-goto="presets"><span data-i18n="s.presets">Presets</span></a>
+                <a class="ovtile" href="#classement" data-ov-goto="classement"><span data-i18n="fn.leaderboard">Classement</span></a>
+                <a class="ovtile" href="#salons" data-ov-goto="salons"><span data-i18n="s.channels">Salons</span></a>
+              </div>
+            </article>
+
+            <!-- LA SEMAINE.
+
+                 Deux chiffres et sept jours, et rien d'autre. Les
+                 chiffres viennent de `GET /guilds/{id}/activity?days=7` :
+                 `opened`, les files ouvertes, et `playerSlots`, le total
+                 des places jouées — des PLACES et non des personnes,
+                 quelqu'un qui joue trois soirs y compte trois fois, et le
+                 libellé le dit.
+
+                 Les sept jours portent DEUX marques, qui ne disent pas la
+                 même chose et ne doivent donc pas se ressembler :
+
+                   · à gauche, ce qui a eu lieu — le nombre de files
+                     lancées ce jour-là, lu dans `byDay` ;
+                   · à droite, l'encoche de ce qui est PRÉVU — les jours
+                     que `schedule.days` coche, quand l'ouverture
+                     automatique est allumée.
+
+                 Un jour peut donc être prévu sans rien, ou plein sans
+                 être prévu : ce sont deux informations indépendantes, et
+                 les confondre en une seule colonne aurait fait croire
+                 qu'une file lancée à la main était une file programmée.
+
+                 Tout est écrit par le script : les noms des jours
+                 changent avec la langue, et la semaine ne commence pas le
+                 même jour partout. Sans API, la liste reste vide et le
+                 dit. -->
+            <article class="ovw ovw--s6" data-w="semaine" data-w-size="6">
+              <div class="ovsem">
+                <div class="ovsem__head">
+                  <h2 class="grp__title" data-i18n="ov.week">La semaine</h2>
+                  <p class="ovsem__date" data-ov-today></p>
                 </div>
-                <div class="ovsem__n">
-                  <p class="ovstat__lab" data-i18n="ov.slots">Places jouées</p>
-                  <p class="ovstat__val" data-ov="slots">—</p>
+                <div class="grp__card grp__card--pad">
+                  <div class="ovsem__chiffres">
+                    <div class="ovsem__n">
+                      <p class="ovstat__lab" data-i18n="ov.opened">Queues ouvertes</p>
+                      <p class="ovstat__val" data-ov="opened">—</p>
+                    </div>
+                    <div class="ovsem__n">
+                      <p class="ovstat__lab" data-i18n="ov.slots">Places jouées</p>
+                      <p class="ovstat__val" data-ov="slots">—</p>
+                    </div>
+                  </div>
+
+                  <ol class="ovsem__jours" data-ov-week></ol>
+
+                  <p class="ovsem__leg">
+                    <span class="ovsem__leglab"><span class="ovsem__coche" aria-hidden="true"></span><span data-i18n="ov.legPlanned">Programmée</span></span>
+                    <span class="ovsem__leglab" data-i18n="ov.legRun">Chiffre : files lancées</span>
+                  </p>
                 </div>
               </div>
+            </article>
 
-              <ol class="ovsem__jours" data-ov-week></ol>
+            <article class="ovw ovw--s6" data-w="activite" data-w-size="6">
+              <div class="ovjrn">
+                <div class="ovjrn__head">
+                  <h2 class="grp__title" data-i18n="ov.recent">Activité récente</h2>
+                  <a class="ovjrn__all underlined" href="#journal" data-ov-goto="journal"
+                     data-i18n="ov.seeAll">Tout voir</a>
+                </div>
+                <div class="grp__card" data-ov-journal></div>
+              </div>
+            </article>
 
-              <p class="ovsem__leg">
-                <span class="ovsem__leglab"><span class="ovsem__coche" aria-hidden="true"></span><span data-i18n="ov.legPlanned">Programmée</span></span>
-                <span class="ovsem__leglab" data-i18n="ov.legRun">Chiffre : files lancées</span>
-              </p>
-            </div>
-          </div>
-
-          <div class="ovcols">
-
-
-            <div class="ovcol">
+            <article class="ovw ovw--s12" data-w="gerer" data-w-size="12">
               <h2 class="grp__title" data-i18n="ov.manage">Gérer ce serveur</h2>
               <div class="grp__card">
                 <a class="ovline" href="#diagnostic" data-ov-goto="diagnostic">
@@ -475,18 +524,67 @@
                   <span class="ovline__go" aria-hidden="true">→</span>
                 </a>
               </div>
-            </div>
+            </article>
 
-            <div class="ovcol">
-              <h2 class="grp__title" data-i18n="ov.quick">Aller droit au but</h2>
-              <div class="ovquick">
-                <a class="ovtile" href="#presets" data-ov-goto="presets"><span data-i18n="s.presets">Presets</span></a>
-                <a class="ovtile" href="#classement" data-ov-goto="classement"><span data-i18n="fn.leaderboard">Classement</span></a>
-                <a class="ovtile" href="#salons" data-ov-goto="salons"><span data-i18n="s.channels">Salons</span></a>
+            <!-- ============ CEUX QUI DORMENT DANS LA COLLECTION ========
+
+                 Hors de la disposition par défaut, donc `hidden` au
+                 départ. Ils sont écrits ici pour la même raison que les
+                 autres : leur contenu est rempli par un script qui n'a
+                 pas à savoir quand on les pose.
+
+                 Leurs tableaux de faits sont vides dans la page et
+                 remplis par page-dashboard-widgets.js : ce sont des
+                 phrases qui changent avec la langue ET avec les
+                 réglages, donc rien d'écrivable en dur. -->
+
+            <article class="ovw ovw--s6" data-w="serveur" data-w-size="6" hidden>
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.wServer">Le serveur</p>
+                <dl class="ovfacts" data-ov-facts="serveur"></dl>
               </div>
-            </div>
+            </article>
+
+            <article class="ovw ovw--s6" data-w="format" data-w-size="6" hidden>
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.wFormat">Format de queue</p>
+                <dl class="ovfacts" data-ov-facts="format"></dl>
+              </div>
+            </article>
+
+            <article class="ovw ovw--s6" data-w="salons" data-w-size="6" hidden>
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.wChannels">Salons et rôles</p>
+                <dl class="ovfacts" data-ov-facts="salons"></dl>
+              </div>
+            </article>
+
+            <article class="ovw ovw--s6" data-w="programmation" data-w-size="6" hidden>
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.wSchedule">Ouverture automatique</p>
+                <dl class="ovfacts" data-ov-facts="programmation"></dl>
+              </div>
+            </article>
+
+            <article class="ovw ovw--s6" data-w="droits" data-w-size="6" hidden>
+              <div class="ovstat">
+                <p class="ovstat__lab" data-i18n="ov.wPerms">Droits Discord</p>
+                <dl class="ovfacts" data-ov-facts="droits"></dl>
+              </div>
+            </article>
 
           </div>
+
+          <!-- Tout retiré : la grille est vide, et une page vide sans un
+               mot se lit comme une panne. Le script le montre alors. -->
+          <p class="ovgrid__vide" data-ov-vide hidden></p>
+
+          <!-- LA COLLECTION.
+
+               Écrite par le script, parce que son contenu est exactement
+               « ce qui n'est pas posé » — une liste qui change à chaque
+               ajout et à chaque retrait. -->
+          <div class="ovgal" data-ov-gal hidden></div>
         </div>
       </section>
 
@@ -1997,16 +2095,17 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202611021903"></script>
-<script src="assets/js/config.js?v=202611021903"></script>
-<script src="assets/js/lang/fr.js?v=202611021903"></script>
-<script src="assets/js/lang/en.js?v=202611021903"></script>
-<script src="assets/js/lang/es.js?v=202611021903"></script>
-<script src="assets/js/lang/de.js?v=202611021903"></script>
-<script src="assets/js/lang/ko.js?v=202611021903"></script>
-<script src="assets/js/app.js?v=202611021903"></script>
-<script src="assets/js/page-dashboard.js?v=202611021903"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202611021903"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202611021903"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202611031131"></script>
+<script src="assets/js/config.js?v=202611031131"></script>
+<script src="assets/js/lang/fr.js?v=202611031131"></script>
+<script src="assets/js/lang/en.js?v=202611031131"></script>
+<script src="assets/js/lang/es.js?v=202611031131"></script>
+<script src="assets/js/lang/de.js?v=202611031131"></script>
+<script src="assets/js/lang/ko.js?v=202611031131"></script>
+<script src="assets/js/app.js?v=202611031131"></script>
+<script src="assets/js/page-dashboard.js?v=202611031131"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202611031131"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202611031131"></script>
+<script src="assets/js/page-dashboard-widgets.js?v=202611031131"></script>
 </body>
 </html>

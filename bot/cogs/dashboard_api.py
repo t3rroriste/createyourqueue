@@ -291,6 +291,20 @@ class DashboardAPI(commands.Cog):
         await web.TCPSite(self.runner, DASHBOARD_API_HOST, DASHBOARD_API_PORT).start()
         log.info(f"API du tableau de bord sur {DASHBOARD_API_HOST}:{DASHBOARD_API_PORT}")
 
+        # Le port effectif est écrit en clair dans la console de l'hébergeur,
+        # et il le dit quand il ne vient PAS de `.env` : c'est la seule
+        # trace qui permette de recopier la bonne valeur dans
+        # `bot_api_base` du site sans aller la chercher dans le panneau.
+        # Sans elle, le 2 novembre 2026, il a fallu déduire le port d'un
+        # balayage depuis l'extérieur.
+        demande = os.getenv("DASHBOARD_API_PORT", "").strip()
+        if demande.isdigit() and int(demande) != DASHBOARD_API_PORT:
+            log.warning(
+                "DASHBOARD_API_PORT=%s est ignoré : l'hébergeur n'expose que "
+                "l'allocation %s. Mets « bot_api_base » du site sur ce "
+                "port-là.", demande, DASHBOARD_API_PORT,
+            )
+
     async def cog_unload(self) -> None:
         if self.runner:
             await self.runner.cleanup()

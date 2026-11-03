@@ -117,7 +117,39 @@ DIAGNOSTIC_CHANNEL_ID = int(os.getenv("DIAGNOSTIC_CHANNEL_ID", "0"))
 DASHBOARD_URL = os.getenv("DASHBOARD_URL", "").strip() or "https://dashboard.cyqbot.eu"
 DASHBOARD_API_KEY  = os.getenv("DASHBOARD_API_KEY", "").strip()
 DASHBOARD_API_HOST = os.getenv("DASHBOARD_API_HOST", "0.0.0.0")
-DASHBOARD_API_PORT = int(os.getenv("DASHBOARD_API_PORT", "8080"))
+
+
+def _port_du_tableau_de_bord() -> int:
+    """Le port que le bot ouvre pour le site.
+
+    L'HÉBERGEUR A LE DERNIER MOT, et ce n'est pas un détail de confort :
+    chez AdKyNet (Pterodactyl), seule l'allocation du serveur est
+    redirigée depuis l'extérieur. Un port écrit à la main dans `.env` qui
+    ne serait pas cette allocation fait écouter le bot derrière une porte
+    que personne ne peut ouvrir — le site appelle, rien ne répond, et le
+    panneau affiche « Le bot ne répond pas » sans que le bot soit en
+    panne.
+
+    C'est exactement ce qui est arrivé le 2 novembre 2026, après la
+    recréation du serveur : le `.env` refait à la main portait le 8080 du
+    modèle, alors que 8080 est le port du démon de l'hébergeur, jamais une
+    allocation. Le bot tournait, son API écoutait, et elle était
+    injoignable.
+
+    Pterodactyl pose l'allocation dans SERVER_PORT. On la préfère donc à
+    DASHBOARD_API_PORT au lieu de l'inverse : les deux valeurs ne peuvent
+    plus diverger, et il n'y a plus rien à recopier.
+
+    Ailleurs — une machine ordinaire, Railway, le PC de développement —
+    SERVER_PORT n'existe pas et DASHBOARD_API_PORT reprend la main.
+    """
+    alloue = os.getenv("SERVER_PORT", "").strip()
+    if alloue.isdigit() and 0 < int(alloue) < 65536:
+        return int(alloue)
+    return int(os.getenv("DASHBOARD_API_PORT", "8080"))
+
+
+DASHBOARD_API_PORT = _port_du_tableau_de_bord()
 
 # ---------------------------------------------------------
 # Couleurs des embeds
