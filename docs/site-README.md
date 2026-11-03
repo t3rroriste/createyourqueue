@@ -456,6 +456,46 @@ Les polices (Archivo et IBM Plex Mono) sont chargées depuis Google Fonts. Si
 tu préfères les héberger toi-même, remplace le `<link>` en tête des trois
 pages par tes propres `@font-face`.
 
+## Le tableau de bord se range comme on veut
+
+L'écran d'arrivée du panneau (`dashboard.html`, section `apercu`) est une
+grille de widgets : on en pose, on en retire, on les déplace, on change
+leur largeur. `assets/js/page-dashboard-widgets.js` tient la disposition ;
+le CONTENU des widgets reste écrit par les scripts qui l'écrivaient déjà.
+
+**Les widgets ne sont ni fabriqués ni détruits.** Ils sont tous dans
+`dashboard.html`, y compris les cinq que la disposition par défaut ne pose
+pas. Retirer un widget le passe en `hidden`, le poser le rend visible —
+c'est ce qui permet à `page-dashboard-apercu.js` et
+`page-dashboard-memoire.js` d'écrire dedans sans jamais se demander si
+leur hôte existe.
+
+**Ajouter un widget**, c'est donc deux gestes : écrire son `<article
+class="ovw" data-w="…">` dans la grille, et ajouter sa ligne au
+`CATALOGUE` du script (identifiant, clé de nom, clé de description,
+largeur de départ). L'identifiant est une CLÉ : il est écrit dans les
+dispositions déjà enregistrées, et le renommer les casse.
+
+**La disposition vit dans le navigateur**, par serveur
+(`localStorage`, clé `cyq.widgets.<guildId>`), et pas chez le bot. Ce
+n'est pas un réglage du serveur Discord : deux organisateurs du même
+serveur ne rangent pas leur écran pareil. Elle n'a donc **aucun pont
+`PONT_*`** à tenir d'accord dans `api/index.php` — et elle se relit même
+quand le bot ne répond pas.
+
+**Les largeurs sont des douzièmes** (3, 6, 9, 12) et c'est la feuille de
+style qui les traduit : un quart devient une moitié sous 1080 px et toute
+la largeur sous 560 px. Le script ne refait pas ce calcul, il LIT la
+portée que le CSS donne et ne repose que le complément qui finit la
+rangée — sans quoi une carte restait seule avec un trou à sa droite. Ce
+qui est enregistré, lui, ne bouge jamais : l'écran large retrouve le
+rangement intact.
+
+**« Prêt à lancer » n'existe plus.** Ses quatre paliers se lisent chacun
+dans la section qui les règle, et une barre de progression sur l'écran
+d'arrivée répétait le menu de gauche. Le seul des quatre qui ne se règle
+nulle part dans le panneau — les droits Discord — est resté, en widget.
+
 ## Ce qui est volontaire dans ce design
 
 - **Noir et blanc, les deux couleurs du logo.** Le crème du disque

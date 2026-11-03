@@ -2536,6 +2536,11 @@ html.motion-force .ovgal__item { transition: background .16s var(--e-soft), colo
   .ovsem__chiffres { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .ovline { padding: 12px 14px; }
 
+  /* La poignée disparaît : à 158 px de large, la bande ne tient pas ses
+     quatre commandes avec elle, et le glisser-déposer qu'elle annonce
+     n'existe pas au doigt — c'est « Monter » et « Descendre » qui
+     déplacent ici. Les commandes, elles, restent toutes. */
+  .ovw__grip { display: none; }
   .ovw__chrome { padding: 4px; }
   .ovgal__liste { grid-template-columns: minmax(0, 1fr); }
 }
