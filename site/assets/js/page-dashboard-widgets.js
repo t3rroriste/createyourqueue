@@ -199,7 +199,105 @@
       motVide.hidden = dispo.length > 0;
       motVide.textContent = dispo.length ? '' : t('ov.allRemoved');
     }
+
+    combler();
   }
+
+  /* ==================================================================
+     LES RANGÉES SE TERMINENT
+
+     Une largeur choisie ne tombe pas juste à toutes les tailles d'écran.
+     Cinq quarts de largeur suivis d'un bloc pleine page font, sur un
+     téléphone où un quart vaut une demi-colonne, deux rangées pleines
+     puis une carte SEULE avec un trou à sa droite — et un trou en bout
+     de rangée se lit comme une carte qui manque, pas comme un choix.
+
+     On répartit donc ce qui reste sur les widgets de la rangée, en
+     commençant par le dernier. Jamais en retirant : une case ne fait que
+     grandir pour finir sa rangée, et la largeur enregistrée, elle, ne
+     bouge pas — l'écran large la retrouve intacte.
+
+     LES LARGEURS VIENNENT DE LA FEUILLE DE STYLE, pas d'un calcul. Un
+     quart devient une moitié sous 1080 px et toute la largeur sous
+     560 px : ce sont des décisions de mise en page, pas des divisions,
+     et les refaire ici aurait posé une deuxième liste de points de
+     rupture à tenir d'accord avec la première. On EFFACE donc ce qu'on
+     avait posé, on LIT ce que le CSS donne, et on ne repose que le
+     complément.
+     ================================================================== */
+
+  function colonnes() {
+    var c = '';
+    try { c = getComputedStyle(grille).gridTemplateColumns || ''; } catch (e) { return 12; }
+    var n = c.split(' ').filter(function (x) { return x; }).length;
+    return n > 0 ? n : 12;
+  }
+
+  /* `grid-column: span 3` pose la portée sur le DÉBUT et laisse la fin à
+     `auto` — lire la fin seule rendait « auto » pour tout le monde, donc
+     une colonne pour tout le monde, et la rangée se remplissait de
+     travers. On lit les deux, le début d'abord. */
+  function portee(el) {
+    var st;
+    try { st = getComputedStyle(el); } catch (e) { return 1; }
+    var m = /span\s+(\d+)/.exec(st.gridColumnStart || '') ||
+            /span\s+(\d+)/.exec(st.gridColumnEnd || '');
+    return m ? parseInt(m[1], 10) : 1;
+  }
+
+  var colonnesVues = 0;
+
+  function combler() {
+    var poses = [];
+    dispo.forEach(function (w) {
+      var el = noeud(w.id);
+      if (!el) return;
+      el.style.gridColumn = '';     /* d'abord effacer : sinon on relit
+                                       le complément du passage précédent */
+      poses.push(el);
+    });
+    if (!poses.length) return;
+
+    var cols = colonnesVues = colonnes();
+    var rangees = [], rangee = [], reste = cols;
+
+    poses.forEach(function (el) {
+      var span = Math.max(1, Math.min(cols, portee(el)));
+      if (span > reste) {
+        rangees.push({ cases: rangee, reste: reste });
+        rangee = []; reste = cols;
+      }
+      rangee.push({ el: el, span: span, nat: span });
+      reste -= span;
+    });
+    rangees.push({ cases: rangee, reste: reste });
+
+    rangees.forEach(function (r) {
+      /* Une colonne à la fois, en partant de la fin : donner tout le
+         reste au dernier aurait fait d'un quart de largeur un trois
+         quarts dès qu'il finissait une rangée à moitié vide. */
+      var i = r.cases.length - 1;
+      while (r.reste > 0 && r.cases.length) {
+        r.cases[i].span++;
+        r.reste--;
+        i = i === 0 ? r.cases.length - 1 : i - 1;
+      }
+      /* `nat` est la largeur lue AVANT tout complément : relire le style
+         calculé ici rendrait ce qu'on vient d'écrire. */
+      r.cases.forEach(function (c) {
+        if (c.span !== c.nat) c.el.style.gridColumn = 'span ' + c.span;
+      });
+    });
+  }
+
+  /* La fenêtre change de largeur : la feuille de style redistribue les
+     colonnes, et les compléments d'hier ne valent plus. On ne refait le
+     calcul que si le NOMBRE de colonnes a bougé — redimensionner une
+     fenêtre produit des dizaines d'évènements, et la quasi-totalité ne
+     change rien à la grille. */
+  window.addEventListener('resize', function () {
+    if (colonnes() !== colonnesVues) combler();
+  });
 
   function enregistrer() {
     ecrire(dispo);

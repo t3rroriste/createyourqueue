@@ -2513,14 +2513,15 @@ html.motion-force .ovgal__item { transition: background .16s var(--e-soft), colo
      cartes à chiffre restent donc deux par deux, tout le reste prend la
      largeur — sept jours de semaine ou cinq lignes de gestion dans
      171 px, ce ne sont plus des mots. */
+  /* Toujours `span N`, jamais `1 / -1` : le script LIT cette largeur
+     pour finir les rangées, et une case posée de la première à la
+     dernière colonne ne porte aucune portée à lire. Le trou en bout de
+     rangée serait revenu, sans que rien ne le dise. */
   .ovgrid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .ovw--s3 { grid-column: span 1; }
   .ovw--s6,
   .ovw--s9,
-  .ovw--s12 { grid-column: 1 / -1; }
-  /* Un quart resté seul en bout de rangée laisse un vide à sa droite qui
-     se lit comme une carte manquante : il prend les deux colonnes. */
-  .ovw--s3:last-child { grid-column: 1 / -1; }
+  .ovw--s12 { grid-column: span 2; }
 
   /* :not(--sm) : à spécificité égale la dernière règle l'emporte, et
      sans cette exclusion « en ligne » repassait au corps des nombres. */
