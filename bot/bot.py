@@ -17,7 +17,7 @@ import logging
 import os
 import socket
 
-from dotenv import dotenv_values, load_dotenv
+from dotenv import dotenv_values, find_dotenv, load_dotenv
 
 # .env AVANT tout import du projet : config.py lit ses variables au moment où
 # il est importé.
