@@ -100,7 +100,6 @@ window.CYQ_I18N.ko = {
   "s.language": "언어",
   /* La Vue d'ensemble : l'écran d'arrivée du panneau. */
   "s.overview": "Dashboard",
-  "s.overviewD": "이 서버의 현재 상태와 남은 설정.",
   "ov.members": "멤버",
   "ov.boosts": "부스트",
   "ov.since": "봇이 함께한 기간",
@@ -453,7 +452,6 @@ window.CYQ_I18N.ko = {
   "st2.abandon": "\uc911\ub2e8\ub960", "st2.wait": "\ud3c9\uade0 \ub300\uae30",
   "st2.grpHours": "\ud65c\ub3d9 \uc2dc\uac04\ub300", "st2.grpDays": "\ub0a0\uc9dc\ubcc4",
   "st2.empty": "\uc544\uc9c1 \ubd84\uc11d\ud560 \ub9cc\ud07c \ud65c\ub3d9\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.",
-  "sc.lead": "\ud050\uac00 \uc790\ub3d9\uc73c\ub85c \uc5f4\ub9ac\ub294 \uc2dc\uac01\uc785\ub2c8\ub2e4. \ubd07 \uae30\uc900 UTC\uc774\uba70, \ud604\uc9c0 \uc2dc\uac04\uc774 \uc544\ub2d9\ub2c8\ub2e4.",
   "sc.preset": "게시할 프리셋",
   "sc.presetD": "자동 오픈이 적용할 설정",
   "sc.pickPreset": "프리셋 선택",

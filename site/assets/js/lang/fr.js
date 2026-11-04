@@ -119,7 +119,6 @@ window.CYQ_I18N.fr = {
   "s.language": "Langue",
   /* La Vue d'ensemble : l'écran d'arrivée du panneau. */
   "s.overview": "Dashboard",
-  "s.overviewD": "Où en est ce serveur, et ce qu'il reste à régler.",
   "ov.members": "Membres",
   "ov.boosts": "Boosts",
   "ov.since": "Le bot est là depuis",
@@ -497,7 +496,6 @@ window.CYQ_I18N.fr = {
   "st2.abandon": "Abandons", "st2.wait": "Attente moyenne",
   "st2.grpHours": "Heures d'activité", "st2.grpDays": "Jour par jour",
   "st2.empty": "Pas encore assez d'activité pour en tirer quelque chose.",
-  "sc.lead": "Quand la file s'ouvre toute seule. L'heure est celle du bot, en UTC — pas celle de ton fuseau.",
   "sc.preset": "Preset publié",
   "sc.presetD": "La configuration que l'ouverture automatique appliquera",
   "sc.pickPreset": "Choisir un preset",

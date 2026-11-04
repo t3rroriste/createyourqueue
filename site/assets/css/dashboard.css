@@ -452,6 +452,11 @@ html.motion-force.motion-pending .db__main { visibility: hidden; }
   margin-bottom: 10px;
 }
 .sec__title:focus { outline: none; }   /* reçoit le focus au changement de section */
+/* Un titre SANS chapeau sous lui n'a plus d'écart à tenir : les 10 px
+   étaient l'espace entre la phrase et lui, et sans elle ils s'ajoutaient
+   à la marge du chapeau. Le Dashboard et la Programmation n'en ont
+   plus. */
+.sec__title:last-child { margin-bottom: 0; }
 .sec__lead { max-width: 60ch; text-wrap: pretty; }
 
 .sec__body { display: grid; gap: var(--sp-3); }

@@ -100,7 +100,6 @@ window.CYQ_I18N.de = {
   "s.language": "Sprache",
   /* La Vue d'ensemble : l'écran d'arrivée du panneau. */
   "s.overview": "Dashboard",
-  "s.overviewD": "Wo dieser Server steht und was noch einzurichten ist.",
   "ov.members": "Mitglieder",
   "ov.boosts": "Boosts",
   "ov.since": "Bot dabei seit",
@@ -453,7 +452,6 @@ window.CYQ_I18N.de = {
   "st2.abandon": "Abbr\u00fcche", "st2.wait": "Mittlere Wartezeit",
   "st2.grpHours": "Aktive Stunden", "st2.grpDays": "Tag f\u00fcr Tag",
   "st2.empty": "Noch zu wenig Aktivit\u00e4t, um daraus etwas abzulesen.",
-  "sc.lead": "Wann die Queue von selbst \u00f6ffnet. Die Uhrzeit ist die des Bots, in UTC \u2014 nicht deine.",
   "sc.preset": "Veröffentlichtes Preset",
   "sc.presetD": "Die Konfiguration, die das automatische Öffnen anwendet",
   "sc.pickPreset": "Preset wählen",

@@ -100,7 +100,6 @@ window.CYQ_I18N.es = {
   "s.language": "Idioma",
   /* La Vue d'ensemble : l'écran d'arrivée du panneau. */
   "s.overview": "Dashboard",
-  "s.overviewD": "Cómo va este servidor y qué queda por configurar.",
   "ov.members": "Miembros",
   "ov.boosts": "Mejoras",
   "ov.since": "El bot está aquí desde hace",
@@ -453,7 +452,6 @@ window.CYQ_I18N.es = {
   "st2.abandon": "Abandonos", "st2.wait": "Espera media",
   "st2.grpHours": "Horas de actividad", "st2.grpDays": "D\u00eda a d\u00eda",
   "st2.empty": "A\u00fan no hay actividad suficiente para sacar conclusiones.",
-  "sc.lead": "Cu\u00e1ndo se abre la cola sola. La hora es la del bot, en UTC, no la tuya.",
   "sc.preset": "Preset publicado",
   "sc.presetD": "La configuración que aplicará la apertura automática",
   "sc.pickPreset": "Elegir un preset",
