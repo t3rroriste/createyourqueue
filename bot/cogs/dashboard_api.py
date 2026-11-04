@@ -333,7 +333,11 @@ class DashboardAPI(commands.Cog):
 
         Ce fichier le dit en clair, et il se lit par le même SFTP que le
         reste. Un port n'est pas un secret : c'est une porte, et elle est
-        ouverte ou elle ne l'est pas. La CLÉ, elle, n'y figure pas.
+        ouverte ou elle ne l'est pas. La CLÉ, elle, n'y figure pas — on
+        n'écrit QUE sa longueur, qui dit « remplie » ou « vide » sans
+        permettre de la deviner. C'est la distinction qui a manqué : la
+        clé était dans le fichier et vide pour le bot, et rien ne
+        permettait de le voir d'ailleurs que de la console.
         """
         try:
             dossier = os.path.join(os.path.dirname(os.path.dirname(
@@ -343,11 +347,17 @@ class DashboardAPI(commands.Cog):
             with open(os.path.join(dossier, "api-adresse.txt"), "w",
                       encoding="utf-8") as f:
                 f.write(
-                    "ecoute       %s:%s\n"
+                    "etat         %s\n"
+                    "ecoute       %s\n"
+                    "cle          %s\n"
                     "SERVER_PORT  %s\n"
                     "ENV_PORT     %s\n"
                     "depuis       %s\n"
-                    % (DASHBOARD_API_HOST, DASHBOARD_API_PORT,
+                    % ("ETEINTE (cle vide)" if eteinte else "allumee",
+                       "(rien)" if eteinte
+                       else "%s:%s" % (DASHBOARD_API_HOST, DASHBOARD_API_PORT),
+                       "vide" if not DASHBOARD_API_KEY
+                       else "%d caracteres" % len(DASHBOARD_API_KEY),
                        alloue or "(absent)",
                        os.getenv("DASHBOARD_API_PORT", "").strip() or "(absent)",
                        time.strftime("%Y-%m-%d %H:%M:%S")),
