@@ -226,11 +226,18 @@
      complément.
      ================================================================== */
 
+  /* Rend 0 tant que la grille n'est pas à l'écran — et c'est le cas au
+     chargement, où la section est encore `hidden` le temps que le
+     panneau s'ouvre. Une grille sans mise en page ne porte aucune
+     colonne à compter : s'en remettre alors à une valeur par défaut
+     donnait douze colonnes là où il y en avait six, le complément se
+     calculait sur une rangée imaginaire, et la carte restait seule avec
+     son trou — exactement le défaut qu'on venait de corriger. */
   function colonnes() {
+    if (!grille.offsetWidth) return 0;
     var c = '';
-    try { c = getComputedStyle(grille).gridTemplateColumns || ''; } catch (e) { return 12; }
-    var n = c.split(' ').filter(function (x) { return x; }).length;
-    return n > 0 ? n : 12;
+    try { c = getComputedStyle(grille).gridTemplateColumns || ''; } catch (e) { return 0; }
+    return c.split(' ').filter(function (x) { return x; }).length;
   }
 
   /* `grid-column: span 3` pose la portée sur le DÉBUT et laisse la fin à
@@ -248,6 +255,10 @@
   var colonnesVues = 0;
 
   function combler() {
+    var cols = colonnes();
+    if (!cols) { colonnesVues = 0; return; }   /* pas encore à l'écran */
+    colonnesVues = cols;
+
     var poses = [];
     dispo.forEach(function (w) {
       var el = noeud(w.id);
@@ -258,7 +269,6 @@
     });
     if (!poses.length) return;
 
-    var cols = colonnesVues = colonnes();
     var rangees = [], rangee = [], reste = cols;
 
     poses.forEach(function (el) {
@@ -290,14 +300,28 @@
     });
   }
 
-  /* La fenêtre change de largeur : la feuille de style redistribue les
-     colonnes, et les compléments d'hier ne valent plus. On ne refait le
-     calcul que si le NOMBRE de colonnes a bougé — redimensionner une
-     fenêtre produit des dizaines d'évènements, et la quasi-totalité ne
-     change rien à la grille. */
-  window.addEventListener('resize', function () {
+  /* La grille change de largeur : la feuille de style redistribue les
+     colonnes, et les compléments d'hier ne valent plus.
+
+     On surveille LA GRILLE et non la fenêtre, parce que trois choses la
+     redimensionnent sans que la fenêtre bouge : l'ouverture de la
+     section au chargement, le repli de la colonne de menu, et
+     l'affichage du panneau à côté d'autre chose. Un écouteur sur
+     `resize` n'en voyait aucune.
+
+     On ne refait le calcul que si le NOMBRE de colonnes a bougé : une
+     poignée tirée lentement produit des dizaines d'évènements, et la
+     quasi-totalité ne change rien à la grille. */
+  function surveiller() {
     if (colonnes() !== colonnesVues) combler();
-  });
+  }
+
+  if (window.ResizeObserver) {
+    try { new ResizeObserver(surveiller).observe(grille); }
+    catch (e) { window.addEventListener('resize', surveiller); }
+  } else {
+    window.addEventListener('resize', surveiller);
+  }
 
   function enregistrer() {
     var avant = doux() ? mesurer() : null;

@@ -741,10 +741,40 @@ function marque_bot_muet(): string
     return __DIR__ . '/data/bot-muet';
 }
 
+/* Le même constat, tenu à DEUX endroits, et il en faut deux :
+
+   - un drapeau qui ne vaut que pour CETTE requête, parce qu'une seule
+     route peut interroger le bot deux fois (la fiche, puis les listes de
+     salons et de rôles). Sans lui, le deuxième appel repayait le délai :
+     `filemtime` est mis en cache par PHP pendant la requête, et la
+     marque qu'on vient d'écrire ne s'y voyait pas encore ;
+   - un fichier, pour que la requête SUIVANTE en profite aussi — et
+     elles arrivent par quatre.
+
+   `clearstatcache` sur ce seul fichier : la marque peut avoir été écrite
+   par une autre requête, une fraction de seconde plus tôt. */
+$BOT_MUET_ICI = false;
+
 function bot_declare_muet(): bool
 {
+    global $BOT_MUET_ICI;
+    if ($BOT_MUET_ICI) {
+        return true;
+    }
     $f = marque_bot_muet();
+    clearstatcache(true, $f);
     return is_file($f) && (time() - (int)@filemtime($f)) < BOT_MUET;
+}
+
+function noter_bot_muet(bool $muet): void
+{
+    global $BOT_MUET_ICI;
+    $BOT_MUET_ICI = $muet;
+    if ($muet) {
+        @touch(marque_bot_muet());
+    } else {
+        @unlink(marque_bot_muet());
+    }
 }
 
 /* Appelle l'API du bot. Rend [code HTTP, données]. Code 0 : injoignable —
@@ -785,12 +815,12 @@ function appel_bot(string $methode, string $chemin, ?array $corps = null): array
     curl_close($c);
 
     if ($brut === false || $code === 0) {
-        @touch(marque_bot_muet());
+        noter_bot_muet(true);
         return [0, []];
     }
     /* Le bot a répondu — même un refus est une réponse, et une réponse
        veut dire que la porte est ouverte. La marque saute. */
-    @unlink(marque_bot_muet());
+    noter_bot_muet(false);
     $json = json_decode((string)$brut, true);
     return [$code, is_array($json) ? $json : []];
 }
