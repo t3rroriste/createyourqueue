@@ -190,6 +190,27 @@ Python, `bot.py` à la racine, les commandes dans `bot/cogs/`, les cinq
 langues dans `bot/locales/`. `bot/data/` contient la configuration de TOUS
 les serveurs Discord : hors dépôt, et jamais écrasée par une publication.
 
+### Le `.env` n'est pas toujours celui qui gagne
+
+Le panneau de l'hébergeur (Pterodactyl, chez AdKyNet) exporte ses
+variables dans le conteneur, **y compris les cases laissées vides**.
+`load_dotenv()` n'écrase jamais une variable qui existe déjà : une case
+vide du panneau battait donc la valeur du fichier, et le bot lisait vide.
+
+`DASHBOARD_API_KEY` vide **éteint l'API** — le bot n'ouvre aucun port et
+ne le dit qu'en une ligne de console, au démarrage, qui défile en
+quelques secondes. C'est ce qui a tenu le panneau web hors ligne du 2 au
+5 novembre 2026, pendant qu'on cherchait une histoire de port. Le `.env`
+était juste ; personne ne le lisait.
+
+`_combler_les_vides()` dans `bot.py` ne comble que les vides : ce que
+l'hébergeur a réellement réglé l'emporte toujours. Et le bot écrit
+désormais `bot/data/api-adresse.txt` — état, port écouté, longueur de la
+clé, `SERVER_PORT` — qui se lit par SFTP sans ouvrir le panneau.
+
+**Deux endroits à regarder** quand l'API du bot ne répond pas : la ligne
+du `.env`, et l'onglet Startup/Variables du panneau.
+
 ## api-locale/ — l'API de développement
 
 `server.py`, Python, sans dépendance. Elle sert le dossier `site/` ET
