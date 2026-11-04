@@ -283,7 +283,20 @@ class DashboardAPI(commands.Cog):
 
     async def cog_load(self) -> None:
         if not DASHBOARD_API_KEY:
-            log.info("API du tableau de bord éteinte (DASHBOARD_API_KEY vide)")
+            # AVERTISSEMENT et non information : le panneau web est alors
+            # hors ligne, et c'est un incident, pas un réglage. Le message
+            # dit AUSSI où regarder — une clé vide a deux causes
+            # possibles, le fichier et le panneau de l'hébergeur, et
+            # « DASHBOARD_API_KEY vide » n'en désignait aucune. On a
+            # cherché un port pendant trois jours.
+            log.warning(
+                "API du tableau de bord ÉTEINTE : DASHBOARD_API_KEY est vide. "
+                "Le panneau web ne pourra pas joindre ce bot. Regarde DEUX "
+                "endroits : la ligne DASHBOARD_API_KEY du .env, et l'onglet "
+                "Startup/Variables du panneau de l'hébergeur — une variable "
+                "qui y est déclarée vide écrase le fichier."
+            )
+            self._ecrire_adresse(eteinte=True)
             return
 
         self.runner = web.AppRunner(self.build_app(), access_log=None)
@@ -307,7 +320,7 @@ class DashboardAPI(commands.Cog):
 
         self._ecrire_adresse()
 
-    def _ecrire_adresse(self) -> None:
+    def _ecrire_adresse(self, eteinte: bool = False) -> None:
         """Le port effectif, sur le disque, à côté des données du bot.
 
         LA CONSOLE NE SE LIT PAS À DISTANCE. Le port est bien écrit au

@@ -17,11 +17,45 @@ import logging
 import os
 import socket
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 # .env AVANT tout import du projet : config.py lit ses variables au moment où
 # il est importé.
 load_dotenv()
+
+
+def _combler_les_vides() -> None:
+    """Une variable DÉCLARÉE MAIS VIDE ne doit pas battre le fichier.
+
+    `load_dotenv()` n'écrase JAMAIS une variable déjà présente dans
+    l'environnement — et c'est normalement ce qu'on veut : l'hébergeur a
+    le dernier mot sur ce qu'il a réglé.
+
+    Mais un panneau d'hébergement (Pterodactyl, chez AdKyNet) exporte
+    AUSSI les cases qu'on a laissées vides. Le conteneur reçoit alors
+    `DASHBOARD_API_KEY=""`, qui existe, donc le fichier ne la remplace
+    pas, donc le bot lit une clé vide — et comme une clé vide ÉTEINT
+    l'API, il n'ouvre aucun port et ne le dit qu'en une ligne de console,
+    au démarrage, qui défile en quelques secondes.
+
+    C'est ce qui a tenu le panneau web hors ligne du 2 au 5 novembre
+    2026, pendant qu'on cherchait une histoire de port. Le `.env` était
+    juste ; personne ne le lisait.
+
+    Une case vide n'est pas un choix, c'est une case qu'on n'a pas
+    remplie. On ne comble donc QUE les vides : tout ce que l'hébergeur a
+    réellement réglé continue de l'emporter.
+    """
+    try:
+        fichier = dotenv_values() or {}
+    except OSError:
+        return
+    for cle, val in fichier.items():
+        if val and not os.environ.get(cle, "").strip():
+            os.environ[cle] = val
+
+
+_combler_les_vides()
 
 import discord
 from discord import app_commands
