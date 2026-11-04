@@ -337,7 +337,7 @@ class DashboardAPI(commands.Cog):
                     % (DASHBOARD_API_HOST, DASHBOARD_API_PORT,
                        alloue or "(absent)",
                        os.getenv("DASHBOARD_API_PORT", "").strip() or "(absent)",
-                       _maintenant()),
+                       time.strftime("%Y-%m-%d %H:%M:%S")),
                 )
         except OSError as e:
             # Un disque en lecture seule n'est pas une raison de ne pas
