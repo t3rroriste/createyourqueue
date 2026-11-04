@@ -116,10 +116,34 @@ function demarrer_session(): void
     session_start();
 }
 
+/* LE VERROU DE SESSION, ET POURQUOI IL FAUT LE RENDRE TOUT DE SUITE.
+
+   `session_start()` prend un verrou exclusif sur le fichier de session et
+   le garde jusqu'à la fin de la requête. Tant qu'il est pris, les AUTRES
+   requêtes de la même personne attendent leur tour — elles ne s'exécutent
+   pas en parallèle, elles font la queue.
+
+   Ouvrir le panneau d'un serveur lance quatre appels d'un coup : la
+   fiche, les matchs, l'activité, le journal. Chacun interroge le bot.
+   Bot muet, chaque appel attendait son délai complet, et les quatre
+   s'additionnaient au lieu de se recouvrir : une page qui mettait près
+   d'une minute à s'afficher, pour quatre réponses vides.
+
+   On rend donc le verrou dès que la session est LUE. Les rares endroits
+   qui l'écrivent le reprennent avec `demarrer_session()` — PHP le permet,
+   et le verrou n'est alors tenu que le temps de l'écriture. */
+function liberer_session(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+}
+
 function session_ouverte(): ?array
 {
     demarrer_session();
     $s = $_SESSION['cyq'] ?? null;
+    liberer_session();
     return is_array($s) && !empty($s['access_token']) ? $s : null;
 }
 
@@ -444,8 +468,14 @@ function mes_guildes(array $session): array
     if (is_array($cache) && isset($cache['a'], $cache['liste'])
         && is_array($cache['liste'])
         && (time() - (int)$cache['a']) < CACHE_GUILDES) {
+        liberer_session();
         return $cache['liste'];
     }
+    /* Le verrou est rendu AVANT l'aller-retour chez Discord, et repris
+       juste pour écrire le cache : tenir le fichier de session pendant un
+       appel réseau, c'est faire attendre les trois autres requêtes de la
+       page pour rien. */
+    liberer_session();
 
     try {
         /* `with_counts=true` et non l'adresse nue : sans ce paramètre,
@@ -455,7 +485,9 @@ function mes_guildes(array $session): array
            rien ne proteste. Le champ était lu correctement ; il n'avait
            simplement jamais été demandé. */
         $liste = appel_discord('/users/@me/guilds?with_counts=true', $session['access_token']);
+        demarrer_session();
         $_SESSION['cyq']['guildes'] = ['a' => time(), 'liste' => $liste];
+        liberer_session();
         return $liste;
     } catch (RuntimeException $e) {
         if ($e->getCode() === 401) {
