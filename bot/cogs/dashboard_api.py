@@ -305,6 +305,45 @@ class DashboardAPI(commands.Cog):
                 "port-là.", demande, DASHBOARD_API_PORT,
             )
 
+        self._ecrire_adresse()
+
+    def _ecrire_adresse(self) -> None:
+        """Le port effectif, sur le disque, à côté des données du bot.
+
+        LA CONSOLE NE SE LIT PAS À DISTANCE. Le port est bien écrit au
+        démarrage, mais il faut ouvrir le panneau de l'hébergeur pour le
+        voir — et c'est précisément ce qu'on ne peut pas faire quand on
+        cherche pourquoi le site n'arrive pas à joindre le bot. Le 2
+        novembre 2026, faute de cette ligne, il a fallu déduire le port
+        d'un balayage depuis l'extérieur, sur une machine partagée avec
+        d'autres clients.
+
+        Ce fichier le dit en clair, et il se lit par le même SFTP que le
+        reste. Un port n'est pas un secret : c'est une porte, et elle est
+        ouverte ou elle ne l'est pas. La CLÉ, elle, n'y figure pas.
+        """
+        try:
+            dossier = os.path.join(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))), "data")
+            os.makedirs(dossier, exist_ok=True)
+            alloue = os.getenv("SERVER_PORT", "").strip()
+            with open(os.path.join(dossier, "api-adresse.txt"), "w",
+                      encoding="utf-8") as f:
+                f.write(
+                    "ecoute       %s:%s\n"
+                    "SERVER_PORT  %s\n"
+                    "ENV_PORT     %s\n"
+                    "depuis       %s\n"
+                    % (DASHBOARD_API_HOST, DASHBOARD_API_PORT,
+                       alloue or "(absent)",
+                       os.getenv("DASHBOARD_API_PORT", "").strip() or "(absent)",
+                       _maintenant()),
+                )
+        except OSError as e:
+            # Un disque en lecture seule n'est pas une raison de ne pas
+            # démarrer l'API : le fichier est un confort de diagnostic.
+            log.warning("adresse de l'API non écrite : %s", e)
+
     async def cog_unload(self) -> None:
         if self.runner:
             await self.runner.cleanup()
