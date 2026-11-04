@@ -47,12 +47,64 @@ def _combler_les_vides() -> None:
     réellement réglé continue de l'emporter.
     """
     try:
-        fichier = dotenv_values() or {}
+        chemin = find_dotenv(usecwd=True) or find_dotenv()
+        fichier = dotenv_values(chemin) if chemin else {}
     except OSError:
-        return
-    for cle, val in fichier.items():
+        chemin, fichier = "", {}
+    for cle, val in (fichier or {}).items():
         if val and not os.environ.get(cle, "").strip():
             os.environ[cle] = val
+    _noter_lecture_env(chemin, fichier or {})
+
+
+def _noter_lecture_env(chemin: str, fichier: dict) -> None:
+    """Le .env a-t-il seulement été lu ? Sur le disque, en aveugle.
+
+    « DASHBOARD_API_KEY est vide » a deux causes qui ne se corrigent pas
+    au même endroit, et rien ne permettait de les distinguer :
+
+      - le fichier est lu, mais cette ligne-là est vide ou mal formée ;
+      - le fichier n'est PAS lu du tout, et tout ce qui marche vient des
+        variables du panneau de l'hébergeur.
+
+    Dans le second cas, corriger le fichier ne change rien — on peut y
+    passer des jours. Ce relevé tranche : le chemin trouvé, le nombre de
+    clés lues, et pour les quelques clés qui nous intéressent, si elles
+    sont ABSENTES, VIDES ou remplies.
+
+    AUCUNE VALEUR N'EST ÉCRITE, seulement leur longueur. Une longueur ne
+    permet pas de deviner une clé, et c'est précisément ce qu'il fallait
+    savoir : « remplie » ou « vide ».
+    """
+    suivies = ("DISCORD_TOKEN", "DASHBOARD_API_KEY",
+               "DASHBOARD_API_PORT", "DASHBOARD_API_HOST")
+    try:
+        dossier = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+        os.makedirs(dossier, exist_ok=True)
+        lignes = [
+            "fichier      %s" % (chemin or "INTROUVABLE"),
+            "cles lues    %d" % len(fichier),
+            "",
+            "cle                  dans le .env      dans l'environnement",
+        ]
+        for cle in suivies:
+            dans_f = fichier.get(cle)
+            dans_e = os.environ.get(cle)
+            lignes.append("%-20s %-17s %s" % (
+                cle,
+                "absente" if dans_f is None else
+                ("VIDE" if not dans_f.strip() else "%d car." % len(dans_f.strip())),
+                "absente" if dans_e is None else
+                ("VIDE" if not dans_e.strip() else "%d car." % len(dans_e.strip())),
+            ))
+        lignes.append("")
+        lignes.append("« absente dans le .env » + « remplie dans l'environnement »")
+        lignes.append("  = la valeur vient du panneau, pas du fichier.")
+        with open(os.path.join(dossier, "env-lu.txt"), "w", encoding="utf-8") as f:
+            f.write("\n".join(lignes) + "\n")
+    except OSError:
+        # Un relevé de diagnostic n'empêche jamais le bot de démarrer.
+        pass
 
 
 _combler_les_vides()
