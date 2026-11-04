@@ -300,9 +300,114 @@
   });
 
   function enregistrer() {
+    var avant = doux() ? mesurer() : null;
     ecrire(dispo);
     appliquer();
     if (edition) { poserChrome(); rendreGalerie(); }
+    glisser(avant);
+  }
+
+  /* ==================================================================
+     LE DÉPLACEMENT SE VOIT
+
+     Une grille CSS ne sait pas interpoler un changement d'ordre : le
+     widget est à sa place d'avant, puis à celle d'après, et rien entre
+     les deux. Quand trois ou quatre changent de place en même temps —
+     ce qui arrive dès qu'on en retire un — on ne voit pas CE qui a
+     bougé, on voit que tout a bougé.
+
+     On mesure donc avant, on laisse la grille se refaire, on remesure,
+     et on renvoie chaque widget à sa position d'avant par un
+     `transform` avant de le relâcher. Il ne se déplace jamais vraiment :
+     il est déjà arrivé, et c'est son image qui rattrape. Rien ne touche
+     à la mise en page pendant l'animation, donc rien ne la recalcule —
+     `transform` et `opacity`, comme partout ailleurs sur le site.
+
+     ON LIT TOUT, PUIS ON ÉCRIT TOUT. Mesurer et transformer dans la
+     même boucle obligerait le navigateur à refaire sa mise en page à
+     chaque tour, ce que le reste du site s'interdit formellement.
+
+     Sans mouvement — réglage du système, `?motion=on` pour le forcer —
+     `enregistrer()` ne mesure même pas : le rangement reste instantané,
+     ce qui est la bonne réponse et non une version dégradée.
+     ================================================================== */
+
+  var MS_GLISSE = 320;
+  var minuterie = null;
+
+  /* Les widgets POSÉS au moment où l'on mesure, lus dans le DOM et non
+     dans `dispo` : à cet instant, `dispo` porte déjà la disposition
+     d'APRÈS. */
+  function mesurer() {
+    var m = {};
+    $$('[data-w]', grille).forEach(function (el) {
+      if (el.hidden) return;
+      var r = el.getBoundingClientRect();
+      m[el.getAttribute('data-w')] = { x: r.left, y: r.top };
+    });
+    return m;
+  }
+
+  function glisser(avant) {
+    if (!avant) return;
+
+    var bouges = [], neufs = [];
+    dispo.forEach(function (w) {
+      var el = noeud(w.id);
+      if (!el) return;
+      var a = avant[w.id];
+      if (!a) { neufs.push(el); return; }    /* on vient de le poser */
+      var r = el.getBoundingClientRect();
+      var dx = Math.round(a.x - r.left), dy = Math.round(a.y - r.top);
+      if (dx || dy) bouges.push({ el: el, dx: dx, dy: dy });
+    });
+    if (!bouges.length && !neufs.length) return;
+
+    bouges.forEach(function (b) {
+      b.el.classList.add('is-fige');
+      b.el.style.transform = 'translate3d(' + b.dx + 'px,' + b.dy + 'px,0)';
+    });
+    /* Un widget qu'on pose n'a pas de « avant » : il ne glisse de nulle
+       part, il paraît. Une opacité, et rien d'autre — le faire aussi
+       grandir en aurait fait un évènement, alors qu'on en ajoute cinq à
+       la suite sans y penser. */
+    neufs.forEach(function (el) {
+      el.classList.add('is-fige');
+      el.style.opacity = '0';
+    });
+
+    /* Deux images d'attente. En une seule, le navigateur regroupe la
+       pose du point de départ et le retour en une seule écriture, et
+       rien ne bouge du tout. */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        bouges.forEach(function (b) {
+          b.el.classList.remove('is-fige');
+          b.el.classList.add('is-glisse');
+          b.el.style.transform = '';
+        });
+        neufs.forEach(function (el) {
+          el.classList.remove('is-fige');
+          el.classList.add('is-glisse');
+          el.style.opacity = '';
+        });
+      });
+    });
+
+    /* Une seule minuterie pour tout le lot, remise à zéro quand un geste
+       en suit un autre : quatorze `transitionend` pour retirer quatorze
+       classes, c'est quatorze écouteurs à poser et à reprendre pour un
+       nettoyage que le temps fait aussi bien. */
+    if (minuterie) clearTimeout(minuterie);
+    minuterie = setTimeout(function () {
+      minuterie = null;
+      $$('.is-glisse, .is-fige', grille).forEach(function (el) {
+        el.classList.remove('is-glisse');
+        el.classList.remove('is-fige');
+        el.style.transform = '';
+        el.style.opacity = '';
+      });
+    }, MS_GLISSE + 60);
   }
 
   /* ==================================================================

@@ -2368,6 +2368,36 @@ html[data-theme="light"] .combo__search input::-webkit-search-cancel-button { fi
    chaque lecture.
    ===================================================================== */
 
+/* ---- le déplacement se voit -----------------------------------------
+
+   Deux états, et le script ne pose jamais que l'un des deux :
+
+     is-fige    le widget est renvoyé à sa place d'avant, sans
+                transition — c'est le point de départ, et une
+                transition ici ferait partir l'animation à l'envers ;
+     is-glisse  on le relâche, et il rattrape sa vraie place.
+
+   `transform` et `opacity`, rien d'autre : une grille qu'on réordonne
+   n'est pas interpolable, et l'animer par la mise en page la ferait
+   recalculer à chaque image. Le script décide quand animer (il ne mesure
+   même pas sans mouvement) ; ces deux règles ne font que dessiner. */
+.ovw.is-fige { transition: none !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ovw.is-glisse {
+    transition: transform .32s var(--e-out), opacity .32s var(--e-soft);
+  }
+}
+html.motion-force .ovw.is-glisse {
+  transition: transform .32s var(--e-out), opacity .32s var(--e-soft);
+}
+
+/* Pendant qu'un widget rattrape sa place, il passe au-dessus de ses
+   voisins : à mi-chemin il chevauche celui qu'il remplace, et dessous
+   on le voyait disparaître sous une carte opaque. */
+.ovw.is-glisse,
+.ovw.is-fige { position: relative; z-index: 1; }
+
 /* Le pointillé dit où sont les cases, y compris celles qu'un widget ne
    remplit pas : sans lui, deux widgets d'un quart côte à côte et un vide
    de six colonnes à leur droite se lisaient comme une rangée cassée. */
