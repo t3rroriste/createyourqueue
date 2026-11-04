@@ -717,6 +717,36 @@ const PONT_RONDS = [
     '#f9a7c0' => "\u{1FA77}", '#9cdcf0' => "\u{1FA75}", '#3b5998' => "\u{1F7E6}",
 ];
 
+/* ---------------------- quand le bot ne répond plus ----------------------
+
+   UN BOT MUET NE DOIT COÛTER SON DÉLAI QU'UNE FOIS. Un port fermé ne
+   renvoie pas un refus : il ne renvoie RIEN, et la connexion attend
+   jusqu'au bout. Chaque lecture de la page payait donc le délai entier,
+   et une page en compte quatre.
+
+   On note l'échec, et pendant les secondes qui suivent les LECTURES
+   renoncent tout de suite. Vingt secondes : la même fenêtre que le cache
+   de la page d'état, assez courte pour qu'un bot qui revient se voie au
+   rechargement suivant, assez longue pour couvrir l'ouverture d'une page
+   entière.
+
+   LES ÉCRITURES, ELLES, ESSAIENT TOUJOURS. Enregistrer un réglage ou
+   ouvrir une queue est un geste rare et voulu : mieux vaut faire
+   patienter que refuser sur la foi d'un échec vieux de dix secondes, et
+   annoncer au bot qu'on renonce alors qu'il vient de revenir. */
+const BOT_MUET = 20;
+
+function marque_bot_muet(): string
+{
+    return __DIR__ . '/data/bot-muet';
+}
+
+function bot_declare_muet(): bool
+{
+    $f = marque_bot_muet();
+    return is_file($f) && (time() - (int)@filemtime($f)) < BOT_MUET;
+}
+
 /* Appelle l'API du bot. Rend [code HTTP, données]. Code 0 : injoignable —
    le site ne doit alors ni inventer ni enregistrer en douce. */
 function appel_bot(string $methode, string $chemin, ?array $corps = null): array
@@ -725,9 +755,19 @@ function appel_bot(string $methode, string $chemin, ?array $corps = null): array
     if ($BOT_API_BASE === '') {
         return [0, []];
     }
+    $lecture = ($methode === 'GET');
+    if ($lecture && bot_declare_muet()) {
+        return [0, []];
+    }
+
     $entetes = ['Accept: application/json', 'X-API-Key: ' . $BOT_API_KEY];
     $options = [
         CURLOPT_RETURNTRANSFER => true,
+        /* Séparé du délai total, et court : une machine qui ne répond pas
+           se reconnaît à la POIGNÉE DE MAIN, pas à la lenteur de sa
+           réponse. Trois secondes suffisent largement pour un serveur
+           qui est là ; au-delà, il ne l'est pas. */
+        CURLOPT_CONNECTTIMEOUT => 3,
         CURLOPT_TIMEOUT        => 12,
         CURLOPT_CUSTOMREQUEST  => $methode,
         CURLOPT_USERAGENT      => 'CreateYourQueue (https://cyqbot.eu)',
@@ -745,8 +785,12 @@ function appel_bot(string $methode, string $chemin, ?array $corps = null): array
     curl_close($c);
 
     if ($brut === false || $code === 0) {
+        @touch(marque_bot_muet());
         return [0, []];
     }
+    /* Le bot a répondu — même un refus est une réponse, et une réponse
+       veut dire que la porte est ouverte. La marque saute. */
+    @unlink(marque_bot_muet());
     $json = json_decode((string)$brut, true);
     return [$code, is_array($json) ? $json : []];
 }
