@@ -10,7 +10,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202611051419"></script>
+<script src="assets/js/theme-tot.js?v=202611051427"></script>
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,8 +18,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202611051419">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202611051419">
+<link rel="stylesheet" href="assets/css/home.css?v=202611051427">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202611051427">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -63,8 +63,35 @@
      annoncée de la page, par le script. -->
 <div class="dbsplash" data-splash aria-hidden="true">
   <div class="dbsplash__in">
-    <img class="dbsplash__logo" data-splash-logo src="assets/img/logo.png"
-         alt="" width="72" height="72">
+    <!-- LE LOGO EN SVG, et non le PNG de la barre de navigation : on
+         anime la LOUPE, pas l'image entière, et une image ne se démonte
+         pas. Le tracé reprend logo.png au même cadrage — c'est le même
+         logo, redessiné pour pouvoir bouger.
+
+         Les couleurs sont écrites en dur et ne suivent PAS le thème :
+         le disque crème et le trait noir sont la marque, ici comme dans
+         la favicon et la pilule de navigation. Un logo qui change de
+         couleur avec le fond n'est plus un logo. -->
+    <svg class="dbsplash__logo" data-splash-logo viewBox="0 0 512 512"
+         width="76" height="76" aria-hidden="true" focusable="false">
+      <defs>
+        <!-- Le verre, pour y enfermer le reflet de la variante B. -->
+        <clipPath id="cyq-verre"><circle cx="229" cy="227" r="57"/></clipPath>
+      </defs>
+      <circle cx="256" cy="256" r="251" fill="#F4F1EC"/>
+      <circle data-splash-anneau cx="256" cy="256" r="233"
+              fill="none" stroke="#111010" stroke-width="11"/>
+      <g data-splash-loupe fill="none" stroke="#111010" stroke-width="44">
+        <circle cx="229" cy="227" r="79"/>
+        <path d="M281 285 347 351" stroke-linecap="round"/>
+      </g>
+      <!-- Le reflet ne sert qu'à la variante B. Il part à zéro et le
+           script ne le réveille que s'il la joue. -->
+      <g clip-path="url(#cyq-verre)">
+        <rect data-splash-reflet x="-150" y="80" width="56" height="300"
+              transform="rotate(-24 229 227)" fill="#111010" opacity="0"/>
+      </g>
+    </svg>
     <div class="dbsplash__rail">
       <span class="dbsplash__bar" data-splash-bar></span>
     </div>
@@ -2130,21 +2157,21 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202611051419"></script>
-<script src="assets/js/config.js?v=202611051419"></script>
-<script src="assets/js/lang/fr.js?v=202611051419"></script>
-<script src="assets/js/lang/en.js?v=202611051419"></script>
-<script src="assets/js/lang/es.js?v=202611051419"></script>
-<script src="assets/js/lang/de.js?v=202611051419"></script>
-<script src="assets/js/lang/ko.js?v=202611051419"></script>
-<script src="assets/js/app.js?v=202611051419"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202611051427"></script>
+<script src="assets/js/config.js?v=202611051427"></script>
+<script src="assets/js/lang/fr.js?v=202611051427"></script>
+<script src="assets/js/lang/en.js?v=202611051427"></script>
+<script src="assets/js/lang/es.js?v=202611051427"></script>
+<script src="assets/js/lang/de.js?v=202611051427"></script>
+<script src="assets/js/lang/ko.js?v=202611051427"></script>
+<script src="assets/js/app.js?v=202611051427"></script>
 <!-- AVANT page-dashboard.js : c'est lui qui attend le signal `cyq:pret`
      pour jouer l'ouverture du panneau, et un écouteur posé après
      l'évènement ne l'entend pas. -->
-<script src="assets/js/page-dashboard-lancement.js?v=202611051419"></script>
-<script src="assets/js/page-dashboard.js?v=202611051419"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202611051419"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202611051419"></script>
-<script src="assets/js/page-dashboard-widgets.js?v=202611051419"></script>
+<script src="assets/js/page-dashboard-lancement.js?v=202611051427"></script>
+<script src="assets/js/page-dashboard.js?v=202611051427"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202611051427"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202611051427"></script>
+<script src="assets/js/page-dashboard-widgets.js?v=202611051427"></script>
 </body>
 </html>
