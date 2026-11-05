@@ -43,6 +43,39 @@
 
   var barre = ecran.querySelector('[data-splash-bar]');
   var logo = ecran.querySelector('[data-splash-logo]');
+  var loupe = ecran.querySelector('[data-splash-loupe]');
+  var anneau = ecran.querySelector('[data-splash-anneau]');
+  var reflet = ecran.querySelector('[data-splash-reflet]');
+
+  /* ==================================================================
+     LES DEUX VARIANTES DE LA LOUPE
+
+     Elles ne font pas la même promesse, et c'est pour ça qu'il y en a
+     deux plutôt qu'un réglage de vitesse :
+
+       « balayage » — la loupe cherche. Elle décrit un petit arc dans son
+         disque, comme une main qui passe au-dessus de quelque chose. Le
+         geste dit ce que le produit fait, et il se lit même à 76 px.
+
+       « reflet »   — la loupe est posée, et la lumière passe dessus. Un
+         trait clair traverse le verre, une fois par tour. C'est plus
+         calme, plus « marque », et ça ne raconte rien — ce qui est
+         parfois exactement ce qu'on veut d'un logo.
+
+     ON EN CHOISIT UNE, à `VARIANTE`. `?logo=balayage` ou `?logo=reflet`
+     dans l'adresse force l'autre le temps de comparer, sans toucher au
+     fichier — même mécanisme que `?motion=on`.
+
+     Les deux ne bougent QUE par `transform` et `opacity`. Une loupe
+     qu'on animerait par ses attributs SVG — `cx`, `r`, le tracé — ferait
+     recalculer la géométrie à chaque image, ce que le reste du site
+     s'interdit.
+     ================================================================== */
+
+  var VARIANTE = 'balayage';
+
+  var demandee = /[?&]logo=(balayage|reflet)(&|$)/.exec(location.search);
+  if (demandee) VARIANTE = demandee[1];
 
   /* TROIS SECONDES EN TOUT, et c'est là-dessus que le chiffre est
      calculé : 2,8 s de montée plus les 200 ms du dernier bond jusqu'à
@@ -110,20 +143,72 @@
       return;
     }
 
+    /* L'arrivée est la même pour les deux variantes : le logo entier se
+       pose. Ce qui les sépare commence après, et ne concerne que ses
+       pièces. */
     A.animate(logo, {
       opacity: [0, 1], scale: [0.94, 1],
       duration: 520, ease: A.cubicBezier(.16, 1, .3, 1),
     });
-    /* Une respiration, pas un clignotement : 3 % d'échelle, aller et
-       retour, le temps que dure l'attente. Elle s'arrête d'elle-même
-       quand l'écran part. */
-    A.animate(logo, {
-      scale: [1, 1.035], duration: 1400, delay: 520,
-      ease: 'inOutQuad', loop: true, alternate: true,
-    });
+
+    if (VARIANTE === 'reflet') refletEnBoucle();
+    else balayageEnBoucle();
+
     animBarre = A.animate(barre, {
       scaleX: [0, 0.9], duration: PLAFOND, ease: 'outQuart',
     });
+  }
+
+  /* ---- A. le balayage : la loupe cherche ------------------------------
+
+     Quatorze degrés, pas plus. Au-delà, la loupe sort visiblement de son
+     disque et on voit une pièce détachée qui glisse ; en deçà de dix,
+     on se demande si quelque chose bouge. L'anneau reste immobile —
+     c'est le cadre, et un cadre qui tremble donne le mal de mer.
+
+     L'aller-retour est volontairement lent (1,5 s) : à 76 px, un geste
+     rapide se lit comme un défaut d'affichage. */
+  function balayageEnBoucle() {
+    if (!loupe) return;
+    A.animate(loupe, {
+      rotate: [-14, 14],
+      duration: 1500, delay: 420,
+      ease: 'inOutSine', loop: true, alternate: true,
+    });
+  }
+
+  /* ---- B. le reflet : la lumière passe sur le verre -------------------
+
+     Un trait clair qui traverse le verre, enfermé dedans par un
+     `clipPath` — sans lui, il balaierait tout le disque et ce ne serait
+     plus un reflet mais un essuie-glace.
+
+     Il ne traverse pas en continu : il passe, puis il attend. Une
+     lumière qui tourne sans fin devient un gyrophare ; une qui passe
+     toutes les deux secondes se remarque à peine, et c'est le but.
+
+     L'opacité monte à 0,14 seulement. Le verre est crème sur un trait
+     noir : au-delà, le reflet devient une tache. */
+  function refletEnBoucle() {
+    if (!reflet) return;
+    A.animate(reflet, {
+      x: [0, 300],
+      opacity: [
+        { to: 0.14, duration: 160 },
+        { to: 0.14, duration: 420 },
+        { to: 0, duration: 220 },
+      ],
+      duration: 800, delay: 520,
+      ease: 'inOutQuad', loop: true, loopDelay: 1100,
+    });
+    /* Le disque respire pendant que la lumière passe — 2,5 %, assez pour
+       que l'écran ne soit pas tout à fait immobile entre deux reflets. */
+    if (anneau) {
+      A.animate(logo, {
+        scale: [1, 1.025], duration: 1900, delay: 520,
+        ease: 'inOutQuad', loop: true, alternate: true,
+      });
+    }
   }
 
   /* ==================================================================

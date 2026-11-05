@@ -85,13 +85,21 @@ html.splash-on .dbsplash { opacity: 1; visibility: visible; }
 /* L'opacité de départ est posée par le script, jamais ici : si le script
    tombe, le logo doit rester visible — un écran de chargement vide ne
    dit rien à personne. */
+/* Le SVG porte son propre anneau noir : il se détache des deux fonds
+   sans qu'on ait à lui ajouter un filet, contrairement au PNG qu'il
+   remplace. `overflow: visible` parce que le balayage de la variante A
+   fait sortir la loupe de sa boîte de quelques pixels. */
 .dbsplash__logo {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  /* L'image est un disque crème : sur le fond clair, son bord disparaît
-     et il ne reste que la loupe flottante. Le filet le rattache. */
-  box-shadow: 0 0 0 1px var(--hair);
+  width: 76px; height: 76px;
+  overflow: visible;
 }
+
+/* L'origine des deux mouvements est le CENTRE du disque, pas le coin
+   haut-gauche que les SVG prennent par défaut : une loupe qui balaye
+   autour du coin de son cadre décrit un arc, pas un balayage. */
+[data-splash-loupe],
+[data-splash-anneau],
+[data-splash-reflet] { transform-box: view-box; transform-origin: 256px 256px; }
 
 /* 180 px : assez long pour qu'une progression se lise, assez court pour
    rester sous le logo sans devenir la pièce principale. */
