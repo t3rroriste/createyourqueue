@@ -332,6 +332,78 @@
 }
 .mock__embed-foot svg { color: var(--ink-40); }
 
+/* ---- la description d'un embed ---------------------------------------
+   Le bot écrit presque tout dans la DESCRIPTION, pas dans des champs : il
+   le dit lui-même dans queue_config.py, « des champs séparés espaçaient
+   chaque ligne et étiraient l'annonce sur deux écrans ». Une description
+   Discord est un bloc de texte avec des retours à la ligne, donc une
+   pile de lignes serrées ici, et non une grille.
+
+   `--vide` rend une ligne vide du bot : elle n'a pas de contenu, donc
+   rien ne la fait exister, et c'est une hauteur explicite qui la tient.
+   Sans elle, les trois paragraphes de l'annonce se collent. */
+.mock__lines { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.mock__lines--serre { gap: 1px; margin-top: 2px; }
+.mock__line { font-size: 12.5px; line-height: 1.5; color: var(--ink); }
+.mock__line--vide { height: 7px; }
+/* Le nom d'un champ non « inline » : Discord le pose au-dessus de sa
+   valeur, en gras et plus petit. */
+.mock__line--k {
+  color: var(--ink-60);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .02em; text-transform: uppercase;
+}
+.mock__line b { font-weight: 600; }
+.mock__lien { color: var(--ink-60); text-decoration: underline; text-underline-offset: 2px; }
+.mock code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--raised-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+}
+
+/* ---- un menu déroulant de composant ----------------------------------
+   Le vote du MVP et le choix de la langue passent par un `discord.ui
+   .Select`, pas par des boutons. Fermé, un select n'est qu'une invite et
+   un chevron — c'est à ça qu'on le reconnaît, et c'est ce qui le
+   distingue d'un bouton dans la scène. */
+.mock__select {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; min-width: 0;
+  margin-top: 8px; padding: 8px 10px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--raised);
+  color: var(--ink-60);
+  font-size: 12.5px;
+}
+.mock__select svg { color: var(--ink-40); }
+.mock__select-ph { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- la variation de MMR ---------------------------------------------
+   Le bot l'écrit entre accents graves — `+35` — donc en chasse fixe, et
+   les signes restent alignés d'une ligne à l'autre. */
+.mock__delta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+}
+/* Le 👑 du MVP dans la fiche de résultats, rendu en mot plutôt qu'en
+   emoji : la D.A. du panneau est monochrome (voir la tête du fragment). */
+.mock__couronne {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--raised-2);
+  color: var(--ink-60);
+  font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+}
+
+/* L'embed d'une alerte anti-raid. Le bot la met en rouge ; ici, la barre
+   latérale passe simplement à l'encre pleine — c'est le seul embed de la
+   scène qui se détache, et ça suffit à dire « celui-ci n'est pas une
+   ligne de routine ». */
+.mock__embed--alerte { border-left-color: var(--ink); }
+
 /* champs « inline » : Discord en met trois par ligne, on laisse le retour
    à la ligne décider quand la colonne rétrécit */
 .mock__fields {
@@ -373,7 +445,14 @@
   font-size: 12px;
   font-weight: 600;
 }
+/* `inline-block` et non le `display` par défaut : la pastille vivait dans
+   un conteneur flex, où un span est de toute façon posé en bloc. Elle est
+   désormais aussi posée AU MILIEU D'UNE PHRASE — « Equipe N°1 : Alpha 🔴 »
+   est une ligne de la description de l'annonce — et là, un span inline
+   ignore purement et simplement sa largeur : la pastille disparaissait. */
 .mock__swatch {
+  display: inline-block;
+  vertical-align: middle;
   flex-shrink: 0;
   width: 8px;
   height: 8px;
@@ -479,6 +558,10 @@
      mise en page, et la pastille est posée dans un fil de messages */
   transition: color 140ms var(--e-soft), border-color 140ms var(--e-soft);
 }
+/* La pastille à laquelle ON a déjà réagi : Discord l'entoure d'un filet
+   et éclaircit son texte. Sur l'annonce de queue, ce n'est pas une
+   décoration — c'est l'état « je suis inscrit ». */
+.mock__react--on { border-color: var(--ink-40); color: var(--ink); }
 .mock__react:hover { color: var(--ink); }
 /* la mienne. En --ink et non en --accent : chaque scène n'a qu'un seul
    emploi du cuivre, et il est déjà pris ailleurs — couleur d'équipe,

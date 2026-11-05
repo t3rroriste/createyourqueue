@@ -1032,14 +1032,52 @@ html::-webkit-scrollbar { display: none; }
 /* ---- les rangées : le contenu des anciennes fenêtres, posé à plat ------
    Une scène Discord et son texte, côte à côte, la rangée suivante en
    miroir. Sous 900 px, la scène passe au-dessus de son texte. */
-.mrows { display: grid; gap: var(--sp-5); margin-top: var(--sp-4); }
+/* Deux cents pixels entre deux rangées, et non cent vingt : à la distance
+   précédente, six rangées se lisaient comme les lignes d'un tableau. Une
+   rangée doit se lire comme une section — on en voit une à la fois. */
+.mrows { display: grid; gap: var(--sp-6); margin-top: var(--sp-5); }
 .mrow {
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   align-items: center; gap: var(--sp-4);
   scroll-margin-top: 120px;
 }
 .mrow--inv .mrow__vue { order: 2; }
-.mrow__vue { min-width: 0; display: flex; justify-content: center; }
+
+/* ---- LE CADRE DE LA SCÈNE --------------------------------------------
+
+   La scène n'est plus posée nue sur le fond de la section : elle est dans
+   un cadre, et elle en SORT PAR LE BAS. C'est ce débord qui donne la
+   profondeur — une maquette entièrement contenue retombe à plat, et on la
+   lit comme une image collée plutôt que comme une fenêtre.
+
+   La hauteur est donc fixe et le dépassement est coupé (`overflow: clip`).
+   Fixe, parce que les six scènes n'ont pas du tout la même hauteur : le
+   journal de modération fait presque le double de l'annonce de queue, et
+   six cadres de six hauteurs différentes se liraient comme un défaut
+   d'alignement. La coupe tombe dans le fil des messages, jamais sur un
+   bouton : c'est pour cela que la scène est calée EN HAUT.
+
+   LE DÉGRADÉ N'EST PAS CELUI DE LA RÉFÉRENCE. La capture qui a servi de
+   modèle monte vers un lilas : c'est la couleur d'un autre produit. Ici,
+   tout est tiré des jetons — `--raised-2` vers `--raised` en diagonale,
+   plus un voile de `--lift-2` au coin haut-gauche d'où vient la lumière.
+   Les deux thèmes marchent sans une ligne de plus : en clair, `--raised-2`
+   est plus SOMBRE que `--raised`, donc la diagonale s'inverse d'elle-même
+   et le relief se lit dans l'autre sens, ce qui est exactement ce qu'on
+   veut d'un éclairage. */
+.mrow__vue {
+  position: relative;
+  min-width: 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  height: clamp(300px, 29vw, 430px);
+  padding: clamp(22px, 2.6vw, 44px) clamp(22px, 2.6vw, 44px) 0;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(110% 80% at 6% 0%, var(--lift-2), transparent 62%),
+    linear-gradient(142deg, var(--raised-2), var(--raised) 72%);
+  overflow: clip;
+}
 /* La lévitation : ample et rapide — 22 px de course en 3,2 s. Une scène
    qui flotte à peine se lit comme immobile, et c'est la seule chose de
    la rangée qui dit « ceci est vivant ». Translate seulement : aucune
@@ -1054,13 +1092,38 @@ html::-webkit-scrollbar { display: none; }
   50%      { transform: translate3d(0, -12px, 0); }
 }
 .mrow__scene { display: flex; justify-content: center; width: 100%; min-width: 0; }
-.mrow__scene .mock { width: 100%; max-width: 540px; }
-.mrow__t { font-size: clamp(22px, 2.6vw, 30px); font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
-.mrow__p { margin-top: var(--sp-2); font-size: 16px; line-height: 1.65; color: var(--ink-60); max-width: 46ch; }
+.mrow__scene .mock { width: 100%; max-width: 560px; }
+/* Le titre tient sur deux ou trois lignes, et c'est voulu : une ligne
+   unique en face d'un cadre de quatre cents pixels de haut laisse la
+   colonne de droite à moitié vide. */
+.mrow__t {
+  font-size: clamp(24px, 2.9vw, 34px);
+  font-weight: 500; letter-spacing: -0.02em; line-height: 1.12;
+  max-width: 14ch;
+}
+.mrow__p { margin-top: var(--sp-2); font-size: 16px; line-height: 1.65; color: var(--ink-60); max-width: 42ch; }
+/* Deux actions, et une seule porte une couleur — la même règle que le
+   héros. Le bleu mène littéralement sur Discord ; la pilule fantôme
+   descend dans la page, vers la fiche complète du module. */
+.mrow__actions {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--sp-1); margin-top: var(--sp-3);
+}
+.mrow__actions .pill { height: 42px; font-size: 14px; }
+
 @media (max-width: 900px) {
   .mrow { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
   .mrow--inv .mrow__vue { order: 0; }
-  .mrows { gap: var(--sp-4); }
+  .mrows { gap: var(--sp-5); }
+  .mrow__t { max-width: none; }
+  /* Le cadre perd sa marge intérieure et sa hauteur imposée. Un débord
+     sur un écran de téléphone ne se lit plus comme de la profondeur :
+     il se lit comme du contenu coupé, et il l'est. */
+  .mrow__vue {
+    height: auto;
+    padding: var(--sp-2) var(--sp-2) 0;
+    padding-bottom: var(--sp-2);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   html:not(.motion-force) .mrow__flot { animation: none; }

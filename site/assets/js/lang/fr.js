@@ -71,6 +71,8 @@ window.CYQ_I18N.fr = {
   "demo.lead": "Dix joueurs rejoignent par les boutons. Le bot compose les équipes, crée les salons vocaux et y déplace tout le monde.",
 
   "mg.title": "Six modules, un seul bot",
+  /* la seconde action d'une rangée : elle mène à la page Modules, à l'ancre du module */
+  "mg.more": "En savoir plus",
   "mg.queue": "La file et la composition des équipes : de 2 à 6 équipes, capitaines élus, vocal d'attente et dix presets.",
   "mg.mmr": "Le classement se tient tout seul : points de départ, gains, bonus MVP et de série.",
   "mg.duel": "L'affrontement direct, sans passer par la file. Le score est confirmé au vote.",
