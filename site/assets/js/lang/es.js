@@ -95,6 +95,8 @@ window.CYQ_I18N.es = {
   "h.lead": "Un bot de Discord que abre tus colas, forma los equipos y lleva la clasificación. Los jugadores entran con un clic, el resto se hace solo.",
   "h.invite": "Añadir a Discord",
   "h.seeFeatures": "Ver las funciones",
+  "h.carrouSuiv": "Módulo siguiente",
+  "h.carrouNav": "Elegir el módulo mostrado",
   "h.inviteNote": "Abre la pantalla de autorización de Discord. Necesitas el permiso Gestionar servidor en el servidor elegido.",
     "h.loginBtn": "Iniciar sesión con Discord",
   "s.language": "Idioma",

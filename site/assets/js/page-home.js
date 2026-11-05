@@ -1295,3 +1295,110 @@
   son.muted = true;
   montrerLeBouton();
 })();
+
+
+/* =========================================================================
+   LE CARROUSEL DU HÉROS
+   =========================================================================
+   Les six scènes Discord passent à tour de rôle dans la carte du héros.
+
+   DANS SA PROPRE IIFE, pour la même raison que le titre qui se tape :
+   celle du haut sort à sa deuxième ligne quand `window.anime` est absent,
+   et une boucle écrite à l'intérieur ne jouerait jamais sur un navigateur
+   où la bibliothèque n'a pas chargé. Le carrousel ne lui doit rien — un
+   setTimeout récursif et deux classes, c'est tout.
+
+   LE FONDU EST EN CSS, pas ici : ce script ne fait que déplacer la classe
+   `--on`. Il n'écrit aucun style en ligne, donc il n'entre en conflit avec
+   aucun des trois calques de transform du héros.
+
+   LE MINUTEUR S'ARME À CHAQUE FOIS, jamais `setInterval`. Un intervalle
+   continue de compter pendant qu'on survole la carte : on le coupe, et au
+   départ suivant la vue changeait dans la seconde parce qu'il restait
+   deux dixièmes au compteur. Un timeout réarmé repart toujours de trois
+   secondes pleines — c'est aussi ce qui fait qu'un clic sur la flèche
+   laisse le temps de regarder ce qu'on vient de demander.
+   ========================================================================= */
+(function carrouselDuHeros() {
+  'use strict';
+
+  var piste = document.querySelector('[data-carrou]');
+  var ctrl  = document.querySelector('[data-carrou-ctrl]');
+  if (!piste || !ctrl) return;
+
+  var vues  = [].slice.call(piste.querySelectorAll('[data-carrou-vue]'));
+  var plots = [].slice.call(ctrl.querySelectorAll('[data-carrou-plot]'));
+  /* Une seule vue n'est pas un carrousel : on laisse la page telle quelle,
+     commandes comprises, plutôt que de découvrir une flèche qui tourne en
+     rond sur elle-même. */
+  if (vues.length < 2) return;
+
+  /* Trois secondes : le temps de lire un titre d'embed et deux champs. En
+     dessous, on ne finit pas de regarder ; au-dessus, on a quitté le haut
+     de la page avant d'avoir vu le deuxième module. */
+  var PAUSE = 3000;
+
+  var force = document.documentElement.classList.contains('motion-force');
+  var calme = !force && window.matchMedia &&
+              window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var i = 0, minuteur = 0, survol = false, focus = false;
+
+  /* Les commandes sont `hidden` dans la page : sans ce script, une flèche
+     inerte est pire qu'une flèche absente. */
+  ctrl.hidden = false;
+
+  function montrer(n) {
+    i = (n + vues.length) % vues.length;
+    for (var k = 0; k < vues.length; k++) {
+      if (k === i) vues[k].classList.add('carrou__vue--on');
+      else vues[k].classList.remove('carrou__vue--on');
+    }
+    for (var p = 0; p < plots.length; p++) {
+      plots[p].setAttribute('aria-current', p === i ? 'true' : 'false');
+    }
+  }
+
+  function arreter() {
+    if (minuteur) { clearTimeout(minuteur); minuteur = 0; }
+  }
+
+  /* Quatre raisons de ne pas compter, et elles se lisent d'un coup d'œil
+     ici plutôt que dispersées dans quatre écouteurs :
+       calme          la personne a demandé moins de mouvement
+       survol         elle regarde la carte, on ne la lui change pas
+       focus          elle est au clavier dans les commandes
+       document.hidden l'onglet est en arrière-plan — une animation qui
+                      tourne là ne sert personne et mange de la batterie */
+  function armer() {
+    arreter();
+    if (calme || survol || focus || document.hidden) return;
+    minuteur = setTimeout(function () { montrer(i + 1); armer(); }, PAUSE);
+  }
+
+  function avancer(n) { montrer(n); armer(); }
+
+  var fleche = ctrl.querySelector('[data-carrou-suivant]');
+  if (fleche) {
+    fleche.addEventListener('click', function () { avancer(i + 1); });
+  }
+
+  for (var p = 0; p < plots.length; p++) {
+    (function (n, bouton) {
+      bouton.addEventListener('click', function () { avancer(n); });
+    })(parseInt(plots[p].getAttribute('data-carrou-plot'), 10) || 0, plots[p]);
+  }
+
+  /* Le survol se surveille sur toute la colonne droite, commandes
+     comprises : viser la flèche demande de passer sur la carte, et une
+     vue qui change pendant ce trajet fait manquer le bouton. */
+  var zone = document.querySelector('[data-hero="embed"]') || piste;
+  zone.addEventListener('pointerenter', function () { survol = true;  arreter(); });
+  zone.addEventListener('pointerleave', function () { survol = false; armer(); });
+  ctrl.addEventListener('focusin',  function () { focus = true;  arreter(); });
+  ctrl.addEventListener('focusout', function () { focus = false; armer(); });
+
+  document.addEventListener('visibilitychange', armer);
+
+  armer();
+})();

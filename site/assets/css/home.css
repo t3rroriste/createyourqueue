@@ -372,7 +372,14 @@ html::-webkit-scrollbar { display: none; }
   overflow: clip;                      /* rogne le halo, pas les collants */
 }
 
-.hero__copy { position: relative; z-index: 2; }
+/* Le titre descend un peu. Il partait du même bord que la carte d'en
+   face, mais une carte pleine et un titre sur deux lignes ne pèsent pas
+   pareil : à hauteur égale, la colonne de gauche paraissait collée à la
+   nav. Trente-six pixels au plus — au-delà, le h1 passe sous la ligne de
+   flottaison sur un portable 14 pouces. La valeur fond avec la largeur,
+   et le bloc 1100 px la remet à zéro : le héros n'y a plus qu'une
+   colonne, donc plus rien à aligner. */
+.hero__copy { position: relative; z-index: 2; padding-top: clamp(0px, 2.4vw, 36px); }
 
 /* Bas de casse, aligné à gauche, ragged right assumé. Pas de justification,
    pas de text-wrap:balance : les lignes doivent rester inégales. */
@@ -767,6 +774,17 @@ html::-webkit-scrollbar { display: none; }
   position: relative; z-index: 1;
   display: grid; place-items: center;
   min-width: 0;
+  /* La carte était centrée dans sa colonne, donc posée au milieu du vide
+     laissé par le texte : elle flottait sans bord auquel se tenir. Une
+     marge à gauche la décale vers l'extérieur, où l'inclinaison et
+     l'ombre ont quelque chose à mordre. Elle est centrée dans ce qui
+     reste, donc la carte ne bouge que de la moitié de la marge : 80 px
+     ici valent 40 px à l'œil, et c'est le « un peu » qu'on cherchait.
+
+     MARGE ET NON `transform` : anime.js écrit son transform en ligne sur
+     `.hero__embed` à l'ouverture, app.js le réécrit au survol. Un
+     troisième transform posé ici serait écrasé dès la première image. */
+  margin-left: clamp(0px, 5vw, 80px);
 }
 .hero__stage .matter {
   position: absolute; inset: auto; z-index: 1;
@@ -787,6 +805,108 @@ html::-webkit-scrollbar { display: none; }
    dépasser la carte de la coque. */
 @media (max-width: 1100px) {
   .hero__embed-card { transform: none; }
+}
+
+/* ----------------- le carrousel des six modules -----------------------
+
+   LES SIX VUES SONT EMPILÉES DANS UNE SEULE CELLULE DE GRILLE. C'est tout
+   le mécanisme, et il tient en deux règles : la piste prend d'elle-même
+   la hauteur de la plus haute, donc le héros ne saute pas d'un module à
+   l'autre, et aucune mesure n'est à refaire quand la langue, la largeur
+   ou la police changent.
+
+   `align-items: center` et non `start` : les six scènes n'ont pas la même
+   hauteur — le journal de modération fait presque le double de la file
+   d'attente — et les caler en haut laissait un vide qui grandissait à
+   chaque changement de vue. Centrées, le vide se partage en deux et ne
+   se remarque plus.
+
+   Le fondu est posé ICI, en CSS, et non en JS comme le reste de la page :
+   il ne doit rien à anime.js. Si la bibliothèque manque, la page sort à
+   sa deuxième ligne (page-home.js) mais le carrousel, lui, vit dans sa
+   propre IIFE et continue de tourner. */
+.hero__embed-ballon { position: relative; z-index: 2; }
+
+.carrou { display: grid; align-items: center; }
+.carrou__vue {
+  grid-area: 1 / 1;
+  min-width: 0;
+  display: flex; justify-content: center;
+  /* L'état masqué est le défaut, et `--on` est écrit dans la page sur la
+     première vue : sans JS on voit la file d'attente, pas six maquettes
+     superposées. */
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition: opacity .5s var(--e-soft), transform .5s var(--e-soft);
+}
+.carrou__vue--on { opacity: 1; transform: none; }
+
+/* Les commandes. Trente-deux pixels de dégagement : la carte penchée de
+   trois degrés descend d'environ quatorze pixels à son coin bas-gauche,
+   et une flèche qui frôle ce coin se lit comme un chevauchement. */
+.carrou__ctrl {
+  position: relative; z-index: 3;
+  margin-top: 32px;
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-2);
+}
+.carrou__plots { display: flex; align-items: center; }
+
+/* LE POINT SE VOIT À SEPT PIXELS ET SE CLIQUE À VINGT-DEUX. Le bouton est
+   un carré transparent, le point est son `::before` centré : viser sept
+   pixels à la souris demande de s'appliquer, et six cibles de sept pixels
+   côte à côte s'attrapent les unes pour les autres. Le dessin ne change
+   pas, seule la surface sensible grandit — et le liseré de focus suit la
+   surface, ce qui le rend enfin visible.
+
+   Le point actif grossit par `transform`, jamais par `width` : six points
+   qui changent de largeur relancent une mise en page toutes les trois
+   secondes, et c'est exactement ce que la règle du dépôt interdit.
+
+   ET IL N'EST PAS CUIVRE. Le point de pagination actif est pourtant l'un
+   des trois emplois autorisés de `--accent` (voir les jetons en tête de
+   feuille), mais le curseur du titre en occupe déjà un dans ce même
+   écran, et la règle dit : jamais deux fois. L'encre pleine suffit à
+   distinguer six points. */
+.carrou__plot {
+  appearance: none; -webkit-appearance: none;
+  position: relative;
+  margin: 0; padding: 0; border: 0; cursor: pointer;
+  width: 22px; height: 22px; border-radius: var(--r-pill);
+  background: none;
+}
+.carrou__plot::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px;
+  border-radius: var(--r-pill); background: var(--ink-40);
+  transition: transform .35s var(--e-soft), background-color .25s linear;
+}
+.carrou__plot:hover::before { background: var(--ink-60); }
+.carrou__plot[aria-current="true"]::before {
+  background: var(--ink); transform: scale(1.45);
+}
+
+.carrou__fleche {
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  display: grid; place-items: center;
+  width: 36px; height: 36px; border-radius: var(--r-pill);
+  border: 1px solid var(--hair); background: var(--film);
+  color: var(--ink-60);
+  transition: transform .3s var(--e-soft),
+              background-color .2s linear, color .2s linear;
+}
+.carrou__fleche:hover { background: var(--lift-2); color: var(--ink); }
+.carrou__fleche:active { transform: scale(.93); }
+
+/* Calme : plus de fondu, plus de grossissement du point. Le changement
+   reste, il est seulement instantané — la flèche et les points doivent
+   continuer de répondre, sinon ils paraissent cassés. Le défilement
+   automatique, lui, est coupé par le script : une image qui change toute
+   seule est du mouvement, qu'elle soit fondue ou non. */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-force) .carrou__vue,
+  html:not(.motion-force) .carrou__plot::before,
+  html:not(.motion-force) .carrou__fleche { transition: none; }
 }
 
 /* La pilule fantôme du héros se tient à la hauteur de la pilule claire :
@@ -1100,10 +1220,17 @@ html::-webkit-scrollbar { display: none; }
 @media (max-width: 1100px) {
   .hero__in { grid-template-columns: minmax(0,1fr); padding-top: 144px; }
   .matter { justify-self: center; margin: 0 auto; max-width: 380px; }
+  /* Une seule colonne : le titre n'a plus de carte à côté de lui, donc
+     plus rien à rattraper, et la carte n'a plus de vide à quitter. Les
+     deux réglages de cadrage du grand écran retombent à zéro. */
+  .hero__copy { padding-top: 0; }
   /* La carte reprend la pleine largeur de la colonne, le halo rétrécit
      derrière elle : à cette largeur, un halo plus large que la carte
      déborde de la coque. */
-  .hero__stage { margin-top: var(--sp-3); }
+  .hero__stage { margin-top: var(--sp-3); margin-left: 0; }
+  /* La carte n'est plus penchée ici : il n'y a plus de coin qui descend,
+     donc plus de dégagement à prévoir sous elle. */
+  .carrou__ctrl { margin-top: 20px; }
   .hero__stage .matter { max-width: 420px; }
   .demo__in { grid-template-columns: minmax(0, 1fr); }
   .demo__copy { text-align: center; }

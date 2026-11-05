@@ -95,6 +95,8 @@ window.CYQ_I18N.de = {
   "h.lead": "Ein Discord-Bot, der deine Warteschlangen öffnet, die Teams zusammenstellt und die Rangliste führt. Spieler treten mit einem Klick bei, der Rest läuft von allein.",
   "h.invite": "Zu Discord hinzufügen",
   "h.seeFeatures": "Funktionen ansehen",
+  "h.carrouSuiv": "Nächstes Modul",
+  "h.carrouNav": "Angezeigtes Modul wählen",
   "h.inviteNote": "Öffnet die Autorisierungsseite von Discord. Du brauchst die Berechtigung „Server verwalten“ auf dem gewählten Server.",
     "h.loginBtn": "Mit Discord anmelden",
   "s.language": "Sprache",

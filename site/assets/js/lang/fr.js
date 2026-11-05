@@ -114,6 +114,9 @@ window.CYQ_I18N.fr = {
   "h.lead": "Un bot Discord qui ouvre tes files d'attente, compose les équipes et tient le classement. Les joueurs rejoignent en un clic, le reste se fait tout seul.",
   "h.invite": "Ajouter à Discord",
   "h.seeFeatures": "Voir les fonctionnalités",
+  /* le carrousel de la carte : les six scènes passent toutes seules */
+  "h.carrouSuiv": "Module suivant",
+  "h.carrouNav": "Choisir le module montré",
   "h.inviteNote": "Ouvre l'écran d'autorisation Discord. Il te faut la permission « Gérer le serveur » sur le serveur choisi.",
     "h.loginBtn": "Se connecter avec Discord",
   "s.language": "Langue",

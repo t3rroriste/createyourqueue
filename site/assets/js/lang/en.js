@@ -95,6 +95,8 @@ window.CYQ_I18N.en = {
   "h.lead": "A Discord bot that opens your queues, builds the teams and keeps the leaderboard. Players join with one click, the rest takes care of itself.",
   "h.invite": "Add to Discord",
   "h.seeFeatures": "See the features",
+  "h.carrouSuiv": "Next module",
+  "h.carrouNav": "Choose the module shown",
   "h.inviteNote": "Opens Discord's authorisation screen. You need the Manage Server permission on the server you pick.",
     "h.loginBtn": "Sign in with Discord",
   "s.language": "Language",
