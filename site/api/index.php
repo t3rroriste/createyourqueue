@@ -471,12 +471,23 @@ function mes_guildes(array $session): array
         liberer_session();
         return $cache['liste'];
     }
-    /* Le verrou est rendu AVANT l'aller-retour chez Discord, et repris
-       juste pour écrire le cache : tenir le fichier de session pendant un
-       appel réseau, c'est faire attendre les trois autres requêtes de la
-       page pour rien. */
-    liberer_session();
+    /* ICI, ON GARDE LE VERROU PENDANT L'APPEL À DISCORD, et c'est
+       volontaire — c'est même tout l'intérêt de cet endroit.
 
+       Le cache ci-dessus ne protège de la rafale que si les quatre
+       requêtes de la page passent À LA SUITE : la première appelle
+       Discord et remplit le cache, les trois autres le trouvent rempli.
+       Rendu ici, le verrou les laissait toutes les quatre entrer
+       ensemble, toutes les quatre voir un cache vide, et toutes les
+       quatre appeler Discord — qui répond alors 429, et le panneau
+       affiche « Discord limite les requêtes ».
+
+       Le verrou faisait donc ce travail sans que rien ne le dise, et le
+       rendre trop tôt l'a défait. Il est repris juste le temps de l'appel
+       — quelques centaines de millisecondes, une fois toutes les trente
+       secondes — et non des douze secondes de l'appel au bot, qui est ce
+       qu'on voulait vraiment cesser de sérialiser. `mes_guildes()` rend
+       la main avant que la route n'appelle le bot. */
     try {
         /* `with_counts=true` et non l'adresse nue : sans ce paramètre,
            Discord ne met PAS `approximate_member_count` dans sa réponse, et
@@ -485,7 +496,6 @@ function mes_guildes(array $session): array
            rien ne proteste. Le champ était lu correctement ; il n'avait
            simplement jamais été demandé. */
         $liste = appel_discord('/users/@me/guilds?with_counts=true', $session['access_token']);
-        demarrer_session();
         $_SESSION['cyq']['guildes'] = ['a' => time(), 'liste' => $liste];
         liberer_session();
         return $liste;
