@@ -1260,6 +1260,34 @@
     if (jouait && visible && !calme) lancer();
   });
 
+  /* ---- quand le lecteur complet s'ouvre par-dessus -------------------
+
+     DEUX VOIX EN MÊME TEMPS. La carte continue de jouer derrière la
+     fenêtre — elle est toujours à l'écran, donc rien ne l'arrête — et le
+     lecteur complet lance la sienne. On entend les deux, décalées.
+
+     On surveille l'attribut `hidden` de la fenêtre plutôt que le clic
+     qui l'ouvre : elle se ferme aussi par Échap et par le fond, et trois
+     écouteurs pour un même état finissent toujours par en oublier un.
+
+     La carte REPREND là où elle en était, muette ou non selon ce qui
+     avait été décidé avant — on ne la remet pas au début pour être
+     passé par la grande version. */
+  var modale = document.querySelector('[data-lecteur]');
+  if (modale && window.MutationObserver) {
+    var jouaitAvant = false;
+    new MutationObserver(function () {
+      var ouverte = !modale.hidden;
+      if (ouverte) {
+        jouaitAvant = !son.paused;
+        son.pause();
+        if (boucle) { cancelAnimationFrame(boucle); boucle = 0; }
+      } else if (jouaitAvant && visible && !calme) {
+        jouer().then(tourner).catch(function () {});
+      }
+    }).observe(modale, { attributes: true, attributeFilter: ['hidden'] });
+  }
+
   /* MUET AU REPOS, et le bouton le dit. C'est l'état dans lequel la
      carte partira neuf fois sur dix, puisque le son automatique est
      refusé par défaut : annoncer « Couper le son » avant d'avoir joué
