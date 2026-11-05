@@ -187,8 +187,11 @@
      lumière qui tourne sans fin devient un gyrophare ; une qui passe
      toutes les deux secondes se remarque à peine, et c'est le but.
 
-     L'opacité monte à 0,14 seulement. Le verre est crème sur un trait
-     noir : au-delà, le reflet devient une tache. */
+     L'opacité monte à 0,26, et le chiffre a été réglé À 76 PX et non
+     sur une maquette agrandie : à 0,2 le reflet était net sur un logo
+     de 190 px et proprement invisible à la taille où il vit. Le dégradé
+     éteint les deux bords, donc seule la crête atteint cette valeur —
+     c'est ce qui l'empêche de devenir une tache. */
   function refletEnBoucle() {
     if (!reflet) return;
     /* `translateX` et non `x` : sur un rectangle SVG, `x` est aussi un
@@ -198,8 +201,8 @@
     A.animate(reflet, {
       translateX: [-70, 190],
       opacity: [
-        { to: 0.13, duration: 170 },
-        { to: 0.13, duration: 380 },
+        { to: 0.26, duration: 170 },
+        { to: 0.26, duration: 380 },
         { to: 0, duration: 250 },
       ],
       duration: 800, delay: 520,
