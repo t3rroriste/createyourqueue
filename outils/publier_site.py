@@ -71,18 +71,24 @@ EXPLICATIONS = {
          "nom technique du serveur donné par LWS — du genre xxx.lwspanel.com."),
     64: ("Le serveur a refusé le FTP chiffré. Mets ftps à false dans lws.json (le mot "
          "de passe circulera alors en clair) ou demande le FTPS au support LWS."),
+    67: "Identifiant ou mot de passe refusé par le serveur.",
+    78: "Fichier ou dossier distant introuvable : vérifie racine_site / racine_app.",
+}
+
+# La marche à suivre, dite UNE FOIS en fin de publication et non à chaque
+# fichier : un identifiant refusé rate les quarante fichiers de la vitrine,
+# et quarante fois le même paragraphe noie la seule ligne qui compte.
+REMEDES = {
     # Le plus trompeur des codes : la machine est joignable, le dossier
     # existe, rien n'a l'air cassé — et zéro fichier part. Du 2 au 5
     # novembre 2026, la veille du PC l'a répété à chaque passage dans son
     # journal, sans que personne le lise, pendant que le Mac publiait
     # normalement avec son propre coffre. D'où la commande, dans le texte.
-    67: ("Identifiant ou mot de passe refusé par le serveur.\n"
-         "Le mot de passe du coffre de cette machine est probablement périmé :\n"
+    67: ("Le mot de passe du coffre de cette machine est probablement périmé.\n"
          "  cyq coffre                 ce qui est rangé, et où\n"
          "  cyq coffre --refaire lws   le ressaisir\n"
          "Si l'erreur persiste, c'est le champ utilisateur de "
          "outils/reglages/lws.json."),
-    78: "Fichier ou dossier distant introuvable : vérifie racine_site / racine_app.",
 }
 
 
@@ -317,7 +323,9 @@ def envoyer(conf: dict, curl: Curl, base: str, quoi: str, essai: bool) -> int:
             print("  " + m, file=sys.stderr)
         return 1
 
-    partis, rates = 0, []
+    # Les codes, à part : ils servent à dire la marche à suivre une seule
+    # fois, en bas, plutôt qu'à chaque fichier raté.
+    partis, rates, codes_rates = 0, [], set()
     for cible in buts:
         print(f"=== {cible['nom']}  ->  {base}{cible['racine']}/   "
               f"({len(cible['fichiers'])} fichiers)")
@@ -333,6 +341,7 @@ def envoyer(conf: dict, curl: Curl, base: str, quoi: str, essai: bool) -> int:
                 print(f"  envoyé  {rel}")
             else:
                 rates.append(f"{cible['nom']} : {rel}")
+                codes_rates.add(code)
                 print(f"  ÉCHEC   {rel} — {explique(code, sortie)}", file=sys.stderr)
         print()
 
@@ -344,6 +353,11 @@ def envoyer(conf: dict, curl: Curl, base: str, quoi: str, essai: bool) -> int:
         print("Échecs :", file=sys.stderr)
         for r in rates:
             print("  " + r, file=sys.stderr)
+        for code in sorted(codes_rates):
+            remede = REMEDES.get(code)
+            if remede:
+                print("", file=sys.stderr)
+                print(remede, file=sys.stderr)
         return 1
     print("Ouvre https://cyqbot.eu et https://dashboard.cyqbot.eu — "
           "Ctrl+Maj+R (Cmd+Maj+R) la première fois.")
