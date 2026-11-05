@@ -62,9 +62,16 @@
          calme, plus « marque », et ça ne raconte rien — ce qui est
          parfois exactement ce qu'on veut d'un logo.
 
-     ON EN CHOISIT UNE, à `VARIANTE`. `?logo=balayage` ou `?logo=reflet`
-     dans l'adresse force l'autre le temps de comparer, sans toucher au
-     fichier — même mécanisme que `?motion=on`.
+       « duo »      — les deux, et le balayage y est plus ample : 20° au
+         lieu de 14. Le reflet passe PENDANT que la loupe penche, et
+         c'est pour ça qu'il vit dans le même groupe qu'elle — le verre
+         bascule, donc sa lumière aussi. Le souffle du disque saute ici :
+         trois mouvements à la fois sur 76 px, c'est un de trop.
+
+     ON EN CHOISIT UNE, à `VARIANTE`. `?logo=balayage`, `?logo=reflet`
+     ou `?logo=duo` dans l'adresse force l'une des autres le temps de
+     comparer, sans toucher au fichier — même mécanisme que
+     `?motion=on`.
 
      Les deux ne bougent QUE par `transform` et `opacity`. Une loupe
      qu'on animerait par ses attributs SVG — `cx`, `r`, le tracé — ferait
@@ -74,7 +81,7 @@
 
   var VARIANTE = 'balayage';
 
-  var demandee = /[?&]logo=(balayage|reflet)(&|$)/.exec(location.search);
+  var demandee = /[?&]logo=(balayage|reflet|duo)(&|$)/.exec(location.search);
   if (demandee) VARIANTE = demandee[1];
 
   /* TROIS SECONDES EN TOUT, et c'est là-dessus que le chiffre est
@@ -151,8 +158,9 @@
       duration: 520, ease: A.cubicBezier(.16, 1, .3, 1),
     });
 
-    if (VARIANTE === 'reflet') refletEnBoucle();
-    else balayageEnBoucle();
+    if (VARIANTE === 'duo') { balayageEnBoucle(20); refletEnBoucle(false); }
+    else if (VARIANTE === 'reflet') refletEnBoucle(true);
+    else balayageEnBoucle(14);
 
     animBarre = A.animate(barre, {
       scaleX: [0, 0.9], duration: PLAFOND, ease: 'outQuart',
@@ -168,11 +176,15 @@
 
      L'aller-retour est volontairement lent (1,5 s) : à 76 px, un geste
      rapide se lit comme un défaut d'affichage. */
-  function balayageEnBoucle() {
+  function balayageEnBoucle(degres) {
     if (!loupe) return;
     A.animate(loupe, {
-      rotate: [-14, 14],
-      duration: 1500, delay: 420,
+      rotate: [-degres, degres],
+      /* L'amplitude plus large est un peu plus lente : à 20° en 1,5 s,
+         la loupe file au lieu de chercher. Le geste reste le même, en
+         plus ample, parce que la vitesse suit la distance. */
+      duration: degres > 16 ? 1750 : 1500,
+      delay: 420,
       ease: 'inOutSine', loop: true, alternate: true,
     });
   }
@@ -192,7 +204,7 @@
      de 190 px et proprement invisible à la taille où il vit. Le dégradé
      éteint les deux bords, donc seule la crête atteint cette valeur —
      c'est ce qui l'empêche de devenir une tache. */
-  function refletEnBoucle() {
+  function refletEnBoucle(avecSouffle) {
     if (!reflet) return;
     /* `translateX` et non `x` : sur un rectangle SVG, `x` est aussi un
        attribut de géométrie, et le déplacer par là fait recalculer la
@@ -210,7 +222,7 @@
     });
     /* Le disque respire pendant que la lumière passe — 2,5 %, assez pour
        que l'écran ne soit pas tout à fait immobile entre deux reflets. */
-    if (anneau) {
+    if (anneau && avecSouffle) {
       A.animate(logo, {
         scale: [1, 1.025], duration: 1900, delay: 520,
         ease: 'inOutQuad', loop: true, alternate: true,
