@@ -29,10 +29,47 @@
   h.classList.add('motion-pending');
   if (/[?&]motion=on(&|$)/.test(location.search)) h.classList.add('motion-force');
   setTimeout(function () { h.classList.remove('motion-pending'); }, 1800);
+
+  // L'ÉCRAN DE LANCEMENT, allumé ICI et pas plus tard. Ce script est le
+  // seul qui tourne avant la première peinture : posée en fin de page, la
+  // classe serait arrivée après un éclair de page vide.
+  //
+  // Et son filet est ici aussi, pour la même raison que celui du dessus :
+  // si page-dashboard-lancement.js n'arrive jamais, l'écran s'efface tout
+  // seul. Une page de chargement qui reste est pire que pas de page de
+  // chargement du tout. 3,6 s = les 3 s annoncées de la barre, plus la
+  // marge du fondu.
+  h.classList.add('splash-on');
+  setTimeout(function () { h.classList.remove('splash-on'); }, 3600);
 })(document.documentElement);
 </script>
 </head>
 <body>
+
+<!-- ======================= L'ÉCRAN DE LANCEMENT =======================
+
+     Il couvre la page le temps que la fiche du serveur arrive, et il
+     part quand elle est là — pas avant, pas après. C'est tout son
+     intérêt : sans lui, on voyait le panneau se dessiner avec ses tirets
+     cadratins, puis les chiffres tomber un par un. Trois secondes au
+     maximum, après quoi il s'en va de toute façon : un écran d'attente
+     qui attend trop devient une panne.
+
+     Il n'est JAMAIS visible sans JavaScript : tout son affichage tient à
+     la classe `splash-on`, que seul le script de l'en-tête pose.
+
+     `aria-hidden` : ce qu'il montre — un logo et une barre — ne se lit
+     pas. Le mot « Chargement… » est dit une fois, dans la région
+     annoncée de la page, par le script. -->
+<div class="dbsplash" data-splash aria-hidden="true">
+  <div class="dbsplash__in">
+    <img class="dbsplash__logo" data-splash-logo src="assets/img/logo.png"
+         alt="" width="72" height="72">
+    <div class="dbsplash__rail">
+      <span class="dbsplash__bar" data-splash-bar></span>
+    </div>
+  </div>
+</div>
 
 <!-- Le cadre arrondi, fixe : il garde les coins de la coque visibles
      quand on descend dans la page. Purement visuel. -->
