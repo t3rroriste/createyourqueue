@@ -3,6 +3,15 @@
 Prompt à coller tel quel dans Claude Code, à la racine du dépôt CYQ.
 Quatre lots, à enchaîner sans s'arrêter entre eux.
 
+Les captures citées plus bas sont dans `docs/references-accueil/` :
+
+| Fichier | Ce qu'il montre |
+| --- | --- |
+| `actuel-heros.webp` | le héros tel qu'il est aujourd'hui |
+| `actuel-rangee-module.webp` | une rangée de module aujourd'hui |
+| `ref-mee6-texte.png` | la référence MEE6 — contenu de la colonne de texte |
+| `ref-codex-cadre.png` | la référence Codex — cadre, proportions, débord |
+
 ---
 
 Tu travailles sur l'accueil du site vitrine, `site/index.html`, avec
@@ -158,22 +167,73 @@ restent correctes.
 ## Lot 4 — la section des six modules, en bas
 
 Elle est aujourd'hui en rangées `.mrow` : scène d'un côté, titre et
-paragraphe de l'autre, en alternance. Garde ce principe mais passe à la
-disposition des deux captures de référence (voir `docs/`) :
+paragraphe de l'autre, en alternance. Le principe reste, la mise en page
+change. Deux références, et elles ne disent pas la même chose :
 
-- Le visuel prend nettement plus de place — autour de la moitié de la
-  largeur, contre une colonne de texte plus étroite et plus dense.
-- La colonne de texte : un sur-titre discret facultatif, un titre plus
-  large qu'aujourd'hui, un paragraphe long et aéré, puis **deux
-  actions** — une pleine (« Ajouter à Discord », qui réutilise
-  `.pill--discord` et `data-invite`) et une fantôme (« En savoir plus »,
-  vers l'ancre du module sur `modules.html`).
+- **MEE6** (`docs/references-accueil/ref-mee6-texte.png`) donne le
+  contenu de la colonne de texte : titre, paragraphe long, deux actions.
+- **Codex** (`docs/references-accueil/ref-codex-cadre.png`) donne le
+  traitement du visuel et les proportions, et c'est lui qui l'emporte
+  quand les deux divergent.
+
+Ouvre les deux images avant d'écrire une ligne de CSS, et compare-les à
+`docs/references-accueil/actuel-rangee-module.webp`, qui est l'état
+d'aujourd'hui.
+
+### La présentation, façon Codex
+
+La scène Discord n'est plus posée nue sur le fond : elle est **encadrée**.
+
+- Un grand cadre arrondi, large — autour de 55 à 60 % de la largeur de
+  la rangée — avec son propre fond, plus clair que la page. La scène est
+  posée **dedans**, avec une marge généreuse en haut et sur les côtés, et
+  elle **sort du cadre par le bas** : le bord inférieur la coupe. C'est
+  ce débord qui donne la profondeur ; une scène entièrement contenue
+  retombe à plat. `overflow: clip` sur le cadre, et la coupe tombe sur
+  une zone lisible de la maquette, jamais au milieu d'un bouton.
+- Le fond du cadre est un **dégradé doux**, du plus clair en haut à
+  gauche vers le fond de page en bas à droite. **Attention** : le
+  dégradé lilas de la capture est la couleur de Codex, pas la nôtre.
+  `home.css` n'a qu'un accent, `--accent #C08A5A`, **un seul emploi par
+  écran** — et le héros s'en sert déjà. Construis le dégradé avec
+  `--panel`, `--hair` et des crèmes très peu opaques tirés de `--ink`.
+  N'importe quel bleu ou violet ici serait une couleur venue d'ailleurs.
+  Si une touche de cuivre est tentante, elle ne peut apparaître que sur
+  **une seule** des six rangées.
+- La scène garde son ombre portée et son léger flottement
+  (`[data-ballon]`), mais **perd son inclinaison** : dans un cadre, une
+  maquette penchée se lit comme une erreur de montage.
+- Le second panneau flottant de la capture — la petite fenêtre posée en
+  bas à droite, par-dessus le reste — est à reprendre **seulement** là où
+  le module a vraiment un second écran à montrer (le panneau de config
+  du dashboard pour `options`, le ticket pour `clan`). Pas de panneau
+  décoratif qui ne montrerait rien.
+
+### La colonne de texte
+
+- Nettement plus étroite que le visuel, **centrée verticalement** sur
+  lui et non alignée en haut.
+- Un sur-titre discret facultatif, un titre large qui **tient sur deux
+  ou trois lignes** — pas un titre d'une seule ligne, c'est le rythme de
+  la capture —, puis un paragraphe long et aéré.
+- Puis **deux actions** : une pleine (« Ajouter à Discord », qui
+  réutilise `.pill--discord` et `data-invite`) et une fantôme
+  (« En savoir plus », vers l'ancre du module sur `modules.html`).
+  Codex n'en a pas ; nous en gardons deux, parce que l'invitation est la
+  raison d'être de la page. Mais elles restent discrètes : pas de
+  troisième action, pas de liste à puces, pas de badge.
+
+### Le reste
+
 - L'alternance gauche/droite est conservée (`.mrow--inv`), et l'espace
   vertical entre deux rangées augmente franchement : les rangées doivent
   respirer et se lire comme des sections, pas comme les lignes d'un
   tableau.
-- Sous 900 px, tout repasse en une colonne, visuel au-dessus du texte,
-  et les deux actions s'empilent proprement à 375 px.
+- Sous 900 px, tout repasse en une colonne, cadre au-dessus du texte, et
+  les deux actions s'empilent proprement à 375 px. À cette largeur le
+  cadre perd sa marge intérieure et la scène peut cesser de déborder :
+  un débord sur un écran de téléphone ne se lit plus comme de la
+  profondeur, juste comme du contenu coupé.
 - Les nouveaux textes et étiquettes passent par `data-i18n`, écrits dans
   `fr.js` puis `python outils/verifier_langues.py --completer`.
 
