@@ -44,8 +44,13 @@
   var barre = ecran.querySelector('[data-splash-bar]');
   var logo = ecran.querySelector('[data-splash-logo]');
 
-  /* Le plafond. 3 s pour la barre, puis le fondu. */
-  var PLAFOND = 3000;
+  /* TROIS SECONDES EN TOUT, et c'est là-dessus que le chiffre est
+     calculé : 2,8 s de montée plus les 200 ms du dernier bond jusqu'à
+     100 %. Mettre 3 s sur la seule montée aurait fait 3,2 s à l'écran,
+     et « 3 secondes au maximum » serait devenu approximatif — c'est le
+     genre de promesse qu'on tient ou qu'on ne fait pas. */
+  var PLAFOND = 2800;
+  var BOND = 200;
   /* En dessous, l'écran clignote au lieu de se montrer : on lit le logo,
      pas le mouvement. 420 ms est le plancher à partir duquel une
      apparition se lit comme une apparition et non comme un défaut. */
@@ -142,7 +147,7 @@
 
     /* Les 10 % restants, d'un coup : c'est le moment où la page devient
        vraie, et il se voit. */
-    if (barre && !calme) barre.style.transitionDuration = '220ms';
+    if (barre && !calme) barre.style.transitionDuration = BOND + 'ms';
     poserBarre(1);
 
     setTimeout(function () {
@@ -157,7 +162,7 @@
       setTimeout(function () {
         if (ecran.parentNode) ecran.parentNode.removeChild(ecran);
       }, calme ? 0 : FONDU + 60);
-    }, calme ? 0 : 200);
+    }, calme ? 0 : BOND);
   }
 
   /* ==================================================================

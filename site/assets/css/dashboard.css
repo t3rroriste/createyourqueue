@@ -114,11 +114,11 @@ html.splash-on .dbsplash { opacity: 1; visibility: visible; }
 @media (prefers-reduced-motion: no-preference) {
   .dbsplash { transition: opacity .38s var(--e-soft), visibility 0s linear .38s; }
   html.splash-on .dbsplash { transition: none; }
-  .dbsplash__bar { transition: transform 3000ms var(--e-out); }
+  .dbsplash__bar { transition: transform 2800ms var(--e-out); }
 }
 html.motion-force .dbsplash { transition: opacity .38s var(--e-soft), visibility 0s linear .38s; }
 html.motion-force.splash-on .dbsplash { transition: none; }
-html.motion-force .dbsplash__bar { transition: transform 3000ms var(--e-out); }
+html.motion-force .dbsplash__bar { transition: transform 2800ms var(--e-out); }
 
 /* ============================ la grille =============================== */
 
