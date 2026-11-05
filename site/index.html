@@ -15,7 +15,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202611051503"></script>
+<script src="assets/js/theme-tot.js?v=202611051517"></script>
 <link rel="icon" href="assets/img/logo.png">
 <!-- L'ADRESSE CANONIQUE ET LES CINQ LANGUES.
 
@@ -41,14 +41,14 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202611051503">
+<link rel="stylesheet" href="assets/css/home.css?v=202611051517">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202611051503">
-<link rel="stylesheet" href="assets/css/film.css?v=202611051503">
+<link rel="stylesheet" href="assets/css/modules.css?v=202611051517">
+<link rel="stylesheet" href="assets/css/film.css?v=202611051517">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -284,29 +284,51 @@
 
 
   <!-- ============== SECTION 3 · la présentation ==============
-       Sans titre ni chapeau : l'affiche dit d'elle-même ce qu'elle est.
+       Sans titre ni chapeau : la carte dit d'elle-même ce qu'elle est.
 
-       L'affiche n'est plus une image : c'est le film lui-même, monté par
-       film.js et figé sur l'annonce Discord et ses réactions — l'image qui
-       dit le mieux ce que fait le bot. Elle suit la langue du site, ce
-       qu'une capture ne saurait pas faire, et rien du son n'est téléchargé
-       tant qu'on n'a pas cliqué. -->
+       ELLE SE LANCE QUAND ON ARRIVE DESSUS. Plus d'affiche à cliquer,
+       plus de fenêtre qui s'ouvre par-dessus la page : le film tourne
+       dans la page, et la seule commande visible est le son. C'est ce
+       qu'on fait d'une présentation de produit — on la regarde en
+       passant, on ne décide pas de l'ouvrir.
+
+       Ce n'est pas un fichier vidéo : l'image est dessinée en direct par
+       film.js, dans la langue du site, et seule la voix est un fichier
+       (assets/video/voix/<langue>.mp4). Rien du son n'est téléchargé
+       tant que la carte n'est pas arrivée à l'écran.
+
+       LE SON NE PART PAS TOUT SEUL CHEZ TOUT LE MONDE, et ce n'est pas
+       au choix du site : les navigateurs refusent le son automatique
+       tant que la page n'a pas été touchée. Le script l'essaie, et s'il
+       est refusé il joue en silence — le bouton montre alors le son
+       coupé, et un clic suffit. Voir page-home.js.
+
+       Toute la carte reste cliquable : elle ouvre le lecteur complet,
+       avec ses sous-titres, ses raccourcis clavier et sa barre de
+       progression. Rien de tout cela ne tient dans une carte qui se
+       regarde en passant, et rien de tout cela ne doit disparaître. -->
   <section class="bloc video" data-mod>
-    <div class="video__coque" data-reveal-text data-video-coque>
-      <!-- Le bouton EST l'affiche, et non un bouton posé par-dessus : une
+    <div class="vcard" data-reveal-text data-video-coque data-vcard>
+      <!-- Le bouton EST la carte, et non un bouton posé par-dessus : une
            zone cliquable plus petite que ce qu'on voit est la première
            chose qu'on reproche à un lecteur. -->
-      <button class="video__ouvrir" type="button" data-video-open>
-        <span class="video__affiche" aria-hidden="true" data-video-affiche></span>
-        <span class="video__disque" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>
-        </span>
-        <span class="video__legende">
-          <span class="video__cta" data-i18n="video.play">Voir la présentation</span>
-          <!-- La durée vient du minutage de la voix, dans la langue du
-               site : une durée en dur ment au premier remontage. -->
-          <span class="video__duree" data-video-duree hidden></span>
-        </span>
+      <button class="vcard__ouvrir" type="button" data-video-open
+              data-i18n-attr="aria-label:video.play" aria-label="Voir la présentation">
+        <span class="vcard__scene" aria-hidden="true" data-vcard-film></span>
+      </button>
+
+      <!-- L'<audio> n'a ni `src` ni `preload` : le script pose la source
+           dans la langue du site quand la carte approche de l'écran. -->
+      <audio data-vcard-son preload="none" playsinline></audio>
+
+      <!-- Hors du bouton d'ouverture, pas dedans : un bouton dans un
+           bouton n'est pas du HTML valide, et le clic du premier
+           remonterait au second. -->
+      <button class="vcard__son" type="button" data-vcard-muet
+              data-i18n-attr="aria-label:lec.unmute, title:lec.unmute"
+              aria-label="Rétablir le son" aria-pressed="true">
+        <svg class="vcard__ico vcard__ico--son" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        <svg class="vcard__ico vcard__ico--muet" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>
       </button>
     </div>
   </section>
@@ -1067,25 +1089,25 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202611051503"></script>
-<script src="assets/js/config.js?v=202611051503"></script>
-<script src="assets/js/lang/fr.js?v=202611051503"></script>
-<script src="assets/js/lang/en.js?v=202611051503"></script>
-<script src="assets/js/lang/es.js?v=202611051503"></script>
-<script src="assets/js/lang/de.js?v=202611051503"></script>
-<script src="assets/js/lang/ko.js?v=202611051503"></script>
-<script src="assets/js/app.js?v=202611051503"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202611051517"></script>
+<script src="assets/js/config.js?v=202611051517"></script>
+<script src="assets/js/lang/fr.js?v=202611051517"></script>
+<script src="assets/js/lang/en.js?v=202611051517"></script>
+<script src="assets/js/lang/es.js?v=202611051517"></script>
+<script src="assets/js/lang/de.js?v=202611051517"></script>
+<script src="assets/js/lang/ko.js?v=202611051517"></script>
+<script src="assets/js/app.js?v=202611051517"></script>
 <!-- Le film : ses textes (extraits des vrais fichiers de langue), son
      scénario, le minutage des cinq voix, puis le moteur. Quelques dizaines
      de Ko en tout ; les voix elles-mêmes ne partent qu'à l'ouverture. -->
-<script src="assets/js/film-textes.js?v=202611051503"></script>
-<script src="assets/js/film-scenario.js?v=202611051503"></script>
-<script src="assets/video/voix/fr.cues.js?v=202611051503"></script>
-<script src="assets/video/voix/en.cues.js?v=202611051503"></script>
-<script src="assets/video/voix/es.cues.js?v=202611051503"></script>
-<script src="assets/video/voix/de.cues.js?v=202611051503"></script>
-<script src="assets/video/voix/ko.cues.js?v=202611051503"></script>
-<script src="assets/js/film.js?v=202611051503"></script>
-<script src="assets/js/page-home.js?v=202611051503"></script>
+<script src="assets/js/film-textes.js?v=202611051517"></script>
+<script src="assets/js/film-scenario.js?v=202611051517"></script>
+<script src="assets/video/voix/fr.cues.js?v=202611051517"></script>
+<script src="assets/video/voix/en.cues.js?v=202611051517"></script>
+<script src="assets/video/voix/es.cues.js?v=202611051517"></script>
+<script src="assets/video/voix/de.cues.js?v=202611051517"></script>
+<script src="assets/video/voix/ko.cues.js?v=202611051517"></script>
+<script src="assets/js/film.js?v=202611051517"></script>
+<script src="assets/js/page-home.js?v=202611051517"></script>
 </body>
 </html>
