@@ -10,7 +10,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202611051433"></script>
+<script src="assets/js/theme-tot.js?v=202611051439"></script>
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,8 +18,8 @@
 <!-- Geist seule, comme le choix du serveur. Le monospace faisait
      « panneau d'administration » ; il n'a plus rien à faire ici. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202611051433">
-<link rel="stylesheet" href="assets/css/dashboard.css?v=202611051433">
+<link rel="stylesheet" href="assets/css/home.css?v=202611051439">
+<link rel="stylesheet" href="assets/css/dashboard.css?v=202611051439">
 <script>
 // Même garde que le choix du serveur : le contenu reste masqué le temps que
 // le script pose les états de départ, et se découvre tout seul après 1,8 s
@@ -90,25 +90,33 @@
       <circle cx="256" cy="256" r="256" fill="#F4F1EC"/>
       <circle data-splash-anneau cx="256" cy="256" r="239"
               fill="none" stroke="#111010" stroke-width="9"/>
-      <!-- La queue part de l'INTÉRIEUR du verre : c'est elle qui fait le
-           Q, et la sortir de l'anneau en ferait une loupe ordinaire. -->
-      <g data-splash-loupe fill="none" stroke="#111010">
-        <circle cx="228" cy="230" r="86" stroke-width="32"/>
-        <path d="M258 260 350 352" stroke-width="40" stroke-linecap="round"/>
-      </g>
-      <!-- Le reflet ne sert qu'à la variante B. Il part à zéro et le
-           script ne le réveille que s'il la joue.
+      <!-- LE REFLET EST DANS LE MÊME GROUPE QUE LA LOUPE, et c'est ce
+           qui permet de jouer les deux à la fois : le verre bascule avec
+           elle, donc la lumière qu'il enferme bascule aussi. Posé à
+           côté, le reflet serait resté immobile pendant que la loupe
+           penche — une tache qui glisse hors du verre.
 
-           DEUX GROUPES IMBRIQUÉS, et c'est nécessaire : l'inclinaison
-           est portée par le parent, la translation par le rectangle.
-           Les mettre sur le même élément ne marche pas — le `transform`
-           écrit en attribut et celui qu'anime.js pose en style sont la
-           même propriété, et le second efface le premier. Le reflet
-           restait alors droit et immobile. -->
-      <g clip-path="url(#cyq-verre)">
-        <g transform="rotate(-24 228 230)">
-          <rect data-splash-reflet x="110" y="130" width="66" height="200"
-                fill="url(#cyq-reflet)" opacity="0"/>
+           La queue part de l'INTÉRIEUR du verre : c'est elle qui fait le
+           Q, et la sortir de l'anneau en ferait une loupe ordinaire. -->
+      <g data-splash-loupe>
+        <g fill="none" stroke="#111010">
+          <circle cx="228" cy="230" r="86" stroke-width="32"/>
+          <path d="M258 260 350 352" stroke-width="40" stroke-linecap="round"/>
+        </g>
+        <!-- Le trait et le fond restent sur le groupe du dessus : hérités
+             ici, ils auraient bordé le reflet d'un liseré noir.
+
+             DEUX GROUPES IMBRIQUÉS, et c'est nécessaire : l'inclinaison
+             est portée par le parent, la translation par le rectangle.
+             Les mettre sur le même élément ne marche pas — le
+             `transform` écrit en attribut et celui qu'anime.js pose en
+             style sont la même propriété, et le second efface le
+             premier. Le reflet restait alors droit et immobile. -->
+        <g clip-path="url(#cyq-verre)">
+          <g transform="rotate(-24 228 230)">
+            <rect data-splash-reflet x="110" y="130" width="66" height="200"
+                  fill="url(#cyq-reflet)" opacity="0"/>
+          </g>
         </g>
       </g>
     </svg>
@@ -2177,21 +2185,21 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202611051433"></script>
-<script src="assets/js/config.js?v=202611051433"></script>
-<script src="assets/js/lang/fr.js?v=202611051433"></script>
-<script src="assets/js/lang/en.js?v=202611051433"></script>
-<script src="assets/js/lang/es.js?v=202611051433"></script>
-<script src="assets/js/lang/de.js?v=202611051433"></script>
-<script src="assets/js/lang/ko.js?v=202611051433"></script>
-<script src="assets/js/app.js?v=202611051433"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202611051439"></script>
+<script src="assets/js/config.js?v=202611051439"></script>
+<script src="assets/js/lang/fr.js?v=202611051439"></script>
+<script src="assets/js/lang/en.js?v=202611051439"></script>
+<script src="assets/js/lang/es.js?v=202611051439"></script>
+<script src="assets/js/lang/de.js?v=202611051439"></script>
+<script src="assets/js/lang/ko.js?v=202611051439"></script>
+<script src="assets/js/app.js?v=202611051439"></script>
 <!-- AVANT page-dashboard.js : c'est lui qui attend le signal `cyq:pret`
      pour jouer l'ouverture du panneau, et un écouteur posé après
      l'évènement ne l'entend pas. -->
-<script src="assets/js/page-dashboard-lancement.js?v=202611051433"></script>
-<script src="assets/js/page-dashboard.js?v=202611051433"></script>
-<script src="assets/js/page-dashboard-memoire.js?v=202611051433"></script>
-<script src="assets/js/page-dashboard-apercu.js?v=202611051433"></script>
-<script src="assets/js/page-dashboard-widgets.js?v=202611051433"></script>
+<script src="assets/js/page-dashboard-lancement.js?v=202611051439"></script>
+<script src="assets/js/page-dashboard.js?v=202611051439"></script>
+<script src="assets/js/page-dashboard-memoire.js?v=202611051439"></script>
+<script src="assets/js/page-dashboard-apercu.js?v=202611051439"></script>
+<script src="assets/js/page-dashboard-widgets.js?v=202611051439"></script>
 </body>
 </html>
