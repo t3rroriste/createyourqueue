@@ -73,13 +73,17 @@
      comparer, sans toucher au fichier — même mécanisme que
      `?motion=on`.
 
-     Les deux ne bougent QUE par `transform` et `opacity`. Une loupe
+     C'est « duo » qui est retenue. Les deux autres restent : elles ne
+     coûtent rien tant qu'on ne les demande pas, et elles redeviennent
+     comparables en une adresse le jour où la question se repose.
+
+     Les trois ne bougent QUE par `transform` et `opacity`. Une loupe
      qu'on animerait par ses attributs SVG — `cx`, `r`, le tracé — ferait
      recalculer la géométrie à chaque image, ce que le reste du site
      s'interdit.
      ================================================================== */
 
-  var VARIANTE = 'balayage';
+  var VARIANTE = 'duo';
 
   var demandee = /[?&]logo=(balayage|reflet|duo)(&|$)/.exec(location.search);
   if (demandee) VARIANTE = demandee[1];
