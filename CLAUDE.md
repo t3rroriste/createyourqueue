@@ -208,8 +208,33 @@ l'hébergeur a réellement réglé l'emporte toujours. Et le bot écrit
 désormais `bot/data/api-adresse.txt` — état, port écouté, longueur de la
 clé, `SERVER_PORT` — qui se lit par SFTP sans ouvrir le panneau.
 
-**Deux endroits à regarder** quand l'API du bot ne répond pas : la ligne
-du `.env`, et l'onglet Startup/Variables du panneau.
+### L'allocation change, et c'est la première chose à vérifier
+
+Le 6 novembre 2026, l'API répondait très bien — sur le port **25209**,
+pendant que le site appelait le **25117**. L'allocation réseau du serveur
+avait changé. Symptômes : panneau web hors ligne, et `cyq redemarrer` qui
+échoue depuis le 30 octobre en proposant trois hypothèses toutes fausses
+(« port fermé, bot éteint, ou clé désaccordée »).
+
+Le port ne se recopie plus à la main, et surtout pas depuis le `.env` :
+le bot IGNORE `DASHBOARD_API_PORT` dès que l'hébergeur ne lui donne pas
+ce port-là, et le dit dans sa console. Une seule commande fait foi :
+
+```
+python outils/relever_cle_bot.py
+```
+
+Elle lit `data/api-adresse.txt` sur le serveur — le port réellement
+écouté, l'état de l'API, depuis quand elle tourne — et aligne `bot/.env`
+et `site/api/secrets.php`. Puis `deposer_secrets.py` les porte chez LWS,
+car **aucune publication ne les emporte** : ils ne sont dans aucune
+liste d'envoi, délibérément. Ils sont aussi hors dépôt, donc l'autre
+machine garde sa vieille valeur jusqu'à ce qu'on y relance la même
+commande.
+
+**Trois endroits à regarder** quand l'API du bot ne répond pas : le port
+(`relever_cle_bot.py`), la ligne du `.env`, et l'onglet
+Startup/Variables du panneau.
 
 ## api-locale/ — l'API de développement
 
