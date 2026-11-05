@@ -1045,3 +1045,225 @@
   // l'affiche attend qu'elles soient là.
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(poserAffiche);
 })();
+
+/* =========================================================================
+   LA CARTE QUI SE LANCE QUAND ON ARRIVE DESSUS.
+
+   Sa propre IIFE, comme le lecteur complet, et pour la même raison : elle
+   ne doit rien à anime.js. Si la bibliothèque manque, la carte se lance
+   quand même.
+
+   CE QU'ELLE FAIT, ET DANS QUEL ORDRE :
+
+     elle approche  → on charge la voix et on monte le film ;
+     elle est vue   → on joue, et on essaie le son ;
+     elle sort      → on coupe le son, la lecture continue ;
+     elle revient   → le son revient, si on ne l'avait pas coupé à la main.
+
+   LE SON AUTOMATIQUE N'EST PAS UN DROIT. Les navigateurs le refusent tant
+   que la page n'a pas été touchée — Safari toujours, Chrome selon ce qu'il
+   sait de vos habitudes sur le site. On l'essaie, et sur un refus on joue
+   EN SILENCE plutôt que de ne pas jouer : le film reste muet, le bouton
+   montre le son coupé, et un clic le rétablit. C'est la seule façon
+   honnête de tenir la promesse — prétendre que le son part toujours
+   serait faux un jour sur deux.
+
+   UN CLIC À LA MAIN L'EMPORTE ENSUITE. Quelqu'un qui coupe le son ne veut
+   pas qu'il revienne au prochain passage, et le défilement n'a pas à
+   défaire ce qu'il vient de décider.
+
+   ON NE DESSINE QUE CE QU'ON VOIT. La voix continue hors écran — c'est
+   demandé — mais l'image, elle, n'est plus regardée : la boucle de rendu
+   s'arrête et reprend à l'entrée. Trente images par seconde dessinées
+   pour personne, c'est une batterie de téléphone.
+   ========================================================================= */
+(function () {
+  'use strict';
+
+  var carte = document.querySelector('[data-vcard]');
+  if (!carte) return;
+
+  var hote = carte.querySelector('[data-vcard-film]');
+  var son  = carte.querySelector('[data-vcard-son]');
+  var bSon = carte.querySelector('[data-vcard-muet]');
+  if (!hote || !son || !bSon) return;
+
+  var icoSon  = bSon.querySelector('.vcard__ico--son');
+  var icoMuet = bSon.querySelector('.vcard__ico--muet');
+
+  if (!window.CYQ_FILM) { carte.classList.add('vcard--nue'); return; }
+
+  var calme = window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+              !/[?&]motion=on(&|$)/.test(location.search);
+
+  var film = null,       // le film monté, ou null
+      langue = '',       // la langue de la voix chargée
+      boucle = 0,        // l'identifiant du rAF de dessin
+      visible = false,   // la carte est-elle à l'écran
+      coupeAlaMain = false,  // quelqu'un a cliqué le bouton
+      refuse = false,    // le navigateur a refusé le son
+      dernierT = -1, dernierP = 0;
+
+  function langueFilm() {
+    var l = (window.CYQ && window.CYQ.lang) || 'fr';
+    return (window.CYQ_VOIX && window.CYQ_VOIX[l]) ? l : 'fr';
+  }
+
+  /* ---- monter ------------------------------------------------------- */
+
+  function monter() {
+    var l = langueFilm();
+    if (film && l === langue) return;
+    langue = l;
+    if (film) film.detruire();
+    /* Sans `depart` : le film s'arrête sur l'image que film.js a choisie
+       comme affiche — l'annonce Discord et ses réactions. La carte n'est
+       donc jamais vide, même avant d'avoir joué une seconde. */
+    film = window.CYQ_FILM.creer(hote, { langue: l, format: 'l', calme: calme });
+    if (!film) { carte.classList.add('vcard--nue'); return; }
+    son.innerHTML = '';
+    var src = document.createElement('source');
+    src.src = 'assets/video/voix/' + l + '.mp4';
+    src.type = 'audio/mp4';
+    son.appendChild(src);
+    son.load();
+    dernierT = -1;
+  }
+
+  /* ---- dessiner ----------------------------------------------------- */
+
+  /* `currentTime` n'avance que par paliers ; entre deux, on extrapole à
+     l'horloge du navigateur, plafonné à 250 ms : si le son cale, l'image
+     l'attend au lieu de partir seule devant. Même règle que le lecteur
+     complet — deux horloges qui dérivent, c'est un film désynchronisé. */
+  function dessiner() {
+    boucle = 0;
+    if (!film || !visible) return;
+    var t = (son.currentTime || 0) * 1000, now = performance.now();
+    if (!son.paused && t === dernierT) t += Math.min(now - dernierP, 250);
+    else { dernierT = t; dernierP = now; }
+    film.seek(t);
+    if (!son.paused) boucle = requestAnimationFrame(dessiner);
+  }
+
+  function tourner() {
+    if (!boucle) boucle = requestAnimationFrame(dessiner);
+  }
+
+  /* ---- le son -------------------------------------------------------- */
+
+  function montrerLeBouton() {
+    var muet = son.muted;
+    bSon.setAttribute('aria-pressed', String(muet));
+    var cle = muet ? 'lec.unmute' : 'lec.mute';
+    var mot = (window.CYQ && window.CYQ.t) ? window.CYQ.t(cle) : '';
+    if (mot) { bSon.setAttribute('aria-label', mot); bSon.setAttribute('title', mot); }
+    bSon.setAttribute('data-i18n-attr', 'aria-label:' + cle + ', title:' + cle);
+    if (icoSon) icoSon.hidden = muet;
+    if (icoMuet) icoMuet.hidden = !muet;
+  }
+
+  /* Rend une promesse tenue si la lecture est partie, rompue sinon. Un
+     navigateur ancien ne rend rien du tout : on considère alors que
+     c'est parti, ce qu'il n'a aucun moyen de démentir. */
+  function jouer() {
+    var p = son.play();
+    return (p && p.then) ? p : Promise.resolve();
+  }
+
+  function lancer() {
+    if (!film) return;
+    /* On essaie AVEC le son, et on retombe sur le silence s'il est
+       refusé. L'ordre compte : commencer muet puis démuter demande la
+       même permission, mais une seconde plus tard et sans geste — c'est
+       refusé à tous les coups. */
+    var avecSon = !coupeAlaMain && !refuse;
+    son.muted = !avecSon;
+    montrerLeBouton();
+    jouer().then(tourner).catch(function () {
+      if (son.muted) return;         // refusé même en silence : on renonce
+      refuse = true;
+      son.muted = true;
+      montrerLeBouton();
+      jouer().then(tourner).catch(function () { /* rien à faire de plus */ });
+    });
+  }
+
+  /* ---- entrer et sortir de l'écran ----------------------------------- */
+
+  function entre() {
+    visible = true;
+    monter();
+    if (calme) { tourner(); return; }   /* moins de mouvement : on ne lance pas */
+    if (son.paused) lancer();
+    else { son.muted = coupeAlaMain || refuse; montrerLeBouton(); tourner(); }
+  }
+
+  function sort() {
+    visible = false;
+    if (boucle) { cancelAnimationFrame(boucle); boucle = 0; }
+    /* La lecture continue, le son s'arrête : c'est exactement ce qu'on
+       veut d'une présentation qu'on a dépassée — on peut revenir dessus
+       sans l'avoir perdue, et on ne l'entend plus depuis le pied de la
+       page. */
+    son.muted = true;
+    montrerLeBouton();
+  }
+
+  /* La moitié de la carte, et pas un pixel : une carte qui dépasse à
+     peine en haut de l'écran n'est pas « arrivée ». Le `rootMargin`
+     laisse le temps de charger la voix avant qu'elle ne soit vue. */
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (entrees) {
+      entrees.forEach(function (e) {
+        if (e.isIntersecting && e.intersectionRatio >= 0.5) entre();
+        else if (visible && e.intersectionRatio < 0.3) sort();
+      });
+    }, { threshold: [0, 0.3, 0.5], rootMargin: '200px 0px' }).observe(carte);
+  } else {
+    /* Pas d'observateur : on monte le film pour que la carte ne soit pas
+       vide, et on laisse le clic faire le reste. */
+    monter();
+  }
+
+  /* ---- les branchements ---------------------------------------------- */
+
+  bSon.addEventListener('click', function (e) {
+    e.stopPropagation();
+    coupeAlaMain = !son.muted;      /* on note la DÉCISION, pas l'état */
+    refuse = false;                 /* un clic est un geste : le son est permis */
+    son.muted = coupeAlaMain;
+    montrerLeBouton();
+    if (son.paused && !calme) jouer().then(tourner).catch(function () {});
+  });
+
+  /* Un onglet caché ne dessine rien. La voix, elle, est coupée par le
+     navigateur lui-même. */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { if (boucle) { cancelAnimationFrame(boucle); boucle = 0; } }
+    else if (visible) tourner();
+  });
+
+  son.addEventListener('ended', function () {
+    if (boucle) { cancelAnimationFrame(boucle); boucle = 0; }
+  });
+  son.addEventListener('play', function () { if (visible) tourner(); });
+
+  /* Les polices changent la largeur des textes, donc les mesures du
+     film ; la fenêtre change son échelle. */
+  window.addEventListener('resize', function () { if (film) film.echelle(); });
+
+  document.addEventListener('cyq:lang', function () {
+    if (!film) return;
+    var jouait = !son.paused;
+    monter();
+    if (jouait && visible && !calme) lancer();
+  });
+
+  /* MUET AU REPOS, et le bouton le dit. C'est l'état dans lequel la
+     carte partira neuf fois sur dix, puisque le son automatique est
+     refusé par défaut : annoncer « Couper le son » avant d'avoir joué
+     une seule note promettait quelque chose qu'on ne tient pas. */
+  son.muted = true;
+  montrerLeBouton();
+})();

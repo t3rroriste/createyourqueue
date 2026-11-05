@@ -832,71 +832,63 @@ html::-webkit-scrollbar { display: none; }
    coque `--r-shell`, un disque de lecture, une pilule de légende. Rien
    d'autre : ce qu'il y a à dire est dans la vidéo. */
 
-.video__coque {
+/* ====================== LA CARTE DE PRÉSENTATION =====================
+
+   Le film tourne DANS la page, et la carte n'a qu'une commande : le son.
+   Avant, c'était une affiche à cliquer qui ouvrait une fenêtre par-dessus
+   tout — deux gestes pour voir trois minutes de présentation, sur une
+   page d'accueil que personne n'a demandé à visiter.
+
+   1100 px et non 760 : à la taille d'une affiche, le film est illisible
+   — c'est une interface qu'on y montre, avec du texte dedans. Il prend
+   donc la largeur de la colonne.
+   ==================================================================== */
+.vcard {
   position: relative;
-  /* Plus étroite que la colonne : à 1100 px de large, l'affiche écrasait
-     tout ce qui l'entourait. Centrée, sans titre au-dessus. */
-  width: min(760px, 100%);
+  width: min(1100px, 100%);
   margin: 0 auto;
+  aspect-ratio: 16 / 9;
   border-radius: var(--r-shell);
   border: 1px solid var(--hair);
   background: var(--panel);
   overflow: hidden;
-  transition: transform 320ms var(--e-out);
 }
-/* Deux pixels, pas plus : la coque fait 1100 px de large, une élévation
-   franche la ferait sauter. */
-.video__coque:hover { transform: translateY(-2px); }
 
-.video__ouvrir {
-  position: relative; display: block; width: 100%; padding: 0;
-  background: none; border: 0; color: var(--ink); cursor: pointer;
-  /* Le ratio vit ici et pas seulement sur l'image : l'affiche peut
-     manquer, et la coque doit garder sa place dans la page. */
-  aspect-ratio: 16 / 9;
+/* Le bouton couvre toute la carte : il ouvre le lecteur complet, celui
+   qui a les sous-titres et la barre de progression. */
+.vcard__ouvrir {
+  position: absolute; inset: 0;
+  width: 100%; padding: 0;
+  background: none; border: 0; color: inherit;
+  cursor: pointer;
+  display: block;
 }
-.video__affiche {
-  /* Le film figé, monté par film.js : il remplit la coque, et c'est son
-     propre `.film` qui le découpe. */
-  position: absolute; inset: 0; display: block;
-}
-/* L'affiche n'a pas chargé : le script pose cette classe et on montre un
-   aplat. Une image cassée au milieu de l'accueil se voit bien plus
-   qu'une surface vide. */
-.video__coque--nue { background: var(--raised); }
-.video__coque--nue .video__affiche { display: none; }
+.vcard__scene { position: absolute; inset: 0; display: block; }
 
-.video__disque {
-  position: absolute; left: 50%; top: 50%;
-  width: 76px; height: 76px; margin: -38px 0 0 -38px;
+/* Le film n'a pas pu être monté : on garde un aplat plutôt qu'un trou.
+   Une carte vide au milieu de l'accueil se voit bien plus qu'un fond. */
+.vcard--nue { background: var(--raised); }
+
+/* ---- le bouton de son --------------------------------------------
+   En bas à droite, petit, et c'est la SEULE commande visible. Il ne
+   suit pas le thème : il est posé sur le film, qui a ses propres
+   couleurs, et un bouton clair sur une image claire disparaît. */
+.vcard__son {
+  position: absolute; right: 16px; bottom: 16px;
+  width: 38px; height: 38px;
   display: grid; place-items: center;
-  border-radius: var(--r-pill);
-  background: var(--raised); border: 1px solid var(--hair);
-  color: var(--ink);
-  transition: background 200ms var(--e-soft), transform 320ms var(--e-out);
+  border: 0; border-radius: 999px;
+  background: rgba(10, 9, 8, .52);
+  color: #F4F1EC;
+  cursor: pointer;
+  /* Un flou FIXE, sur 38 px : il détache le bouton d'un film qui bouge
+     dessous. Rien ne l'anime — c'est la règle du site. */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-/* Le triangle est optiquement décalé : centré au pixel, il paraît collé
-   à gauche. Trois pixels suffisent. */
-.video__disque svg { transform: translateX(3px); }
-.video__ouvrir:hover .video__disque { background: var(--raised-2); transform: scale(1.06); }
-.video__ouvrir:focus-visible .video__disque { background: var(--raised-2); }
-
-.video__legende {
-  position: absolute; left: 50%; bottom: var(--sp-3); transform: translateX(-50%);
-  display: inline-flex; align-items: center; gap: 10px; white-space: nowrap;
-  min-height: 44px; padding: 0 18px;
-  border-radius: var(--r-pill);
-  /* Une surface OPAQUE, et les mêmes jetons que le disque : la pilule est
-     posée SUR une image dont on ne sait rien. `--film` (5 % de blanc)
-     disparaissait dès que l'affiche était claire, et un noir écrit en dur
-     devenait du texte sombre sur fond sombre en thème clair, où `--ink`
-     s'inverse mais pas le noir. Deux jetons qui basculent ENSEMBLE sont
-     la seule façon de tenir le contraste dans les deux thèmes. */
-  background: var(--raised); border: 1px solid var(--hair);
-  font-size: 13px; color: var(--ink);
-}
-.video__duree { font-variant-numeric: tabular-nums; }
-.video__duree::before { content: "·"; margin-right: 10px; }
+.vcard__son:hover { background: rgba(10, 9, 8, .72); }
+.vcard__son:focus-visible { outline: 2px solid #F4F1EC; outline-offset: 2px; }
+.vcard__ico { display: block; }
 
 /* ============================== la démo =============================== */
 
@@ -1152,9 +1144,10 @@ html::-webkit-scrollbar { display: none; }
 
   /* L'affiche perd ses coins les plus ronds : `--r-shell` sur une image
      large de 343 px mange un bon morceau du cadre. */
-  .video__coque { border-radius: var(--r-card); }
-  .video__disque { width: 60px; height: 60px; margin: -30px 0 0 -30px; }
-  .video__legende { bottom: var(--sp-2); font-size: 12px; padding: 0 14px; }
+  .vcard { border-radius: var(--r-card); }
+  /* 32 px au doigt, et collé d'un peu plus près au bord : la carte perd
+     presque la moitié de sa largeur sur un téléphone. */
+  .vcard__son { right: 12px; bottom: 12px; width: 34px; height: 34px; }
   .mgrid { grid-template-columns: minmax(0, 1fr); }
   .mcard--wide { grid-column: span 1; }
   .mcard__view, .mcard--wide .mcard__view { min-height: 140px; }
@@ -1525,8 +1518,6 @@ html.lecteur-ouvert, html.lecteur-ouvert body { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   html:not(.motion-force) .lecteur__boite { animation-name: lecteur-fond-in; animation-duration: 120ms; }
-  html:not(.motion-force) .video__coque:hover { transform: none; }
-  html:not(.motion-force) .video__ouvrir:hover .video__disque { transform: none; }
 }
 
 @media (max-width: 560px) {
