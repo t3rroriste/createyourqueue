@@ -71,7 +71,17 @@ EXPLICATIONS = {
          "nom technique du serveur donné par LWS — du genre xxx.lwspanel.com."),
     64: ("Le serveur a refusé le FTP chiffré. Mets ftps à false dans lws.json (le mot "
          "de passe circulera alors en clair) ou demande le FTPS au support LWS."),
-    67: "Identifiant ou mot de passe refusé par le serveur.",
+    # Le plus trompeur des codes : la machine est joignable, le dossier
+    # existe, rien n'a l'air cassé — et zéro fichier part. Du 2 au 5
+    # novembre 2026, la veille du PC l'a répété à chaque passage dans son
+    # journal, sans que personne le lise, pendant que le Mac publiait
+    # normalement avec son propre coffre. D'où la commande, dans le texte.
+    67: ("Identifiant ou mot de passe refusé par le serveur.\n"
+         "Le mot de passe du coffre de cette machine est probablement périmé :\n"
+         "  cyq coffre                 ce qui est rangé, et où\n"
+         "  cyq coffre --refaire lws   le ressaisir\n"
+         "Si l'erreur persiste, c'est le champ utilisateur de "
+         "outils/reglages/lws.json."),
     78: "Fichier ou dossier distant introuvable : vérifie racine_site / racine_app.",
 }
 
