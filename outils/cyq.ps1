@@ -12,6 +12,7 @@
 #   .\cyq reprendre    lève la pause, et lève un conflit réglé
 #   .\cyq local        sert le site sur http://localhost:8765
 #   .\cyq verifier     les trois relevés : blocs communs, langues, API
+#   .\cyq coffre       ce que le coffre contient ; --refaire lws le ressaisit
 #
 # Pourquoi une seule porte d'entrée : les scripts en dessous ont des noms
 # clairs mais des arguments à retenir. Ici, il n'y a qu'un verbe.
@@ -23,7 +24,8 @@
 param(
   [Parameter(Position = 0)]
   [ValidateSet('amorcer', 'veille', 'arret', 'synchro', 'publier', 'redemarrer',
-               'etat', 'pause', 'reprendre', 'local', 'verifier', 'aide')]
+               'etat', 'pause', 'reprendre', 'local', 'verifier', 'coffre',
+               'aide')]
   [string]$Verbe = 'aide',
 
   # Repassés tels quels au script appelé : -Cible app, -DryRun, --intervalle 120…
@@ -183,11 +185,19 @@ switch ($Verbe) {
     & python (Join-Path $outils 'verifier.py') @Reste
   }
 
+  'coffre' {
+    # Sans argument, il dit seulement ce qui est rangé et où. `--refaire lws`
+    # remplace une valeur devenue fausse — ce qu'`amorcer` ne sait pas faire,
+    # puisqu'il saute toute entrée déjà présente.
+    & python (Join-Path $outils 'coffre.py') @Reste
+  }
+
   default {
-    # 21 et non 17 : l'aide est l'en-tête de ce fichier, et ce nombre doit
+    # 22 et non 17 : l'aide est l'en-tête de ce fichier, et ce nombre doit
     # suivre quand une ligne s'y ajoute. À 17, le verbe `redemarrer` a fait
-    # disparaître la note sur le jumeau macOS, en bas.
-    Get-Content (Join-Path $outils 'cyq.ps1') | Select-Object -First 21 |
+    # disparaître la note sur le jumeau macOS, en bas ; `coffre` vient de la
+    # pousser d'un cran de plus.
+    Get-Content (Join-Path $outils 'cyq.ps1') | Select-Object -First 22 |
       ForEach-Object { $_ -replace '^# ?', '' } | Where-Object { $_ -notmatch '^=+$' }
   }
 }

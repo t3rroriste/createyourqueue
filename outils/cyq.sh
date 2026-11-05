@@ -13,6 +13,7 @@
 #   ./cyq reprendre    lève la pause, et lève un conflit réglé
 #   ./cyq local        sert le site sur http://localhost:8765
 #   ./cyq verifier     les trois relevés : blocs communs, langues, API
+#   ./cyq coffre       ce que le coffre contient ; --refaire lws le ressaisit
 #
 # Le jumeau de `cyq.ps1`, verbe pour verbe. Les deux appellent les mêmes
 # scripts Python : il n'y a qu'une implémentation de chaque geste, et elle
@@ -45,11 +46,11 @@ veille_pid() {
   echo "$n"
 }
 
-# 19 et non 18 : l'aide est l'en-tête de ce fichier, et ce nombre doit
+# 20 et non 18 : l'aide est l'en-tête de ce fichier, et ce nombre doit
 # suivre quand une ligne s'y ajoute — sinon le dernier verbe disparaît
 # de l'aide sans que rien ne le signale. Le jumeau PowerShell a la même
 # borne à tenir, et s'est déjà fait avoir.
-aide() { sed -n '3,19p' "$OUTILS/cyq.sh" | sed 's/^# \{0,1\}//'; }
+aide() { sed -n '3,20p' "$OUTILS/cyq.sh" | sed 's/^# \{0,1\}//'; }
 
 verbe="${1:-aide}"
 shift || true
@@ -166,6 +167,13 @@ case "$verbe" in
     # Il ne corrige rien : il dit ce qui a dérivé et quelle commande le
     # répare. Le code de sortie vaut le nombre de relevés en faute.
     "$PY" "$OUTILS/verifier.py" "$@"
+    ;;
+
+  coffre)
+    # Sans argument, il dit seulement ce qui est rangé et où. `--refaire lws`
+    # remplace une valeur devenue fausse — ce qu'`amorcer` ne sait pas faire,
+    # puisqu'il saute toute entrée déjà présente.
+    "$PY" "$OUTILS/coffre.py" "$@"
     ;;
 
   *)

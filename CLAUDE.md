@@ -280,6 +280,30 @@ documentent les champs : c'est eux qu'on édite et qu'on cite.
 est lisible par n'importe qui. **Le dépôt GitHub est public** : un secret
 poussé une fois y reste, même effacé ensuite.
 
+### Un mot de passe du coffre qui devient faux
+
+```
+.\cyq coffre                 ce qui est rangé, et où (jamais la valeur)
+.\cyq coffre --refaire lws   le ressaisir
+```
+
+`amorcer` saute toute entrée déjà présente — juste à l'amorçage, sans
+issue le jour où la valeur rangée cesse d'être la bonne. C'est arrivé :
+le mot de passe FTP de LWS a changé début novembre 2026, le Mac a été
+remis à jour, le PC non. Du 2 au 5 novembre, la veille du PC a publié
+**zéro fichier à chaque passage**, en écrivant « Identifiant ou mot de
+passe refusé » dans `outils/etat/journal.log`, que personne ne lit. Le
+site ne bougeait que lorsque le Mac était allumé — donc il bougeait, et
+rien ne semblait cassé.
+
+`coffre.py` ne montre jamais une valeur, seulement sa longueur. Il
+refuse aussi de ranger quoi que ce soit tant qu'une variable
+d'environnement du même nom existe : `lire()` la consulte **avant** le
+coffre, et c'est le piège du `.env` du bot, en version coffre.
+
+**Deux endroits à regarder** quand une publication envoie zéro fichier :
+`.\cyq coffre` sur cette machine, et le panneau de l'hébergeur.
+
 ## Comment travailler ici
 
 Le périmètre d'écriture est ouvert sur `site/`, `bot/`, `api-locale/`,
