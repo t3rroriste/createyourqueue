@@ -24,14 +24,21 @@ hasard et écrite dans les deux fichiers sans jamais être affichée. Elle
 n'apparaît nulle part ailleurs — ni dans un terminal, ni dans le dépôt,
 les deux fichiers étant dans `.gitignore`.
 
-    python outils/activer_api_bot.py               # montre, n'écrit rien
-    python outils/activer_api_bot.py --port 25117  # allume
+    python outils/activer_api_bot.py                # montre, n'écrit rien
+    python outils/activer_api_bot.py --port 25209   # allume
 
 L'hôte n'est pas demandé : `outils/adkynet.py` le connaît, c'est la
 machine du SFTP et c'est la même. Le port, lui, ne se devine pas — c'est
 l'allocation réseau de ton serveur, dans le panneau AdKyNet
 (Pterodactyl), onglet Network. Elle doit être OUVERTE, sinon le bot
 écoutera derrière une porte fermée.
+
+ET ELLE CHANGE. Le 25117 que cette ligne donnait en exemple n'existait
+plus le 6 novembre 2026 : l'allocation était passée au 25209, et le
+panneau web appelait dans le vide depuis une semaine. Si le bot tourne
+déjà, ne recopie pas un port à la main — `relever_cle_bot.py` va le
+chercher dans `data/api-adresse.txt`, où le bot écrit celui qu'il écoute
+pour de vrai.
 
 Ensuite, dans l'ordre : redémarrer le bot, vérifier avec
 `verifier_api_bot.py`, déposer `site/api/secrets.php` sur le panneau par

@@ -14,6 +14,24 @@ les deux fichiers qui doivent la connaître :
   bot/.env              pour pouvoir lancer le bot ici
   site/api/secrets.php  pour que le panneau et la page d'état le joignent
 
+LE PORT NE SE LIT PAS DANS LE .env. Pterodactyl n'expose qu'une
+allocation, et le bot le dit lui-même quand `DASHBOARD_API_PORT` n'est
+pas celle-là :
+
+    DASHBOARD_API_PORT=8080 est ignoré : l'hébergeur n'expose que
+    l'allocation 25209.
+
+Ce script lisait pourtant `DASHBOARD_API_PORT`, et écrivait donc dans
+`bot_api_base` un port sur lequel le bot n'écoute pas. Le 6 novembre
+2026, le site appelait le 25117 — une allocation périmée — pendant que
+le bot répondait sur le 25209 : API allumée, clé juste, panneau web
+hors ligne, et `cyq redemarrer` qui échouait depuis une semaine en
+disant « port fermé, bot éteint, ou clé désaccordée ».
+
+Le port se lit maintenant dans `data/api-adresse.txt`, que le cog écrit
+à chaque démarrage avec le port qu'il écoute POUR DE VRAI. Le `.env` ne
+sert plus que de recours, quand ce fichier n'existe pas encore.
+
 Rien n'est écrit sur le serveur, rien n'y est redémarré. C'est l'inverse
 de `activer_api_bot.py`, qui tire une clé neuve : celui-ci ne décide de
 rien, il recopie.
@@ -45,6 +63,11 @@ SECRETS_PHP = os.path.join(RACINE, "site", "api", "secrets.php")
 # est donc à la racine lui aussi. C'est la même règle que publier_bot.py.
 ENV_DISTANT = "/.env"
 
+# Ce que le cog dashboard_api écrit à chaque démarrage : l'état de l'API et
+# le port qu'elle écoute vraiment. `publier_bot.py` n'emporte jamais
+# `data/`, donc ce fichier n'est écrasé par aucune publication.
+ADRESSE_DISTANTE = "/data/api-adresse.txt"
+
 
 def main() -> int:
     if adkynet.password() is None:
@@ -63,6 +86,13 @@ def main() -> int:
     try:
         with sftp.open(ENV_DISTANT, "r") as f:
             distant = f.read().decode("utf-8", "replace")
+        # Absent tant que le bot n'a pas redémarré sur un code qui l'écrit :
+        # c'est un confort de diagnostic, pas une raison d'échouer.
+        try:
+            with sftp.open(ADRESSE_DISTANTE, "r") as f:
+                adresse = f.read().decode("utf-8", "replace")
+        except IOError:
+            adresse = ""
     except IOError as e:
         print(f"Impossible de lire {ENV_DISTANT} sur le serveur — {e}",
               file=sys.stderr)
@@ -75,13 +105,43 @@ def main() -> int:
         m = re.search(r"^" + nom + r"=(.*)$", distant, re.M)
         return m.group(1).strip() if m else ""
 
+    def ligne_adresse(nom: str) -> str:
+        """Une ligne de `api-adresse.txt`, qui est en « nom   valeur »."""
+        m = re.search(r"^" + nom + r"\s+(.*)$", adresse, re.M)
+        return m.group(1).strip() if m else ""
+
     cle = champ("DASHBOARD_API_KEY")
-    port = champ("DASHBOARD_API_PORT") or "8080"
+    port_env = champ("DASHBOARD_API_PORT") or "8080"
+
+    # Dans l'ordre de ce qui fait autorité : ce que le bot écoute, puis
+    # l'allocation que l'hébergeur lui donne, puis le .env en dernier
+    # recours — celui-là, le bot l'ignore dès qu'il ne correspond pas.
+    ecoute = ligne_adresse("ecoute")
+    m = re.search(r":(\d+)$", ecoute)
+    port = m.group(1) if m else (ligne_adresse("SERVER_PORT") or port_env)
+    doù = ("le port écouté" if m else
+           "l'allocation de l'hébergeur" if ligne_adresse("SERVER_PORT")
+           else "le .env, à défaut de mieux")
 
     print("sur le serveur :")
     print("  DASHBOARD_API_KEY  = " + ("présente" if cle else
                                        "VIDE — le bot n'ouvre aucun port"))
-    print("  DASHBOARD_API_PORT = " + port)
+    if adresse:
+        print("  API                = " + (ligne_adresse("etat") or "?")
+              + ", depuis " + (ligne_adresse("depuis") or "?"))
+        print("  port               = " + port + "  (" + doù + ")")
+        if port != port_env:
+            # Ce n'est pas une faute : le bot ignore le .env quand
+            # l'hébergeur ne lui donne pas ce port-là. On le dit pour que
+            # personne ne « corrige » le .env en croyant régler quelque chose.
+            print("  DASHBOARD_API_PORT = " + port_env
+                  + "  (ignoré par le bot — normal)")
+    else:
+        print("  port               = " + port + "  (" + doù + ")")
+        print("\n  " + ADRESSE_DISTANTE + " est absent du serveur : le bot "
+              "tourne sur un code\n  antérieur à cette trace. Le port "
+              "ci-dessus peut être faux — c'est\n  précisément ce que ce "
+              "fichier est là pour éviter.")
     if not cle:
         print("\nIl n'y a rien à relever. C'est  activer_api_bot.py  qu'il "
               "faut, pour en\nposer une — mais il faudra alors la reporter "
@@ -95,7 +155,11 @@ def main() -> int:
 
     env = activer.lire(ENV_LOCAL)
     env = activer.poser_env(env, "DASHBOARD_API_KEY", cle)
-    env = activer.poser_env(env, "DASHBOARD_API_PORT", port)
+    # `port_env` et non `port` : le .env dit le port DEMANDÉ, et le serveur
+    # a le droit d'en imposer un autre. Y recopier l'allocation ferait
+    # croire que le bot la réclame, et le prochain qui lirait les deux
+    # fichiers n'aurait plus aucun moyen de voir la différence.
+    env = activer.poser_env(env, "DASHBOARD_API_PORT", port_env)
     env = activer.poser_env(env, "DASHBOARD_API_HOST", "0.0.0.0")
 
     php = activer.lire(SECRETS_PHP)
