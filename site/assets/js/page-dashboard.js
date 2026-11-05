@@ -1753,9 +1753,16 @@
       if (db) db.classList.add('is-loading');
       sectionsInertes(true);
     }
+    /* LE SEUL ENDROIT PAR LEQUEL LES TROIS FINS PASSENT : la réussite,
+       l'échec, et l'absence d'API. C'est pour ça que l'écran de
+       lancement écoute ici et pas `cyq:guild`, qui ne couvre que la
+       première — il serait resté trois secondes de plus chaque fois que
+       quelque chose n'allait pas, c'est-à-dire précisément quand on a le
+       moins envie d'attendre. */
     function finChargement(inerte) {
       if (db) db.classList.remove('is-loading');
       sectionsInertes(!!inerte);
+      document.dispatchEvent(new CustomEvent('cyq:charge'));
     }
 
     function charger() {
@@ -2202,7 +2209,27 @@
     chercherDansLeMenu();
     colonneRepliable();
     placerMarque(false);
-    ouverture();
+
+    /* L'OUVERTURE ATTEND QUE L'ÉCRAN DE LANCEMENT PARTE. Jouée tout de
+       suite, elle se serait déroulée DERRIÈRE lui : on ne l'aurait pas
+       vue, et le panneau serait apparu déjà posé.
+
+       `cyq:pret` vient de page-dashboard-lancement.js. Trois cas où il
+       ne viendra jamais, et les trois sont couverts : pas d'écran dans
+       la page, script de lancement absent (la classe `splash-on` est
+       alors retirée par l'en-tête), ou script tombé en route. Le dernier
+       cas est le seul qui réclame un filet ici — 3,8 s, soit juste après
+       celui de l'en-tête. */
+    var ouvert = false;
+    function ouvrirUneFois() {
+      if (ouvert) return;
+      ouvert = true;
+      ouverture();
+    }
+    document.addEventListener('cyq:pret', ouvrirUneFois);
+    if (!document.documentElement.classList.contains('splash-on')) ouvrirUneFois();
+    else setTimeout(ouvrirUneFois, 3800);
+
     chargerCompte();
     charger();
   });

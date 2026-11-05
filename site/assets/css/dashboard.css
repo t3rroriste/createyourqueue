@@ -55,6 +55,71 @@ html.motion-force.motion-pending .dbnav,
 html.motion-force.motion-pending .dbme,
 html.motion-force.motion-pending .db__main { visibility: hidden; }
 
+/* ======================= l'écran de lancement ========================= */
+
+/* Le logo et une barre, sur le fond de la page, le temps que la fiche du
+   serveur arrive. Tout son affichage tient à `splash-on`, que SEUL le
+   script de l'en-tête pose : sans JavaScript, il n'existe pas.
+
+   `--bg` et non `--panel` : c'est le fond de la fenêtre qu'il continue,
+   pas une carte posée dessus. Un écran de chargement qui a ses propres
+   bords se lit comme une boîte de dialogue.
+
+   `visibility` en plus de l'opacité : une couche transparente reste
+   cliquable, et celle-ci couvre toute la page. Sa transition est
+   retardée de la durée du fondu pour qu'elle ne coupe pas le fondu en
+   cours — c'est le seul ordre qui donne les deux à la fois. */
+.dbsplash {
+  position: fixed; inset: 0; z-index: 90;
+  display: grid; place-items: center;
+  background: var(--bg);
+  opacity: 0; visibility: hidden;
+}
+html.splash-on .dbsplash { opacity: 1; visibility: visible; }
+
+.dbsplash__in {
+  display: grid; justify-items: center; gap: 26px;
+  padding: 0 24px;
+}
+
+/* L'opacité de départ est posée par le script, jamais ici : si le script
+   tombe, le logo doit rester visible — un écran de chargement vide ne
+   dit rien à personne. */
+.dbsplash__logo {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  /* L'image est un disque crème : sur le fond clair, son bord disparaît
+     et il ne reste que la loupe flottante. Le filet le rattache. */
+  box-shadow: 0 0 0 1px var(--hair);
+}
+
+/* 180 px : assez long pour qu'une progression se lise, assez court pour
+   rester sous le logo sans devenir la pièce principale. */
+.dbsplash__rail {
+  width: min(180px, 60vw); height: 3px;
+  border-radius: 999px;
+  background: var(--film);
+  overflow: hidden;
+}
+
+/* `scaleX` depuis la gauche, et pas une largeur : une largeur animée
+   fait recalculer la mise en page à chaque image. */
+.dbsplash__bar {
+  display: block; width: 100%; height: 100%;
+  border-radius: inherit;
+  background: var(--ink);
+  transform: scaleX(0); transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dbsplash { transition: opacity .38s var(--e-soft), visibility 0s linear .38s; }
+  html.splash-on .dbsplash { transition: none; }
+  .dbsplash__bar { transition: transform 3000ms var(--e-out); }
+}
+html.motion-force .dbsplash { transition: opacity .38s var(--e-soft), visibility 0s linear .38s; }
+html.motion-force.splash-on .dbsplash { transition: none; }
+html.motion-force .dbsplash__bar { transition: transform 3000ms var(--e-out); }
+
 /* ============================ la grille =============================== */
 
 /* Même squelette que le choix du serveur : une colonne de menu de 236 px,

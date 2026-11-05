@@ -105,6 +105,10 @@ APPLICATION = COMMUN + [
     # quelle largeur. À part des deux autres parce qu'il ne touche à aucun
     # contenu — il ne fait que déplacer des blocs que d'autres remplissent.
     "assets/js/page-dashboard-widgets.js",
+    # L'écran de lancement : le logo et la barre, le temps que la fiche du
+    # serveur arrive. Chargé AVANT page-dashboard.js, qui attend son signal
+    # pour jouer l'ouverture du panneau.
+    "assets/js/page-dashboard-lancement.js",
     # L'API elle-même. secrets.php n'y figure pas : il se dépose à la main
     # sur le serveur et ne doit jamais partir d'ici.
     "api/index.php", "api/.htaccess", "api/secrets.exemple.php",
