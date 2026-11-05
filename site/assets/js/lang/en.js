@@ -58,7 +58,7 @@ window.CYQ_I18N.en = {
   "demo.lead": "Ten players join with the buttons. The bot builds the teams, creates the voice channels and moves everyone in.",
 
   "mg.title": "Six modules, one bot",
-  "mg.more": "En savoir plus",  /* À TRADUIRE */
+  "mg.more": "Learn more",
   "mg.queue": "The queue and team building: 2 to 6 teams, elected captains, a waiting voice channel and ten presets.",
   "mg.mmr": "The ranking keeps itself: starting points, gains, MVP and streak bonuses.",
   "mg.duel": "A direct match, without the queue. The score is confirmed by vote.",

@@ -58,7 +58,7 @@ window.CYQ_I18N.es = {
   "demo.lead": "Diez jugadores entran con los botones. El bot forma los equipos, crea los canales de voz y mueve a todo el mundo.",
 
   "mg.title": "Seis módulos, un solo bot",
-  "mg.more": "En savoir plus",  /* À TRADUIRE */
+  "mg.more": "Saber más",
   "mg.queue": "La cola y la formación de equipos: de 2 a 6 equipos, capitanes elegidos, canal de voz de espera y diez presets.",
   "mg.mmr": "La clasificación se mantiene sola: puntos de partida, ganancias, bonus de MVP y de racha.",
   "mg.duel": "El enfrentamiento directo, sin pasar por la cola. El resultado se confirma por votación.",

@@ -58,7 +58,7 @@ window.CYQ_I18N.de = {
   "demo.lead": "Zehn Spieler treten über die Buttons ein. Der Bot stellt die Teams zusammen, erstellt die Sprachkanäle und zieht alle hinein.",
 
   "mg.title": "Sechs Module, ein Bot",
-  "mg.more": "En savoir plus",  /* À TRADUIRE */
+  "mg.more": "Mehr erfahren",
   "mg.queue": "Die Warteschlange und die Teamzusammenstellung: 2 bis 6 Teams, gewählte Kapitäne, ein Warte-Sprachkanal und zehn Presets.",
   "mg.mmr": "Die Rangliste pflegt sich selbst: Startpunkte, Gewinne, MVP- und Serienbonus.",
   "mg.duel": "Das direkte Duell, ohne Warteschlange. Das Ergebnis wird per Abstimmung bestätigt.",

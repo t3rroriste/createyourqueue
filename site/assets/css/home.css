@@ -1041,6 +1041,14 @@ html::-webkit-scrollbar { display: none; }
   align-items: center; gap: var(--sp-4);
   scroll-margin-top: 120px;
 }
+/* Une rangée sur deux inverse les colonnes. `order` seul ne suffit plus :
+   les deux colonnes n'ont pas la même largeur depuis que le cadre prend
+   une fois et demie la place du texte, et la scène inversée atterrissait
+   dans la colonne ÉTROITE. Trois rangées sur six avaient donc un cadre
+   de 384 px pendant que les trois autres en avaient un de 560, et le
+   défaut se lisait comme une erreur de montage. On retourne le gabarit
+   en même temps que l'ordre. */
+.mrow--inv { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
 .mrow--inv .mrow__vue { order: 2; }
 
 /* ---- LE CADRE DE LA SCÈNE --------------------------------------------
@@ -1069,8 +1077,8 @@ html::-webkit-scrollbar { display: none; }
   position: relative;
   min-width: 0;
   display: flex; align-items: flex-start; justify-content: center;
-  height: clamp(300px, 29vw, 430px);
-  padding: clamp(22px, 2.6vw, 44px) clamp(22px, 2.6vw, 44px) 0;
+  height: clamp(300px, 30vw, 440px);
+  padding: clamp(20px, 2.4vw, 40px) clamp(22px, 2.6vw, 44px) 0;
   border: 1px solid var(--hair);
   border-radius: var(--r-card);
   background:
