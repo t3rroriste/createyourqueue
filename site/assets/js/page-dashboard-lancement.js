@@ -191,12 +191,16 @@
      noir : au-delà, le reflet devient une tache. */
   function refletEnBoucle() {
     if (!reflet) return;
+    /* `translateX` et non `x` : sur un rectangle SVG, `x` est aussi un
+       attribut de géométrie, et le déplacer par là fait recalculer la
+       forme à chaque image. La translation reste une affaire de
+       composition. */
     A.animate(reflet, {
-      x: [0, 300],
+      translateX: [-70, 190],
       opacity: [
-        { to: 0.14, duration: 160 },
-        { to: 0.14, duration: 420 },
-        { to: 0, duration: 220 },
+        { to: 0.13, duration: 170 },
+        { to: 0.13, duration: 380 },
+        { to: 0, duration: 250 },
       ],
       duration: 800, delay: 520,
       ease: 'inOutQuad', loop: true, loopDelay: 1100,
