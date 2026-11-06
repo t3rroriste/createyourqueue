@@ -1074,26 +1074,34 @@ html::-webkit-scrollbar { display: none; }
 
 /* ---- LE CADRE DE LA SCÈNE --------------------------------------------
 
-   Le cadre est de hauteur FIXE, et les six sont donc identiques. Les six
-   scènes, elles, ne le sont pas du tout : 334 px pour la fiche de clan,
-   498 px pour le journal de modération. Six cadres de six hauteurs se
-   liraient comme un défaut d'alignement — d'où la hauteur imposée.
+   LA SCÈNE NE DÉBORDE PLUS, ET LE CADRE NE SE COUPE PLUS. Le cadre avait
+   une hauteur fixe et la scène en sortait par le bas : c'était voulu,
+   pour la profondeur. Mais la rangée lévite — 22 px de course — et la
+   même hauteur fixe coupait trois scènes sur six (jusqu'à cent pixels)
+   pendant que les trois autres flottaient avec un vide qui changeait de
+   taille à chaque aller-retour. Un débord ne se lit comme un parti pris
+   que s'il est le même partout et qu'il ne bouge pas ; celui-là se
+   lisait comme un bug.
 
-   LA SCÈNE NE DÉBORDE PLUS. Elle débordait par le bas, volontairement,
-   pour la profondeur. Mais la rangée lévite (22 px de course) : trois
-   maquettes sur six étaient coupées et les trois autres flottaient avec
-   un vide qui changeait de taille à chaque aller-retour. Le même cadre
-   coupait donc trois scènes et en laissait trois dans le vide, et le
-   mouvement faisait passer le bord d'un état à l'autre. Un débord ne se
-   lit comme un parti pris que s'il est le même partout et qu'il ne
-   bouge pas ; celui-là se lisait comme un bug.
+   Le cadre prend donc la hauteur de sa scène, avec un plancher. Le
+   plancher tient l'alignement sur la plupart des largeurs : quatre
+   rangées sur six s'y posent et ont donc exactement la même hauteur.
+   Seules les scènes qui dépassent vraiment — le journal de modération,
+   et la fiche de clan quand la colonne se resserre — l'étirent, au lieu
+   d'être tronquées.
 
-   Chaque scène est donc mise à l'échelle pour tenir ENTIÈREMENT dans son
-   cadre, et centrée dedans — c'est `cadrerMaquettes()` dans page-home.js
-   qui calcule le facteur, parce qu'il dépend d'une hauteur rendue que le
-   CSS ne sait pas lire. Les marges verticales sont égales et valent plus
-   que la course de la lévitation : rien ne touche jamais un bord.
-   `overflow: clip` reste, en filet.
+   POURQUOI PAS UNE HAUTEUR COMMUNE CALCULÉE EN JS, sur la plus haute des
+   six : parce que la plus haute change avec la largeur. À 1440 px c'est
+   le journal de modération (541 px) et la fiche de clan est la plus
+   courte (363) ; à 1100 px la fiche de clan passe à 665 px et devient la
+   plus haute des six. Une hauteur commune suit donc le pire cas du
+   moment et laisse les cinq autres dans deux cents pixels de vide. Le
+   plancher donne le même alignement sans ce défaut, et sans une ligne de
+   script à tenir.
+
+   Les marges hautes et basses sont égales et valent plus que la course de
+   la lévitation ajoutée à celle du ballon : rien ne touche jamais un
+   bord. `overflow: clip` reste, en filet.
 
    LE DÉGRADÉ N'EST PAS CELUI DE LA RÉFÉRENCE. La capture qui a servi de
    modèle monte vers un lilas : c'est la couleur d'un autre produit. Ici,
@@ -1106,13 +1114,9 @@ html::-webkit-scrollbar { display: none; }
 .mrow__vue {
   position: relative;
   min-width: 0;
-  display: flex; align-items: flex-start; justify-content: center;
-  /* Relevé de 440 à 520 px, et les marges hautes et basses réduites : le
-     cadre devait rapetisser cinq scènes sur six pour les contenir. À
-     cette hauteur, une seule est encore réduite — le journal de
-     modération, le plus long des six. */
-  height: clamp(320px, 34vw, 520px);
-  padding: clamp(18px, 2vw, 32px) clamp(22px, 2.6vw, 44px);
+  display: flex; align-items: center; justify-content: center;
+  min-height: clamp(300px, 32vw, 470px);
+  padding: clamp(24px, 2.4vw, 40px) clamp(22px, 2.6vw, 44px);
   border: 1px solid var(--hair);
   border-radius: var(--r-card);
   background:
@@ -1134,15 +1138,7 @@ html::-webkit-scrollbar { display: none; }
   50%      { transform: translate3d(0, -12px, 0); }
 }
 .mrow__scene { display: flex; justify-content: center; width: 100%; min-width: 0; }
-/* Les deux variables sont posées par `cadrerMaquettes()`. Sans elles —
-   script en échec, JS coupé — la maquette reste à sa taille, c'est-à-dire
-   exactement ce qu'elle était avant. `top center` : la réduction se fait
-   depuis le haut du cadre, et c'est la translation qui recentre. */
-.mrow__scene .mock {
-  width: 100%; max-width: 560px;
-  transform-origin: top center;
-  transform: translateY(var(--mfit-y, 0px)) scale(var(--mfit, 1));
-}
+.mrow__scene .mock { width: 100%; max-width: 560px; }
 /* Le titre tient sur deux ou trois lignes, et c'est voulu : une ligne
    unique en face d'un cadre de quatre cents pixels de haut laisse la
    colonne de droite à moitié vide. */
@@ -1166,13 +1162,12 @@ html::-webkit-scrollbar { display: none; }
   .mrow--inv .mrow__vue { order: 0; }
   .mrows { gap: var(--sp-5); }
   .mrow__t { max-width: none; }
-  /* Le cadre perd sa marge intérieure et sa hauteur imposée. Un débord
-     sur un écran de téléphone ne se lit plus comme de la profondeur :
-     il se lit comme du contenu coupé, et il l'est. */
+  /* Le cadre perd son plancher et resserre ses marges : sur un téléphone,
+     trois cents pixels de hauteur minimale autour d'une maquette qui en
+     fait deux cents, c'est un écran de vide à faire défiler. */
   .mrow__vue {
-    height: auto;
-    padding: var(--sp-2) var(--sp-2) 0;
-    padding-bottom: var(--sp-2);
+    min-height: 0;
+    padding: var(--sp-2);
   }
 }
 @media (prefers-reduced-motion: reduce) {
