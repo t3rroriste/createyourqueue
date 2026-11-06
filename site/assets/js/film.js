@@ -918,9 +918,19 @@
     scene.setAttribute('aria-hidden', 'true');
     scene.style.width = etat.W + 'px'; scene.style.height = etat.H + 'px';
     etat.scene = scene;
+    /* L'échelle se prenait sur la seule largeur. Tant que le conteneur
+       tombait pile en 16/9 ça passait — mais `aspect-ratio` arrondit, et
+       il suffisait d'un pixel de trop en hauteur pour qu'une bande du
+       fond apparaisse sous le film : une bordure, encore. On couvre donc
+       le conteneur (le plus grand des deux rapports) et on recentre ce
+       qui dépasse, comme un `object-fit: cover`. La scène est en
+       `transform-origin: 0 0` : la translation vient AVANT l'échelle,
+       sinon elle serait multipliée par elle. */
     function echelle() {
-      etat.k = hote.clientWidth / etat.W;
-      scene.style.transform = 'scale(' + etat.k + ')';
+      var lh = hote.clientWidth, hh = hote.clientHeight;
+      etat.k = Math.max(lh / etat.W, hh / etat.H) || (lh / etat.W);
+      var dx = (lh - etat.W * etat.k) / 2, dy = (hh - etat.H * etat.k) / 2;
+      scene.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(' + etat.k + ')';
     }
     echelle();
     var tl = film(scene, P);
