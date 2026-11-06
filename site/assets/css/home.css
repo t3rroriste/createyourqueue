@@ -959,29 +959,30 @@ html::-webkit-scrollbar { display: none; }
    tout — deux gestes pour voir trois minutes de présentation, sur une
    page d'accueil que personne n'a demandé à visiter.
 
-   1100 px et non 760 : à la taille d'une affiche, le film est illisible
-   — c'est une interface qu'on y montre, avec du texte dedans. Il prend
-   donc la largeur de la colonne.
+   1000 px et non 760 : à la taille d'une affiche, le film est illisible
+   — c'est une interface qu'on y montre, avec du texte dedans. Il lui
+   faut de la place.
 
-   MAIS PAS PLUS. Essayé d'un bord à l'autre de la coque : en 16/9, une
-   bande pleine largeur fait la hauteur de l'écran, et une page d'accueil
-   dont une section occupe tout l'écran n'est plus une page, c'est un
-   obstacle. 1100 px, posés au milieu.
+   MAIS PAS TOUTE LA PLACE. Essayé d'un bord à l'autre de la coque : en
+   16/9, une bande pleine largeur fait la hauteur de l'écran, et une
+   section qui occupe tout l'écran n'est plus une section, c'est un
+   obstacle. 1000 px, posés au milieu.
 
-   SANS UN TRAIT AUTOUR, en revanche. Le filet et les coins de 36 px
-   faisaient un cadre de plus autour d'une image qui en avait déjà un
-   (les deux fenêtres du film étaient elles-mêmes en retrait dans leur
-   scène, voir film.css). Trois cadres emboîtés : on ne voyait plus que
-   ça. Le film s'arrête net sur le fond de section, et c'est tout.
+   LE FILET, LUI, NE REVIENT PAS. Il doublait des coins arrondis qui
+   entouraient déjà une image encadrée — les deux fenêtres du film
+   étaient elles-mêmes en retrait dans leur scène (voir film.css) :
+   trois cadres emboîtés, on ne voyait plus qu'eux. Le film va désormais
+   jusqu'au bord de la carte, et c'est la carte seule qui l'arrondit.
 
    Le `background` reste : si film.js ne se monte pas, c'est lui qu'on
    voit, et un aplat se remarque moins qu'un trou.
    ==================================================================== */
 .vcard {
   position: relative;
-  width: min(1100px, 100%);
+  width: min(1000px, 100%);
   margin: 0 auto;
   aspect-ratio: 16 / 9;
+  border-radius: var(--r-shell);
   background: var(--bg);
   overflow: hidden;
 }
@@ -1352,9 +1353,11 @@ html::-webkit-scrollbar { display: none; }
   .stats { padding: var(--sp-3) var(--sp-3) var(--sp-4); }
   .demo, .commu, .ctafin { padding: var(--sp-5) var(--sp-3); }
 
-  /* Plus de rayon à reprendre ici : la carte n'en a plus nulle part.
-     32 px au doigt pour le bouton de son, et collé d'un peu plus près
-     au bord — la carte perd beaucoup de hauteur sur un téléphone. */
+  /* La carte perd ses coins les plus ronds : 36 px sur une image large
+     de 259 px mangent un bon morceau de l'image. */
+  .vcard { border-radius: var(--r-card); }
+  /* 32 px au doigt, et collé d'un peu plus près au bord : la carte perd
+     presque la moitié de sa largeur sur un téléphone. */
   .vcard__son { right: 12px; bottom: 12px; width: 34px; height: 34px; }
   .mgrid { grid-template-columns: minmax(0, 1fr); }
   .mcard--wide { grid-column: span 1; }
