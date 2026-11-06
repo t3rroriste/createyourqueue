@@ -959,27 +959,28 @@ html::-webkit-scrollbar { display: none; }
    tout — deux gestes pour voir trois minutes de présentation, sur une
    page d'accueil que personne n'a demandé à visiter.
 
-   Pleine largeur et non 1100 px : à la taille d'une affiche, le film
-   est illisible — c'est une interface qu'on y montre, avec du texte
-   dedans. Il prend donc toute la coque, d'un bord à l'autre.
-   ==================================================================== */
-/* D'UN BORD À L'AUTRE, ET SANS UN TRAIT AUTOUR. La carte tenait
-   1100 px au milieu d'une section qui en réservait 96 de chaque côté,
-   avec un filet et des coins de 36 px : trois cadres emboîtés autour
-   d'une image qui en contenait déjà un. Le film est la seule chose à
-   regarder de cette section — il la prend en entier.
+   1100 px et non 760 : à la taille d'une affiche, le film est illisible
+   — c'est une interface qu'on y montre, avec du texte dedans. Il prend
+   donc la largeur de la colonne.
+
+   MAIS PAS PLUS. Essayé d'un bord à l'autre de la coque : en 16/9, une
+   bande pleine largeur fait la hauteur de l'écran, et une page d'accueil
+   dont une section occupe tout l'écran n'est plus une page, c'est un
+   obstacle. 1100 px, posés au milieu.
+
+   SANS UN TRAIT AUTOUR, en revanche. Le filet et les coins de 36 px
+   faisaient un cadre de plus autour d'une image qui en avait déjà un
+   (les deux fenêtres du film étaient elles-mêmes en retrait dans leur
+   scène, voir film.css). Trois cadres emboîtés : on ne voyait plus que
+   ça. Le film s'arrête net sur le fond de section, et c'est tout.
 
    Le `background` reste : si film.js ne se monte pas, c'est lui qu'on
-   voit, et un aplat se remarque moins qu'un trou. */
-.bloc.video {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  border-radius: 0;
-}
+   voit, et un aplat se remarque moins qu'un trou.
+   ==================================================================== */
 .vcard {
   position: relative;
-  width: 100%;
+  width: min(1100px, 100%);
+  margin: 0 auto;
   aspect-ratio: 16 / 9;
   background: var(--bg);
   overflow: hidden;
