@@ -1402,3 +1402,79 @@
 
   armer();
 })();
+
+
+/* =========================================================================
+   CADRER LES MAQUETTES DES SIX RANGÉES
+   =========================================================================
+   Les six cadres ont la même hauteur — c'est voulu, six hauteurs
+   différentes se liraient comme un défaut d'alignement. Les six maquettes,
+   elles, vont de 334 à 498 px : la fiche de clan nageait dans son cadre
+   pendant que le journal de modération en sortait de cent pixels. Et comme
+   la rangée lévite sur 22 px, le bord du bas passait son temps à entrer
+   et sortir de la coupe.
+
+   On réduit donc chaque maquette juste assez pour qu'elle tienne, et on la
+   centre. La plupart ne sont pas touchées (facteur 1) : il n'y a pas de
+   raison de rapetisser une scène qui rentre déjà.
+
+   POURQUOI EN JS. Le facteur dépend de la hauteur RENDUE de la maquette,
+   qui dépend des polices, de la langue et de la largeur de la colonne. Le
+   CSS ne sait pas lire une hauteur pour s'en servir dans un calcul. Et
+   s'il échoue, la page garde la taille d'avant : les deux variables ont
+   une valeur de repli dans home.css.
+
+   `offsetHeight` et non `getBoundingClientRect()` : la première ignore les
+   transformations, et il y en a trois empilées au-dessus (l'arrivée, la
+   lévitation, le ballon). On veut la hauteur de mise en page, pas celle
+   qu'on voit à cet instant.
+   ========================================================================= */
+(function () {
+  'use strict';
+
+  var rangees = [].slice.call(document.querySelectorAll('.mrow__vue'));
+  if (!rangees.length) return;
+
+  function cadrerMaquettes() {
+    rangees.forEach(function (vue) {
+      var mock = vue.querySelector('.mock');
+      if (!mock) return;
+
+      var st = getComputedStyle(vue);
+      var dispo = vue.clientHeight -
+                  parseFloat(st.paddingTop) - parseFloat(st.paddingBottom);
+      var h = mock.offsetHeight;
+      if (!(dispo > 0) || !(h > 0)) return;
+
+      /* Jamais d'agrandissement : une maquette qui rentre reste à sa
+         taille. Le cadre a le droit d'être plus grand qu'elle. */
+      var k = Math.min(1, dispo / h);
+      mock.style.setProperty('--mfit', k.toFixed(4));
+      mock.style.setProperty('--mfit-y', ((dispo - h * k) / 2).toFixed(1) + 'px');
+    });
+  }
+
+  cadrerMaquettes();
+
+  /* Les polices changent la hauteur des maquettes, et elles arrivent après
+     le premier calcul. Sans ce second passage, les six cadres sont réglés
+     sur du Times New Roman. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(cadrerMaquettes).catch(function () {});
+  }
+
+  /* Le redimensionnement change la largeur de la colonne, donc le retour
+     à la ligne des textes, donc la hauteur. Groupé sur une image : un
+     glissement de fenêtre tire des dizaines d'événements. */
+  var attente = 0;
+  window.addEventListener('resize', function () {
+    if (attente) return;
+    attente = requestAnimationFrame(function () { attente = 0; cadrerMaquettes(); });
+  });
+
+  /* Changer de langue réécrit tous les textes des maquettes. Le coupé de
+     l'allemand n'a pas la hauteur du coréen. */
+  document.addEventListener('cyq:lang', function () {
+    requestAnimationFrame(cadrerMaquettes);
+  });
+})();
