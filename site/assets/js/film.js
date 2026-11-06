@@ -109,7 +109,23 @@
   }
   function centre(e, ref) { var b = boite(e, ref); return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; }
   function decale(p, dx, dy) { return { x: p.x + (dx || 0), y: p.y + (dy || 0) }; }
-  function cadre(p, s) { return { x: (etat.W / 2 - p.x) * s, y: (etat.H / 2 - p.y) * s, scale: s }; }
+  /* LA CAMÉRA NE SORT PLUS DU CADRE. Tant que les deux fenêtres étaient
+     posées en retrait, un travelling qui visait trop loin découvrait le
+     fond de scène — et comme ce fond était déjà visible tout autour, ça
+     ne se remarquait pas. Depuis qu'elles vont bord à bord, le même
+     dépassement se lit pour ce qu'il est : une bande noire sur un côté.
+     À un zoom s, le monde déborde de W(s−1) en largeur, donc la caméra a
+     la moitié de cela de débattement de chaque côté. Au-delà, on vise
+     aussi près que le cadre le permet : un plan légèrement décentré vaut
+     mieux qu'un plan troué. */
+  function cadre(p, s) {
+    var dx = etat.W * (s - 1) / 2, dy = etat.H * (s - 1) / 2;
+    return {
+      x: Math.max(-dx, Math.min(dx, (etat.W / 2 - p.x) * s)),
+      y: Math.max(-dy, Math.min(dy, (etat.H / 2 - p.y) * s)),
+      scale: s
+    };
+  }
     function ecrire(e, v) { v = String(v); if (e.textContent !== v) e.textContent = v; }
   function classe(e, c, on) { if (e.classList.contains(c) !== !!on) e.classList.toggle(c, !!on); }
   // Une suite d'états datés : la valeur en vigueur à l'instant t.
