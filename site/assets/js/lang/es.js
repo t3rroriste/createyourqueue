@@ -553,9 +553,7 @@ window.CYQ_I18N.es = {
   "m.cta": "Abrir el panel",
 
 /* --- page de support (support.html) --- */
-  "sp.eyebrow": "Soporte",
   "sp.title": "¿Una duda, un problema, una idea?",
-  "sp.lead": "Escríbenos, o pásate por el servidor de Discord. Los dos llegan al mismo sitio — Discord solo es más rápido, y allí otras personas también pueden responder.",
   "sp.formTitle": "Escribir al equipo",
   "sp.formLead": "Cuéntanos qué ocurre, y en qué servidor. Si es un fallo, lo más útil es el comando que lanzaste y lo que respondió el bot.",
   "sp.fName": "Tu nombre",

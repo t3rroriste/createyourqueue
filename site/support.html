@@ -135,11 +135,19 @@
 <main class="shell" id="main">
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- ======================= en-tête ======================= -->
+  <!-- ======================= en-tête =======================
+       LE TITRE SEUL, comme sur la page Modules. Le surtitre « Support »
+       répétait l'onglet de la nav, déjà marqué comme courant, et
+       l'accroche expliquait en trois lignes ce que les deux cartes
+       disent d'elles-mêmes : un formulaire d'un côté, le serveur Discord
+       de l'autre.
+
+       `data-frappe` : le titre se tape et s'efface, comme celui de
+       l'accueil et celui des modules. La boucle est dans frappe.js, et la
+       clé est dans l'attribut — le script ne connaît aucune page. -->
   <header class="sphead">
-    <p class="label" data-reveal data-i18n="sp.eyebrow">Support</p>
-    <h1 class="sphead__title" data-reveal data-i18n="sp.title"></h1>
-    <p class="lead sphead__lead" data-reveal data-i18n="sp.lead"></p>
+    <h1 class="sphead__title" data-reveal data-i18n="sp.title"
+        data-frappe="sp.title" data-frappe-depart="cyq:support-pret"></h1>
   </header>
 
   <div class="spgrid">
@@ -316,6 +324,7 @@
 <script src="assets/js/lang/de.js?v=202611071357"></script>
 <script src="assets/js/lang/ko.js?v=202611071357"></script>
 <script src="assets/js/app.js?v=202611071357"></script>
+<script src="assets/js/frappe.js"></script>
 <script src="assets/js/page-support.js?v=202611071357"></script>
 </body>
 </html>

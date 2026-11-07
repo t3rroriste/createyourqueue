@@ -314,6 +314,13 @@
     if (ouverte) return;
     ouverte = true;
 
+    /* Le titre peut se taper : les polices sont là, donc la hauteur qu'il
+       réserve est mesurée sur la bonne fonte. Émis AVANT tout le reste et
+       hors de tous les chemins de sortie ci-dessous — sans bibliothèque
+       ou en mouvement réduit, le titre doit s'afficher quand même, et
+       frappe.js sait quoi en faire dans les deux cas. */
+    document.dispatchEvent(new CustomEvent('cyq:support-pret'));
+
     var A = window.anime;
     var nav  = $('[data-nav]');
     var tete = $$('[data-reveal]');
