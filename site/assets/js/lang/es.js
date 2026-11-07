@@ -75,7 +75,7 @@ window.CYQ_I18N.es = {
   "commu.lead": "El servidor de Discord oficial: soporte, ideas y las novedades antes que nadie.",
   "commu.join": "Entrar en el Discord",
 
-  "faq.title": "Preguntas frecuentes",
+  "faq.title": "F.A.Q",
   "faq.q1": "¿Hay que alojar el bot uno mismo?",
   "faq.a1": "No. El bot ya está alojado: solo hay que invitarlo. El panel sirve únicamente para configurarlo: puedes cerrar el sitio, nada se detiene.",
   "faq.q2": "¿Qué permisos hacen falta para instalarlo?",
@@ -528,9 +528,7 @@ window.CYQ_I18N.es = {
   /* --- modules.html --- */
   /* en-tete de la page */
   "m.nav": "Módulos",
-  "m.eyebrow": "Los módulos",
   "m.title": "Todo lo que el bot sabe hacer, módulo a módulo.",
-  "m.lead": "Seis conjuntos de ajustes, independientes entre sí. Activa lo que necesites y deja el resto.",
   /* 1 - queue */
   "m.queueT": "Queue / Scrims",
   "m.queueL": "La lista de espera y la composición de los equipos. Es el ajuste que tocarás más a menudo. Eliges de 2 a 6 equipos, de 1 a 6 jugadores cada uno, cada uno con su nombre y su color. También puedes ceder el mando: los jugadores eligen a dos capitanes que se reparten la plantilla. Un canal de voz reúne a todos antes de empezar, una contraseña cierra la puerta a los demás, y diez preajustes guardan tus configuraciones favoritas a mano.",

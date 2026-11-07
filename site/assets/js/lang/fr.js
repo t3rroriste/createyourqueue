@@ -95,7 +95,7 @@ window.CYQ_I18N.fr = {
   "commu.lead": "Le serveur Discord officiel : le support, les idées, et les nouveautés avant tout le monde.",
   "commu.join": "Rejoindre le Discord",
 
-  "faq.title": "Questions fréquentes",
+  "faq.title": "F.A.Q",
   "faq.q1": "Faut-il héberger le bot soi-même ?",
   "faq.a1": "Non. Le bot est déjà hébergé : il suffit de l'inviter. Le panneau ne sert qu'à le régler — tu peux fermer le site, rien ne s'arrête.",
   "faq.q2": "Quelles permissions faut-il pour l'installer ?",
@@ -574,9 +574,7 @@ window.CYQ_I18N.fr = {
   /* --- modules.html --- */
   /* en-tete de la page */
   "m.nav": "Modules",
-  "m.eyebrow": "Les modules",
   "m.title": "Tout ce que le bot sait faire, module par module.",
-  "m.lead": "Six ensembles de réglages, indépendants les uns des autres. Active ce dont tu as besoin, laisse le reste de côté.",
   /* 1 - queue */
   "m.queueT": "Queue / Scrims",
   "m.queueL": "La file d'attente et la composition des équipes. C'est le réglage que tu toucheras le plus souvent. Tu choisis de 2 à 6 équipes, de 1 à 6 joueurs chacune, chacune avec son nom et sa couleur. Tu peux aussi passer la main : les joueurs élisent deux capitaines qui se partagent l'effectif. Un salon vocal rassemble tout le monde avant le lancement, un mot de passe ferme la porte aux autres, et dix presets gardent tes configs préférées à portée de main.",

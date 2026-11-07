@@ -4,8 +4,7 @@
    exports nommés sont donc lus sur le global `anime`.
 
      entree()   — l'en-tête, en UNE timeline
-     reveler()  — chaque module à son entrée dans l'écran, une seule fois
-     flotter()  — un parallaxe borné sur les maquettes
+     reveler()  — chaque rangée à son entrée dans l'écran, une seule fois
 
    Règles tenues : on n'anime que transform, opacity et filter ; les états
    initiaux sont posés en JS, jamais en CSS, pour que la page reste lisible
@@ -70,106 +69,97 @@
 
   /* ============================== 2. les révélations ==================== */
 
-  /* Une timeline par module : le titre, puis le paragraphe, puis la
-     maquette qui arrive de côté. Des départs relatifs dans une seule
-     timeline plutôt que trois animate() à délais calculés — si une durée
-     change, les suivantes suivent.
-     Le stagger porte sur deux éléments au lieu de sept depuis que les
-     puces sont parties : le pas monte à 110 ms, sinon titre et paragraphe
-     arrivent quasiment ensemble et la cascade ne se lit plus. */
-  function timelineDuModule(sec) {
-    var texte  = [$('.mod__title', sec), $('.mod__body', sec)].filter(Boolean);
-    var visuel = $('[data-mod-visual]', sec);
+  /* LES MÊMES RANGÉES QUE L'ACCUEIL, donc la même révélation, et pour la
+     même raison : cette page montrait six `.mod` avec leur propre mise en
+     page, elle montre maintenant le bloc `.mrows` repris de l'accueil.
+     Les sélecteurs suivent — `data-reveal-text` pour le texte,
+     `data-mod-visual` pour la scène — et aucun ne nomme plus `.mod__`.
 
-    var tl = createTimeline({ defaults: { ease: OUT }, autoplay: false });
-    tl.add(texte, { opacity: 1, y: 0, duration: 700, delay: stagger(110) }, 0);
-    if (visuel) {
-      tl.add(visuel, { opacity: 1, x: 0, scale: 1, duration: 900 }, 160);
-    }
-    return tl;
-  }
-
+     L'appel à l'action de fin porte `data-mod` lui aussi : il n'a pas de
+     scène, seulement du texte, et le code n'a pas à le distinguer. */
   function reveler() {
     var secs = $$('[data-mod]');
-    if (!secs.length) return [];
+    if (!secs.length) return;
 
-    if (calm || !window.IntersectionObserver) {
-      secs.forEach(function (sec) {
-        utils.set([$('.mod__title', sec), $('.mod__body', sec)].filter(Boolean),
-                  { opacity: 1, y: 0 });
-        var v = $('[data-mod-visual]', sec);
-        if (v) utils.set(v, { opacity: 1, x: 0, scale: 1 });
-      });
-      return [];
-    }
+    /* Sans mouvement : rien n'est masqué, il n'y a donc rien à révéler.
+       On sort AVANT de masquer quoi que ce soit — jamais après, sinon la
+       page resterait vide sous l'en-tête. */
+    if (calm) return;
 
-    /* Le sens d'arrivée de la maquette suit la colonne qu'elle occupe :
-       elle entre depuis son propre bord, pas depuis un côté arbitraire. */
-    var faites = [];
-    secs.forEach(function (sec, i) {
-      utils.set([$('.mod__title', sec), $('.mod__body', sec)].filter(Boolean),
-                { opacity: 0, y: 18 });
-      var v = $('[data-mod-visual]', sec);
-      if (v) utils.set(v, { opacity: 0, x: (i % 2 ? -28 : 28), scale: .97 });
-      faites.push(timelineDuModule(sec));
+    var faites = secs.map(function (sec, i) {
+      /* Une section peut en contenir d'autres — la grille porte un
+         `data-mod`, et chacune de ses six rangées aussi. Chacune ne prend
+         que ce qui est à elle : sinon la grille ferait apparaître les six
+         rangées d'un coup, au lieu de les laisser venir une à une. */
+      function aMoi(el) { return el.closest('[data-mod]') === sec; }
+      var texte  = $$('[data-reveal-text]', sec).filter(aMoi);
+      var visuel = $$('[data-mod-visual]', sec).filter(aMoi)[0];
+
+      /* Une rangée de module : sa scène arrive depuis son propre bord —
+         la gauche, ou la droite quand la rangée est inversée — et de
+         plus loin qu'une maquette de section, pour qu'on la voie venir. */
+      var rangee = sec.classList.contains('mrow');
+      var dx = rangee ? (sec.classList.contains('mrow--inv') ? 64 : -64) : (i % 2 ? -28 : 28);
+
+      utils.set(texte, { opacity: 0, y: rangee ? 26 : 18 });
+      if (visuel) utils.set(visuel, { opacity: 0, x: dx, scale: rangee ? .92 : .97 });
+
+      var tl = createTimeline({ defaults: { ease: OUT }, autoplay: false });
+      tl.add(texte, { opacity: 1, y: 0, duration: 700, delay: stagger(110) }, rangee ? 140 : 0);
+      if (visuel) tl.add(visuel, { opacity: 1, x: 0, scale: 1, duration: 900 }, rangee ? 0 : 160);
+      return tl;
     });
 
-    var obs = new IntersectionObserver(function (entrees) {
-      entrees.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        var i = secs.indexOf(e.target);
-        if (i !== -1) faites[i].play();
-        obs.unobserve(e.target);        // une seule fois, pas de rejeu au retour
-      });
-    }, { threshold: 0.25 });
+    /* Pourquoi un écouteur de défilement et pas un IntersectionObserver.
 
-    secs.forEach(function (sec) { obs.observe(sec); });
+       L'observateur ne prévient que lorsque l'état d'intersection CHANGE.
+       Un saut d'une seule image — ancre `#duel`, position restaurée au
+       rechargement, molette franche, « fin de page » au clavier — fait
+       passer une rangée de « sous l'écran » à « au-dessus de l'écran »
+       sans jamais la rendre visible entre les deux. Aucun changement
+       d'état, donc aucun appel, donc une rangée invisible pour toujours.
+       C'est exactement ce qui arrivait sur l'accueil, et les ancres des
+       modules rendent le cas bien plus fréquent ici.
 
-    /* Un module déjà à l'écran au chargement ne déclenchera jamais
-       l'observateur s'il occupe plus que le seuil : on le joue à la main. */
-    secs.forEach(function (sec, i) {
-      var r = sec.getBoundingClientRect();
-      if (r.top < window.innerHeight * 0.75 && r.bottom > 0) {
-        faites[i].play();
-        obs.unobserve(sec);
+       Un contrôle au défilement n'a pas ce trou : il regarde où sont les
+       choses, pas comment elles y sont arrivées. Il est passif, il ne lit
+       que des rectangles, et il se retire tout seul quand tout a joué. */
+    var restant = secs.slice();
+
+    function controler() {
+      var limite = window.innerHeight * 0.85;
+
+      for (var i = restant.length - 1; i >= 0; i--) {
+        if (restant[i].getBoundingClientRect().top >= limite) continue;
+        faites[secs.indexOf(restant[i])].play();
+        restant.splice(i, 1);
       }
-    });
 
-    return faites;
+      if (!restant.length) {
+        window.removeEventListener('scroll', planifier);
+        window.removeEventListener('resize', planifier);
+      }
+    }
+
+    /* Une lecture par image au plus : le défilement en émet bien
+       davantage, et mesurer huit rectangles à chaque événement coûterait
+       un calcul de mise en page à chaque fois. */
+    var prevu = false;
+    function planifier() {
+      if (prevu) return;
+      prevu = true;
+      requestAnimationFrame(function () { prevu = false; controler(); });
+    }
+
+    window.addEventListener('scroll', planifier, { passive: true });
+    window.addEventListener('resize', planifier);
+    controler();          // ce qui est déjà à l'écran au chargement
   }
 
-  /* ============================== 3. le parallaxe ======================= */
-
-  /* Borné à 14 px, et coupé sous 768 px : sur un téléphone la maquette est
-     déjà pleine largeur, la faire flotter ne ferait que du bruit. */
-  function flotter() {
-    if (calm || window.innerWidth < 768) return null;
-    var visuels = $$('[data-mod-visual]');
-    if (!visuels.length) return null;
-
-    var tick = false;
-    function placer() {
-      var h = window.innerHeight;
-      visuels.forEach(function (v) {
-        var r = v.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > h) return;
-        // -1 au bas de l'écran, +1 en haut : le visuel monte un peu plus
-        // vite que la page, jamais de plus de 14 px.
-        var p = ((h - r.top) / (h + r.height)) * 2 - 1;
-        v.style.setProperty('--flot', (Math.max(-1, Math.min(1, p)) * -14).toFixed(2) + 'px');
-      });
-      tick = false;
-    }
-    function auDefilement() {
-      if (tick) return;
-      tick = true;
-      requestAnimationFrame(placer);
-    }
-    addEventListener('scroll', auDefilement, { passive: true });
-    addEventListener('resize', auDefilement, { passive: true });
-    placer();
-    return auDefilement;
-  }
+  /* Le parallaxe des maquettes est parti avec les `.mod` : les rangées
+     lévitent en CSS (`.mrow__flot`, @keyframes mrow-leviter), et poser un
+     second transform sur la même scène, c'est le dernier écrit qui gagne.
+     Voir le commentaire des trois calques dans index.html. */
 
   /* ============================================== orchestration ========= */
 
@@ -181,7 +171,11 @@
       started = true;
       entree();
       reveler();
-      flotter();
+      /* Le titre peut se taper : les polices sont là, donc la hauteur
+         qu'il réserve est mesurée sur la bonne fonte. Même signal que
+         `cyq:titre-libre` sur l'accueil, sous un autre nom — frappe.js
+         ne connaît que l'attribut `data-frappe-depart`. */
+      document.dispatchEvent(new CustomEvent('cyq:modules-prets'));
     }
 
     /* Après les polices : les puces et les titres sont mesurés une fois

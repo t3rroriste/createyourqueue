@@ -761,6 +761,10 @@ html::-webkit-scrollbar { display: none; }
   line-height: 1.08; letter-spacing: -0.025em; font-weight: 500;
   text-transform: lowercase;
 }
+/* Un sigle n'est pas un titre de section comme un autre : « F.A.Q » passé
+   en bas de casse donne « f.a.q », qui ne se lit plus comme un sigle. */
+.sect__title--sigle { text-transform: none; }
+
 .sect__head { text-align: center; margin-bottom: var(--sp-4); }
 .sect__head .lead { max-width: 52ch; margin: var(--sp-2) auto 0; }
 .sect__head .label { margin-bottom: var(--sp-2); }

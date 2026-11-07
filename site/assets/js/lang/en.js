@@ -75,7 +75,7 @@ window.CYQ_I18N.en = {
   "commu.lead": "The official Discord server: support, ideas, and what is new before anyone else.",
   "commu.join": "Join the Discord",
 
-  "faq.title": "Frequently asked questions",
+  "faq.title": "F.A.Q",
   "faq.q1": "Do I have to host the bot myself?",
   "faq.a1": "No. The bot is already hosted: you only invite it. The panel just configures it — you can close the site, nothing stops.",
   "faq.q2": "What permissions do I need to install it?",
@@ -528,9 +528,7 @@ window.CYQ_I18N.en = {
   /* --- modules.html --- */
   /* en-tete de la page */
   "m.nav": "Modules",
-  "m.eyebrow": "The modules",
   "m.title": "Everything the bot can do, module by module.",
-  "m.lead": "Six sets of settings, each independent of the others. Turn on what you need and leave the rest alone.",
   /* 1 - queue */
   "m.queueT": "Queue / Scrims",
   "m.queueL": "The waiting line and how teams are put together. This is the setting you will touch most often. You pick 2 to 6 teams, 1 to 6 players each, every one with its own name and colour. You can also hand it over: players elect two captains who share out the roster. A voice channel gathers everyone before the start, a password keeps the others out, and ten presets hold your favourite setups within reach.",

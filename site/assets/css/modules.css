@@ -22,48 +22,15 @@
   text-transform: lowercase;
   margin: var(--sp-3) 0 var(--sp-3); max-width: 20ch;
 }
-.mhead__lead { max-width: 54ch; margin: 0; }
 
-/* ============================== un module ============================== */
-
-/* Pleine hauteur : chaque module occupe l'écran, on n'en lit qu'un à la
-   fois. Le filet du haut donne le rythme sans ajouter de cadre. */
-.mod {
-  min-height: 100dvh;
-  display: flex; align-items: center;
-  padding: var(--sp-5) var(--sp-4);
-  border-top: 1px solid var(--hair);
-  scroll-margin-top: 120px;          /* la pilule de navigation est fixe */
-}
-.mod__in {
-  width: 100%; max-width: 1180px; margin: 0 auto;
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--sp-5); align-items: center;
-}
-
-/* L'alternance. `order` plutôt que deux jeux de `grid-column` : le DOM
-   garde partout le même ordre texte-puis-visuel, donc la lecture au
-   clavier et au lecteur d'écran ne dépend pas de la colonne affichée. */
-.mod:nth-of-type(even) .mod__text   { order: 2; }
-.mod:nth-of-type(even) .mod__visual { order: 1; }
-
-/* Pas de text-transform ici, contrairement au reste des titres du site :
-   ce sont des noms de fonction (Queue / Scrims, ClanWar), et forcer le bas
-   de casse mangeait leurs majuscules. La casse vient donc de la chaine
-   traduite, pas du CSS. */
-.mod__title {
-  font-size: clamp(1.75rem, 2.8vw, 2.5rem);
-  line-height: 1.08; letter-spacing: -0.02em; font-weight: 500;
-  margin: 0 0 var(--sp-2);
-}
-/* Le paragraphe porte seul tout le module depuis que les puces sont
-   parties : il monte donc a la taille du texte de lecture, pas a celle
-   d'une accroche secondaire. La mesure reste courte pour que l'oeil
-   retrouve le debut de ligne sans effort. */
-.mod__body {
-  font-size: 15.5px; line-height: 1.68; color: var(--ink-60);
-  max-width: 52ch; margin: 0;
-}
+/* LES SIX `.mod` NE SONT PLUS LÀ. La page montrait les modules dans sa
+   propre mise en page — une section pleine hauteur par module, texte et
+   maquette en vis-à-vis, alternés. Elle montre maintenant les rangées de
+   l'accueil, dont tout le style est dans home.css : `.mrows`, `.mrow`,
+   `.mrow__vue`, `.mrow__flot`, `.mrow__scene`, `.mrow__t`, `.mrow__p`.
+   Deux mises en page pour les mêmes six modules, c'était deux textes et
+   deux grilles à tenir d'accord, et elles avaient déjà divergé.
+   `.mhead__lead` part avec l'accroche qu'elle portait. */
 
 /* ============================== maquettes ==============================
 
@@ -75,8 +42,8 @@
    --hair, comme partout ailleurs sur la page.
    Rappel de la règle de tête : aucun état initial d'animation ici. Le JS
    (page-modules.js) pose ses états de départ et possède le transform de
-   .mock ; la seule exception est notée sur .mock ci-dessous. */
-.mod__visual { display: flex; justify-content: center; }
+   .mock ; la seule exception est notée sur .mock ci-dessous.
+   Leur enveloppe est maintenant `.mrow__scene`, dans home.css. */
 
 /* La fenêtre de Discord : barre de salon, fil de messages, et c'est tout. */
 .mock {
@@ -937,18 +904,10 @@
 
 @media (max-width: 1100px) {
   .mhead { padding: 144px var(--sp-4) var(--sp-4); }
-  .mod__in { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
-  /* Une colonne : l'alternance n'a plus de sens, et laisser `order` actif
-     ferait passer le visuel avant son titre une section sur deux. */
-  .mod:nth-of-type(even) .mod__text,
-  .mod:nth-of-type(even) .mod__visual { order: 0; }
-  .mod__visual { justify-content: flex-start; }
-  .mod { min-height: 0; padding: var(--sp-4) var(--sp-4); }
 }
 
 @media (max-width: 780px) {
   .mhead { padding: 128px var(--sp-4) var(--sp-4); }
-  .mod__body { font-size: 15px; }
   .mock { max-width: none; }
   /* Le face-à-face du duel : à cette largeur, le score au centre écrasait
      les deux camps jusqu'à couper « Nova · Mira ». Il passe donc au-dessus,
@@ -971,8 +930,8 @@ html.motion-force.motion-pending [data-reveal] { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .mhead [data-reveal],
-  .mod, .mod__visual, .mock,
-  .mod__title, .mod__body {
+  .mrow, .mrow__vue, .mock,
+  .mrow__t, .mrow__p {
     transform: none !important; opacity: 1 !important; filter: none !important;
   }
 }

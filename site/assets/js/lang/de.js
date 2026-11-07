@@ -75,7 +75,7 @@ window.CYQ_I18N.de = {
   "commu.lead": "Der offizielle Discord-Server: Support, Ideen und Neuigkeiten als Erster.",
   "commu.join": "Discord beitreten",
 
-  "faq.title": "Häufige Fragen",
+  "faq.title": "F.A.Q",
   "faq.q1": "Muss ich den Bot selbst hosten?",
   "faq.a1": "Nein. Der Bot ist bereits gehostet: du lädst ihn nur ein. Das Panel stellt ihn lediglich ein — du kannst die Seite schließen, nichts hört auf.",
   "faq.q2": "Welche Rechte brauche ich für die Installation?",
@@ -528,9 +528,7 @@ window.CYQ_I18N.de = {
   /* --- modules.html --- */
   /* en-tete de la page */
   "m.nav": "Module",
-  "m.eyebrow": "Die Module",
   "m.title": "Alles, was der Bot kann, Modul für Modul.",
-  "m.lead": "Sechs Einstellungsbereiche, unabhängig voneinander. Schalte ein, was du brauchst, und lass den Rest liegen.",
   /* 1 - queue */
   "m.queueT": "Queue / Scrims",
   "m.queueL": "Die Warteschlange und die Zusammenstellung der Teams. Diese Einstellung wirst du am häufigsten anfassen. Du wählst 2 bis 6 Teams mit je 1 bis 6 Spielern, jedes mit eigenem Namen und eigener Farbe. Du kannst die Wahl auch abgeben: Die Spieler bestimmen zwei Kapitäne, die den Kader untereinander aufteilen. Ein Sprachkanal sammelt alle vor dem Start, ein Passwort hält die anderen draußen, und zehn Presets halten deine liebsten Konfigurationen griffbereit.",
