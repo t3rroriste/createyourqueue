@@ -13,8 +13,10 @@ Avant de le lancer, deux choses à savoir :
   comptes sont les tiens. La seule cible vivante autorisée est le serveur
   local (`./cyq local`). Si tu veux un vrai test d'intrusion en ligne, il
   faut d'abord l'accord écrit des deux hébergeurs.
-- **Il ne publie rien.** La correction reste dans le dépôt, en commits. La
-  mise en ligne se demande séparément, après relecture.
+- **Il ne publie qu'à un seul moment.** La correction reste dans le dépôt, en
+  commits ; la mise en ligne se demande séparément, après relecture. La seule
+  exception est la phase 4 : à court de contexte, il range, il vérifie, il
+  commite et il publie, pour que tu puisses reprendre d'une base en ligne.
 
 ---
 
@@ -48,8 +50,8 @@ Et deux choses qui ne sont pas du code mais comptent autant : le fichier
    serveur du bot chez AdKyNet. Si une vérification demande vraiment une cible
    vivante, monte-la en local (`./cyq local`, `.claude/launch.json`) et dis-le
    dans le rapport.
-3. **Ne publie rien.** Ni `cyq publier`, ni `publier_site.py`, ni
-   `publier_bot.py`, ni un push forcé.
+3. **Ne publie rien de ta propre initiative**, sauf dans le cas unique décrit
+   en phase 4. Pas de push forcé, et jamais de redémarrage du bot.
 4. **N'ajoute aucune dépendance.** Le site n'en a qu'une, anime.js, copiée dans
    `site/assets/js/vendor/`. Le bot et l'outillage sont en Python. Une
    correction qui réclame une bibliothèque nouvelle se propose dans le rapport,
@@ -174,6 +176,53 @@ Et vérifie ce que tu corriges : sers le site en local, ouvre la page, regarde
 la console, teste le cas d'abus décrit dans le constat et montre qu'il ne
 marche plus. Dis ensuite ce que tu as vérifié et ce que tu n'as pas pu
 vérifier.
+
+## Phase 4 — quand tu arrives à court de contexte
+
+Cet audit est long, et tu n'iras probablement pas au bout d'une traite.
+**Quand il te reste moins de 15 % de contexte, arrête-toi de toi-même.**
+N'attends pas d'être au bout : à 5 %, tu n'as plus la place de ranger
+derrière toi.
+
+Dans cet ordre, et l'ordre compte :
+
+1. **Tu n'ouvres plus rien.** Pas de nouvel agent, pas de nouveau constat,
+   pas de correction commencée.
+2. **Tu rends le dépôt cohérent.** Une correction à moitié appliquée, tu la
+   défais (`git checkout --` sur ses fichiers) plutôt que de la laisser. Du
+   code de sécurité à demi écrit est plus dangereux que pas de correction du
+   tout : il donne l'illusion que le trou est bouché.
+3. **Tu fais passer les contrôles.** `python outils/numeroter_versions.py` si
+   tu as touché du CSS ou du JS, puis `./cyq verifier` — les trois relevés
+   doivent passer. S'ils ne passent pas, tu répares ça AVANT tout le reste.
+4. **Tu écris la reprise dans `docs/AUDIT-SECURITE.md`**, avant de publier :
+   l'état de chaque constat, où tu t'es arrêté exactement, et le premier
+   geste à faire au retour. Si tu tombes en panne pendant la publication, je
+   veux que cette note existe déjà.
+5. **Tu commites**, avec un message qui dit où en est l'audit.
+6. **Puis tu publies** : `./cyq publier`. C'est une autorisation donnée ici,
+   d'avance, et elle ne vaut QUE pour ce cas-là — à court de contexte, après
+   les cinq étapes ci-dessus. Pas pour publier au fil de l'eau.
+7. **Tu finis par trois lignes** : ce qui est en ligne, ce qui ne l'est pas,
+   et la commande pour reprendre.
+
+Deux choses à savoir sur cette publication :
+
+- **Le site part tout de suite, le bot non.** `publier_site.py` envoie chez
+  LWS et c'est en ligne. `publier_bot.py` dépose les fichiers chez AdKyNet,
+  mais le bot qui tourne garde son ancien code jusqu'à
+  `python outils/redemarrer_bot.py`. **Ne le redémarre pas** : laisse-moi ce
+  geste. Il refuse de couper une queue en cours, et je préfère choisir le
+  moment.
+- **Aucune publication n'emporte les secrets.** `bot/.env` et
+  `site/api/secrets.php` ne sont dans aucune liste d'envoi, délibérément.
+  Tu n'as rien à faire de ce côté.
+
+Et la règle qui passe avant « vite » : **tu ne publies jamais ce que tu n'as
+pas vérifié**. Si au moment de t'arrêter la dernière correction n'est pas
+testée, tu la défais et tu publies sans elle. Publier vite, ce n'est pas
+publier n'importe quoi — une faille non corrigée me laisse là où j'étais, un
+site cassé me met plus bas.
 
 ## Ce que j'attends à la fin
 
