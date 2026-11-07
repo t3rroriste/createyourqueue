@@ -24,6 +24,10 @@ COMMUN = [
     "assets/img/logo.png",
     "assets/js/app.js",
     "assets/js/config.js",
+    # La boucle du titre qui se tape, partagée par l'accueil et la page
+    # Modules : elle vivait dans page-home.js, elle a son fichier depuis
+    # qu'une deuxième page la réclame.
+    "assets/js/frappe.js",
     # Chargé dans le <head> de TOUTES les pages, avant les feuilles de
     # style : il pose le thème avant la première peinture. Absent en
     # ligne, chaque page s'afficherait en sombre puis basculerait.

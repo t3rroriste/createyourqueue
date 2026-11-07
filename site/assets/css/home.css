@@ -401,7 +401,7 @@ html::-webkit-scrollbar { display: none; }
    `pre-wrap` sur la partie animée : la phrase se coupe souvent sur une
    espace au milieu de la frappe, et une espace finale repliée décalerait
    le curseur d'un caractère à chaque mot.                               */
-.hero__type { white-space: pre-wrap; }
+.frappe__txt { white-space: pre-wrap; }
 
 /* Le curseur. Un pseudo-élément, et jamais un « | » posé dans le DOM : un
    lecteur d'écran lirait la barre verticale au milieu du titre. Un
@@ -411,7 +411,7 @@ html::-webkit-scrollbar { display: none; }
    C'est l'unique emploi du cuivre dans le héros : la flèche du bouton
    d'invitation est la même teinte, mais elle est dans la coque, pas dans
    le titre — un seul accent par regard. */
-.hero__title.is-typing::after {
+.frappe.is-typing::after {
   content: ""; display: inline-block;
   width: .055em; height: .78em; margin-left: .07em;
   vertical-align: -.04em;
