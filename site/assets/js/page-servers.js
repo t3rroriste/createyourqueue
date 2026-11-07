@@ -518,9 +518,19 @@
     CYQ.api.get('/me').then(rendreCompte).catch(function () { rendreCompte(null); });
   }
 
+  /* Le jeton local ne suffit plus : la session de l'API est un COOKIE,
+     que seul le serveur peut invalider. Tant qu'on ne le lui demandait
+     pas, « se déconnecter » ne faisait qu'oublier le jeton de ce
+     navigateur — et depuis que l'écran de connexion vérifie la session
+     avant de s'afficher, il aurait renvoyé aussitôt sur le choix du
+     serveur, toujours connecté. Le panneau le faisait déjà ; cette page
+     ne le faisait pas. On part dans les deux cas, réussite ou échec :
+     rester ici après avoir cliqué serait le pire des deux. */
   function deconnecter() {
     sessionSet(KEY_TOKEN, null);
-    location.href = CYQ.loginUrl() || 'login';
+    var aller = function () { location.href = CYQ.loginUrl() || 'login'; };
+    if (CYQ.api.configured) CYQ.api.post('/auth/logout', {}).then(aller, aller);
+    else aller();
   }
 
   /* -------------------------------------------------------------- motion */

@@ -28,6 +28,7 @@ window.CYQ_I18N.de = {
   "f.pitch": "Der Discord-Bot, der deine Warteschlangen organisiert und die Teams zusammenstellt.",
   "f.product": "Produkt", "f.community": "Community",
   "f.discord": "Discord-Server",
+  "f.dashboard": "Dashboard",
 
   /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
 
@@ -57,7 +58,6 @@ window.CYQ_I18N.de = {
   "demo.title": "Die Queue füllt sich, die Teams entstehen",
   "demo.lead": "Zehn Spieler treten über die Buttons ein. Der Bot stellt die Teams zusammen, erstellt die Sprachkanäle und zieht alle hinein.",
 
-  "mg.title": "Sechs Module, ein Bot",
   "mg.more": "Mehr erfahren",
   "mg.queue": "Die Warteschlange und die Teamzusammenstellung: 2 bis 6 Teams, gewählte Kapitäne, ein Warte-Sprachkanal und zehn Presets.",
   "mg.mmr": "Die Rangliste pflegt sich selbst: Startpunkte, Gewinne, MVP- und Serienbonus.",

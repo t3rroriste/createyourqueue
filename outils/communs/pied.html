@@ -7,6 +7,10 @@
        origine   site (la vitrine) · externe (status, sur son sous-domaine)
        statut    oui · non (la pastille « État du service »)
 
+     `origine=externe` retire aussi la phrase de marque : sur la page
+     d'état, on ne vient pas lire ce que le bot fait, on vient voir s'il
+     répond.
+
      `statut=non` sur la page d'état elle-même : un lien vers soi-même, au
      pied de la page vers laquelle il mène, n'est pas un raccourci. -->
 <footer class="foot">
@@ -17,7 +21,9 @@
         <img src="assets/img/logo.png" alt="" width="26" height="26">
         <span>CreateYourQueue</span>
       </a>
+{{si origine=site}}
       <p class="foot__pitch" data-i18n="f.pitch">Le bot Discord qui organise vos files d'attente et compose les équipes.</p>
+{{/si}}
 {{si statut=oui}}
       <a class="foot__status" href="#" data-cfg-link="STATUS_URL">
         <span class="dot" aria-hidden="true"></span>
@@ -32,7 +38,7 @@
       <!-- href="guide" et non "#" : voir le fragment de la nav, même
            raison — le lien doit mener quelque part sans DOCS_URL. -->
       <a href="guide"{{si origine=externe}} data-site="guide"{{/si}} data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
-      <a href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
+      <a href="login" data-app="login" data-i18n="f.dashboard">Dashboard</a>
     </nav>
 
     <nav class="foot__col" aria-labelledby="pied-communaute">

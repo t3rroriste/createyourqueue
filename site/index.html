@@ -15,7 +15,7 @@
 <!-- AVANT les feuilles de style, et sans defer : il pose data-theme
      pendant que le navigateur lit encore l'en-tête, donc avant
      d'avoir rien peint. Voir le fichier pour le pourquoi. -->
-<script src="assets/js/theme-tot.js?v=202611071340"></script>
+<script src="assets/js/theme-tot.js?v=202611071342"></script>
 <link rel="icon" href="assets/img/logo.png">
 <!-- L'ADRESSE CANONIQUE ET LES CINQ LANGUES.
 
@@ -41,14 +41,14 @@
 <!-- Deux requêtes séparées : si Geist n'est pas servi, Archivo charge quand même. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="assets/css/home.css?v=202611071340">
+<link rel="stylesheet" href="assets/css/home.css?v=202611071342">
 <!-- modules.css, pour ses maquettes Discord et elles seules : l'accueil ne
      reprend plus les six sections de la page Modules, mais il affiche deux
      embeds — dans le héros et dans la démo — et c'est cette feuille qui
      sait les dessiner. Une seconde grammaire d'embed se contredirait avec
      celle-ci au premier changement de couleur. -->
-<link rel="stylesheet" href="assets/css/modules.css?v=202611071340">
-<link rel="stylesheet" href="assets/css/film.css?v=202611071340">
+<link rel="stylesheet" href="assets/css/modules.css?v=202611071342">
+<link rel="stylesheet" href="assets/css/film.css?v=202611071342">
 <script>
 // Le titre est masqué jusqu'à ce que sa hauteur soit mesurée et sa boucle de
 // frappe prête, sinon on le voit d'abord entier puis se vider d'un coup. Le
@@ -829,13 +829,15 @@
        Elle remplace la page Modules reprise en entier. Celle-ci reste en
        place et garde ses ancres : chaque carte y mène. Un résumé qui ne
        mène nulle part serait un second texte à tenir à jour, et il
-       finirait par mentir. -->
-  <section class="bloc mods" data-mod>
-    <div class="sect__head">
-      <p class="label" data-reveal-text data-i18n="m.eyebrow">Les modules</p>
-      <h2 class="sect__title" id="modules" data-reveal-text data-i18n="mg.title">Six modules, un seul bot</h2>
-    </div>
+       finirait par mentir.
 
+       PAS DE TITRE DE SECTION. « Les modules / Six modules, un seul bot »
+       annonçait ce que les six rangées montrent d'elles-mêmes dès la
+       première : un surtitre et un titre de plus à lire avant de voir le
+       produit. L'ancre `#modules` passe sur la section — elle circule
+       dans des liens, elle ne disparaît pas avec le titre qui la
+       portait. -->
+  <section class="bloc mods" id="modules" data-mod>
     <!-- Ce que la fenêtre d'un module montrait — sa scène Discord, son
          titre, son texte long — est posé directement, une rangée par
          module. Plus de clic pour voir le produit : on le voit en
@@ -1549,9 +1551,13 @@
   <section class="ctafin" data-mod>
     <h2 class="sect__title" data-reveal-text data-i18n="cta.title">Prêt à lancer ta première queue ?</h2>
     <p class="lead" data-reveal-text data-i18n="cta.lead">En deux minutes, le bot est sur ton serveur et ta première file d'attente est ouverte.</p>
-    <a class="pill" href="#" data-invite>
-      <span data-i18n="h.invite">Invite le bot sur un serveur</span>
-      <span class="pill__arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+    <!-- Le même bouton que dans le héros et sous chaque module : bleu
+         Discord, logo à gauche. C'est le seul geste de la page qui mène
+         hors du site, et il se reconnaît partout à la même forme. La
+         flèche s'en va avec le reste : le logo dit déjà où l'on part. -->
+    <a class="pill pill--discord" href="#" data-invite>
+      <svg width="18" height="14" aria-hidden="true"><use href="#ico-discord"/></svg>
+      <span data-i18n="h.invite">Ajouter à Discord</span>
     </a>
   </section>
 
@@ -1582,7 +1588,7 @@
         <!-- href="guide" et non "#" : voir le fragment de la nav, même
              raison — le lien doit mener quelque part sans DOCS_URL. -->
         <a href="guide" data-cfg-link="DOCS_URL" data-i18n="n.docs">Documentation</a>
-        <a href="servers" data-app="servers" data-i18n="m.cta">Ouvrir le panneau</a>
+        <a href="login" data-app="login" data-i18n="f.dashboard">Dashboard</a>
       </nav>
 
       <nav class="foot__col" aria-labelledby="pied-communaute">
@@ -1705,25 +1711,25 @@
   </div>
 </div>
 
-<script src="assets/js/vendor/anime.umd.min.js?v=202611071340"></script>
-<script src="assets/js/config.js?v=202611071340"></script>
-<script src="assets/js/lang/fr.js?v=202611071340"></script>
-<script src="assets/js/lang/en.js?v=202611071340"></script>
-<script src="assets/js/lang/es.js?v=202611071340"></script>
-<script src="assets/js/lang/de.js?v=202611071340"></script>
-<script src="assets/js/lang/ko.js?v=202611071340"></script>
-<script src="assets/js/app.js?v=202611071340"></script>
+<script src="assets/js/vendor/anime.umd.min.js?v=202611071342"></script>
+<script src="assets/js/config.js?v=202611071342"></script>
+<script src="assets/js/lang/fr.js?v=202611071342"></script>
+<script src="assets/js/lang/en.js?v=202611071342"></script>
+<script src="assets/js/lang/es.js?v=202611071342"></script>
+<script src="assets/js/lang/de.js?v=202611071342"></script>
+<script src="assets/js/lang/ko.js?v=202611071342"></script>
+<script src="assets/js/app.js?v=202611071342"></script>
 <!-- Le film : ses textes (extraits des vrais fichiers de langue), son
      scénario, le minutage des cinq voix, puis le moteur. Quelques dizaines
      de Ko en tout ; les voix elles-mêmes ne partent qu'à l'ouverture. -->
-<script src="assets/js/film-textes.js?v=202611071340"></script>
-<script src="assets/js/film-scenario.js?v=202611071340"></script>
-<script src="assets/video/voix/fr.cues.js?v=202611071340"></script>
-<script src="assets/video/voix/en.cues.js?v=202611071340"></script>
-<script src="assets/video/voix/es.cues.js?v=202611071340"></script>
-<script src="assets/video/voix/de.cues.js?v=202611071340"></script>
-<script src="assets/video/voix/ko.cues.js?v=202611071340"></script>
-<script src="assets/js/film.js?v=202611071340"></script>
-<script src="assets/js/page-home.js?v=202611071340"></script>
+<script src="assets/js/film-textes.js?v=202611071342"></script>
+<script src="assets/js/film-scenario.js?v=202611071342"></script>
+<script src="assets/video/voix/fr.cues.js?v=202611071342"></script>
+<script src="assets/video/voix/en.cues.js?v=202611071342"></script>
+<script src="assets/video/voix/es.cues.js?v=202611071342"></script>
+<script src="assets/video/voix/de.cues.js?v=202611071342"></script>
+<script src="assets/video/voix/ko.cues.js?v=202611071342"></script>
+<script src="assets/js/film.js?v=202611071342"></script>
+<script src="assets/js/page-home.js?v=202611071342"></script>
 </body>
 </html>

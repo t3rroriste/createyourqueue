@@ -28,6 +28,7 @@ window.CYQ_I18N.fr = {
   "f.pitch": "Le bot Discord qui organise vos files d'attente et compose les équipes.",
   "f.product": "Produit", "f.community": "Communauté",
   "f.discord": "Serveur Discord",
+  "f.dashboard": "Dashboard",
 
   /* L'accueil refondu : les repères, les trois étapes, la démo, la grille
      des six modules, la communauté, la FAQ et l'appel final.
@@ -70,7 +71,6 @@ window.CYQ_I18N.fr = {
   "demo.title": "La file se remplit, les équipes se forment",
   "demo.lead": "Dix joueurs rejoignent par les boutons. Le bot compose les équipes, crée les salons vocaux et y déplace tout le monde.",
 
-  "mg.title": "Six modules, un seul bot",
   /* la seconde action d'une rangée : elle mène à la page Modules, à l'ancre du module */
   "mg.more": "En savoir plus",
   "mg.queue": "La file et la composition des équipes : de 2 à 6 équipes, capitaines élus, vocal d'attente et dix presets.",

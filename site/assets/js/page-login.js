@@ -289,6 +289,56 @@
       .add(enfants, { opacity: 1, y: 0, duration: 560, delay: A.stagger(70) }, 260);
   }
 
+  /* ------------------------------------------------ la session déjà ouverte */
+
+  /* Depuis que tous les « Dashboard » du site mènent ICI plutôt que droit
+     sur le choix du serveur, cette page doit répondre à une question de
+     plus : la session est-elle encore ouverte ? Elle est la seule à
+     pouvoir le faire avant d'afficher quoi que ce soit.
+
+     Sans ce détour, qui revenait sur le site après s'être connecté
+     retombait sur « Connecte ton compte Discord », alors qu'il l'était :
+     un écran qui ressemble à une panne, et un second aller-retour chez
+     Discord pour rien.
+
+     Le cookie de session est posé par l'API ; /me dit en un appel s'il
+     vaut encore. Sans API, il n'y a pas de session côté serveur à
+     consulter — le jeton de sessionStorage, lu juste avant, était la
+     seule réponse possible.
+
+     `replace` et non `href` : cette page n'a rien montré, elle n'a pas à
+     occuper une ligne de l'historique où le bouton « précédent »
+     renverrait.
+
+     LE MINUTEUR N'EST PAS UNE PRÉCAUTION DE STYLE. Tant que /me n'a pas
+     répondu, la page reste cachée (motion-pending) : une API lente, et
+     c'est un écran noir. Passé ce délai, on montre la connexion et on
+     ignore la réponse tardive — rediriger quelqu'un qui vient de cliquer
+     sur « Se connecter » serait pire que l'écran de trop. */
+  function enchainerSiDejaConnecte() {
+    if (!CYQ.api || !CYQ.api.configured) { montrer('login'); return; }
+
+    var repondu = false;
+    var trop_long = setTimeout(function () {
+      if (repondu) return;
+      repondu = true;
+      montrer('login');
+    }, 2500);
+
+    CYQ.api.get('/me').then(function (u) {
+      if (repondu) return;
+      repondu = true;
+      clearTimeout(trop_long);
+      if (u && u.id) { location.replace(CYQ.appUrl('servers')); return; }
+      montrer('login');
+    }).catch(function () {
+      if (repondu) return;
+      repondu = true;
+      clearTimeout(trop_long);
+      montrer('login');
+    });
+  }
+
   /* --------------------------------------------------------- orchestration */
 
   function demarrer() {
@@ -317,7 +367,7 @@
     }
 
     var jeton = sessionGet(KEY_TOKEN);
-    if (!jeton) { montrer('login'); return; }
+    if (!jeton) { enchainerSiDejaConnecte(); return; }
 
     montrer('invite');
     discord('/users/@me', jeton).then(function (u) {

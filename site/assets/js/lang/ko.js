@@ -28,6 +28,7 @@ window.CYQ_I18N.ko = {
   "f.pitch": "대기열을 정리하고 균형 잡힌 팀을 구성하는 디스코드 봇.",
   "f.product": "제품", "f.community": "커뮤니티",
   "f.discord": "디스코드 서버",
+  "f.dashboard": "대시보드",
 
   /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
 
@@ -57,7 +58,6 @@ window.CYQ_I18N.ko = {
   "demo.title": "대기열이 차고, 팀이 만들어집니다",
   "demo.lead": "열 명이 버튼으로 참가합니다. 봇이 팀을 구성하고 음성 채널을 만들어 모두를 옮깁니다.",
 
-  "mg.title": "여섯 개의 모듈, 하나의 봇",
   "mg.more": "자세히 보기",
   "mg.queue": "대기열과 팀 구성 — 2~6개 팀, 1~6명, 주장 투표, 대기 음성 채널, 프리셋 열 개.",
   "mg.mmr": "랭킹은 저절로 유지됩니다. 시작 점수, 승패 점수, MVP와 연승 보너스.",

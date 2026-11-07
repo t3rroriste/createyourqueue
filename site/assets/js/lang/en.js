@@ -28,6 +28,7 @@ window.CYQ_I18N.en = {
   "f.pitch": "The Discord bot that runs your queues and builds the teams.",
   "f.product": "Product", "f.community": "Community",
   "f.discord": "Discord server",
+  "f.dashboard": "Dashboard",
 
   /* L'accueil refondu — voir fr.js pour le détail de ces clés. */
 
@@ -57,7 +58,6 @@ window.CYQ_I18N.en = {
   "demo.title": "The queue fills up, the teams take shape",
   "demo.lead": "Ten players join with the buttons. The bot builds the teams, creates the voice channels and moves everyone in.",
 
-  "mg.title": "Six modules, one bot",
   "mg.more": "Learn more",
   "mg.queue": "The queue and team building: 2 to 6 teams, elected captains, a waiting voice channel and ten presets.",
   "mg.mmr": "The ranking keeps itself: starting points, gains, MVP and streak bonuses.",
