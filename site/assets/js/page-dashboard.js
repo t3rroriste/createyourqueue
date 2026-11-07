@@ -1559,7 +1559,7 @@
         titre = t('d.noApi'); texte = t('d.noApiBody');
       } else if (genre === 'session') {
         titre = t('st.sessionTitle'); texte = t('st.sessionBody');
-        action = '<a class="pill pill--sm" href="' + esc(CYQ.loginUrl() || 'login.html') + '">' + esc(t('st.sessionCta')) + '</a>';
+        action = '<a class="pill pill--sm" href="' + esc(CYQ.loginUrl() || 'login') + '">' + esc(t('st.sessionCta')) + '</a>';
       } else if (genre === 'botoff') {
         /* L'API a répondu, mais le bot, lui, n'a pas répondu à l'API : ce
            qu'on affiche vient de la copie du site et peut dater. Jusqu'ici
@@ -1682,7 +1682,7 @@
        local laisserait le cookie de session vivant. */
     function deconnecter() {
       sessionSet(KEY_TOKEN, null);
-      var aller = function () { location.href = CYQ.loginUrl() || 'login.html'; };
+      var aller = function () { location.href = CYQ.loginUrl() || 'login'; };
       if (CYQ.api.configured) CYQ.api.post('/auth/logout', {}).then(aller, aller);
       else aller();
     }

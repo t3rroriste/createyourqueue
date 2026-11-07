@@ -307,8 +307,13 @@
      c'est lui qui explique ce qui va être demandé, montre le logo Discord,
      puis enchaîne sur l'invitation du bot. Depuis la scission, cet écran
      est sur le sous-domaine, et le lien part donc en absolu depuis la
-     vitrine. */
-  CYQ.loginUrl = function () { return CYQ.appUrl('login.html'); };
+     vitrine.
+
+     La FORME COURTE, « /login » : c'est elle qui s'affiche dans la barre
+     d'adresse, et .htaccess sert la page sans redirection. login.html
+     continue de répondre 200 pour lui-même — c'est l'adresse de retour
+     OAuth déclarée chez Discord, et elle ne doit jamais être redirigée. */
+  CYQ.loginUrl = function () { return CYQ.appUrl('login'); };
 
   /* Le point d'entrée côté serveur, quand il existe. C'est LUI qui tire le
      state et garde le CLIENT_SECRET ; le site ne fait que suivre. */

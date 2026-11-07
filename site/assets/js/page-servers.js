@@ -330,7 +330,7 @@
     }
     if (etat === 'auth') {
       poser(vide(t('sv.needLogin'), t('sv.needLoginBody'), t('h.loginBtn'),
-                 CYQ.loginUrl() || 'login.html', true));
+                 CYQ.loginUrl() || 'login', true));
       elCount.textContent = '';
       return;
     }
@@ -520,7 +520,7 @@
 
   function deconnecter() {
     sessionSet(KEY_TOKEN, null);
-    location.href = CYQ.loginUrl() || 'login.html';
+    location.href = CYQ.loginUrl() || 'login';
   }
 
   /* -------------------------------------------------------------- motion */

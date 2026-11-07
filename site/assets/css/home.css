@@ -987,7 +987,7 @@ html::-webkit-scrollbar { display: none; }
 
 .vcard {
   position: relative;
-  width: min(1000px, 100%);
+  width: min(900px, 100%);
   margin: 0 auto;
   aspect-ratio: 16 / 9;
   border-radius: var(--r-shell);
