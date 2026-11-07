@@ -127,6 +127,11 @@
     entree();
     reveler();
     suivre();
+    /* Le titre peut se taper : les polices sont là, donc la hauteur qu'il
+       réserve est mesurée sur la bonne fonte. Sans anime.js, ce fichier
+       sort avant d'arriver ici et personne n'émet rien — c'est le filet
+       de frappe.js, 1 900 ms, qui lance la boucle. */
+    document.dispatchEvent(new CustomEvent('cyq:guide-pret'));
   }
 
   if (document.fonts && document.fonts.ready) {

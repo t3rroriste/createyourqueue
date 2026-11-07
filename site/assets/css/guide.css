@@ -20,7 +20,6 @@
   text-transform: lowercase;
   margin: 0 0 var(--sp-3);
 }
-.guide__lead { max-width: 52ch; margin: 0; }
 
 /* ============================== le sommaire ============================ */
 
